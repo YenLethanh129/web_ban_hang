@@ -1,0 +1,136 @@
+body {
+    background: linear-gradient(#134B70, #508C9B)
+}
+
+/* .container {
+    
+} */
+
+.intro-section {
+    text-align: center;
+    color: white;
+    padding: 20px;
+}
+
+.search-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.search-input {
+    width: 300px;
+    background-color: #201E43;
+    margin-right: 10px;
+    border-color: #EEEEEE;
+    color: white;
+}
+
+.form-control {
+    background-color: transparent;
+    color: white;
+}
+
+.form-control::placeholder {
+    color: #ffffffd5;
+}
+
+.product-item {
+    background-color: #201E43;
+    border: 1px solid #423e8d;
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.product-category {
+    width: 200px;
+}
+
+.product-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.product-name {
+    color: white;
+}
+
+.product-description {
+    color: rgba(255, 255, 255, 0.648);
+}
+
+.product-price {
+    color: white;
+}
+
+.thumbnail-container {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.thumbnail-item {
+    width: 120px;
+    height: 120px;
+    margin-right: 5px;
+}
+
+.thumbnail-item:last-child {
+    margin-right: 0;
+}
+
+.thumbnail-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.thumbnail-item.active{
+    border: 2px solid white;
+}
+
+.product-details {
+    color: white;
+    padding: 20px;
+}
+
+.product-actions {
+    display: flex;
+    justify-content: flex-start;
+    margin-top: 20px;
+}
+
+.product-actions button {
+    margin-right: 10px;
+}
+
+.boder-wrapper {
+    border: 1px solid white;
+}
+
+.product-quantity {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    margin-top: 10px;
+}
+
+.product-quantity button {
+    background-color: transparent;
+    border: 1px solid white;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.product-quantity input {
+    width: 40px;
+    background-color: transparent;
+    color: white;
+    border: 1px solid white;
+    text-align: center;
+}
