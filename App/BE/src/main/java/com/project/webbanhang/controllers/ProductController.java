@@ -47,9 +47,10 @@ public class ProductController {
         return ResponseEntity.ok("Get product with id: " + productId);
     }
 
-    @PostMapping(value = "", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> insertProduct(
-            @Valid @ModelAttribute ProductDTO productDTO,
+    //@PostMapping(value = "", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping("")
+    public ResponseEntity<?> createProduct(
+            @Valid @RequestBody ProductDTO productDTO,
             //@RequestPart("file") MultipartFile file,
             BindingResult result
     ) {
@@ -63,11 +64,24 @@ public class ProductController {
                 return ResponseEntity.badRequest().body(errorMessages);
             }
             
-            Product newProduct = productService.createProduct(productDTO);
+            productService.createProduct(productDTO);
 
-            // Kiểm tra kích thước file và định dạng
-            List<MultipartFile> files = productDTO.getFiles();
+            return ResponseEntity.ok("Insert product successfully");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+    
+    @PostMapping(value = "uploads/{id}",
+    		consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> uploadImages(
+    		@PathVariable("id") Long productId,
+    		@ModelAttribute("files") List<MultipartFile> files
+    ){
+    	try {
+    		Product existingProduct = productService.getProductById(productId);
             files = files == null ? new ArrayList<MultipartFile>() : files;
+            //List<ProductImage> productImages = new ArrayList<>();
             for (MultipartFile file : files) {
                 if (file.getSize() == 0) {
                     continue;
@@ -82,14 +96,13 @@ public class ProductController {
                 String fileName = storeFile(file);
                 
                 ProductImage productImage = productService.createProductImage(
-                		newProduct.getId(), 
+                		existingProduct.getId(),
                 		ProductImageDTO.builder()
                 			.imageUrl(fileName)
                 			.build());
             }
-
-            return ResponseEntity.ok("Insert product successfully");
-        } catch (Exception e) {
+            return ResponseEntity.ok("Add image product with id:" + productId);
+    	} catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }

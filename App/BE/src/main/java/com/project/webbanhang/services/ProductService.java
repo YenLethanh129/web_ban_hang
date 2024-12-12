@@ -17,7 +17,6 @@ import com.project.webbanhang.models.ProductImage;
 import com.project.webbanhang.repositories.CategoryRepository;
 import com.project.webbanhang.repositories.ProductRepository;
 import com.project.webbanhang.repositories.ProductmageRepository;
-import com.project.webbanhang.repositories.ProductImageRepository;
 
 import lombok.RequiredArgsConstructor;
 
