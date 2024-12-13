@@ -2,6 +2,8 @@ package com.project.webbanhang.controllers;
 
 import com.project.webbanhang.dtos.ProductDTO;
 import com.project.webbanhang.dtos.ProductImageDTO;
+import com.project.webbanhang.exceptions.DataNotFoundException;
+import com.project.webbanhang.exceptions.InvalidParamException;
 import com.project.webbanhang.models.Product;
 import com.project.webbanhang.models.ProductImage;
 import com.project.webbanhang.services.IProductService;
@@ -76,12 +78,17 @@ public class ProductController {
     		consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> uploadImages(
     		@PathVariable("id") Long productId,
-    		@ModelAttribute("files") List<MultipartFile> files
+    		@RequestParam("files") List<MultipartFile> files
     ){
     	try {
     		Product existingProduct = productService.getProductById(productId);
-            files = files == null ? new ArrayList<MultipartFile>() : files;
-            //List<ProductImage> productImages = new ArrayList<>();
+    		if (files == null || files.isEmpty() || (files.size() == 1 && files.get(0).getOriginalFilename().isEmpty())) { 
+    			return ResponseEntity.badRequest().body("No image is selected!"); 
+    		}
+            if (files.size() > 5) { 
+            	return ResponseEntity.badRequest().body("You can only upload maximun 5 images!");
+            }
+            List<ProductImage> productImages = new ArrayList<>();
             for (MultipartFile file : files) {
                 if (file.getSize() == 0) {
                     continue;
@@ -99,9 +106,13 @@ public class ProductController {
                 		existingProduct.getId(),
                 		ProductImageDTO.builder()
                 			.imageUrl(fileName)
-                			.build());
+                			.build()
+                );
+                productImages.add(productImage);
             }
-            return ResponseEntity.ok("Add image product with id:" + productId);
+            return ResponseEntity.ok().body(productImages);
+    	} catch (DataNotFoundException | InvalidParamException e) {
+    		return ResponseEntity.badRequest().body(e.getMessage());
     	} catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

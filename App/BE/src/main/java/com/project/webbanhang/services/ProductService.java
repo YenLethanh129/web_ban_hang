@@ -86,7 +86,7 @@ public class ProductService implements IProductService{
 	@Override
 	public ProductImage createProductImage(Long productId, ProductImageDTO productImageDTO) throws DataNotFoundException, InvalidParamException {
 		Product existingProduct = productRepository.findById(productId)
-				.orElseThrow(() -> new DataNotFoundException("Can't found category with id " + productId));
+				.orElseThrow(() -> new DataNotFoundException("Can't found product with id " + productId));
 		
 		ProductImage newProductImage = ProductImage.builder()
 				.product(existingProduct)
@@ -95,7 +95,7 @@ public class ProductService implements IProductService{
 		
 		int size = productImageRepository.findByProductId(productId).size();
 		if (size >= 5) {
-			throw new InvalidParamException("Number of image must <= 5");
+			throw new InvalidParamException("This product had 5 images, delete some it if you want push more!");
 		}
 		return productImageRepository.save(newProductImage);
 	}
