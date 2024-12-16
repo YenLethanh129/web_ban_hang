@@ -17,6 +17,7 @@ import com.project.webbanhang.models.ProductImage;
 import com.project.webbanhang.repositories.CategoryRepository;
 import com.project.webbanhang.repositories.ProductRepository;
 import com.project.webbanhang.repositories.ProductmageRepository;
+import com.project.webbanhang.response.ProductResponse;
 
 import lombok.RequiredArgsConstructor;
 
@@ -50,9 +51,17 @@ public class ProductService implements IProductService{
 	}
 
 	@Override
-	public Page<Product> getAllProducts(PageRequest pageRequest) {
+	public Page<ProductResponse> getAllProducts(PageRequest pageRequest) {
 		// TODO Auto-generated method stub
-		return productRepository.findAll(pageRequest);
+		return productRepository.findAll(pageRequest).map(product -> {
+			ProductResponse productResponse = ProductResponse.builder()
+					.name(product.getName())
+					.price(product.getPrice())
+					.thumbnail(product.getThumbnail())
+					.description(product.getDescription())
+					.categoryId(product.getCategory().getId())
+					.build();
+		});
 	}
 
 	@Override

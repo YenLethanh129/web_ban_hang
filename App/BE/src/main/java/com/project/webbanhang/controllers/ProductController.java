@@ -11,6 +11,9 @@ import com.project.webbanhang.services.IProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -37,11 +40,21 @@ public class ProductController {
 	private final IProductService productService;
 
     @GetMapping("")
-    public ResponseEntity<String> getProducts(
+    public ResponseEntity<?> getProducts(
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "limit", defaultValue = "10") int limit
     ) {
-        return ResponseEntity.ok("Get products");
+    	try {
+    		PageRequest pageRequest = PageRequest.of(page, limit, Sort.by("createdAt").descending());
+        	Page<Product> productPage = productService.getAllProducts(pageRequest);
+        	List<Product> products = productPage.getContent();
+        	
+        	int totalPages = productPage.getTotalPages();
+        	
+            return ResponseEntity.ok(products);
+		} catch (Exception e) {
+			return ResponseEntity.badRequest().body(e.getMessage());
+		}
     }
 
     @GetMapping("/{id}")
@@ -49,7 +62,7 @@ public class ProductController {
         return ResponseEntity.ok("Get product with id: " + productId);
     }
 
-    //@PostMapping(value = "", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    //@PostMapping(value = "", consumes = MediaType.MULTIPART_FORM_DATA_VALUE) - Done
     @PostMapping("")
     public ResponseEntity<?> createProduct(
             @Valid @RequestBody ProductDTO productDTO,
@@ -74,6 +87,7 @@ public class ProductController {
         }
     }
     
+    // Done
     @PostMapping(value = "uploads/{id}",
     		consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> uploadImages(
@@ -128,7 +142,7 @@ public class ProductController {
         return ResponseEntity.ok("Delete product with id: " + id);
     }
 
-    // Lưu ảnh vào thư mục
+    // Lưu ảnh vào thư mục - Done
     private String storeFile(MultipartFile file) throws IOException {
         String fileName = StringUtils.cleanPath(file.getOriginalFilename());
         String uniqueFileName = UUID.randomUUID().toString() + "_" + fileName;

@@ -2,7 +2,6 @@ package com.project.webbanhang.services;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.stereotype.Service;
 
 import com.project.webbanhang.dtos.ProductDTO;
 import com.project.webbanhang.dtos.ProductImageDTO;
@@ -10,6 +9,7 @@ import com.project.webbanhang.exceptions.DataNotFoundException;
 import com.project.webbanhang.exceptions.InvalidParamException;
 import com.project.webbanhang.models.Product;
 import com.project.webbanhang.models.ProductImage;
+import com.project.webbanhang.response.ProductResponse;
 
 
 public interface IProductService {
@@ -18,7 +18,7 @@ public interface IProductService {
 	
 	Product getProductById(Long id) throws DataNotFoundException;
 	
-	Page<Product> getAllProducts(PageRequest pageRequest);
+	Page<ProductResponse> getAllProducts(PageRequest pageRequest);
 	
 	Product updateProduct(Long id, ProductDTO productDTO) throws DataNotFoundException;
 	
