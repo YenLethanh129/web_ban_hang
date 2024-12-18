@@ -6,6 +6,7 @@ import com.project.webbanhang.exceptions.DataNotFoundException;
 import com.project.webbanhang.exceptions.InvalidParamException;
 import com.project.webbanhang.models.Product;
 import com.project.webbanhang.models.ProductImage;
+import com.project.webbanhang.response.ProductResponse;
 import com.project.webbanhang.services.IProductService;
 
 import jakarta.validation.Valid;
@@ -46,8 +47,8 @@ public class ProductController {
     ) {
     	try {
     		PageRequest pageRequest = PageRequest.of(page, limit, Sort.by("createdAt").descending());
-        	Page<Product> productPage = productService.getAllProducts(pageRequest);
-        	List<Product> products = productPage.getContent();
+        	Page<ProductResponse> productPage = productService.getAllProducts(pageRequest);
+        	List<ProductResponse> products = productPage.getContent();
         	
         	int totalPages = productPage.getTotalPages();
         	

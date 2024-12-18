@@ -52,7 +52,6 @@ public class ProductService implements IProductService{
 
 	@Override
 	public Page<ProductResponse> getAllProducts(PageRequest pageRequest) {
-		// TODO Auto-generated method stub
 		return productRepository.findAll(pageRequest).map(product -> {
 			ProductResponse productResponse = ProductResponse.builder()
 					.name(product.getName())
@@ -61,6 +60,9 @@ public class ProductService implements IProductService{
 					.description(product.getDescription())
 					.categoryId(product.getCategory().getId())
 					.build();
+			productResponse.setCreatedAt(product.getCreatedAt());
+			productResponse.setUpdatedAt(product.getUpdatedAt());
+			return productResponse;
 		});
 	}
 
