@@ -6,6 +6,7 @@ import com.project.webbanhang.exceptions.DataNotFoundException;
 import com.project.webbanhang.exceptions.InvalidParamException;
 import com.project.webbanhang.models.Product;
 import com.project.webbanhang.models.ProductImage;
+import com.project.webbanhang.response.ProductListResponse;
 import com.project.webbanhang.response.ProductResponse;
 import com.project.webbanhang.services.IProductService;
 
@@ -52,7 +53,12 @@ public class ProductController {
         	
         	int totalPages = productPage.getTotalPages();
         	
-            return ResponseEntity.ok(products);
+        	ProductListResponse productListResponse = ProductListResponse.builder()
+        			.products(products)
+        			.totalPage(totalPages)
+        			.build();
+        	
+            return ResponseEntity.ok(productListResponse);
 		} catch (Exception e) {
 			return ResponseEntity.badRequest().body(e.getMessage());
 		}
