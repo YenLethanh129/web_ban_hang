@@ -39,6 +39,7 @@ public class ProductService implements IProductService{
 				.name(productDTO.getName())
 				.price(productDTO.getPrice())
 				.thumbnail(productDTO.getThumbnail())
+				.description(productDTO.getDescription())
 				.category(existingCategory)
 				.build();
 		return productRepository.save(newProduct);
@@ -52,23 +53,13 @@ public class ProductService implements IProductService{
 
 	@Override
 	public Page<ProductResponse> getAllProducts(PageRequest pageRequest) {
-		return productRepository.findAll(pageRequest).map(product -> {
-			ProductResponse productResponse = ProductResponse.builder()
-					.name(product.getName())
-					.price(product.getPrice())
-					.thumbnail(product.getThumbnail())
-					.description(product.getDescription())
-					.categoryId(product.getCategory().getId())
-					.build();
-			productResponse.setCreatedAt(product.getCreatedAt());
-			productResponse.setUpdatedAt(product.getUpdatedAt());
-			return productResponse;
-		});
+		return productRepository.findAll(pageRequest)
+				.map(ProductResponse::fromProduct);
 	}
 
 	@Override
 	public Product updateProduct(Long id, ProductDTO productDTO) throws DataNotFoundException {
-		Product existingProduct = getProductById(productDTO.getCategoryId());
+		Product existingProduct = getProductById(id);
 		
 		Category existingCategory = categoryRepository
 				.findById(productDTO.getCategoryId())
@@ -91,7 +82,7 @@ public class ProductService implements IProductService{
 
 	@Override
 	public boolean existsByName(String nameProduct) {
-		return existsByName(nameProduct);
+		return productRepository.existsByName(nameProduct);
 	}
 	
 	@Override
