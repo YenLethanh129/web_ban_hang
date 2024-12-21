@@ -1,7 +1,12 @@
 package com.project.webbanhang.controllers;
 
 import com.project.webbanhang.dtos.OrderDTO;
+import com.project.webbanhang.response.OrderResponse;
+import com.project.webbanhang.services.IOrderService;
+
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -10,8 +15,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("${api.prefix}/orders")
 public class OrderController {
+	
+	private final IOrderService orderService;
 
     @PostMapping("")
     public ResponseEntity<?> createOrder(
@@ -26,7 +34,10 @@ public class OrderController {
                         .toList();
                 return ResponseEntity.badRequest().body(errorMessages);
             }
-            return ResponseEntity.ok("Create order successfully orderDTO: " + orderDTO.getNote());
+            
+            OrderResponse existingOrderResponse = orderService.createOrder(orderDTO);
+            
+            return ResponseEntity.ok(existingOrderResponse);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Create order failed");
         }

@@ -1,36 +1,35 @@
-package com.project.webbanhang.models;
+package com.project.webbanhang.response;
 
 import java.util.Date;
 
-import jakarta.persistence.*;
-import lombok.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-@Entity
-@Data
+import jakarta.persistence.Column;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Builder
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Setter
-@Getter
-@Table(name = "orders")
-public class Order {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
+public class OrderResponse extends BaseResponse{
+    @JsonProperty("user_id")
+    private Long userId;
     
-    @Column(name = "fullname", length = 100)
+    @JsonProperty("fullname")
     private String fullName;
     
-    @Column(name = "email", length = 100)
+    @JsonProperty("email")
     private String email;
     
-    @Column(name = "phone_number", nullable = false, length = 20)
+    @JsonProperty("phone_number")
     private String phoneNumber;
     
-    @Column(name = "address", nullable = false, length = 200)
+    @JsonProperty("address")
     private String address;
     
     @Column(name = "note")

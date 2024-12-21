@@ -22,6 +22,7 @@ public class OrderDTO {
 
     private String email;
 
+    @JsonProperty("phone_number")
     private String phoneNumber;
 
     private String address;
@@ -34,6 +35,9 @@ public class OrderDTO {
 
     @JsonProperty("shipping_method")
     private String shippingMethod;
+    
+    @JsonProperty("shipping_date")
+    private Date shippingDate;
 
     @JsonProperty("shipping_address")
     private String shippingAddress;
