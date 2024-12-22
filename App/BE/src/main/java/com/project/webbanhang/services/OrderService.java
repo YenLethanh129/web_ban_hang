@@ -1,5 +1,6 @@
 package com.project.webbanhang.services;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -40,12 +41,7 @@ public class OrderService implements IOrderService{
 		order.setIsActive(true);
 		orderRepository.save(order);
 		
-        modelMapper.typeMap(Order.class, OrderResponse.class)
-			.addMappings(mapper -> mapper.skip(OrderResponse::setUserId));
-        OrderResponse existingOrderResponse = new OrderResponse();
-        modelMapper.map(order, existingOrderResponse);
-        existingOrderResponse.setUserId(user.getId());
-		return existingOrderResponse;
+		return mapOrderToOrderResponse(order);
 	}
 
 	@Override
@@ -72,4 +68,27 @@ public class OrderService implements IOrderService{
 		
 	}
 
+	@Override
+	public List<OrderResponse> findByUserId(Long userId) {
+		
+		List<Order> existingOrders = orderRepository.findByUser_Id(userId);
+		List<OrderResponse> existingOrderResponses = new ArrayList<>();
+		
+		for (Order order : existingOrders) {
+			existingOrderResponses.add(mapOrderToOrderResponse(order));
+		}
+		
+		return existingOrderResponses;
+	}
+
+
+	private OrderResponse mapOrderToOrderResponse(Order order) {
+		modelMapper.typeMap(Order.class, OrderResponse.class)
+			.addMappings(mapper -> mapper.skip(OrderResponse::setUserId));
+		OrderResponse existingOrderResponse = new OrderResponse();
+		modelMapper.map(order, existingOrderResponse);
+    	existingOrderResponse.setUserId(order.getUser().getId());
+    	
+		return existingOrderResponse;
+	}
 }

@@ -13,6 +13,8 @@ public interface IOrderService {
 	
 	Order getOrderById(Long orderId);
 	
+	List<OrderResponse> findByUserId(Long userId);
+	
 	Order updateOrder(Long orderId);
 	
 	List<Order> getAllOrders(Long userId);

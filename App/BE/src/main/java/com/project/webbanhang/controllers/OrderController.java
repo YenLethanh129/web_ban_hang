@@ -21,6 +21,7 @@ public class OrderController {
 	
 	private final IOrderService orderService;
 
+	// Done
     @PostMapping("")
     public ResponseEntity<?> createOrder(
             @RequestBody @Valid OrderDTO orderDTO,
@@ -42,11 +43,41 @@ public class OrderController {
             return ResponseEntity.badRequest().body("Create order failed");
         }
     }
-
-    @GetMapping("/{user_id}")
-    public ResponseEntity<?> getOrdersByUserId(@Valid @PathVariable("user_id") Long userId) {
+    
+    @GetMapping("/{order_id}")
+    public ResponseEntity<?> getOrder(
+    		@Valid @PathVariable("order_id") Long userId
+    ) {
         try {
+        	
+        	orderService.findByUserId(userId);
+        	
             return ResponseEntity.ok("Get orders by user id: " + userId);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Get orders failed");
+        }
+    }
+    
+    @GetMapping("")
+    public ResponseEntity<?> getAllOrders(
+    ) {
+        try {
+
+            return ResponseEntity.ok("Get orders");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Get orders failed");
+        }
+    }
+
+    @GetMapping("/user/{user_id}")
+    public ResponseEntity<?> getOrdersByUserId(
+    		@Valid @PathVariable("user_id") Long userId
+    ) {
+        try {
+        	
+        	List<OrderResponse> existingOrderResponses = orderService.findByUserId(userId);
+        	
+            return ResponseEntity.ok(existingOrderResponses);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Get orders failed");
         }
