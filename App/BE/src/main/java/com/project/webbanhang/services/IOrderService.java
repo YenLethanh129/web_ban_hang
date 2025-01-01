@@ -4,20 +4,19 @@ import java.util.List;
 
 import com.project.webbanhang.dtos.OrderDTO;
 import com.project.webbanhang.exceptions.DataNotFoundException;
-import com.project.webbanhang.models.Order;
 import com.project.webbanhang.response.OrderResponse;
 
 public interface IOrderService {
 
 	OrderResponse createOrder(OrderDTO orderDTO) throws DataNotFoundException;
 	
-	Order getOrderById(Long orderId);
+	OrderResponse getOrderById(Long orderId) throws DataNotFoundException;
 	
 	List<OrderResponse> findByUserId(Long userId);
 	
-	Order updateOrder(Long orderId);
+	OrderResponse updateOrder(Long orderId, OrderDTO orderDTO) throws DataNotFoundException;
 	
-	List<Order> getAllOrders(Long userId);
+	List<OrderResponse> getAllOrders();
 	
 	void deleteOrder(Long orderId);
 }

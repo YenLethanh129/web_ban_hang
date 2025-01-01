@@ -1,6 +1,5 @@
 package com.project.webbanhang.services;
 
-import java.security.InvalidParameterException;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -29,6 +28,7 @@ public class ProductService implements IProductService{
 	private final CategoryRepository categoryRepository;
 	private final ProductmageRepository productImageRepository;
 
+	// Done
 	@Override
 	public Product createProduct(ProductDTO productDTO) throws DataNotFoundException {
 		Category existingCategory = categoryRepository
@@ -45,18 +45,21 @@ public class ProductService implements IProductService{
 		return productRepository.save(newProduct);
 	}
 
+	// Done
 	@Override
 	public Product getProductById(Long id) throws DataNotFoundException {
 		return productRepository.findById(id)
 				.orElseThrow(() -> new DataNotFoundException("Can't found product with id " + id));
 	}
 
+	// Done
 	@Override
 	public Page<ProductResponse> getAllProducts(PageRequest pageRequest) {
 		return productRepository.findAll(pageRequest)
 				.map(ProductResponse::fromProduct);
 	}
 
+	// Done
 	@Override
 	public Product updateProduct(Long id, ProductDTO productDTO) throws DataNotFoundException {
 		Product existingProduct = getProductById(id);

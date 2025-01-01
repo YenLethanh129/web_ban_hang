@@ -43,32 +43,37 @@ public class OrderController {
             return ResponseEntity.badRequest().body("Create order failed");
         }
     }
-    
+
+    // Done
     @GetMapping("/{order_id}")
     public ResponseEntity<?> getOrder(
-    		@Valid @PathVariable("order_id") Long userId
+    		@Valid @PathVariable("order_id") Long orderId
     ) {
         try {
         	
-        	orderService.findByUserId(userId);
+        	 OrderResponse existingOrderResponse = orderService.getOrderById(orderId);
         	
-            return ResponseEntity.ok("Get orders by user id: " + userId);
+            return ResponseEntity.ok(existingOrderResponse);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Get orders failed");
         }
     }
     
+    // Done
     @GetMapping("")
     public ResponseEntity<?> getAllOrders(
     ) {
         try {
 
-            return ResponseEntity.ok("Get orders");
+        	List<OrderResponse> existingOrderResponses = orderService.getAllOrders();
+        	
+            return ResponseEntity.ok(existingOrderResponses);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Get orders failed");
         }
     }
 
+    // Done
     @GetMapping("/user/{user_id}")
     public ResponseEntity<?> getOrdersByUserId(
     		@Valid @PathVariable("user_id") Long userId
@@ -83,9 +88,10 @@ public class OrderController {
         }
     }
 
+    // Done
     @PutMapping("/{id}")
     public ResponseEntity<?> updateOrder(
-            @PathVariable("id") Long id,
+            @PathVariable("id") Long orderId,
             @RequestBody @Valid OrderDTO orderDTO,
             BindingResult result
     ) {
@@ -97,7 +103,10 @@ public class OrderController {
                         .toList();
                 return ResponseEntity.badRequest().body(errorMessages);
             }
-            return ResponseEntity.ok("Update order with id: " + id + ", orderDTO: " + orderDTO.getNote());
+            
+            OrderResponse orderResponse = orderService.updateOrder(orderId, orderDTO);
+            
+            return ResponseEntity.ok(orderResponse);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Update order failed");
         }

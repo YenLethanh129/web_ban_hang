@@ -45,21 +45,47 @@ public class OrderService implements IOrderService{
 	}
 
 	@Override
-	public Order getOrderById(Long orderId) {
-		// TODO Auto-generated method stub
-		return null;
+	public OrderResponse getOrderById(Long orderId) throws DataNotFoundException {
+		
+		Order existingOrder = orderRepository.findById(orderId)
+				.orElseThrow(() -> new DataNotFoundException("Can't found order with id: " + orderId));
+		
+		return mapOrderToOrderResponse(existingOrder);
 	}
 
 	@Override
-	public Order updateOrder(Long orderId) {
-		// TODO Auto-generated method stub
-		return null;
+	public OrderResponse updateOrder(Long orderId, OrderDTO orderDTO) throws DataNotFoundException {
+		Order existingOrder = orderRepository.findById(orderId)
+				.orElseThrow(() -> new DataNotFoundException("Can't found order with id: " + orderId));
+		
+		existingOrder.setFullName(orderDTO.getFullName());
+		existingOrder.setEmail(orderDTO.getEmail());
+		existingOrder.setPhoneNumber(orderDTO.getPhoneNumber());
+		existingOrder.setAddress(orderDTO.getAddress());
+		existingOrder.setNote(orderDTO.getNote());
+		existingOrder.setTotalMoney(orderDTO.getTotalMoney());
+		existingOrder.setShippingMethod(orderDTO.getShippingMethod());
+		existingOrder.setShippingDate(orderDTO.getShippingDate());
+		existingOrder.setShippingAddress(orderDTO.getShippingAddress());
+		existingOrder.setPaymentMethod(orderDTO.getPaymentMethod());
+		orderRepository.save(existingOrder);
+
+		return mapOrderToOrderResponse(existingOrder);
 	}
 
 	@Override
-	public List<Order> getAllOrders(Long userId) {
-		// TODO Auto-generated method stub
-		return null;
+	public List<OrderResponse> getAllOrders() {
+		
+		List<Order> existingOrders = orderRepository.findAll();
+		
+		List<OrderResponse> existingOrderResponses = new ArrayList<>();
+		
+		for (Order order : existingOrders) {
+			OrderResponse orderResponse = mapOrderToOrderResponse(order);
+			existingOrderResponses.add(orderResponse);
+		}
+		
+		return existingOrderResponses;
 	}
 
 	@Override
