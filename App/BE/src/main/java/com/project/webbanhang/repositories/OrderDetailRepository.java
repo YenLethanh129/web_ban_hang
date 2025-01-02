@@ -6,4 +6,5 @@ import com.project.webbanhang.models.OrderDetail;
 
 public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long>{
 
+	OrderDetail findByOrder_Id(Long orderId);
 }

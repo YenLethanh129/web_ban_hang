@@ -18,5 +18,5 @@ public interface IOrderService {
 	
 	List<OrderResponse> getAllOrders();
 	
-	void deleteOrder(Long orderId);
+	void deleteOrder(Long orderId) throws DataNotFoundException;
 }

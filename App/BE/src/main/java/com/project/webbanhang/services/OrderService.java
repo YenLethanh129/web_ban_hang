@@ -89,9 +89,11 @@ public class OrderService implements IOrderService{
 	}
 
 	@Override
-	public void deleteOrder(Long orderId) {
-		// TODO Auto-generated method stub
-		
+	public void deleteOrder(Long orderId) throws DataNotFoundException {
+		Order existingOrder = orderRepository.findById(orderId)
+				.orElseThrow(() -> new DataNotFoundException("Can't found order with id: " + orderId));
+		existingOrder.setIsActive(false);
+		orderRepository.save(existingOrder);
 	}
 
 	@Override
@@ -106,7 +108,6 @@ public class OrderService implements IOrderService{
 		
 		return existingOrderResponses;
 	}
-
 
 	private OrderResponse mapOrderToOrderResponse(Order order) {
 		modelMapper.typeMap(Order.class, OrderResponse.class)
