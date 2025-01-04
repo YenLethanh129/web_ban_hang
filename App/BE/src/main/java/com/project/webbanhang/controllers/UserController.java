@@ -3,7 +3,6 @@ package com.project.webbanhang.controllers;
 import com.project.webbanhang.dtos.UserDTO;
 import com.project.webbanhang.dtos.UserLoginDTO;
 import com.project.webbanhang.services.IUserService;
-import com.project.webbanhang.services.UserService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

@@ -1,7 +1,7 @@
 package com.project.webbanhang.controllers;
 
 import com.project.webbanhang.dtos.OrderDetailDTO;
-import com.project.webbanhang.models.OrderDetail;
+import com.project.webbanhang.response.OrderDetailResponse;
 import com.project.webbanhang.services.IOrderDetailService;
 
 import jakarta.validation.Valid;
@@ -36,9 +36,9 @@ public class OrderDetailController {
                 return ResponseEntity.badRequest().body(errorMessages);
             }
             
-            OrderDetail existingOrderDetail = orderDetailService.createOrderDetail(orderDetailDTO);
+            OrderDetailResponse existingOrderDetailResponse = orderDetailService.createOrderDetail(orderDetailDTO);
             
-            return ResponseEntity.ok(existingOrderDetail);
+            return ResponseEntity.ok(existingOrderDetailResponse);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -49,9 +49,9 @@ public class OrderDetailController {
     public ResponseEntity<?> getOrderDetail(@Valid @PathVariable("id") Long id) {
         try {
         	
-        	OrderDetail existingOrderDetail = orderDetailService.getOrderDetail(id);
+        	 OrderDetailResponse existingOrderDetailResponse = orderDetailService.getOrderDetail(id);
         	
-            return ResponseEntity.ok(existingOrderDetail);
+            return ResponseEntity.ok(existingOrderDetailResponse);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Get order detail failed");
         }
@@ -62,9 +62,9 @@ public class OrderDetailController {
     public ResponseEntity<?> getOrderDetailByOrderId(@Valid @PathVariable("order_id") Long orderId) {
         try {
         	
-        	OrderDetail existingOrderDetail = orderDetailService.getOrderDetailByOrderId(orderId);
+        	OrderDetailResponse existingOrderDetailResponse = orderDetailService.getOrderDetailByOrderId(orderId);
         	
-            return ResponseEntity.ok(existingOrderDetail);
+            return ResponseEntity.ok(existingOrderDetailResponse);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Get order details failed");
         }
@@ -75,9 +75,9 @@ public class OrderDetailController {
     public ResponseEntity<?> getOrderDetails() {
         try {
         	
-        	List<OrderDetail> existingOrderDetails = orderDetailService.getOrderDetails();
+        	List<OrderDetailResponse> existingOrderDetailResponses = orderDetailService.getOrderDetails();
         	
-            return ResponseEntity.ok(existingOrderDetails);
+            return ResponseEntity.ok(existingOrderDetailResponses);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Get order details failed");
         }
@@ -99,9 +99,9 @@ public class OrderDetailController {
                 return ResponseEntity.badRequest().body(errorMessages);
             }
             
-            OrderDetail orderDetail = orderDetailService.updateOrderDetail(id, newOrderDetailDTO);
+            OrderDetailResponse existingOrderDetailResponses = orderDetailService.updateOrderDetail(id, newOrderDetailDTO);
             
-            return ResponseEntity.ok(orderDetail);
+            return ResponseEntity.ok(existingOrderDetailResponses);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Update order detail failed");
         }

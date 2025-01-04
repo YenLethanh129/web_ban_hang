@@ -4,19 +4,19 @@ import java.util.List;
 
 import com.project.webbanhang.dtos.OrderDetailDTO;
 import com.project.webbanhang.exceptions.DataNotFoundException;
-import com.project.webbanhang.models.OrderDetail;
+import com.project.webbanhang.response.OrderDetailResponse;
 
 public interface IOrderDetailService {
 
-	OrderDetail createOrderDetail(OrderDetailDTO orderDetailDTO);
+	OrderDetailResponse createOrderDetail(OrderDetailDTO orderDetailDTO);
 	
-	OrderDetail getOrderDetail(Long orderDetailId);
+	OrderDetailResponse getOrderDetail(Long orderDetailId);
 	
-	List<OrderDetail> getOrderDetails();
+	List<OrderDetailResponse> getOrderDetails();
 	
-	OrderDetail getOrderDetailByOrderId(Long orderId);
+	OrderDetailResponse getOrderDetailByOrderId(Long orderId);
 	
-	OrderDetail updateOrderDetail(Long orderDetailId, OrderDetailDTO orderDetailDTO) throws DataNotFoundException;
+	OrderDetailResponse updateOrderDetail(Long orderDetailId, OrderDetailDTO orderDetailDTO) throws DataNotFoundException;
 	
 	void deleteOrderDetail(Long orderDetailId);
 }

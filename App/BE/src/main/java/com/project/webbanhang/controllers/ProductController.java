@@ -1,6 +1,6 @@
 package com.project.webbanhang.controllers;
 
-import com.github.javafaker.Faker;
+//import com.github.javafaker.Faker;
 import com.project.webbanhang.dtos.ProductDTO;
 import com.project.webbanhang.dtos.ProductImageDTO;
 import com.project.webbanhang.exceptions.DataNotFoundException;
@@ -18,7 +18,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
@@ -74,7 +73,7 @@ public class ProductController {
     ) {
     	try {
 			Product existingProduct = productService.getProductById(productId);
-			return ResponseEntity.ok(ProductResponse.fromProduct(existingProduct));
+			return ResponseEntity.ok(ProductResponse.fromEntity(existingProduct));
 		} catch (DataNotFoundException e) {
 			return ResponseEntity.badRequest().body(e.getMessage());
 		}
@@ -158,7 +157,7 @@ public class ProductController {
     ) {
     	try {
 			Product updateProduct = productService.updateProduct(id, productDTO);
-			return ResponseEntity.ok(ProductResponse.fromProduct(updateProduct));
+			return ResponseEntity.ok(ProductResponse.fromEntity(updateProduct));
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
 		}
@@ -191,6 +190,7 @@ public class ProductController {
     
     // Done
     //@PostMapping("/generateFakeProducts")
+    /*
     private ResponseEntity<?> generateFakeProducts(){
     	Faker faker = new Faker();
     	for (int i = 0; i < 300; i++) {
@@ -214,4 +214,5 @@ public class ProductController {
     	}
     	return ResponseEntity.ok("Generate fake products");
     }
+    */
 }
