@@ -1,6 +1,13 @@
 package com.project.webbanhang.models;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
+import java.util.List;
+
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -12,7 +19,7 @@ import lombok.*;
 @Getter
 @Table(name = "users")
 @Builder
-public class User extends BaseEntity{
+public class User extends BaseEntity implements UserDetails{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -44,4 +51,17 @@ public class User extends BaseEntity{
     @ManyToOne
     @JoinColumn(name = "role_id")
     private Role role;
+
+	@Override
+	public Collection<? extends GrantedAuthority> getAuthorities() {
+		List<SimpleGrantedAuthority> authorityList = new ArrayList<>();
+		authorityList.add(new SimpleGrantedAuthority("ROLE_"+getRole().getName()));
+		this.getRole();
+		return authorityList;
+	}
+
+	@Override
+	public String getUsername() {
+		return phoneNumber;
+	}
 }

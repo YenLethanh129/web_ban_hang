@@ -24,3 +24,7 @@ server:
 
 api:
   prefix: api/v1
+jwt:
+  expiration: 2592000
+  secretKey: Son Goku
+  #30 days = 30 * 24 * 60 * 60w
