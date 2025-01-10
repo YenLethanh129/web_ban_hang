@@ -37,7 +37,10 @@ public class UserController {
                         .toList();
                 return ResponseEntity.badRequest().body(errorMessages);
             }
-            return ResponseEntity.ok("Login some token");
+            
+            String token = userService.login(userLoginDTO.getPhoneNumber(), userLoginDTO.getPassword());
+            
+            return ResponseEntity.ok(token);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -59,7 +62,9 @@ public class UserController {
             if (!userDTO.getPassword().equals(userDTO.getRetypePassword())) {
                 return ResponseEntity.badRequest().body("Password and retype password are not matched");
             }
+            
             userService.createUser(userDTO);
+            
             return ResponseEntity.ok("Create user");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());

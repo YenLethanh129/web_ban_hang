@@ -22,8 +22,7 @@ public class WebSecurityConfig {
 				.authorizeHttpRequests(requests -> {
 					requests.requestMatchers("**")
 							.permitAll();
-				})
-				.build();
+				});
 		
 		return httpSecurity.build();
 	}

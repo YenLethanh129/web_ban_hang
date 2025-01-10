@@ -72,10 +72,11 @@ public class UserService implements IUserService{
 			}
 		}
 		
-		UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(optionalUser, existingUser);
-		// Authenticate with Java security
+		UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(phoneNumber, password);
+		
 		authenticationManager.authenticate(authenticationToken);
-		return jwtTokenUtil.generateToken(existingUser);
+		String token = jwtTokenUtil.generateToken(existingUser);
+		return token;
 	}
 
 }
