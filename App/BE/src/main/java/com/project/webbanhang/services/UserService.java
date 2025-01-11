@@ -30,10 +30,15 @@ public class UserService implements IUserService{
 	private final AuthenticationManager authenticationManager;
 	
 	@Override
-	public User createUser(UserDTO userDTO) throws DataNotFoundException {
+	public User createUser(UserDTO userDTO) throws Exception {
 		String phoneNumber = userDTO.getPhoneNumber();
 		if (userRepository.existsByPhoneNumber(phoneNumber)) {
 			throw new DataIntegrityViolationException("Phone number already exists");
+		}
+		Role role = roleRepository.findById(userDTO.getRoleId())
+				.orElseThrow(() -> new DataNotFoundException("Role not found"));
+		if (role.getName().toUpperCase().equals(Role.ADMIN)) {
+			throw new Exception("You cann't register an admin account");
 		}
 		// Convert UserDTO -> User
 		User newUser = User.builder()
@@ -45,8 +50,7 @@ public class UserService implements IUserService{
 				.facebookAccountId(userDTO.getFacebookAccountId())
 				.googleAccountId(userDTO.getGoogleAccountId())
 				.build();
-		Role role = roleRepository.findById(userDTO.getRoleId())
-				.orElseThrow(() -> new DataNotFoundException("Role not found"));
+
 		newUser.setRole(role);
 		
 		if (userDTO.getFacebookAccountId() == 0 && userDTO.getGoogleAccountId() == 0) {
@@ -72,7 +76,7 @@ public class UserService implements IUserService{
 			}
 		}
 		
-		UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(phoneNumber, password);
+		UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(phoneNumber, password, existingUser.getAuthorities());
 		
 		authenticationManager.authenticate(authenticationToken);
 		String token = jwtTokenUtil.generateToken(existingUser);

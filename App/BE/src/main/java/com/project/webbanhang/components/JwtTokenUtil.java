@@ -1,7 +1,5 @@
 package com.project.webbanhang.components;
 
-import java.beans.Encoder;
-import java.security.SecureRandom;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -10,16 +8,16 @@ import java.util.function.Function;
 import javax.crypto.SecretKey;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import com.project.webbanhang.models.User;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.Jwts.SIG;
 import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.io.Encoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
 @Component
@@ -57,6 +55,17 @@ public class JwtTokenUtil {
 				.getPayload();
 	}
 	
+	public String extractPhoneNumber(String token) {
+		try {
+		    String phoneNumber;
+		    phoneNumber = this.extractAllClaims(token).getSubject();
+		    return phoneNumber;
+		} catch (Exception e) {
+		    throw new RuntimeException("Unauthorized: Invalid token");
+		}
+
+	}
+	
 	private SecretKey getSignInKey() {
 		byte[] bytes = Decoders.BASE64.decode(secretKey);
 		return Keys.hmacShaKeyFor(bytes);
@@ -70,5 +79,10 @@ public class JwtTokenUtil {
 	public boolean isTokenExpired(String token) {
 		Date expirationDate = this.extractClaim(token, Claims::getExpiration);
 		return expirationDate.before(new Date());
+	}
+	
+	public boolean validateToken(String token, UserDetails userDetails) {
+		String phoneNumber = extractAllClaims(token).getSubject();
+		return (phoneNumber.equals(userDetails.getUsername())) && !isTokenExpired(token);
 	}
 }
