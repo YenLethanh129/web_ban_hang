@@ -1,0 +1,27 @@
+header {
+  background-color: #103c5a;
+  color: rgb(173, 178, 203);
+}
+
+.navbar {
+  background-color: #103c5a !important;
+}
+
+.navbar .container {
+  background-color: #103c5a !important;
+}
+
+.navbar .container .navbar-brand {
+  background-color: #103c5a;
+}
+
+.navbar .container .navbar-nav .nav-link {
+  background-color: #103c5a;
+  border-radius: 18px;
+  padding: 8px 16px;
+}
+
+.navbar .container .navbar-nav .nav-link.active {
+  background-color: #508c9b;
+  color: white !important;
+}
