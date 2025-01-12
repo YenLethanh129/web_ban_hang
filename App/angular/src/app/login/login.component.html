@@ -1,0 +1,52 @@
+<app-header></app-header>
+<div class="container">
+  <div class="login-section">
+    <div class="login-box">
+      <h2>Đăng nhập</h2>
+      <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input
+            type="email"
+            class="form-control"
+            id="email"
+            name="email"
+            [(ngModel)]="loginData.email"
+            required
+            placeholder="Nhập email của bạn"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="password">Mật khẩu</label>
+          <input
+            type="password"
+            class="form-control"
+            id="password"
+            name="password"
+            [(ngModel)]="loginData.password"
+            required
+            placeholder="Nhập mật khẩu"
+          />
+        </div>
+
+        <div class="form-options">
+          <div class="remember-me">
+            <input type="checkbox" id="remember" />
+            <label for="remember">Ghi nhớ đăng nhập</label>
+          </div>
+          <a href="#" class="forgot-password">Quên mật khẩu?</a>
+        </div>
+
+        <button type="submit" class="btn btn-primary login-button">
+          Đăng nhập
+        </button>
+
+        <div class="register-link">
+          Chưa có tài khoản? <a [routerLink]="['/register']">Đăng ký ngay</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<app-footer></app-footer>

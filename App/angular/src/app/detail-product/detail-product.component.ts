@@ -4,12 +4,10 @@ import { FooterComponent } from '../footer/footer.component';
 import { RouterModule } from '@angular/router';
 
 @Component({
-  selector: 'app-home',
+  selector: 'app-detail-product',
   standalone: true,
   imports: [HeaderComponent, FooterComponent, RouterModule],
-  templateUrl: './home.component.html',
-  styleUrl: './home.component.scss',
+  templateUrl: './detail-product.component.html',
+  styleUrl: './detail-product.component.scss',
 })
-export class HomeComponent {
-  products = Array(7).fill({ id: 1 });
-}
+export class DetailProductComponent {}

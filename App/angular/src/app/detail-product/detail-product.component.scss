@@ -1,0 +1,190 @@
+@use "sass:color";
+
+// Kế thừa một số styles từ home component
+.intro-section {
+  text-align: center;
+  color: #ffffff;
+  padding: 30px;
+  margin-top: 70px; // Thêm margin-top vì có fixed header
+
+  h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+    color: #001f3f;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+}
+
+// Styles cho phần carousel và hình ảnh
+.carousel {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+
+  .square-image {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+  }
+}
+
+// Styles cho thumbnails
+.thumbnail-container {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  padding: 10px;
+  overflow-x: auto;
+
+  .thumbnail-item {
+    flex: 0 0 100px;
+    height: 100px;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+
+    &.active {
+      border-color: #2d8074;
+    }
+
+    &:hover {
+      transform: translateY(-2px);
+    }
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+}
+
+// Styles cho product details
+.product-details {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 30px;
+  height: 100%;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+
+  h2 {
+    color: #0d3d62;
+    font-size: 2rem;
+    margin-bottom: 20px;
+    font-weight: 700;
+  }
+
+  p {
+    font-size: 1.1rem;
+    color: #444;
+    margin-bottom: 15px;
+    line-height: 1.6;
+
+    &:nth-child(3) {
+      color: #2d8074;
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+  }
+}
+
+// Styles cho buttons
+.product-actions {
+  margin: 20px 0;
+  display: flex;
+  gap: 10px;
+
+  .btn {
+    flex: 1;
+    padding: 12px 20px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+  }
+
+  .btn-primary {
+    background-color: #0d3d62;
+    border: none;
+
+    &:hover {
+      background-color: color.adjust(#0d3d62, $lightness: -10%);
+      transform: translateY(-2px);
+    }
+  }
+
+  .btn-success {
+    background-color: #2d8074;
+    border: none;
+
+    &:hover {
+      background-color: color.adjust(#2d8074, $lightness: -10%);
+      transform: translateY(-2px);
+    }
+  }
+}
+
+// Styles cho quantity selector
+.product-quantity {
+  margin-top: 20px;
+
+  .border-wrapper {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+
+    button {
+      background: #f5f5f5;
+      border: none;
+      padding: 10px 15px;
+      cursor: pointer;
+      font-size: 1.2rem;
+      transition: background-color 0.3s ease;
+
+      &:hover {
+        background: #e5e5e5;
+      }
+    }
+
+    input {
+      width: 60px;
+      text-align: center;
+      border: none;
+      border-left: 1px solid #ddd;
+      border-right: 1px solid #ddd;
+      padding: 10px;
+      font-size: 1rem;
+
+      &:focus {
+        outline: none;
+      }
+    }
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .product-actions {
+    flex-direction: column;
+  }
+
+  .product-details {
+    margin-top: 20px;
+  }
+}

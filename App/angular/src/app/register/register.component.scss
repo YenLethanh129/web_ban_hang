@@ -1,0 +1,147 @@
+@use "sass:color";
+
+.register-section {
+  padding: 40px 0;
+  margin-top: 70px;
+  min-height: calc(100vh - 200px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.register-box {
+  background-color: #ffffff;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 3px 15px rgba(0, 0, 0, 0.1);
+  max-width: 500px;
+  width: 100%;
+
+  h2 {
+    color: #0d3d62;
+    margin-bottom: 30px;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+
+    label {
+      color: #0d3d62;
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .form-control {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 12px;
+      width: 100%;
+
+      &:focus {
+        border-color: #2d8074;
+        box-shadow: 0 0 0 0.2rem rgba(45, 128, 116, 0.25);
+        outline: none;
+      }
+    }
+  }
+
+  .register-button {
+    width: 100%;
+    padding: 12px;
+    background-color: #2d8074;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-weight: 600;
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background-color: color.adjust(#2d8074, $lightness: -10%);
+      transform: translateY(-2px);
+    }
+  }
+
+  .login-link {
+    text-align: center;
+    color: #666;
+    font-size: 0.9rem;
+
+    a {
+      color: #2d8074;
+      text-decoration: none;
+      font-weight: 600;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .register-section {
+    padding: 20px;
+  }
+
+  .register-box {
+    padding: 20px;
+  }
+}
+
+.password-input {
+  position: relative;
+
+  .password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #666;
+
+    &:hover {
+      color: #2d8074;
+    }
+  }
+
+  .form-control {
+    padding-right: 35px;
+  }
+}
+
+.terms-check {
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .form-check-input {
+    margin-top: 0;
+    cursor: pointer;
+
+    &:checked {
+      background-color: #2d8074;
+      border-color: #2d8074;
+    }
+  }
+
+  .form-check-label {
+    color: #666;
+    font-size: 0.9rem;
+    cursor: pointer;
+
+    a {
+      color: #2d8074;
+      text-decoration: none;
+      font-weight: 600;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+}

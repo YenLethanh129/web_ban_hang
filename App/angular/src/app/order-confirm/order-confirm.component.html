@@ -1,0 +1,46 @@
+<app-header></app-header>
+<div class="container">
+  <div class="confirm-section">
+    <div class="confirm-box">
+      <div class="success-icon">
+        <i class="fas fa-check-circle"></i>
+      </div>
+      <h2>Đặt hàng thành công!</h2>
+      <p class="order-id">Mã đơn hàng: #123456</p>
+
+      <div class="order-details">
+        <h3>Chi tiết đơn hàng</h3>
+        <div class="info-group">
+          <p><strong>Họ và tên:</strong> Nguyễn Văn A</p>
+          <p><strong>Số điện thoại:</strong> 0123456789</p>
+          <p><strong>Địa chỉ:</strong> Gia Lai</p>
+        </div>
+
+        <div class="product-list">
+          <div class="product-item">
+            <img src="path-to-product-image" alt="Product Image" />
+            <div class="product-info">
+              <h4>Tên sản phẩm</h4>
+              <p>Số lượng: 1</p>
+              <p class="price">5.000đ</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="price-summary">
+          <p>Tổng tiền hàng: <span>5.000đ</span></p>
+          <p>Phí vận chuyển: <span>15.000đ</span></p>
+          <h4>Tổng thanh toán: <span>20.000đ</span></h4>
+        </div>
+      </div>
+
+      <div class="action-buttons">
+        <button class="btn btn-primary" [routerLink]="['/']">
+          Tiếp tục mua sắm
+        </button>
+        <button class="btn btn-outline-primary">Theo dõi đơn hàng</button>
+      </div>
+    </div>
+  </div>
+</div>
+<app-footer></app-footer>

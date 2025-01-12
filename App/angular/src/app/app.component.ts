@@ -2,10 +2,12 @@ import { Component } from '@angular/core';
 import { RouterModule } from '@angular/router';
 
 @Component({
-  selector: 'app-header',
+  selector: 'app-root',
   standalone: true,
   imports: [RouterModule],
-  templateUrl: './header.component.html',
-  styleUrl: './header.component.scss',
+  templateUrl: './app.component.html',
+  styles: '',
 })
-export class HeaderComponent {}
+export class AppComponent {
+  title = 'your-app-name';
+}

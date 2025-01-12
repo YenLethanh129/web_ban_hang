@@ -1,0 +1,57 @@
+<app-header></app-header>
+<div class="container">
+  <div class="order-section">
+    <h2>Đặt hàng</h2>
+    <form class="order-form">
+      <div class="form-group">
+        <label>Họ và tên</label>
+        <input type="text" class="form-control" placeholder="Nhập họ và tên" />
+      </div>
+
+      <div class="form-group">
+        <label>Số điện thoại</label>
+        <input
+          type="tel"
+          class="form-control"
+          placeholder="Nhập số điện thoại"
+        />
+      </div>
+
+      <div class="form-group">
+        <label>Địa chỉ</label>
+        <textarea
+          class="form-control"
+          rows="3"
+          placeholder="Nhập địa chỉ giao hàng"
+        ></textarea>
+      </div>
+
+      <div class="product-summary">
+        <h3>Thông tin đơn hàng</h3>
+        <div class="product-item">
+          <img src="path-to-product-image" alt="Product Image" />
+          <div class="product-details">
+            <h4>Tên sản phẩm</h4>
+            <p>Số lượng: 1</p>
+            <p class="price">Giá: 5.000đ</p>
+          </div>
+        </div>
+
+        <div class="order-total">
+          <p>Tổng tiền: <span>5.000đ</span></p>
+          <p>Phí vận chuyển: <span>15.000đ</span></p>
+          <h4>Tổng thanh toán: <span>20.000đ</span></h4>
+        </div>
+      </div>
+
+      <button
+        type="submit"
+        class="btn btn-primary order-button"
+        [routerLink]="['/order-confirm']"
+      >
+        Xác nhận đặt hàng
+      </button>
+    </form>
+  </div>
+</div>
+<app-footer></app-footer>
