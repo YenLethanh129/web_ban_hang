@@ -5,29 +5,62 @@
       <h2>Đăng nhập</h2>
       <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
         <div class="form-group">
-          <label for="email">Email</label>
+          <label for="phoneNumber">Số điện thoại</label>
           <input
-            type="email"
+            type="tel"
             class="form-control"
-            id="email"
-            name="email"
-            [(ngModel)]="loginData.email"
+            id="phoneNumber"
+            name="phoneNumber"
+            [(ngModel)]="loginData.phoneNumber"
+            (input)="validatePhoneNumber($event)"
+            (focus)="showPhoneError = true"
             required
-            placeholder="Nhập email của bạn"
+            #phone="ngModel"
+            placeholder="Nhập số điện thoại của bạn"
           />
+          <div
+            *ngIf="
+              showPhoneError &&
+              phone.touched &&
+              loginData.phoneNumber.length !== 10
+            "
+            class="text-danger"
+          >
+            Số điện thoại phải là 10 số
+          </div>
         </div>
 
         <div class="form-group">
           <label for="password">Mật khẩu</label>
-          <input
-            type="password"
-            class="form-control"
-            id="password"
-            name="password"
-            [(ngModel)]="loginData.password"
-            required
-            placeholder="Nhập mật khẩu"
-          />
+          <div class="password-input">
+            <input
+              [type]="showPassword ? 'text' : 'password'"
+              class="form-control"
+              id="password"
+              name="password"
+              [(ngModel)]="loginData.password"
+              (focus)="showPasswordError = true"
+              required
+              #password="ngModel"
+              placeholder="Nhập mật khẩu"
+            />
+            <i
+              class="fa-solid password-toggle"
+              [class.fa-eye]="!showPassword"
+              [class.fa-eye-slash]="showPassword"
+              (click)="togglePasswordVisibility()"
+            ></i>
+          </div>
+          <div
+            *ngIf="
+              showPasswordError &&
+              password.touched &&
+              loginData.password.length < 6
+            "
+            class="text-danger"
+          >
+            Mật khẩu phải có ít nhất 6 ký tự
+          </div>
         </div>
 
         <div class="form-options">
@@ -38,8 +71,16 @@
           <a href="#" class="forgot-password">Quên mật khẩu?</a>
         </div>
 
-        <button type="submit" class="btn btn-primary login-button">
-          Đăng nhập
+        <button
+          type="submit"
+          class="btn btn-primary login-button"
+          [disabled]="isLoading"
+        >
+          <span
+            *ngIf="isLoading"
+            class="spinner-border spinner-border-sm me-2"
+          ></span>
+          {{ isLoading ? "Đang xử lý..." : "Đăng nhập" }}
         </button>
 
         <div class="register-link">
