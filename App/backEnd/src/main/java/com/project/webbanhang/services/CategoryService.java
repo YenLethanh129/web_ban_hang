@@ -9,6 +9,8 @@ import com.project.webbanhang.dtos.CategoryDTO;
 import com.project.webbanhang.models.Category;
 import com.project.webbanhang.repositories.CategoryRepository;
 
+import jakarta.transaction.Transactional;
+
 @Getter
 @Data
 @Service
@@ -37,6 +39,7 @@ public class CategoryService implements ICategoryService {
 
 
 	@Override
+	@Transactional
 	public Category updateCategory(Long categoryId, CategoryDTO categoryDTO) {
 		Category existingCategory = getCategoryById(categoryId);
 		existingCategory.setName(categoryDTO.getName());

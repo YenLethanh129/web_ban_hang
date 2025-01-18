@@ -1,6 +1,6 @@
 package com.project.webbanhang.controllers;
 
-//import com.github.javafaker.Faker;
+import com.github.javafaker.Faker;
 import com.project.webbanhang.dtos.ProductDTO;
 import com.project.webbanhang.dtos.ProductImageDTO;
 import com.project.webbanhang.exceptions.DataNotFoundException;
@@ -9,6 +9,7 @@ import com.project.webbanhang.models.Product;
 import com.project.webbanhang.models.ProductImage;
 import com.project.webbanhang.response.ProductListResponse;
 import com.project.webbanhang.response.ProductResponse;
+import com.project.webbanhang.services.IProductImageService;
 import com.project.webbanhang.services.IProductService;
 
 import jakarta.validation.Valid;
@@ -41,6 +42,7 @@ import java.util.UUID;
 public class ProductController {
 	
 	private final IProductService productService;
+	//private final IProductImageService productImageService;
 
 	// Done
     @GetMapping("")
@@ -49,7 +51,8 @@ public class ProductController {
             @RequestParam(value = "limit", defaultValue = "10") int limit
     ) {
     	try {
-    		PageRequest pageRequest = PageRequest.of(page, limit, Sort.by("createdAt").descending());
+    		//PageRequest pageRequest = PageRequest.of(page, limit, Sort.by("createdAt").descending());
+    		PageRequest pageRequest = PageRequest.of(page, limit);
         	Page<ProductResponse> productPage = productService.getAllProducts(pageRequest);
         	List<ProductResponse> products = productPage.getContent();
         	
@@ -215,4 +218,21 @@ public class ProductController {
     	return ResponseEntity.ok("Generate fake products");
     }
     */
+    
+//    @PostMapping("/generateFakeProductImages")
+//    public ResponseEntity<?> generateFakeProductImages() throws DataNotFoundException {
+//        Faker faker = new Faker();
+//
+//        for (int i = 0; i < 100; i++) {
+//            Long productId = (long) faker.number().numberBetween(1, 20);
+//            ProductImageDTO productImageDTO = ProductImageDTO.builder()
+//                    .productId(productId)
+//                    .imageUrl("https://picsum.photos/seed/picsum/200/300")
+//                    .build();
+//
+//            productImageService.createProductImage(productImageDTO);
+//        }
+//
+//        return ResponseEntity.ok("Generated 100 fake product images.");
+//    }
 }

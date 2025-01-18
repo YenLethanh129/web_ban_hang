@@ -5,8 +5,10 @@ import { FooterComponent } from '../footer/footer.component';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule, NgForm } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
-import { UserService } from '../services/user.service';
-import { LoginDTO } from '../dtos/login.dto';
+import { UserService } from '../../services/user.service';
+import { LoginDTO } from '../../dtos/login.dto';
+import { LoginResponse } from '../../response/LoginResponse';
+import { TokenService } from '../../services/token.service';
 
 @Component({
   selector: 'app-login',
@@ -35,7 +37,11 @@ export class LoginComponent {
   showPhoneError = false;
   showPasswordError = false;
 
-  constructor(private router: Router, private userService: UserService) {}
+  constructor(
+    private router: Router,
+    private userService: UserService,
+    private tokenService: TokenService
+  ) {}
 
   togglePasswordVisibility() {
     this.showPassword = !this.showPassword;
@@ -67,18 +73,33 @@ export class LoginComponent {
     };
 
     this.userService.login(loginDTO).subscribe({
-      next: (response) => {
+      next: (response: LoginResponse) => {
         console.log('Đăng nhập thành công:', response);
-        this.isLoading = false;
+        const { token } = response;
+        //const { user } = response;
+
+        //this.userService.setUser(user);
+        this.tokenService.setToken(token);
+
         alert('Đăng nhập thành công!');
-        setTimeout(() => {
-          this.router.navigate(['/']);
-        }, 100);
+        this.isLoading = false;
+        this.router.navigate(['/']);
       },
       error: (error) => {
         this.isLoading = false;
         console.error('Lỗi đăng nhập:', error);
-        alert('Đăng nhập thất bại! ' + error.error);
+
+        let errorMessage = 'Có lỗi xảy ra khi đăng nhập';
+
+        try {
+          // Parse JSON string từ error
+          const errorObj = JSON.parse(error.error);
+          errorMessage = errorObj.message;
+        } catch (e) {
+          console.error('Lỗi parse error message:', e);
+        }
+
+        alert(errorMessage);
       },
     });
   }

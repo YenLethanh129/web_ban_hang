@@ -10,8 +10,8 @@ import {
   HttpClientModule,
   HttpHeaders,
 } from '@angular/common/http';
-import { UserService } from '../services/user.service';
-import { RegisterDTO } from '../dtos/register.dto';
+import { UserService } from '../../services/user.service';
+import { RegisterDTO } from '../../dtos/register.dto';
 
 @Component({
   selector: 'app-register',

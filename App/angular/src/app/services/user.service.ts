@@ -3,14 +3,18 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { RegisterDTO } from '../dtos/register.dto';
 import { LoginDTO } from '../dtos/login.dto';
+import { UserDTO } from '../dtos/user.dto';
+import { TokenService } from './token.service';
+import { WebEnvironment } from '../environments/WebEnvironment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class UserService {
-  private apiUrl = 'http://localhost:1609/api/v1/users';
+  private apiUrl = `${WebEnvironment.apiUrl}/users`;
+  private currentUser: UserDTO | null = null;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private tokenService: TokenService) {}
 
   register(registerDTO: RegisterDTO): Observable<any> {
     const headers = new HttpHeaders({
@@ -28,5 +32,21 @@ export class UserService {
       headers,
       responseType: 'text',
     });
+  }
+
+  getUser(): Observable<UserDTO> {
+    const headers = new HttpHeaders().set(
+      'Authorization',
+      `Bearer ${this.tokenService.getToken()}`
+    );
+    return this.http.get<UserDTO>(`${this.apiUrl}/profile`, { headers });
+  }
+
+  setCurrentUser(user: UserDTO) {
+    this.currentUser = user;
+  }
+
+  getUserName(): string {
+    return this.currentUser?.fullname || '';
   }
 }

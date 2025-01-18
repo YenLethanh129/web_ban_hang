@@ -6,11 +6,13 @@ import {
   withEventReplay,
 } from '@angular/platform-browser';
 import { provideHttpClient } from '@angular/common/http';
+import { StorageService } from './services/storage.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),
     provideClientHydration(withEventReplay()),
     provideHttpClient(),
+    StorageService,
   ],
 };

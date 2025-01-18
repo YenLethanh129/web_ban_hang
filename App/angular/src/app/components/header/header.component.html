@@ -1,0 +1,72 @@
+<header>
+  <nav class="navbar navbar-expand-lg">
+    <div class="container">
+      <a class="navbar-brand" routerLink="/">LOGO</a>
+      <button
+        class="navbar-toggler"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#navbarNav"
+      >
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a
+              class="nav-link"
+              routerLink="/"
+              routerLinkActive="active"
+              [routerLinkActiveOptions]="{ exact: true }"
+            >
+              Trang chủ
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/books" routerLinkActive="active">
+              Thông báo
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/cart"> Giỏ hàng </a>
+          </li>
+          <ng-container *ngIf="isLoggedIn">
+            <li class="nav-item">
+              <a class="nav-link">Thanh Yên</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="javascript:void(0)" (click)="logout()"
+                >Đăng xuất</a
+              >
+            </li>
+          </ng-container>
+          <ng-container *ngIf="!isLoggedIn">
+            <li class="nav-item">
+              <a routerLink="/login" class="nav-link">Đăng nhập</a>
+            </li>
+          </ng-container>
+        </ul>
+      </div>
+    </div>
+  </nav>
+  <div class="search-container">
+    <div class="container">
+      <div class="search-box">
+        <input
+          type="text"
+          class="form-control search-input"
+          placeholder="Tìm nông sản ở đây!"
+        />
+        <select
+          class="form-control product-category"
+          aria-label="Default select example"
+        >
+          <option selected disabled>Danh mục sản phẩm</option>
+          <option value="1">Khoai lang</option>
+          <option value="2">Xoài</option>
+          <option value="3">Hành, tỏi</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</header>

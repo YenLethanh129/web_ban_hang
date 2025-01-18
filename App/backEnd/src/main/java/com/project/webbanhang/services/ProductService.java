@@ -15,7 +15,7 @@ import com.project.webbanhang.models.Product;
 import com.project.webbanhang.models.ProductImage;
 import com.project.webbanhang.repositories.CategoryRepository;
 import com.project.webbanhang.repositories.ProductRepository;
-import com.project.webbanhang.repositories.ProductmageRepository;
+import com.project.webbanhang.repositories.ProductImageRepository;
 import com.project.webbanhang.response.ProductResponse;
 
 import lombok.RequiredArgsConstructor;
@@ -26,7 +26,7 @@ public class ProductService implements IProductService{
 	
 	private final ProductRepository productRepository;
 	private final CategoryRepository categoryRepository;
-	private final ProductmageRepository productImageRepository;
+	private final ProductImageRepository productImageRepository;
 
 	// Done
 	@Override

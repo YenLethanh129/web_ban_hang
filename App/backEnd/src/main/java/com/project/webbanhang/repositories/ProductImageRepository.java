@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.project.webbanhang.models.ProductImage;
 
-public interface ProductmageRepository extends JpaRepository<ProductImage, Long>{
+public interface ProductImageRepository extends JpaRepository<ProductImage, Long>{
 
 	List<ProductImage> findByProductId(Long productId);
 }
