@@ -6,6 +6,8 @@ import { HttpClientModule } from '@angular/common/http';
 import { ProductDTO } from '../../models/product.dto';
 import { ProductService } from '../../services/product.service';
 import { CommonModule } from '@angular/common';
+import { CartService } from '../../services/cart.service'
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-home',
@@ -27,7 +29,11 @@ export class HomeComponent implements OnInit {
   hasMoreProducts: boolean = true;
   private readonly limit: number = 20;
 
-  constructor(private productService: ProductService) {}
+  constructor(
+    private productService: ProductService,
+    private cartService: CartService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.loadProducts();
@@ -80,5 +86,15 @@ export class HomeComponent implements OnInit {
         this.isLoading = false;
       },
     });
+  }
+
+  addToCart(product: ProductDTO): void {
+    this.cartService.addToCart(product.id, 1);
+    alert(`Đã thêm 1 ${product.name} vào giỏ hàng`);
+  }
+
+  buyNow(product: ProductDTO): void {
+    this.cartService.addToCart(product.id, 1);
+    this.router.navigate(['/order']);
   }
 }

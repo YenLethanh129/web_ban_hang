@@ -1,6 +1,31 @@
 footer {
+  flex-shrink: 0;
   background-color: #0d3d62;
-  color: rgb(173, 178, 203);
+  color: white;
+  padding: 20px 0;
+  width: 100%;
+  position: relative;
+  bottom: 0;
+}
+
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 15px;
+}
+
+.footer-info {
+  text-align: center;
+  
+  h3 {
+    margin-bottom: 15px;
+    font-size: 1.2em;
+  }
+  
+  p {
+    margin: 5px 0;
+    font-size: 0.9em;
+  }
 }
 
 .custom-align-end {

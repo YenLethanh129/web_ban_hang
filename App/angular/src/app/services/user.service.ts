@@ -43,7 +43,7 @@ export class UserService {
   }
 
   setCurrentUser(user: UserDTO) {
-    this.currentUser = user;
+    this.currentUser = user; // Biến user lấy thông tin từ tham số đầu vào của hàm setCurrentUser
   }
 
   getUserName(): string {

@@ -1,0 +1,19 @@
+- Muốn kết nối tới API phải dựa trên service
+- Observable<any>
+    + Observable<any> là một kiểu dữ liệu tổng quát trong RxJS (Reactive Extensions for JavaScript). 
+    + Lớp Observable được sử dụng để đại diện và quản lý các luồng dữ liệu bất đồng bộ, 
+    chẳng hạn như phản hồi HTTP, sự kiện đầu vào của người dùng, hoặc biến đổi dữ liệu. 
+    + Khi sử dụng Observable<any>, hàm này sẽ trả về một luồng dữ liệu có thể phát ra kết 
+    quả của yêu cầu HTTP POST.
+    + Xử lý bất đồng bộ: Yêu cầu HTTP POST là bất đồng bộ, nghĩa là nó không chặn việc thực thi của phần còn lại của mã. Observable sẽ xử lý kết quả khi nó đã sẵn sàng.
+    + Subscribe: Các đối tượng sử dụng hàm này có thể subscribe vào Observable để nhận dữ liệu phản hồi, xử lý lỗi, hoặc thực hiện các hành động bổ sung.
+    + Lập trình phản ứng: Cho phép xử lý các sự kiện và luồng dữ liệu theo cách phản ứng, dễ dàng hơn trong việc ghép nối và quản lý các thao tác bất đồng bộ.
+    + Dưới đây là một ví dụ đơn giản về cách hàm này có thể được sử dụng:
+        this.registerService.register(someRegisterDTO).subscribe(
+            response => {
+                console.log('Đăng ký thành công:', response);
+            },
+            error => {
+                console.error('Đăng ký thất bại:', error);
+            }
+        );

@@ -28,19 +28,33 @@
 
       <div class="product-summary">
         <h3>Thông tin đơn hàng</h3>
-        <div class="product-item">
-          <img src="path-to-product-image" alt="Product Image" />
-          <div class="product-details">
-            <h4>Tên sản phẩm</h4>
-            <p>Số lượng: 1</p>
-            <p class="price">Giá: 5.000đ</p>
+        <div class="cart-content" *ngIf="!isLoading && cartItems.length > 0">
+          <div class="cart-items">
+            <div class="cart-item" *ngFor="let item of cartItems">
+              <div class="item-image">
+                <img [src]="item.product.thumbnail" [alt]="item.product.name" />
+              </div>
+              <div class="item-details">
+                <h3>{{ item.product.name }}</h3>
+                <p class="price">{{ item.product.price }} VNĐ</p>
+              </div>
+              <div class="item-quantity">
+                <span>Số lượng: {{ item.quantity }}</span>
+              </div>
+              <div class="item-total">
+                {{ item.product.price * item.quantity | number }} VNĐ
+              </div>
+            </div>
           </div>
-        </div>
 
-        <div class="order-total">
-          <p>Tổng tiền: <span>5.000đ</span></p>
-          <p>Phí vận chuyển: <span>15.000đ</span></p>
-          <h4>Tổng thanh toán: <span>20.000đ</span></h4>
+          <div class="cart-summary">
+            <div class="summary-item">
+              <span>Tổng tiền:</span>
+              <span class="total-price"
+                >{{ getTotalPrice() | number }} VNĐ</span
+              >
+            </div>
+          </div>
         </div>
       </div>
 

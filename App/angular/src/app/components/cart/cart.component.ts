@@ -1,22 +1,22 @@
 import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
+import { CartService } from '../../services/cart.service'
+import { ProductService } from '../../services/product.service';
+import { ProductDTO } from '../../models/product.dto';
 import { HeaderComponent } from '../header/header.component';
 import { FooterComponent } from '../footer/footer.component';
-import { RouterModule } from '@angular/router';
-import { CommonModule } from '@angular/common';
-import { ProductDTO } from '../../models/product.dto';
-import { CartService } from '../../services/cart.service';
-import { ProductService } from '../../services/product.service';
 
 @Component({
-  selector: 'app-order',
+  selector: 'app-cart',
   standalone: true,
-  imports: [HeaderComponent, FooterComponent, RouterModule, CommonModule],
-  templateUrl: './order.component.html',
-  styleUrl: './order.component.scss',
+  imports: [CommonModule, RouterModule, HeaderComponent, FooterComponent],
+  templateUrl: './cart.component.html',
+  styleUrl: './cart.component.scss'
 })
-export class OrderComponent implements OnInit {
+export class CartComponent implements OnInit {
   cartItems: { product: ProductDTO; quantity: number }[] = [];
-  isLoading: boolean = false;
+  isLoading: boolean = true;
 
   constructor(
     private cartService: CartService,
@@ -50,6 +50,20 @@ export class OrderComponent implements OnInit {
     }
   }
 
+  updateQuantity(productId: number, newQuantity: number): void {
+    if (newQuantity > 0) {
+      this.cartService.updateQuantity(productId, newQuantity);
+    } else {
+      this.removeItem(productId);
+    }
+    this.loadCartItems();
+  }
+
+  removeItem(productId: number): void {
+    this.cartService.removeFromCart(productId);
+    this.loadCartItems();
+  }
+
   getTotalPrice(): number {
     return this.cartItems.reduce(
       (total, item) => total + item.product.price * item.quantity,
@@ -57,7 +71,8 @@ export class OrderComponent implements OnInit {
     );
   }
 
-  createOrder(): void {
-    
+  clearCart(): void {
+    this.cartService.clearCart();
+    this.cartItems = [];
   }
-}
+} 

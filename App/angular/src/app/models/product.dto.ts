@@ -7,6 +7,7 @@ export interface ProductDTO {
   created_at: string;
   updated_at: string;
   category_id: number;
+  images: string[]; 
 }
 
 export interface ProductResponse {

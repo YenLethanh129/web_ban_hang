@@ -3,112 +3,48 @@
   <div class="intro-section">
     <h1>Thông tin sản phẩm</h1>
   </div>
-  <div class="row">
+
+  <div class="loading-spinner" *ngIf="isLoading">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Đang tải...</span>
+    </div>
+  </div>
+
+  <div class="row" *ngIf="!isLoading && product">
     <div class="col-md-6">
-      <div class="carousel slide" id="carouselExample" data-bs-ride="carousel">
-        <div class="carousel-inner" style="height: 600px">
-          <div class="carousel-item active">
-            <div class="square-image">
-              <img
-                src="/Picture/image.png"
-                alt="Product Image"
-                class="product-image"
-              />
-            </div>
-          </div>
-          <div class="carousel-item">
-            <div class="square-image">
-              <img
-                src="/Picture/image1.jpg"
-                alt="Product Image"
-                class="product-image"
-              />
-            </div>
-          </div>
-          <div class="carousel-item">
-            <div class="square-image">
-              <img
-                src="/Picture/image2.jpeg"
-                alt="Product Image"
-                class="product-image"
-              />
-            </div>
-          </div>
-          <div class="carousel-item">
-            <div class="square-image">
-              <img
-                src="/Picture/image3.jpeg"
-                alt="Product Image"
-                class="product-image"
-              />
-            </div>
-          </div>
-          <div class="carousel-item">
-            <div class="square-image">
-              <img
-                src="/Picture/image4.jpeg"
-                alt="Product Image"
-                class="product-image"
-              />
+      <div class="row">
+        <div class="carousel slide" id="carouselExample">
+          <div class="carousel-inner">
+            <div class="carousel-item active">
+              <div class="square-image">
+                <img
+                  [src]="currentImage"
+                  [alt]="product.name"
+                  class="product-image"
+                />
+              </div>
             </div>
           </div>
         </div>
-        <button
-          class="carousel-control-prev"
-          type="button"
-          data-bs-target="#carouselExample"
-          data-bs-slide="prev"
-        >
-          <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-          <span class="visually-hidden">Previous</span>
-        </button>
-        <button
-          class="carousel-control-next"
-          type="button"
-          data-bs-target="#carouselExample"
-          data-bs-slide="next"
-        >
-          <span class="carousel-control-next-icon" aria-hidden="true"></span>
-          <span class="visually-hidden">Next</span>
-        </button>
       </div>
 
+      <!-- Thêm phần thumbnail images -->
       <div class="row">
-        <div class="thumbnail-container">
-          <div class="thumbnail-item active">
-            <img
-              src="/Picture/image.png"
-              alt="Product Image"
-              class="thumbnail-image"
-            />
+        <div class="content-box thumbnail-images">
+          <div
+            class="thumbnail-item"
+            [class.active]="product.thumbnail === currentImage"
+            (click)="setCurrentImage(product.thumbnail)"
+          >
+            <img [src]="product.thumbnail" [alt]="product.name" />
           </div>
-          <div class="thumbnail-item">
-            <img
-              src="/Picture/image1.jpg"
-              alt="Product Image"
-              class="thumbnail-image"
-            />
-          </div>
-          <div class="thumbnail-item">
-            <img
-              src="/Picture/image2.jpeg"
-              alt="Product Image"
-              class="thumbnail-image"
-            />
-          </div>
-          <div class="thumbnail-item">
-            <img
-              src="/Picture/image3.jpeg"
-              alt="Product Image"
-              class="thumbnail-image"
-            />
-          </div>
-          <div class="thumbnail-item">
-            <img
-              src="/Picture/image4.jpeg"
-              alt="Product Image"
-              class="thumbnail-image"
-            />
+          <div
+            class="thumbnail-item"
+            *ngFor="let image of product.images"
+            [class.active]="image === currentImage"
+            (click)="setCurrentImage(image)"
+          >
+            <img [src]="image" [alt]="product.name" />
           </div>
         </div>
       </div>
@@ -116,21 +52,47 @@
 
     <div class="col-md-6">
       <div class="product-details">
-        <h2>Thông tin chi tiết sản phẩm</h2>
-        <p>Mô tả sản phẩm</p>
-        <p>Giá: 1.000.000$</p>
-        <div class="product-actions">
-          <button class="btn btn-primary">Thêm vào giỏ hàng</button>
-          <button class="btn btn-success" [routerLink]="['/order']">
-            Mua ngay
-          </button>
-        </div>
+        <h2>{{ product.name }}</h2>
+        <p class="description">{{ product.description }}</p>
+        <p class="price">Giá: {{ product.price | number }} VNĐ</p>
+
         <div class="product-quantity">
           <div class="border-wrapper">
-            <button>-</button>
-            <input type="text" value="1" />
-            <button>+</button>
+            <button (click)="decreaseQuantity()">-</button>
+            <input type="text" [value]="quantity" readonly />
+            <button (click)="increaseQuantity()">+</button>
           </div>
+        </div>
+
+        <div class="product-options">
+          <div class="option-group">
+            <label>Màu sắc:</label>
+            <div class="color-options">
+              <button
+                *ngFor="let color of colors"
+                class="color-btn"
+                [class.selected]="selectedColor === color.code"
+                (click)="selectedColor = color.code"
+                [style.backgroundColor]="color.code"
+              ></button>
+            </div>
+            <span class="selected-text" *ngIf="selectedColor">
+              Đã chọn: {{ getColorName(selectedColor) }}
+            </span>
+          </div>
+        </div>
+
+        <div class="product-actions">
+          <button class="btn btn-primary" (click)="addToCart()">
+            <i class="fas fa-cart-plus"></i> Thêm vào giỏ hàng
+          </button>
+          <button
+            class="btn btn-success"
+            [routerLink]="['/cart']"
+            (click)="addToCart()"
+          >
+            Mua ngay
+          </button>
         </div>
       </div>
     </div>

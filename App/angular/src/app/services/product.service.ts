@@ -22,4 +22,8 @@ export class ProductService {
 
     return this.http.get<ProductResponse>(this.apiUrl, { params });
   }
+
+  getProductById(id: number): Observable<ProductDTO> {
+    return this.http.get<ProductDTO>(`${this.apiUrl}/${id}`);
+  }
 }

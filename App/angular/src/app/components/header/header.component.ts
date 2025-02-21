@@ -16,6 +16,12 @@ export class HeaderComponent implements OnInit {
   username: string = '';
   searchTerm: string = '';
   selectedCategory: string = '';
+  categories = [
+    { id: 1, name: 'Khoai lang' },
+    { id: 2, name: 'Xoài' },
+    { id: 3, name: 'Hành, tỏi' },
+    // Thêm các danh mục khác
+  ];
 
   constructor(
     private tokenService: TokenService,
@@ -53,8 +59,10 @@ export class HeaderComponent implements OnInit {
   }
 
   onSearch(): void {
-    // Xử lý tìm kiếm ở đây
-    console.log('Searching for:', this.searchTerm);
-    console.log('Category:', this.selectedCategory);
+    // Xử lý tìm kiếm
+    console.log('Searching:', {
+      term: this.searchTerm,
+      category: this.selectedCategory
+    });
   }
 }
