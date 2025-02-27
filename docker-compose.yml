@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  backend:
+    container_name: java_spring_boot
+    build:
+      context: ./App/backend
+      dockerfile: Dockerfile
+    ports:
+      - "1609:1609"
+    depends_on:
+      - mysql-db
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql_db2:3306/webbanhang?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=mysql
+    entrypoint: [ "java", "-cp", "app:app/lib/*", "com.project.webbanhang.WebbanhangApplication" ]
+
+  frontend:
+    container_name: angular
+    build: ./App/angular
+    ports:
+      - 4200:4200
+    depends_on:
+      - backend
+    volumes:
+      - ./App/angular:/project
+      - ./App/angular/node_modules:/project/node_modules
+
+  mysql-db:
+    image: mysql:latest
+    container_name: mysql_db2
+    environment:
+      - MYSQL_ROOT_PASSWORD=mysql
+      - MYSQL_USER=root
+    ports:
+      - "3306:3306"
+    restart: always
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: phpmyadmin
+    ports:
+      - "8082:80"
+    restart: always
+    depends_on:
+      - mysql-db
+    environment:
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=mysql
+      - PMA_PORT=3306
