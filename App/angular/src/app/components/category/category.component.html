@@ -1,0 +1,57 @@
+<app-header></app-header>
+<div class="page-background">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-8">
+        <div class="intro-section row">
+          <h1>CHÚ BÉ VUI COFFEE!</h1>
+          <p>Đảm bảo chất lượng, an toàn!</p>
+        </div>
+        <div class="row g-0">
+          <div
+            class="col-lg-3 col-md-6 col-sm-6 col-6"
+            *ngFor="let product of products"
+          >
+            <div class="product-item">
+              <a
+                [routerLink]="['/detail-product', product.id]"
+                class="product-link"
+              >
+                <img
+                  [src]="product.thumbnail"
+                  [alt]="product.name"
+                  class="product-image"
+                />
+                <h3 class="product-name">{{ product.name }}</h3>
+                <p class="product-description">{{ product.description }}</p>
+                <p class="product-price">
+                  Giá: {{ product.price | number : "1.0-0" }}đ
+                </p>
+              </a>
+              <div class="product-actions">
+                <button class="btn btn-primary" (click)="addToCart(product)">
+                  <i class="fas fa-cart-plus"></i>
+                </button>
+                <button
+                  class="btn btn-success"
+                  [routerLink]="['/cart']"
+                  (click)="addToCart(product)"
+                >
+                  Mua ngay
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div class="loading-container" *ngIf="isLoading">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Đang tải...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<app-footer></app-footer>

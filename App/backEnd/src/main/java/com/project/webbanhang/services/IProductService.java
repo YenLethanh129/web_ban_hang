@@ -1,5 +1,7 @@
 package com.project.webbanhang.services;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
@@ -18,7 +20,9 @@ public interface IProductService {
 	
 	Product getProductById(Long id) throws DataNotFoundException;
 	
-	Page<ProductResponse> getAllProducts(PageRequest pageRequest);
+	Page<ProductResponse> getProductsByCategoryId(Long categoryId, PageRequest pageable) throws DataNotFoundException;
+	
+	Page<ProductResponse> getAllProducts(PageRequest pageable);
 	
 	Product updateProduct(Long id, ProductDTO productDTO) throws DataNotFoundException;
 	

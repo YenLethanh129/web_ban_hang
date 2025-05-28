@@ -68,6 +68,32 @@ public class ProductController {
 			return ResponseEntity.badRequest().body(e.getMessage());
 		}
     }
+    
+    @GetMapping("/category/{id}")
+    public ResponseEntity<?> getProductsByCategoryId(
+            @PathVariable("id") Long categoryId,
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "limit", defaultValue = "10") int limit
+    ) {
+        try {
+            // Lưu ý: Page index bắt đầu từ 0 trong Spring Data
+            PageRequest pageRequest = PageRequest.of(page - 1, limit); 
+            
+            Page<ProductResponse> productPage = productService.getProductsByCategoryId(categoryId, pageRequest);
+            List<ProductResponse> products = productPage.getContent();
+            int totalPages = productPage.getTotalPages();
+
+            ProductListResponse productListResponse = ProductListResponse.builder()
+                    .products(products)
+                    .totalPage(totalPages)
+                    .build();
+
+            return ResponseEntity.ok(productListResponse);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
 
     // Done
     @GetMapping("/{id}")

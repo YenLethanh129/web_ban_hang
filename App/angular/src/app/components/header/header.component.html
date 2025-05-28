@@ -1,4 +1,4 @@
-<header>
+<header class="user-header">
   <nav class="navbar navbar-expand-lg">
     <div class="container">
       <a class="navbar-brand" routerLink="/">LOGO</a>
@@ -61,3 +61,15 @@
     </div>
   </nav>
 </header>
+<nav class="menu-top open">
+  <ul>
+    <li *ngFor="let category of categories">
+      <div class="menu">
+        <a [routerLink]="['/category', category.id]" class="layer-1">
+          <i class="" style="margin-right: 5px"></i>
+          <span>{{ category.name }}</span>
+        </a>
+      </div>
+    </li>
+  </ul>
+</nav>

@@ -8,7 +8,7 @@ import { WebEnvironment } from '../environments/WebEnvironment';
   providedIn: 'root',
 })
 export class ProductService {
-  private apiUrl = `${WebEnvironment.apiUrl}/products`;
+  private apiUrl = `${WebEnvironment.apiUrl}/products/category`;
 
   constructor(private http: HttpClient) {}
 
@@ -25,5 +25,17 @@ export class ProductService {
 
   getProductById(id: number): Observable<ProductDTO> {
     return this.http.get<ProductDTO>(`${this.apiUrl}/${id}`);
+  }
+
+  getProductsByCategoryId(
+    id: number,
+    page: number = 1,
+    limit: number = 20
+  ): Observable<ProductResponse> {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('limit', limit.toString());
+
+    return this.http.get<ProductResponse>(`${this.apiUrl}/${id}`, { params });
   }
 }

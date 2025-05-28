@@ -1,6 +1,8 @@
 package com.project.webbanhang.services;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -51,6 +53,8 @@ public class ProductService implements IProductService{
 		return productRepository.findById(id)
 				.orElseThrow(() -> new DataNotFoundException("Can't found product with id " + id));
 	}
+	
+	
 
 	// Done
 	@Override
@@ -103,6 +107,13 @@ public class ProductService implements IProductService{
 			throw new InvalidParamException("This product had 5 images, delete some it if you want push more!");
 		}
 		return productImageRepository.save(newProductImage);
+	}
+
+
+	@Override
+	public Page<ProductResponse> getProductsByCategoryId(Long categoryId, PageRequest pageable) throws DataNotFoundException {
+		return productRepository.findByCategoryId(categoryId, pageable)
+				.map(ProductResponse::fromEntity);
 	}
 
 }

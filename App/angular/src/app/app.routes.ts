@@ -8,6 +8,7 @@ import { RegisterComponent } from './components/register/register.component';
 import { AuthGuard } from './guards/auth.guard';
 import { GuestGuard } from './guards/guest.guard';
 import { CartComponent } from './components/cart/cart.component';
+import { CategoryComponent } from './components/category/category.component';
 
 export const routes: Routes = [
   {
@@ -31,5 +32,5 @@ export const routes: Routes = [
   { path: 'login', component: LoginComponent, canActivate: [GuestGuard] },
   { path: 'product/:id', component: DetailProductComponent },
   { path: 'cart', component: CartComponent },
+  { path: 'category/:id', component: CategoryComponent }, // Redirect to home for any unknown routes
 ];
-

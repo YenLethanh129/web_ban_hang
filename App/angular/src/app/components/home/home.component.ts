@@ -22,6 +22,7 @@ import { Router } from '@angular/router';
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })
+
 export class HomeComponent implements OnInit {
   products: ProductDTO[] = [];
   currentPage: number = 1;
@@ -41,9 +42,9 @@ export class HomeComponent implements OnInit {
 
   @HostListener('window:scroll', ['$event'])
   onScroll(): void {
-    if (this.isNearBottom() && !this.isLoading && this.hasMoreProducts) {
-      this.loadMoreProducts();
-    }
+    // if (this.isNearBottom() && !this.isLoading && this.hasMoreProducts) {
+    //   this.loadMoreProducts();
+    // }
   }
 
   private isNearBottom(): boolean {
