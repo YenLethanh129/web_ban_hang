@@ -1,7 +1,5 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HeaderComponent } from '../header/header.component';
-import { FooterComponent } from '../footer/footer.component';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule, NgForm } from '@angular/forms';
 import { ViewChild } from '@angular/core';
@@ -16,14 +14,7 @@ import { RegisterDTO } from '../../dtos/register.dto';
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [
-    HeaderComponent,
-    FooterComponent,
-    RouterModule,
-    FormsModule,
-    CommonModule,
-    HttpClientModule,
-  ],
+  imports: [RouterModule, FormsModule, CommonModule, HttpClientModule],
   templateUrl: './register.component.html',
   styleUrl: './register.component.scss',
 })
@@ -41,6 +32,7 @@ export class RegisterComponent {
   showPassword = false;
   showConfirmPassword = false;
   agreeToTerms = false;
+  showAgreeToTermsError = false;
   showPhoneError = false;
   showFullNameError = false;
   showDateOfBirthError = false;
@@ -97,6 +89,7 @@ export class RegisterComponent {
       alert('Vui lòng đồng ý với điều khoản và điều kiện');
       return;
     }
+
     if (
       this.registerForm.valid &&
       this.validatePassword() &&
@@ -128,8 +121,15 @@ export class RegisterComponent {
         },
         error: (error) => {
           this.isLoading = false;
-          console.error('Lỗi đăng ký:', error);
-          alert('Đăng ký thất bại!, ' + error.error);
+          let message = 'Đăng ký thất bại!';
+          if (error.error) {
+            if (typeof error.error === 'string') {
+              message += ' ' + error.error;
+            } else if (typeof error.error.message === 'string') {
+              message += ' ' + error.error.message;
+            }
+          }
+          alert(message);
         },
         complete: () => {
           this.isLoading = false;

@@ -8,7 +8,7 @@ import { WebEnvironment } from '../environments/WebEnvironment';
   providedIn: 'root',
 })
 export class ProductService {
-  private apiUrl = `${WebEnvironment.apiUrl}/products/category`;
+  private apiUrl = `${WebEnvironment.apiUrl}/products`;
 
   constructor(private http: HttpClient) {}
 
@@ -36,6 +36,8 @@ export class ProductService {
       .set('page', page.toString())
       .set('limit', limit.toString());
 
-    return this.http.get<ProductResponse>(`${this.apiUrl}/${id}`, { params });
+    return this.http.get<ProductResponse>(`${this.apiUrl}/category/${id}`, {
+      params,
+    });
   }
 }

@@ -1,6 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { HeaderComponent } from '../header/header.component';
-import { FooterComponent } from '../footer/footer.component';
 import { RouterModule, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ProductService } from '../../services/product.service';
@@ -11,7 +9,7 @@ import { Router } from '@angular/router';
 @Component({
   selector: 'app-detail-product',
   standalone: true,
-  imports: [HeaderComponent, FooterComponent, RouterModule, CommonModule],
+  imports: [RouterModule, CommonModule],
   templateUrl: './detail-product.component.html',
   styleUrl: './detail-product.component.scss',
 })

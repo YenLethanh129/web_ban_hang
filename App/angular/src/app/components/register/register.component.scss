@@ -1,8 +1,12 @@
 @use "sass:color";
+@import "../home/home.component.scss";
+
+.page-background {
+  padding-top: 50px;
+  padding-bottom: 50px;
+}
 
 .register-section {
-  padding: 40px 0;
-  margin-top: 70px;
   min-height: calc(100vh - 200px);
   display: flex;
   align-items: center;

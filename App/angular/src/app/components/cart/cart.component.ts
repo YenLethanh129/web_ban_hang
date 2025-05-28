@@ -4,13 +4,11 @@ import { RouterModule } from '@angular/router';
 import { CartService } from '../../services/cart.service'
 import { ProductService } from '../../services/product.service';
 import { ProductDTO } from '../../models/product.dto';
-import { HeaderComponent } from '../header/header.component';
-import { FooterComponent } from '../footer/footer.component';
 
 @Component({
   selector: 'app-cart',
   standalone: true,
-  imports: [CommonModule, RouterModule, HeaderComponent, FooterComponent],
+  imports: [CommonModule, RouterModule],
   templateUrl: './cart.component.html',
   styleUrl: './cart.component.scss'
 })

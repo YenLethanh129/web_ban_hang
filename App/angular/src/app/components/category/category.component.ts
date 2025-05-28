@@ -1,6 +1,4 @@
 import { Component, OnInit, HostListener } from '@angular/core';
-import { HeaderComponent } from '../header/header.component';
-import { FooterComponent } from '../footer/footer.component';
 import { RouterModule, ActivatedRoute } from '@angular/router';
 import { HttpClientModule } from '@angular/common/http';
 import { ProductDTO } from '../../models/product.dto';
@@ -12,12 +10,10 @@ import { Router } from '@angular/router';
 @Component({
   selector: 'app-category',
   imports: [
-    HeaderComponent,
-    FooterComponent,
     RouterModule,
     HttpClientModule,
-    CommonModule,
-  ],
+    CommonModule
+],
   templateUrl: './category.component.html',
   styleUrl: './category.component.scss',
 })

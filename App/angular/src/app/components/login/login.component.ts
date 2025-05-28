@@ -1,7 +1,5 @@
 import { Component, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HeaderComponent } from '../header/header.component';
-import { FooterComponent } from '../footer/footer.component';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule, NgForm } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
@@ -14,13 +12,11 @@ import { TokenService } from '../../services/token.service';
   selector: 'app-login',
   standalone: true,
   imports: [
-    HeaderComponent,
-    FooterComponent,
     RouterModule,
     FormsModule,
     CommonModule,
-    HttpClientModule,
-  ],
+    HttpClientModule
+],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })

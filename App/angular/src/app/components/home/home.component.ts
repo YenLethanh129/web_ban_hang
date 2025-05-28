@@ -1,6 +1,4 @@
 import { Component, OnInit, HostListener } from '@angular/core';
-import { HeaderComponent } from '../header/header.component';
-import { FooterComponent } from '../footer/footer.component';
 import { RouterModule } from '@angular/router';
 import { HttpClientModule } from '@angular/common/http';
 import { ProductDTO } from '../../models/product.dto';
@@ -13,12 +11,10 @@ import { Router } from '@angular/router';
   selector: 'app-home',
   standalone: true,
   imports: [
-    HeaderComponent,
-    FooterComponent,
     RouterModule,
     HttpClientModule,
-    CommonModule,
-  ],
+    CommonModule
+],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })

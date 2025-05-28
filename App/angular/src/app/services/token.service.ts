@@ -1,5 +1,6 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { StorageService } from './storage.service';
+import { isPlatformBrowser } from '@angular/common';
 
 @Injectable({
   providedIn: 'root',
@@ -7,18 +8,28 @@ import { StorageService } from './storage.service';
 export class TokenService {
   private readonly TOKEN_KEY = 'auth_token';
 
-  constructor(private storageService: StorageService) {}
+  constructor(
+    private storageService: StorageService,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {}
 
   setToken(token: string): void {
-    this.storageService.setItem(this.TOKEN_KEY, token);
+    if (isPlatformBrowser(this.platformId)) {
+      this.storageService.setItem(this.TOKEN_KEY, token);
+    }
   }
 
   getToken(): string | null {
-    return this.storageService.getItem(this.TOKEN_KEY);
+    if (isPlatformBrowser(this.platformId)) {
+      return this.storageService.getItem(this.TOKEN_KEY);
+    }
+    return null;
   }
 
   removeToken(): void {
-    this.storageService.removeItem(this.TOKEN_KEY);
+    if (isPlatformBrowser(this.platformId)) {
+      this.storageService.removeItem(this.TOKEN_KEY);
+    }
   }
 
   isLoggedIn(): boolean {

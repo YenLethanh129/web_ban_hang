@@ -1,4 +1,4 @@
-import { ApplicationConfig } from '@angular/core';
+import { ApplicationConfig, PLATFORM_ID } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { routes } from './app.routes';
 import {
@@ -14,5 +14,9 @@ export const appConfig: ApplicationConfig = {
     provideClientHydration(withEventReplay()),
     provideHttpClient(withFetch()),
     StorageService,
+    {
+      provide: PLATFORM_ID,
+      useValue: typeof window === 'undefined' ? 'server' : 'browser',
+    },
   ],
 };
