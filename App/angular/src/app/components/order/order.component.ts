@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, NgModule } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ProductDTO } from '../../models/product.dto';
@@ -6,28 +6,31 @@ import { CartService } from '../../services/cart.service';
 import { ProductService } from '../../services/product.service';
 import { TokenService } from '../../services/token.service';
 import { UserService } from '../../services/user.service';
+import { FormsModule } from '@angular/forms';
+import { UserDTO } from '../../dtos/user.dto';
 
 @Component({
   selector: 'app-order',
   standalone: true,
-  imports: [RouterModule, CommonModule],
+  imports: [RouterModule, CommonModule, FormsModule],
   templateUrl: './order.component.html',
-  styleUrl: './order.component.scss',
+  styleUrls: ['./order.component.scss'],
 })
 export class OrderComponent implements OnInit {
   cartItems: { product: ProductDTO; quantity: number }[] = [];
   isLoading: boolean = false;
+  user: UserDTO | null = null;
   orderData = {
-    user_id: null, // This should be set to the actual user ID
-    full_name: '',
+    userId: 0, // This should be set to the actual user ID
+    fullName: '',
     email: '',
-    phone_number: '',
+    phoneNumber: '',
     address: '',
     note: '',
-    total_money: null as number | null,
-    shipping_method: '',
-    shipping_address: '',
-    payment_method: 'Credit Card',
+    totalMoney: null as number | null,
+    shippingMethod: '',
+    shippingAddress: '',
+    paymentMethod: 'Credit Card',
   };
 
   constructor(
@@ -44,6 +47,25 @@ export class OrderComponent implements OnInit {
       return;
     }
     this.loadCartItems();
+    this.loadUserData();
+  }
+
+  private loadUserData() {
+    this.userService.getUser().subscribe({
+      next: (user) => {
+        this.user = user;
+        console.log('Thông tin người dùng:', this.user);
+        if (this.user) {
+          this.orderData.userId = this.user.id;
+          this.orderData.fullName = this.user.fullname;
+          this.orderData.phoneNumber = this.user.phone_number;
+          this.orderData.address = this.user.address;
+        }
+      },
+      error: (error) => {
+        console.error('Lỗi khi tải thông tin người dùng:', error);
+      },
+    });
   }
 
   private async loadCartItems() {

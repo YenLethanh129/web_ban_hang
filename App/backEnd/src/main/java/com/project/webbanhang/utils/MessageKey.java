@@ -10,4 +10,5 @@ public class MessageKey {
 	public static final String REGISTER_FAILED = "user.register.register_failed";
 	public static final String WRONG_RETYPE_PASSWORD = "user.register.wrong_retype_password";
 	public static final String REGISTER_SUCCESSFULLY = "user.register.register_successfully=";
+	public static final String PROFILE_FAILED = "user.profile.profile_failed";
 }

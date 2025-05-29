@@ -6,9 +6,11 @@ import com.project.webbanhang.dtos.UserLoginDTO;
 import com.project.webbanhang.models.User;
 import com.project.webbanhang.response.LoginResponse;
 import com.project.webbanhang.response.RegisterResponse;
+import com.project.webbanhang.response.UserResponse;
 import com.project.webbanhang.services.IUserService;
 import com.project.webbanhang.utils.MessageKey;
 
+import ch.qos.logback.core.subst.Token;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -17,6 +19,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -80,4 +83,17 @@ public class UserController {
             return ResponseEntity.badRequest().body(localizationUtil.getLocalizedMessage(MessageKey.REGISTER_FAILED, e.getMessage()));
         }
     }
+    
+    @PostMapping("/profile")
+    public ResponseEntity<?> getUserProfile(
+    		@RequestHeader("Authorization") String token
+    ) {
+    	try {
+    		String extractedToken = token.substring(7); // Loại bỏ "Bearer " từ chuỗi token
+    		User user = userService.getUserProfileFromToken(extractedToken);
+    		return ResponseEntity.ok(UserResponse.fromEntity(user));
+    	} catch (Exception e) {
+    		return ResponseEntity.badRequest().body(localizationUtil.getLocalizedMessage(MessageKey.PROFILE_FAILED, e.getMessage()));
+    	}
+	}
 }

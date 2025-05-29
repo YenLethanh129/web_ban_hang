@@ -6,6 +6,7 @@ import { LoginDTO } from '../dtos/login.dto';
 import { UserDTO } from '../dtos/user.dto';
 import { TokenService } from './token.service';
 import { WebEnvironment } from '../environments/WebEnvironment';
+import { LoginResponse } from '../response/login.response';
 
 @Injectable({
   providedIn: 'root',
@@ -28,22 +29,26 @@ export class UserService {
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
     });
-    return this.http.post(`${this.apiUrl}/login`, loginDTO, {
+    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, loginDTO, {
       headers,
-      responseType: 'text',
     });
   }
 
-  getUser(): Observable<UserDTO> {
-    const headers = new HttpHeaders().set(
-      'Authorization',
-      `Bearer ${this.tokenService.getToken()}`
+  getUser() {
+    console.log('Token:', this.tokenService.getToken());
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${this.tokenService.getToken()}`,
+    });
+    return this.http.post<UserDTO>(
+      `${this.apiUrl}/profile`,
+      {}, // body rỗng
+      { headers } // options
     );
-    return this.http.get<UserDTO>(`${this.apiUrl}/profile`, { headers });
   }
 
   setCurrentUser(user: UserDTO) {
-    this.currentUser = user; // Biến user lấy thông tin từ tham số đầu vào của hàm setCurrentUser
+    this.currentUser = user;
   }
 
   getUserName(): string {

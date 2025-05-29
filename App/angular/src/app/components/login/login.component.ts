@@ -72,9 +72,11 @@ export class LoginComponent {
       next: (response: LoginResponse) => {
         console.log('Đăng nhập thành công:', response);
         const { token } = response;
-        //const { user } = response;
-
-        //this.userService.setUser(user);
+        if (!token) {
+          console.log('Không nhận được token từ máy chủ');
+          this.isLoading = false;
+          return;
+        }
         this.tokenService.setToken(token);
 
         alert('Đăng nhập thành công!');
@@ -94,7 +96,6 @@ export class LoginComponent {
         } catch (e) {
           console.error('Lỗi parse error message:', e);
         }
-
         alert(errorMessage);
       },
     });
