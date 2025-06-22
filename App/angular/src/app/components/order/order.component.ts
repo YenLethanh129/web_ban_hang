@@ -48,6 +48,8 @@ export class OrderComponent implements OnInit {
     }
     this.loadCartItems();
     this.loadUserData();
+    this.orderData.shippingMethod = 'standard'; // Default shipping method
+    this.orderData.paymentMethod = 'bank-transfer'; // Default payment method
   }
 
   private loadUserData() {
@@ -59,6 +61,7 @@ export class OrderComponent implements OnInit {
           this.orderData.userId = this.user.id;
           this.orderData.fullName = this.user.fullname;
           this.orderData.phoneNumber = this.user.phone_number;
+          this.orderData.shippingAddress = this.user.address;
           this.orderData.address = this.user.address;
         }
       },
