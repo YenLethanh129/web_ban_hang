@@ -1,6 +1,47 @@
+# MOST IMPORTANT STUFF!
 .env
+credentials.ini
+config.json
 
-/App/angular/dist
-/App/backEnd/target
+# OS and temp files 
+.DS_Store # macOS
+Thumbs.db # Windows
+ehthumbs.db # Windows
+Desktop.ini # Win
+dows
 
-/App/angular/node_modules
+# Build Artifacts
+/build/
+/dist/
+/out/
+/target/
+/bin/
+*.log
+*.class
+*.jar
+*.war
+*.ear
+*.zip
+*.rar
+*.7z
+*.gz
+*.tar
+
+# Node and its stuff
+/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-store/ 
+.env 
+.env.*.local 
+.next/ 
+.angular/ 
+.svelte-kit/ 
+.nuxt/ 
+.vite/ 
+/coverage/ 
+
+# IDE configs
+.vscode/
+
