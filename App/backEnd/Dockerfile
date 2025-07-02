@@ -1,15 +1,14 @@
 FROM openjdk:17-jdk-alpine
 
+# Install Maven
+RUN apk add --no-cache maven
+
 WORKDIR /app
 
-COPY . .
-
-RUN chmod +x mvnw
-RUN ./mvnw clean package -DskipTests
-
-# Lấy file JAR duy nhất trong target và đổi tên thành app.jar
-RUN cp target/*.jar app.jar
+# No need to copy files or build JAR since we'll mount the source directory
+# and use 'mvn spring-boot:run' in development mode
 
 EXPOSE 1609
 
-CMD ["java", "-jar", "app.jar"]
+# Default command (will be overridden by docker-compose)
+CMD ["mvn", "spring-boot:run"]
