@@ -1,0 +1,241 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------------------< com.project:webbanhang >-----------------------
+[INFO] Building webbanhang 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:3.3.4:run (default-cli) > test-compile @ webbanhang >>>
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ webbanhang ---
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] Copying 2 resources from src/main/resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ webbanhang ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ webbanhang ---
+[INFO] skip non existing resourceDirectory /app/src/test/resources
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ webbanhang ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] <<< spring-boot:3.3.4:run (default-cli) < test-compile @ webbanhang <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:3.3.4:run (default-cli) @ webbanhang ---
+[INFO] Attaching agents: []
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.3.4)
+
+2025-07-01T16:04:15.693Z  INFO 152 --- [webbanhang] [           main] c.p.webbanhang.WebbanhangApplication     : Starting WebbanhangApplication using Java 17-ea with PID 152 (/app/target/classes started by root in /app)
+2025-07-01T16:04:15.699Z  INFO 152 --- [webbanhang] [           main] c.p.webbanhang.WebbanhangApplication     : No active profile set, falling back to 1 default profile: "default"
+2025-07-01T16:04:19.796Z  INFO 152 --- [webbanhang] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-07-01T16:04:20.388Z  INFO 152 --- [webbanhang] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 563 ms. Found 7 JPA repository interfaces.
+2025-07-01T16:04:22.474Z  INFO 152 --- [webbanhang] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 1609 (http)
+2025-07-01T16:04:22.509Z  INFO 152 --- [webbanhang] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2025-07-01T16:04:22.509Z  INFO 152 --- [webbanhang] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.30]
+2025-07-01T16:04:22.630Z  INFO 152 --- [webbanhang] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2025-07-01T16:04:22.632Z  INFO 152 --- [webbanhang] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 6816 ms
+2025-07-01T16:04:23.361Z  INFO 152 --- [webbanhang] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-07-01T16:04:23.647Z  INFO 152 --- [webbanhang] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
+2025-07-01T16:04:23.801Z  INFO 152 --- [webbanhang] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2025-07-01T16:04:24.976Z  INFO 152 --- [webbanhang] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2025-07-01T16:04:25.113Z  INFO 152 --- [webbanhang] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2025-07-01T16:04:25.646Z  INFO 152 --- [webbanhang] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@59a2bed1
+2025-07-01T16:04:25.654Z  INFO 152 --- [webbanhang] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2025-07-01T16:04:29.578Z  INFO 152 --- [webbanhang] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-07-01T16:04:29.590Z  INFO 152 --- [webbanhang] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-07-01T16:04:30.953Z  WARN 152 --- [webbanhang] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-07-01T16:04:31.999Z  INFO 152 --- [webbanhang] [           main] eAuthenticationProviderManagerConfigurer : Global AuthenticationManager configured with AuthenticationProvider bean with name authenticationProvider
+2025-07-01T16:04:32.003Z  WARN 152 --- [webbanhang] [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with an AuthenticationProvider bean. UserDetailsService beans will not be used for username/password login. Consider removing the AuthenticationProvider bean. Alternatively, consider using the UserDetailsService in a manually instantiated DaoAuthenticationProvider.
+2025-07-01T16:04:33.682Z  INFO 152 --- [webbanhang] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 1 endpoint beneath base path '/actuator'
+2025-07-01T16:04:35.044Z  INFO 152 --- [webbanhang] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 1609 (http) with context path '/'
+2025-07-01T16:04:35.061Z  INFO 152 --- [webbanhang] [           main] c.p.webbanhang.WebbanhangApplication     : Started WebbanhangApplication in 20.683 seconds (process running for 21.357)
+2025-07-01T16:04:47.934Z  INFO 152 --- [webbanhang] [nio-1609-exec-2] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-07-01T16:04:47.934Z  INFO 152 --- [webbanhang] [nio-1609-exec-2] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2025-07-01T16:04:47.935Z  INFO 152 --- [webbanhang] [nio-1609-exec-2] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+Hibernate: select p1_0.id,p1_0.category_id,p1_0.created_at,p1_0.description,p1_0.name,p1_0.price,p1_0.thumbnail,p1_0.updated_at from products p1_0 limit ?,?
+Hibernate: select p1_0.id,p1_0.category_id,p1_0.created_at,p1_0.description,p1_0.name,p1_0.price,p1_0.thumbnail,p1_0.updated_at from products p1_0 limit ?,?
+Hibernate: select c1_0.id,c1_0.name from categories c1_0
+Hibernate: select c1_0.id,c1_0.name from categories c1_0
+Hibernate: select c1_0.id,c1_0.name from categories c1_0 where c1_0.id=?
+Hibernate: select c1_0.id,c1_0.name from categories c1_0 where c1_0.id=?
+Hibernate: select c1_0.id,c1_0.name from categories c1_0 where c1_0.id=?
+Hibernate: select c1_0.id,c1_0.name from categories c1_0 where c1_0.id=?
+Hibernate: select c1_0.id,c1_0.name from categories c1_0 where c1_0.id=?
+Hibernate: select c1_0.id,c1_0.name from categories c1_0 where c1_0.id=?
+Hibernate: select count(p1_0.id) from products p1_0
+Hibernate: select count(p1_0.id) from products p1_0
+Hibernate: select c1_0.id,c1_0.name from categories c1_0
+Hibernate: select p1_0.id,p1_0.category_id,p1_0.created_at,p1_0.description,p1_0.name,p1_0.price,p1_0.thumbnail,p1_0.updated_at from products p1_0 limit ?,?
+Hibernate: select c1_0.id,c1_0.name from categories c1_0 where c1_0.id=?
+Hibernate: select c1_0.id,c1_0.name from categories c1_0 where c1_0.id=?
+Hibernate: select c1_0.id,c1_0.name from categories c1_0 where c1_0.id=?
+Hibernate: select count(p1_0.id) from products p1_0
+Hibernate: select c1_0.id,c1_0.name from categories c1_0
+Hibernate: select p1_0.id,c1_0.id,c1_0.name,p1_0.created_at,p1_0.description,p1_0.name,p1_0.price,p1_0.thumbnail,p1_0.updated_at from products p1_0 left join categories c1_0 on c1_0.id=p1_0.category_id where p1_0.id=?
+Hibernate: select c1_0.id,c1_0.name from categories c1_0
+Hibernate: select p1_0.id,c1_0.id,c1_0.name,p1_0.created_at,p1_0.description,p1_0.name,p1_0.price,p1_0.thumbnail,p1_0.updated_at from products p1_0 left join categories c1_0 on c1_0.id=p1_0.category_id where p1_0.id=?
+Hibernate: select c1_0.id,c1_0.name from categories c1_0
+Hibernate: select p1_0.id,c1_0.id,c1_0.name,p1_0.created_at,p1_0.description,p1_0.name,p1_0.price,p1_0.thumbnail,p1_0.updated_at from products p1_0 left join categories c1_0 on c1_0.id=p1_0.category_id where p1_0.id=?
+Hibernate: select c1_0.id,c1_0.name from categories c1_0
+Hibernate: select p1_0.id,c1_0.id,c1_0.name,p1_0.created_at,p1_0.description,p1_0.name,p1_0.price,p1_0.thumbnail,p1_0.updated_at from products p1_0 left join categories c1_0 on c1_0.id=p1_0.category_id where p1_0.id=?
+Hibernate: select c1_0.id,c1_0.name from categories c1_0
+Hibernate: select p1_0.id,c1_0.id,c1_0.name,p1_0.created_at,p1_0.description,p1_0.name,p1_0.price,p1_0.thumbnail,p1_0.updated_at from products p1_0 left join categories c1_0 on c1_0.id=p1_0.category_id where p1_0.id=?
+Hibernate: select c1_0.id,c1_0.name from categories c1_0
+Hibernate: select p1_0.id,c1_0.id,c1_0.name,p1_0.created_at,p1_0.description,p1_0.name,p1_0.price,p1_0.thumbnail,p1_0.updated_at from products p1_0 left join categories c1_0 on c1_0.id=p1_0.category_id where p1_0.id=?
+Hibernate: select c1_0.id,c1_0.name from categories c1_0
+Hibernate: select p1_0.id,c1_0.id,c1_0.name,p1_0.created_at,p1_0.description,p1_0.name,p1_0.price,p1_0.thumbnail,p1_0.updated_at from products p1_0 left join categories c1_0 on c1_0.id=p1_0.category_id where p1_0.id=?
+Hibernate: select c1_0.id,c1_0.name from categories c1_0
+Hibernate: select p1_0.id,p1_0.category_id,p1_0.created_at,p1_0.description,p1_0.name,p1_0.price,p1_0.thumbnail,p1_0.updated_at from products p1_0 limit ?,?
+Hibernate: select c1_0.id,c1_0.name from categories c1_0 where c1_0.id=?
+Hibernate: select c1_0.id,c1_0.name from categories c1_0 where c1_0.id=?
+Hibernate: select c1_0.id,c1_0.name from categories c1_0 where c1_0.id=?
+Hibernate: select count(p1_0.id) from products p1_0
+Hibernate: select c1_0.id,c1_0.name from categories c1_0
+Hibernate: select p1_0.id,c1_0.id,c1_0.name,p1_0.created_at,p1_0.description,p1_0.name,p1_0.price,p1_0.thumbnail,p1_0.updated_at from products p1_0 left join categories c1_0 on c1_0.id=p1_0.category_id where p1_0.id=?
+Hibernate: select c1_0.id,c1_0.name from categories c1_0
+Hibernate: select p1_0.id,c1_0.id,c1_0.name,p1_0.created_at,p1_0.description,p1_0.name,p1_0.price,p1_0.thumbnail,p1_0.updated_at from products p1_0 left join categories c1_0 on c1_0.id=p1_0.category_id where p1_0.id=?
+Hibernate: select c1_0.id,c1_0.name from categories c1_0
+Hibernate: select p1_0.id,c1_0.id,c1_0.name,p1_0.created_at,p1_0.description,p1_0.name,p1_0.price,p1_0.thumbnail,p1_0.updated_at from products p1_0 left join categories c1_0 on c1_0.id=p1_0.category_id where p1_0.id=?
+Hibernate: select c1_0.id,c1_0.name from categories c1_0
+Hibernate: select p1_0.id,c1_0.id,c1_0.name,p1_0.created_at,p1_0.description,p1_0.name,p1_0.price,p1_0.thumbnail,p1_0.updated_at from products p1_0 left join categories c1_0 on c1_0.id=p1_0.category_id where p1_0.id=?
+Hibernate: select c1_0.id,c1_0.name from categories c1_0
+Hibernate: select p1_0.id,c1_0.id,c1_0.name,p1_0.created_at,p1_0.description,p1_0.name,p1_0.price,p1_0.thumbnail,p1_0.updated_at from products p1_0 left join categories c1_0 on c1_0.id=p1_0.category_id where p1_0.id=?
+Hibernate: select c1_0.id,c1_0.name from categories c1_0
+Hibernate: select p1_0.id,c1_0.id,c1_0.name,p1_0.created_at,p1_0.description,p1_0.name,p1_0.price,p1_0.thumbnail,p1_0.updated_at from products p1_0 left join categories c1_0 on c1_0.id=p1_0.category_id where p1_0.id=?
+Hibernate: select c1_0.id,c1_0.name from categories c1_0
+Hibernate: select p1_0.id,c1_0.id,c1_0.name,p1_0.created_at,p1_0.description,p1_0.name,p1_0.price,p1_0.thumbnail,p1_0.updated_at from products p1_0 left join categories c1_0 on c1_0.id=p1_0.category_id where p1_0.id=?
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------------------< com.project:webbanhang >-----------------------
+[INFO] Building webbanhang 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:3.3.4:run (default-cli) > test-compile @ webbanhang >>>
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ webbanhang ---
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] Copying 2 resources from src/main/resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ webbanhang ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ webbanhang ---
+[INFO] skip non existing resourceDirectory /app/src/test/resources
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ webbanhang ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] <<< spring-boot:3.3.4:run (default-cli) < test-compile @ webbanhang <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:3.3.4:run (default-cli) @ webbanhang ---
+[INFO] Attaching agents: []
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.3.4)
+
+2025-07-02T03:40:18.843Z  INFO 157 --- [webbanhang] [           main] c.p.webbanhang.WebbanhangApplication     : Starting WebbanhangApplication using Java 17-ea with PID 157 (/app/target/classes started by root in /app)
+2025-07-02T03:40:18.849Z  INFO 157 --- [webbanhang] [           main] c.p.webbanhang.WebbanhangApplication     : No active profile set, falling back to 1 default profile: "default"
+2025-07-02T03:40:24.562Z  INFO 157 --- [webbanhang] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-07-02T03:40:25.720Z  INFO 157 --- [webbanhang] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 1106 ms. Found 7 JPA repository interfaces.
+2025-07-02T03:40:28.789Z  INFO 157 --- [webbanhang] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 1609 (http)
+2025-07-02T03:40:28.842Z  INFO 157 --- [webbanhang] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2025-07-02T03:40:28.842Z  INFO 157 --- [webbanhang] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.30]
+2025-07-02T03:40:29.081Z  INFO 157 --- [webbanhang] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2025-07-02T03:40:29.083Z  INFO 157 --- [webbanhang] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 10047 ms
+2025-07-02T03:40:30.185Z  INFO 157 --- [webbanhang] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-07-02T03:40:30.568Z  INFO 157 --- [webbanhang] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
+2025-07-02T03:40:30.870Z  INFO 157 --- [webbanhang] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2025-07-02T03:40:33.309Z  INFO 157 --- [webbanhang] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2025-07-02T03:40:33.487Z  INFO 157 --- [webbanhang] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2025-07-02T03:40:34.168Z  INFO 157 --- [webbanhang] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@38c55a8a
+2025-07-02T03:40:34.180Z  INFO 157 --- [webbanhang] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2025-07-02T03:40:38.927Z  INFO 157 --- [webbanhang] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-07-02T03:40:38.941Z  INFO 157 --- [webbanhang] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-07-02T03:40:40.445Z  WARN 157 --- [webbanhang] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-07-02T03:40:41.738Z  INFO 157 --- [webbanhang] [           main] eAuthenticationProviderManagerConfigurer : Global AuthenticationManager configured with AuthenticationProvider bean with name authenticationProvider
+2025-07-02T03:40:41.743Z  WARN 157 --- [webbanhang] [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with an AuthenticationProvider bean. UserDetailsService beans will not be used for username/password login. Consider removing the AuthenticationProvider bean. Alternatively, consider using the UserDetailsService in a manually instantiated DaoAuthenticationProvider.
+2025-07-02T03:40:43.598Z  INFO 157 --- [webbanhang] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 1 endpoint beneath base path '/actuator'
+2025-07-02T03:40:45.212Z  INFO 157 --- [webbanhang] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 1609 (http) with context path '/'
+2025-07-02T03:40:45.233Z  INFO 157 --- [webbanhang] [           main] c.p.webbanhang.WebbanhangApplication     : Started WebbanhangApplication in 28.155 seconds (process running for 29.104)
+2025-07-02T03:44:45.782Z  INFO 157 --- [webbanhang] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2025-07-02T03:44:45.787Z  INFO 157 --- [webbanhang] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2025-07-02T03:44:45.795Z  INFO 157 --- [webbanhang] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------------------< com.project:webbanhang >-----------------------
+[INFO] Building webbanhang 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:3.3.4:run (default-cli) > test-compile @ webbanhang >>>
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ webbanhang ---
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] Copying 2 resources from src/main/resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ webbanhang ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ webbanhang ---
+[INFO] skip non existing resourceDirectory /app/src/test/resources
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ webbanhang ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] <<< spring-boot:3.3.4:run (default-cli) < test-compile @ webbanhang <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:3.3.4:run (default-cli) @ webbanhang ---
+[INFO] Attaching agents: []
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.3.4)
+
+2025-07-02T03:45:09.339Z  INFO 153 --- [webbanhang] [           main] c.p.webbanhang.WebbanhangApplication     : Starting WebbanhangApplication using Java 17-ea with PID 153 (/app/target/classes started by root in /app)
+2025-07-02T03:45:09.345Z  INFO 153 --- [webbanhang] [           main] c.p.webbanhang.WebbanhangApplication     : No active profile set, falling back to 1 default profile: "default"
+2025-07-02T03:45:12.449Z  INFO 153 --- [webbanhang] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-07-02T03:45:12.964Z  INFO 153 --- [webbanhang] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 495 ms. Found 7 JPA repository interfaces.
+2025-07-02T03:45:14.960Z  INFO 153 --- [webbanhang] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 1609 (http)
+2025-07-02T03:45:14.992Z  INFO 153 --- [webbanhang] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2025-07-02T03:45:14.992Z  INFO 153 --- [webbanhang] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.30]
+2025-07-02T03:45:15.109Z  INFO 153 --- [webbanhang] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2025-07-02T03:45:15.110Z  INFO 153 --- [webbanhang] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 5654 ms
+2025-07-02T03:45:15.826Z  INFO 153 --- [webbanhang] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-07-02T03:45:16.114Z  INFO 153 --- [webbanhang] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
+2025-07-02T03:45:16.268Z  INFO 153 --- [webbanhang] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2025-07-02T03:45:17.560Z  INFO 153 --- [webbanhang] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2025-07-02T03:45:17.708Z  INFO 153 --- [webbanhang] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2025-07-02T03:45:18.218Z  INFO 153 --- [webbanhang] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@4d4c4b14
+2025-07-02T03:45:18.226Z  INFO 153 --- [webbanhang] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2025-07-02T03:45:21.884Z  INFO 153 --- [webbanhang] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-07-02T03:45:21.897Z  INFO 153 --- [webbanhang] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-07-02T03:45:23.243Z  WARN 153 --- [webbanhang] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-07-02T03:45:24.081Z  INFO 153 --- [webbanhang] [           main] eAuthenticationProviderManagerConfigurer : Global AuthenticationManager configured with AuthenticationProvider bean with name authenticationProvider
+2025-07-02T03:45:24.083Z  WARN 153 --- [webbanhang] [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with an AuthenticationProvider bean. UserDetailsService beans will not be used for username/password login. Consider removing the AuthenticationProvider bean. Alternatively, consider using the UserDetailsService in a manually instantiated DaoAuthenticationProvider.
+2025-07-02T03:45:25.314Z  INFO 153 --- [webbanhang] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 1 endpoint beneath base path '/actuator'
+2025-07-02T03:45:26.532Z  INFO 153 --- [webbanhang] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 1609 (http) with context path '/'
+2025-07-02T03:45:26.553Z  INFO 153 --- [webbanhang] [           main] c.p.webbanhang.WebbanhangApplication     : Started WebbanhangApplication in 18.352 seconds (process running for 18.917)

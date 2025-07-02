@@ -1,0 +1,5 @@
+   0 docker exec -it <container_name> /bin/sh
+   1 docker exec -it web_ban_hang /bin/sh
+   2 docker exec -it backend-1 /bin/sh
+   3 docker exec -it web_ban_hang-backend-1 /bin/sh
+   4 history > /app/history.txt
