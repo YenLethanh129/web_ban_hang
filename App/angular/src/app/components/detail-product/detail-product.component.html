@@ -65,15 +65,12 @@
 
         <div class="product-options">
           <div class="option-group">
-            <label>Màu sắc:</label>
+            <label>Size:</label>
             <div class="color-options">
-              <button
-                *ngFor="let color of colors"
-                class="color-btn"
-                [class.selected]="selectedColor === color.code"
-                (click)="selectedColor = color.code"
-                [style.backgroundColor]="color.code"
-              ></button>
+              <option value="L">L</option>
+              <option value="M">M</option>
+              <option value="S">S</option>
+              <option value="XL">XL</option>
             </div>
             <span class="selected-text" *ngIf="selectedColor">
               Đã chọn: {{ getColorName(selectedColor) }}
