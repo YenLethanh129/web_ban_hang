@@ -1,0 +1,44 @@
+name: Docker Compose CI/CD
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'docker-compose.dev.yml'
+      - 'App/backEnd/Dockerfile'
+      - 'App/angular/Dockerfile'
+      - '.github/workflows/docker-compose-ci-cd.yml'
+  workflow_run:
+    workflows: ['Backend CI/CD', 'Frontend CI/CD']
+    types:
+      - completed
+    branches: [main]
+
+jobs:
+  integration-test:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
+    
+    steps:
+    - uses: actions/checkout@v3
+      
+    - name: Start Docker Compose
+      run: |
+        docker-compose -f docker-compose.dev.yml up -d
+        
+    - name: Wait for services to be ready
+      run: |
+        sleep 60
+        
+    - name: Check if services are running
+      run: |
+        docker-compose -f docker-compose.dev.yml ps
+    
+    # - name: Run integration tests
+    #   run: |
+    #     # Add integration test commands here
+    #     # Example: curl http://localhost:1609/api/v1/products
+   
+    - name: Stop Docker Compose
+      run: |
+        docker-compose -f docker-compose.dev.yml down

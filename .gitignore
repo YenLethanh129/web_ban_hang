@@ -1,0 +1,6 @@
+.env
+
+/App/angular/dist
+/App/backEnd/target
+
+/App/angular/node_modules
