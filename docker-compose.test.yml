@@ -53,7 +53,7 @@ services:
       - ./App/backend:/app
       - maven-repo:/root/.m2
     working_dir: /app
-    command: sh -c "mvn test && mvn spring-boot:run"
+    command: sh -c "mvn test"
     ports:
       - "1609:1609"
     networks:
