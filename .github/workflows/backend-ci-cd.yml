@@ -49,5 +49,3 @@ jobs:
         context: ./App/backEnd
         push: false
         tags: webbanhang/backend:latest 
-    
-
