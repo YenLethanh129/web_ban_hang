@@ -22,9 +22,45 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    # ...existing steps...
+    - uses: actions/checkout@v3
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: './App/angular/package-lock.json'
+    
+    - name: Install dependencies
+      run: |
+        cd App/angular
+        npm ci
+    
+    - name: Build Angular app
+      run: |
+        cd App/angular
+        npm run build --prod
     
     - name: Run tests
       run: |
         cd App/angular
         npm test -- --watch=false --browsers=ChromeHeadless
+    
+    - name: Run linting
+      run: |
+        cd App/angular
+        npm run lint
+    
+    - name: Cache node modules
+      uses: actions/cache@v3
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+    
+    - name: Build Docker image
+      if: github.event_name != 'pull_request'
+      run: |
+        cd App/angular
+        docker build -t webbanhang/frontend:latest .
