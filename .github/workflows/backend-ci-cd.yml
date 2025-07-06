@@ -11,6 +11,12 @@ on:
     paths: 
       - 'App/backEnd/**'
 
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+  actions: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -34,9 +40,16 @@ jobs:
       run: |
         cd App/backEnd
         mvn test 
+        
+    - name: Publish Test Results
+      uses: EnricoMi/publish-unit-test-result-action@v2
+      if: always()
+      with:
+        files: "App/backEnd/target/surefire-reports/*.xml"
+        github_token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Cache Maven packages 
-      uses:  action/cache@v3
+      uses:  actions/cache@v3
       with: 
         path: ~/.m2
         key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
@@ -48,6 +61,4 @@ jobs:
       with: 
         context: ./App/backEnd
         push: false
-        tags: webbanhang/backend:latest 
-    
-
+        tags: webbanhang/backend:latest

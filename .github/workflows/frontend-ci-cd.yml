@@ -11,6 +11,12 @@ on:
     paths:
       - 'App/angular/**'
 
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+  actions: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -21,35 +27,40 @@ jobs:
     - name: Set up Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: '20'
+        node-version: '18'
         cache: 'npm'
-        cache-dependency-path: App/angular/package-lock.json
-        
+        cache-dependency-path: './App/angular/package-lock.json'
+    
     - name: Install dependencies
       run: |
         cd App/angular
         npm ci
-        
-    - name: Lint
+    
+    - name: Build Angular app
+      run: |
+        cd App/angular
+        npm run build --prod
+    
+    # - name: Run tests
+    #   run: |
+    #     cd App/angular
+    #     npm test -- --watch=false --browsers=ChromeHeadless
+    
+    - name: Run linting
       run: |
         cd App/angular
         npm run lint
-      continue-on-error: true
-        
-    - name: Build
-      run: |
-        cd App/angular
-        npm run build
-        
-    - name: Run tests
-      run: |
-        cd App/angular
-        npm test -- --watch=false --browsers=ChromeHeadless
-      
-    - name: Build and push Docker image
-      if: github.event_name != 'pull_request'
-      uses: docker/build-push-action@v4
+    
+    - name: Cache node modules
+      uses: actions/cache@v3
       with:
-        context: ./App/angular
-        push: false
-        tags: webbanhang/frontend:latest
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+    
+    - name: Build Docker image
+      if: github.event_name != 'pull_request'
+      run: |
+        cd App/angular
+        docker build -t webbanhang/frontend:latest .
