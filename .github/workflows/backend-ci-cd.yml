@@ -11,15 +11,14 @@ on:
     paths: 
       - 'App/backEnd/**'
 
-permissions:
-  contents: read
-  checks: write
-  pull-requests: write
-  actions: read
-
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
+      actions: read
 
     steps: 
     - uses: actions/checkout@v3 
