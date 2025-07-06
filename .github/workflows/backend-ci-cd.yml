@@ -34,9 +34,15 @@ jobs:
       run: |
         cd App/backEnd
         mvn test 
+    - name: Publish Test Results
+      uses: EnricoMi/publish-unit-test-result-action@v2
+      if: always()
+      with:
+        files: "**/surefire-reports/*.xml"
+        github_token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Cache Maven packages 
-      uses:  action/cache@v3
+      uses:  actions/cache@v3
       with: 
         path: ~/.m2
         key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
