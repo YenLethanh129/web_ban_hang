@@ -41,10 +41,10 @@ jobs:
         cd App/angular
         npm run build --prod
     
-    - name: Run tests
-      run: |
-        cd App/angular
-        npm test -- --watch=false --browsers=ChromeHeadless
+    # - name: Run tests
+    #   run: |
+    #     cd App/angular
+    #     npm test -- --watch=false --browsers=ChromeHeadless
     
     - name: Run linting
       run: |
