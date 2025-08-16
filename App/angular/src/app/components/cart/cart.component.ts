@@ -13,7 +13,7 @@ import { ProductDTO } from '../../models/product.dto';
   styleUrl: './cart.component.scss'
 })
 export class CartComponent implements OnInit {
-  cartItems: { product: ProductDTO; quantity: number }[] = [];
+  cartItems: { product: ProductDTO; quantity: number; size: string }[] = [];
   isLoading: boolean = true;
 
   constructor(
@@ -31,14 +31,18 @@ export class CartComponent implements OnInit {
     
     try {
       const items = await Promise.all(
-        Array.from(cart.entries()).map(async ([productId, quantity]) => {
+        Array.from(cart.entries()).map(async ([productId, cartItem]) => {
           const product = await this.productService
             .getProductById(productId)
             .toPromise();
-          return { product, quantity };
+          return { 
+            product, 
+            quantity: cartItem.quantity,
+            size: cartItem.size 
+          };
         })
       );
-      this.cartItems = items.filter((item): item is { product: ProductDTO; quantity: number } => 
+      this.cartItems = items.filter((item): item is { product: ProductDTO; quantity: number; size: string } => 
         item.product !== undefined
       );
     } catch (error) {
@@ -50,7 +54,9 @@ export class CartComponent implements OnInit {
 
   updateQuantity(productId: number, newQuantity: number): void {
     if (newQuantity > 0) {
-      this.cartService.updateQuantity(productId, newQuantity);
+      const currentItem = this.cartItems.find(item => item.product.id === productId);
+      const size = currentItem?.size || 'M';
+      this.cartService.updateQuantity(productId, newQuantity, size);
     } else {
       this.removeItem(productId);
     }

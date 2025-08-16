@@ -6,8 +6,14 @@ import { CartService } from '../../services/cart.service';
 import { ProductService } from '../../services/product.service';
 import { TokenService } from '../../services/token.service';
 import { UserService } from '../../services/user.service';
+import { OrderService } from '../../services/order.service';
 import { FormsModule } from '@angular/forms';
 import { UserDTO } from '../../dtos/user.dto';
+import { OrderDTO } from '../../dtos/order.dto';
+import { OrderDetailDTO } from '../../dtos/order.dto';
+import { OrderDetailService } from '../../services/order.detail.service';
+import { MomoService } from '../../services/momo.service';
+import { CreateMomoResponse } from '../../dtos/momo.dto';
 
 @Component({
   selector: 'app-order',
@@ -17,9 +23,10 @@ import { UserDTO } from '../../dtos/user.dto';
   styleUrls: ['./order.component.scss'],
 })
 export class OrderComponent implements OnInit {
-  cartItems: { product: ProductDTO; quantity: number }[] = [];
+  cartItems: { product: ProductDTO; quantity: number; size: string }[] = [];
   isLoading: boolean = false;
   user: UserDTO | null = null;
+  orderId: number = 0;
   orderData = {
     userId: 0, // This should be set to the actual user ID
     fullName: '',
@@ -30,7 +37,8 @@ export class OrderComponent implements OnInit {
     totalMoney: null as number | null,
     shippingMethod: '',
     shippingAddress: '',
-    paymentMethod: 'Credit Card',
+    paymentMethod: '',
+    paymentStatus: '',
   };
 
   constructor(
@@ -38,6 +46,9 @@ export class OrderComponent implements OnInit {
     private productService: ProductService,
     private tokenService: TokenService,
     private userService: UserService,
+    private orderService: OrderService,
+    private orderDetailService: OrderDetailService,
+    private momoService: MomoService,
     private router: Router
   ) {}
 
@@ -46,10 +57,17 @@ export class OrderComponent implements OnInit {
       this.router.navigate(['/login']);
       return;
     }
-    this.loadCartItems();
+    this.loadCartItems().then(() => {
+      this.orderData.totalMoney = this.getTotalPrice();
+    });
     this.loadUserData();
     this.orderData.shippingMethod = 'standard'; // Default shipping method
-    this.orderData.paymentMethod = 'bank-transfer'; // Default payment method
+    this.orderData.paymentMethod = 'momo'; // Default payment method
+    this.orderData.paymentStatus = 'pending';
+  }
+
+  onSubmit() {
+    this.createOrder();
   }
 
   private loadUserData() {
@@ -77,15 +95,19 @@ export class OrderComponent implements OnInit {
 
     try {
       const items = await Promise.all(
-        Array.from(cart.entries()).map(async ([productId, quantity]) => {
+        Array.from(cart.entries()).map(async ([productId, cartItem]) => {
           const product = await this.productService
             .getProductById(productId)
             .toPromise();
-          return { product, quantity };
+          return { 
+            product, 
+            quantity: cartItem.quantity,
+            size: cartItem.size 
+          };
         })
       );
       this.cartItems = items.filter(
-        (item): item is { product: ProductDTO; quantity: number } =>
+        (item): item is { product: ProductDTO; quantity: number; size: string } =>
           item.product !== undefined
       );
     } catch (error) {
@@ -97,10 +119,72 @@ export class OrderComponent implements OnInit {
 
   getTotalPrice(): number {
     return this.cartItems.reduce(
-      (total, item) => total + item.product.price * item.quantity,
-      0
+      (total, item) => total + item.product.price * item.quantity, 0
     );
   }
 
-  createOrder(): void {}
+  createOrder(): void {
+    const orderDTO: OrderDTO = {
+      user_id: this.orderData.userId,
+      full_name: this.orderData.fullName,
+      email: this.orderData.email,
+      phone_number: this.orderData.phoneNumber,
+      address: this.orderData.address,
+      note: this.orderData.note,
+      total_money: this.orderData.totalMoney!,
+      shipping_method: this.orderData.shippingMethod,
+      shipping_address: this.orderData.shippingAddress,
+      payment_method: this.orderData.paymentMethod,
+      payment_status: this.orderData.paymentStatus,
+    };
+
+    console.log("OrderDTO: ",orderDTO);
+    this.orderService.createOrder(orderDTO).subscribe({
+      next: (response: any) => {
+        console.log('Đơn hàng đã được tạo:', response);
+        this.orderId = response.orderId;
+        this.createOrderDetail(this.orderId);
+      },
+      error: (error) => {
+        console.error('Lỗi khi tạo đơn hàng:', error);
+      },
+    }); 
+  }
+
+  createOrderDetail(orderId: number): void {
+    this.cartItems.forEach(item => {
+      const orderDetailDTO: OrderDetailDTO = {
+        order_id: orderId,
+        product_id: item.product.id,
+        number_of_product: item.quantity,
+        price: item.product.price,
+        total_money: item.product.price * item.quantity,
+        size: item.size ?? "L",
+      };
+      
+      this.orderDetailService.createOrderDetail(orderDetailDTO).subscribe({
+        next: (response) => {
+          console.log('Đơn hàng chi tiết đã được tạo:', response);
+        },
+        error: (error) => {
+          console.error('Lỗi khi tạo đơn hàng chi tiết:', error);
+        },
+      });
+    });
+
+    this.momoService.createQR().subscribe({
+      next: (response: CreateMomoResponse) => {
+        console.log('Mã thanh toán MoMo:', response);
+        if (response.payUrl) {
+          // Chuyển hướng đến URL thanh toán MoMo
+          window.location.href = response.payUrl;
+        } else {
+          console.error('Không tìm thấy payUrl trong response');
+        }
+      },
+      error: (error) => {
+        console.error('Lỗi khi lấy mã thanh toán: ', error);
+      },
+    });
+  }
 }

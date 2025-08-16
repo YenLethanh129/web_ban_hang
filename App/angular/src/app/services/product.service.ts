@@ -19,7 +19,6 @@ export class ProductService {
     const params = new HttpParams()
       .set('page', page.toString())
       .set('limit', limit.toString());
-
     return this.http.get<ProductResponse>(this.apiUrl, { params });
   }
 

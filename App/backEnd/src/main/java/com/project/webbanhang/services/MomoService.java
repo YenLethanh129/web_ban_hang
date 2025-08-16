@@ -1,92 +1,75 @@
 package com.project.webbanhang.services;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.project.webbanhang.configurations.MomoConfig;
-import com.project.webbanhang.dtos.MomoIpnRequestDTO;
-import com.project.webbanhang.response.MomoCreateResponse;
+import com.project.webbanhang.api.MomoApi;
+import com.project.webbanhang.dtos.CreateMomoRequestDTO;
+import com.project.webbanhang.response.CreateMomoResponse;
 import com.project.webbanhang.utils.HmacUtil;
 import lombok.RequiredArgsConstructor;
-import okhttp3.*;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class MomoService implements IMomoService{
-    private final MomoConfig cfg;
-    private final OkHttpClient http = new OkHttpClient();
-    private final ObjectMapper om = new ObjectMapper();
+@Slf4j
+public class MomoService {
+    @Value(value = "MOMOTF4R20250812_TEST")
+    private String PARTNER_CODE;
+    @Value(value = "3oXb8zLDKe2eK3eF")
+    private String ACCESS_KEY;
+    @Value(value = "z4IkAHPxEjYFMqTWUSIFXmbIJL30Obqz")
+    private String SECRET_KEY;
+    @Value(value = "http://localhost:1609/resul")
+    private String REDIRECT_URL;
+    @Value(value = "http://localhost:1609/api/momo/ipn")
+    private String IPN_URL;
+    @Value(value = "captureWallet")
+    private String REQUEST_TYPE;
 
-    @Override
-    public MomoCreateResponse createPayment(long amount, String orderId, String orderInfo) {
+    private final MomoApi momoApi;
+
+    public CreateMomoResponse createQR(){
+
+        // Lay thong tin don thanh toan
+        String orderId = UUID.randomUUID().toString();
+        String orderInfo = "Thanh toan don hang test: " + orderId;
+        String requestId = UUID.randomUUID().toString();
+        String extraData = "Khong co voucher nao duoc tim thay!";
+
+        String rawData =
+                "accessKey=" + ACCESS_KEY +
+                        "&amount=" + 100000 +
+                        "&extraData=" + extraData +
+                        "&ipnUrl=" + IPN_URL +
+                        "&orderId=" + orderId +
+                        "&orderInfo=" + orderInfo +
+                        "&partnerCode=" + PARTNER_CODE +
+                        "&redirectUrl=" + REDIRECT_URL +
+                        "&requestId=" + requestId +
+                        "&requestType=" + REQUEST_TYPE;
+        String signature;
         try {
-            String requestId = String.valueOf(System.currentTimeMillis());
-            String requestType = "captureWallet";
-            String extraData = "";
-
-            String rawSig = "accessKey=" + cfg.getAccessKey()
-                    + "&amount=" + amount
-                    + "&extraData=" + extraData
-                    + "&ipnUrl=" + cfg.getNotifyUrl()
-                    + "&orderId=" + orderId
-                    + "&orderInfo=" + orderInfo
-                    + "&partnerCode=" + cfg.getPartnerCode()
-                    + "&redirectUrl=" + cfg.getReturnUrl()
-                    + "&requestId=" + requestId
-                    + "&requestType=" + requestType;
-
-            String signature = HmacUtil.hmacSHA256(rawSig, cfg.getSecretKey());
-
-            Map<String, Object> body = new HashMap<>();
-            body.put("partnerCode", cfg.getPartnerCode());
-            body.put("partnerName", "MoMo");
-            body.put("storeId", "Webbanhang");
-            body.put("requestId", requestId);
-            body.put("amount", amount);
-            body.put("orderId", orderId);
-            body.put("orderInfo", orderInfo);
-            body.put("redirectUrl", cfg.getReturnUrl());
-            body.put("ipnUrl", cfg.getNotifyUrl());
-            body.put("lang", "vi");
-            body.put("extraData", extraData);
-            body.put("requestType", requestType);
-            body.put("signature", signature);
-
-            String json = om.writeValueAsString(body);
-
-            Request req = new Request.Builder()
-                    .url(cfg.getEndpoint())
-                    .post(RequestBody.create(json, MediaType.parse("application/json")))
-                    .build();
-
-            Response res = http.newCall(req).execute();
-            if (!res.isSuccessful()) throw new RuntimeException("MoMo HTTP " + res.code());
-            return om.readValue(res.body().string(), MomoCreateResponse.class);
+            signature = HmacUtil.hmacSHA256(rawData, SECRET_KEY);
         } catch (Exception e) {
-            throw new RuntimeException("Create MoMo payment failed", e);
+            throw new RuntimeException("Co loi khi tao chu ki dien tu: ", e);
         }
-    }
 
-    @Override
-    public boolean verifyIpnSignature(MomoIpnRequestDTO ipn) throws Exception {
-        String rawSig = "accessKey=" + cfg.getAccessKey()
-                + "&amount=" + ipn.getAmount()
-                + "&extraData=" + (ipn.getExtraData() == null ? "" : ipn.getExtraData())
-                + "&message=" + (ipn.getMessage() == null ? "" : ipn.getMessage())
-                + "&orderId=" + ipn.getOrderId()
-                + "&orderInfo=" + (ipn.getOrderInfo() == null ? "" : ipn.getOrderInfo())
-                + "&orderType=" + (ipn.getOrderType() == null ? "" : ipn.getOrderType())
-                + "&partnerCode=" + ipn.getPartnerCode()
-                + "&payType=" + (ipn.getPayType() == null ? "" : ipn.getPayType())
-                + "&requestId=" + ipn.getRequestId()
-                + "&responseTime=" + ipn.getResponseTime()
-                + "&resultCode=" + ipn.getResultCode()
-                + "&transId=" + ipn.getTransId();
+        CreateMomoRequestDTO requestDTO = CreateMomoRequestDTO.builder()
+                .partnerCode(PARTNER_CODE)
+                .requestId(requestId)
+                .requestType(REQUEST_TYPE)
+                .ipnUrl(IPN_URL)
+                .redirectUrl(REDIRECT_URL)
+                .orderId(orderId)
+                .orderInfo(orderInfo)
+                .lang("vi")
+                .amount(100000)
+                .extraData(extraData)
+                .signature(signature)
+                .build();
 
-        String expected = HmacUtil.hmacSHA256(rawSig, cfg.getSecretKey());
-        return expected.equals(ipn.getSignature());
+        return momoApi.createMomoQR(requestDTO);
     }
 }

@@ -41,6 +41,6 @@ public class OrderDetail {
 	@Column(name = "total_money", nullable = false)
 	private Float totalMoney;
 	
-	@Column(name = "color")
-	private String color;
+	@Column(name = "size")
+	private String size;
 }

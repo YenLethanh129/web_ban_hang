@@ -111,10 +111,11 @@ public class OrderService implements IOrderService{
 
 	private OrderResponse mapOrderToOrderResponse(Order order) {
 		modelMapper.typeMap(Order.class, OrderResponse.class)
-			.addMappings(mapper -> mapper.skip(OrderResponse::setUserId));
+			.addMappings(mapper -> {
+				mapper.map(Order::getId, OrderResponse::setOrderId);
+			});
 		OrderResponse existingOrderResponse = new OrderResponse();
 		modelMapper.map(order, existingOrderResponse);
-    	existingOrderResponse.setUserId(order.getUser().getId());
     	
 		return existingOrderResponse;
 	}

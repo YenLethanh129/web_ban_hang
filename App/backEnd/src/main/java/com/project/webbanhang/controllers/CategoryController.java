@@ -16,7 +16,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("${api.prefix}/categories")
-//@Validated
 @RequiredArgsConstructor
 public class CategoryController {
 	
