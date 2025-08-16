@@ -1,59 +1,112 @@
 services:
-  db:
-    image: mysql:8.3.0
-    restart: always
+  # db:
+  #   image: mysql:8.3.0
+  #   restart: always
+  #   environment:
+  #     MYSQL_DATABASE: ${MYSQL_DATABASE}
+  #     MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+  #   ports:
+  #     - "3306:3306"
+  #   volumes:
+  #     - db_data:/var/lib/mysql
+  #   healthcheck:
+  #     test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+  #     interval: 5s
+  #     timeout: 5s
+  #     retries: 10
+  #     start_period: 10s
+  #   networks:
+  #     - app-network
+
+  webbanhang-db: 
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: webbanhang-db
     environment:
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=${Sa_Password}
+      - MSSQL_PID=Developer
     ports:
-      - "3306:3306"
+      - 1433:1433
     volumes:
-      - db_data:/var/lib/mysql
+      - webbanhang_data:/var/opt/mssql
+    restart: unless-stopped
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
-      interval: 5s
-      timeout: 5s
+      test: /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P "$${SA_PASSWORD}" -Q "SELECT 1" -b -o /dev/null
+      interval: 10s
+      timeout: 3s
       retries: 10
       start_period: 10s
     networks:
       - app-network
 
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin
-    restart: always
-    depends_on:
-      - db
-    ports:
-      - "8080:80"
+  # webbanhang-db.configurator:
+  #   image: mcr.microsoft.com/mssql/server:2019-latest
+  #   container_name: webbanhang-db.configurator
+  #   volumes:
+  #     - ./App/webbanghang-db/init:/docker-entrypoint-initdb.d
+  #   depends_on:
+  #     webbanhang-db:
+  #       condition: service_healthy
+  #   command: >
+  #     bash -c '
+  #     sed -e "s/\${DB_NAME}/$${DB_NAME}/g" \
+  #         -e "s/\${APP_USER}/$${APP_USER}/g" \
+  #         -e "s/\${APP_USER_LOGIN_PASSWORD}/$${APP_USER_LOGIN_PASSWORD}/g" \
+  #         /docker-entrypoint-initdb.d/init.sql > /tmp/init_parsed.sql &&
+  #     /opt/mssql-tools18/bin/sqlcmd -C -S webbanhang-db -U sa -P "$${SA_PASSWORD}" -d master -i /tmp/init_parsed.sql &&
+  #     echo "All done!"'
+  #   networks:
+  #     - app-network
+  #   restart: on-failure
+  #   environment:
+  #     - SA_PASSWORD=${Sa_Password}
+  webbanhang-db.configurator:
+    build:
+      context: 
+       ./App/webbanhang-db/
+      dockerfile: Dockerfile
+    container_name: webbanhang-db.configurator
+    volumes:
+      - ./App/webbanhang-db/init/init.sql:/init.sql
     environment:
-      PMA_HOST: db
-      PMA_PORT: 3306
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=${Sa_Password}
+      - DB_NAME=${DB_NAME}
+      - APP_USER_LOGIN_PASSWORD=${APP_USER_LOGIN_PASSWORD}
+      - APP_USER=${APP_USER}
+    depends_on:
+      webbanhang-db:
+        condition: service_healthy
+    command: >
+      bash -c '
+      envsubst < /init.sql > /tmp/init_parsed.sql &&
+      /opt/mssql-tools18/bin/sqlcmd -C -S webbanhang-db -U sa -P "$${SA_PASSWORD}" -d master -i /tmp/init_parsed.sql &&
+      echo "All done!"'
     networks:
       - app-network
 
   backend:
     build:
       context: ./App/backend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile    
     depends_on:
-      db:
+      webbanhang-db:
         condition: service_healthy
     environment:
-      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_URL: 
       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION: ${JWT_EXPIRATION}
       SERVER_PORT: ${SERVER_PORT}
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
-      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.MySQLDialect
+      SPRING_JPA_DATABASE_PLATFORM: ${DB_D}
       SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
     volumes:
       - ./App/backend:/app
       - maven-repo:/root/.m2
     working_dir: /app
-    command: sh -c "mvn test && mvn spring-boot:run"
+    command: sh -c "mvn spring-boot:run"
     ports:
       - "1609:1609"
     networks:
@@ -76,9 +129,24 @@ services:
     networks:
       - app-network
 
+  redis:
+    image: redis:8.0-rc1
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - cache_data:/data
+    restart: unless-stopped
+    networks:
+      - app-network
+    labels:
+      - "traefik.enable=false"
+
+
 volumes:
-  db_data:
+  webbanhang_data:
   maven-repo:
+  cache_data:
 
 networks:
   app-network:
