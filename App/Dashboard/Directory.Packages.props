@@ -31,6 +31,7 @@
     <PackageVersion Include="System.Configuration.ConfigurationManager" Version="$(EfcoreVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1" />
     <PackageVersion Include="AutoMapper" Version="13.0.1" />
+    <PackageVersion Include="Ardalis.GuardClauses" Version="5.0" />
 
     <!-- Testing -->
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />

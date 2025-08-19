@@ -10,6 +10,7 @@
 	<ItemGroup>
 		<PackageReference Include="Newtonsoft.json" />
 		<PackageReference Include="DotNetEnv" />
+		<PackageReference Include="MediatR" />
 		<PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
   </ItemGroup>
 </Project>
