@@ -34,7 +34,7 @@ public class OrderDetailResponse{
 	private Float totalMoney;
 	
 	@JsonProperty("color")
-	private String color;
+	private String size;
 	
 	public static OrderDetailResponse fromEntity(OrderDetail orderDetail) {
 		OrderDetailResponse orderDetailResponse = OrderDetailResponse.builder()
@@ -44,7 +44,7 @@ public class OrderDetailResponse{
 				.price(orderDetail.getPrice())
 				.numberOfProducts(orderDetail.getNumberOfProducts())
 				.totalMoney(orderDetail.getTotalMoney())
-				.color(orderDetail.getColor())
+				.size(orderDetail.getSize())
 				.build();
 		
 		return orderDetailResponse;

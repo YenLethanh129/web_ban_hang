@@ -18,7 +18,7 @@ services:
   #   networks:
   #     - app-network
 
-  webbanhang-db: 
+  webbanhang-db:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: webbanhang-db
     environment:
@@ -62,15 +62,18 @@ services:
       echo "All done!"'
     networks:
       - app-network
+
   backend:
     build:
       context: ./App/backend
-      dockerfile: Dockerfile    
+      dockerfile: Dockerfile
+    env_file:
+      - .env
     depends_on:
       webbanhang-db:
         condition: service_healthy
     environment:
-      SPRING_DATASOURCE_URL: 
+      SPRING_DATASOURCE_URL:
       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
@@ -78,12 +81,12 @@ services:
       SERVER_PORT: ${SERVER_PORT}
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
       SPRING_JPA_DATABASE_PLATFORM: ${SPRING_JPA_HIBERNATE_PROPERTIES_DIALECT}
-      SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
+      SPRING_JPA_HIBERNATE_DDL_AUTO: none
     volumes:
       - ./App/backend:/app
-      - maven-repo:/root/.m2
+      - ~/.m2:/root/.m2
     working_dir: /app
-    command: sh -c "mvn spring-boot:run"
+    command: sh -c "mvn spring-boot:run -Dspring-boot.run.fork=false -DskipTests"
     ports:
       - "1609:1609"
     networks:
@@ -123,7 +126,7 @@ services:
     build:
       context: ./App/Dashboard
       dockerfile: Dockerfile
-    depends_on: 
+    depends_on:
       webbanhang-db:
         condition: service_healthy
     volumes:

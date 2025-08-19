@@ -30,5 +30,5 @@ public class OrderDetailDTO {
     @Min(value = 0, message = "Total money must be greater than 0")
     private float totalMoney;
 
-    private String color;
+    private String size;
 }

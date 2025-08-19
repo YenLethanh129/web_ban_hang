@@ -1,7 +1,7 @@
 <div class="container">
   <div class="order-section">
-    <h2>Đặt hàng</h2>
-    <form class="order-form">
+    <h2 class="text-center">Thông tin đơn hàng</h2>
+    <form class="order-form" (ngSubmit)="onSubmit()">
       <div class="form-group">
         <label for="fullName">Họ và tên người nhận hàng</label>
         <input
@@ -74,8 +74,8 @@
           [(ngModel)]="orderData.paymentMethod"
           name="paymentMethod"
         >
-          <option value="cod">Thanh toán khi nhận hàng (COD)</option>
-          <option value="bank-transfer" selected>Chuyển khoản ngân hàng</option>
+          <option value="momo" selected>Thanh toán nhanh với Momo</option>
+          <option value="bank-transfer">Chuyển khoản ngân hàng</option>
         </select>
       </div>
 
@@ -86,9 +86,9 @@
           [(ngModel)]="orderData.shippingMethod"
           name="shippingMethod"
         >
-          <option value="standard">Giao hàng tiêu chuẩn</option>
-          <option value="express">Giao hàng nhanh</option>
+          <option value="express" selected>Giao hàng nhanh</option>
           <option value="pickup">Nhận tại cửa hàng</option>
+          <!-- <option value="standard">Giao hàng tiêu chuẩn</option> -->
         </select>
       </div>
 
@@ -115,7 +115,7 @@
 
           <div class="cart-summary">
             <div class="summary-item">
-              <span>Tổng tiền:</span>
+              <span>Tổng tiền: </span>
               <span class="total-price"
                 >{{ getTotalPrice() | number }} VNĐ</span
               >
@@ -127,9 +127,13 @@
       <button
         type="submit"
         class="btn btn-primary order-button"
-        [routerLink]="['/order-confirm']"
+        [disabled]="isLoading"
       >
-        Xác nhận đặt hàng
+        <span
+          *ngIf="isLoading"
+          class="spinner-border spinner-border-sm me-2"
+        ></span>
+        {{ isLoading ? "Đang xử lý..." : "Thanh toán ngay" }}
       </button>
     </form>
   </div>

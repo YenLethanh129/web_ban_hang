@@ -17,17 +17,8 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class OrderResponse extends BaseResponse{
-    @JsonProperty("user_id")
-    private Long userId;
-    
-    @JsonProperty("fullname")
-    private String fullName;
-    
-    @JsonProperty("email")
-    private String email;
-    
-    @JsonProperty("phone_number")
-    private String phoneNumber;
+    @JsonProperty("orderId")
+    private String orderId;
     
     @JsonProperty("address")
     private String address;
@@ -46,22 +37,10 @@ public class OrderResponse extends BaseResponse{
     
     @Column(name = "shipping_method")
     private String shippingMethod;
-    
-    @Column(name = "shipping_address")
-    private String shippingAddress;
-    
-    @Column(name = "shipping_date")
-    private Date shippingDate;
-    
-    @Column(name = "tracking_number")
-    private String trackingNumber;
-    
+
     @Column(name = "payment_method")
     private String paymentMethod;
     
     @Column(name = "payment_status")
     private String paymentStatus;
-    
-    @Column(name = "is_active")
-    private Boolean isActive;
 }
