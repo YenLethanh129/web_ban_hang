@@ -9,7 +9,7 @@ import { UserService } from '../../services/user.service';
 import { OrderService } from '../../services/order.service';
 import { FormsModule } from '@angular/forms';
 import { UserDTO } from '../../dtos/user.dto';
-import { OrderDTO } from '../../dtos/order.dto';
+import { MomoInfoOrderDTO, OrderDTO } from '../../dtos/order.dto';
 import { OrderDetailDTO } from '../../dtos/order.dto';
 import { OrderDetailService } from '../../services/order.detail.service';
 import { MomoService } from '../../services/momo.service';
@@ -26,6 +26,7 @@ export class OrderComponent implements OnInit {
   cartItems: { product: ProductDTO; quantity: number; size: string }[] = [];
   isLoading: boolean = false;
   user: UserDTO | null = null;
+  momoInfoOrderDTO: MomoInfoOrderDTO | null = null;
   orderId: number = 0;
   orderData = {
     userId: 0, // This should be set to the actual user ID
@@ -143,6 +144,11 @@ export class OrderComponent implements OnInit {
       next: (response: any) => {
         console.log('Đơn hàng đã được tạo:', response);
         this.orderId = response.orderId;
+        this.momoInfoOrderDTO = {
+          order_id: response.order_id ?? response.orderId,
+          amount: this.getTotalPrice()
+        };
+        this.createOrderDetail(this.orderId);
         this.createOrderDetail(this.orderId);
       },
       error: (error) => {
@@ -172,19 +178,21 @@ export class OrderComponent implements OnInit {
       });
     });
 
-    this.momoService.createQR().subscribe({
-      next: (response: CreateMomoResponse) => {
-        console.log('Mã thanh toán MoMo:', response);
-        if (response.payUrl) {
-          // Chuyển hướng đến URL thanh toán MoMo
+    if (this.momoInfoOrderDTO) {
+      this.momoService.createQR(this.momoInfoOrderDTO).subscribe({
+        next: (response: CreateMomoResponse) => {
+          console.log('Mã thanh toán MoMo:', response);
+          if (response.payUrl) {
+            // Chuyển hướng đến URL thanh toán MoMo
           window.location.href = response.payUrl;
         } else {
           console.error('Không tìm thấy payUrl trong response');
         }
       },
-      error: (error) => {
-        console.error('Lỗi khi lấy mã thanh toán: ', error);
-      },
-    });
+        error: (error) => {
+          console.error('Lỗi khi lấy mã thanh toán: ', error);
+        },
+      });
+    }
   }
 }

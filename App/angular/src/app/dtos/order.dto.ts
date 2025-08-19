@@ -39,5 +39,10 @@ export interface OrderDetailDTO {
     price: number;
     total_money: number;
     size: string;
-  }
+}
+
+export interface MomoInfoOrderDTO {
+    order_id: number;
+    amount: number;
+}
   

@@ -1,7 +1,7 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { WebEnvironment } from '../environments/WebEnvironment';
-import { OrderDTO } from '../dtos/order.dto';
+import { MomoInfoOrderDTO, OrderDTO } from '../dtos/order.dto';
 import { Observable } from 'rxjs';
 
 @Injectable({
@@ -13,12 +13,12 @@ export class MomoService {
 
     constructor(private http: HttpClient) {}
 
-    createQR(): Observable<any> {
+    createQR(momoInfoOrderDTO: MomoInfoOrderDTO): Observable<any> {
         const headers = new HttpHeaders({
             'Content-Type': 'application/json',
             'Accept-Language': 'vi',
           });
-        return this.http.post(`${this.apiUrl}`, { headers });
+        return this.http.post(`${this.apiUrl}`, momoInfoOrderDTO,{ headers });
     }
 
 }

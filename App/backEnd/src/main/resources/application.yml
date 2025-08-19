@@ -1,15 +1,9 @@
 spring:
-#  datasource:
-#    url: ${SPRING_DATASOURCE_URL}
-#    driver-class-name: com.mysql.cj.jdbc.Driver
-#    username: ${SPRING_DATASOURCE_USERNAME}
-#    password: ${SPRING_DATASOURCE_PASSWORD}
-#    Debug
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/webbanhang?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
-    driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:com.mysql.cj.jdbc.Driver}
-    username: ${SPRING_DATASOURCE_USERNAME:root}
-    password: ${SPRING_DATASOURCE_PASSWORD:mysql}
+    url: ${SPRING_DATASOURCE_URL}
+    driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: none
@@ -26,19 +20,19 @@ spring:
       max-request-size: 10MB
 
 server:
-  port: 1609
+  port: ${SERVER_PORT}
 
 api:
-  prefix: api/v1
+  prefix: ${API_PREFIX}
 jwt:
-  expiration: 2592000
-  secretKey: euv8p8iSXxKqR6MFGpOkUHd0UZDQFssKjB6JXM8OPVo
+  expiration: ${JWT_EXPIRATION}
+  secretKey: ${JWT_SECRET}
   #30 days = 30 * 24 * 60 * 60w
 momo:
-  endpoint: https://test-payment.momo.vn/v2/gateway/api
-  partnerCode: MOMOTF4R20250812_TEST
-  accessKey: 3oXb8zLDKe2eK3eF
-  secretKey: z4IkAHPxEjYFMqTWUSIFXmbIJL30Obqz
-  redirectUrl: http://localhost:1609/
-  ipnUrl: http://localhost:1609/api/momo/ipn
-  requestType: captureWallet
+  endpoint: ${MOMO_ENDPOINT}
+  partnerCode: ${MOMO_PARTNER_CODE}
+  accessKey: ${MOMO_ACCESS_KEY}
+  secretKey: ${MOMO_SECRET_KEY}
+  redirectUrl: ${MOMO_REDIRECT_URL}
+  ipnUrl: ${MOMO_IPN_URL}
+  requestType: ${MOMO_REQUEST_TYPE}

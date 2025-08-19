@@ -2,6 +2,7 @@ package com.project.webbanhang.services;
 
 import com.project.webbanhang.api.MomoApi;
 import com.project.webbanhang.dtos.CreateMomoRequestDTO;
+import com.project.webbanhang.dtos.MomoInfoOrderDTO;
 import com.project.webbanhang.response.CreateMomoResponse;
 import com.project.webbanhang.utils.HmacUtil;
 import lombok.RequiredArgsConstructor;
@@ -14,33 +15,41 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class MomoService {
-    @Value(value = "MOMOTF4R20250812_TEST")
+public class MomoService implements IMomoService{
+    @Value(value = "${momo.partnerCode}")
     private String PARTNER_CODE;
-    @Value(value = "3oXb8zLDKe2eK3eF")
+    @Value(value = "${momo.accessKey}")
     private String ACCESS_KEY;
-    @Value(value = "z4IkAHPxEjYFMqTWUSIFXmbIJL30Obqz")
+    @Value(value = "${momo.secretKey}")
     private String SECRET_KEY;
-    @Value(value = "http://localhost:1609/resul")
+
+    // Tra ve trang web ket qua thanh cong
+    @Value(value = "${momo.redirectUrl}")
     private String REDIRECT_URL;
-    @Value(value = "http://localhost:1609/api/momo/ipn")
+
+    // Sever to Sever - Truyen thong tin
+    @Value(value = "${momo.ipnUrl}")
     private String IPN_URL;
-    @Value(value = "captureWallet")
+    @Value(value = "${momo.requestType}")
     private String REQUEST_TYPE;
 
     private final MomoApi momoApi;
 
-    public CreateMomoResponse createQR(){
+    public CreateMomoResponse createQR(MomoInfoOrderDTO momoInfoOrderDTO){
 
         // Lay thong tin don thanh toan
-        String orderId = UUID.randomUUID().toString();
+        String orderId = momoInfoOrderDTO.getOrderId().toString() + UUID.randomUUID();
+        orderId = orderId.substring(0, 5);
+
+        REDIRECT_URL = REDIRECT_URL + momoInfoOrderDTO.getOrderId().toString();
+        Long amount = momoInfoOrderDTO.getAmount();
         String orderInfo = "Thanh toan don hang test: " + orderId;
         String requestId = UUID.randomUUID().toString();
         String extraData = "Khong co voucher nao duoc tim thay!";
 
         String rawData =
                 "accessKey=" + ACCESS_KEY +
-                        "&amount=" + 100000 +
+                        "&amount=" + amount +
                         "&extraData=" + extraData +
                         "&ipnUrl=" + IPN_URL +
                         "&orderId=" + orderId +
@@ -65,7 +74,7 @@ public class MomoService {
                 .orderId(orderId)
                 .orderInfo(orderInfo)
                 .lang("vi")
-                .amount(100000)
+                .amount(amount)
                 .extraData(extraData)
                 .signature(signature)
                 .build();
