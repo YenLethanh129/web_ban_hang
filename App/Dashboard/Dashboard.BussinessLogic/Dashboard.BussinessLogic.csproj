@@ -26,4 +26,8 @@
 		<PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" />
 		
 	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Behaviours\" />
+	</ItemGroup>
 </Project>

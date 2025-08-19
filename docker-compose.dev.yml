@@ -118,7 +118,23 @@ services:
       - app-network
     labels:
       - "traefik.enable=false"
-
+  dashboard-api:
+    container_name: dashboard-api
+    build:
+      context: ./App/Dashboard
+      dockerfile: Dockerfile
+    depends_on: 
+      webbanhang-db:
+        condition: service_healthy
+    volumes:
+      - ./App/Dashboard:/dashboard-api-app
+    environment:
+      ConnectionStrings__AccidentMonitorDB: "Server=webbanhang-db,1433;Database=webbanhang;User Id=root;Password=db_password@123;TrustServerCertificate=True;"
+    networks:
+      - app-network
+    ports:
+      - "5000:80"
+    restart: unless-stopped
 
 volumes:
   webbanhang_data:
