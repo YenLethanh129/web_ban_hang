@@ -10,7 +10,7 @@ spring:
     show-sql: true
     properties:
       hibernate:
-        dialect: ${SPRING_JPA_HIBERNATE_PROPERTIES_DIALECT:org.hibernate.dialect.SQLServerDialect}
+#        dialect: ${SPRING_JPA_HIBERNATE_PROPERTIES_DIALECT:org.hibernate.dialect.SQLServerDialect}
         format_sql: true
   application:
     name: webbanhang
@@ -21,6 +21,15 @@ spring:
 
 server:
   port: ${SERVER_PORT}
+
+#debug: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+
 
 api:
   prefix: ${API_PREFIX}
