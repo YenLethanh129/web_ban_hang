@@ -95,10 +95,10 @@ public class OrderDetailService implements IOrderDetailService{
 		
 		existingOrderDetail.setOrder(order);
 		existingOrderDetail.setProduct(product);
-		existingOrderDetail.setSize(orderDetailDTO.getSize());
-		existingOrderDetail.setNumberOfProducts(orderDetailDTO.getNumberOfProduct());
-		existingOrderDetail.setPrice(orderDetailDTO.getPrice());
-		existingOrderDetail.setTotalMoney(orderDetailDTO.getTotalMoney());
+//		existingOrderDetail.setSize(orderDetailDTO.getSize());
+//		existingOrderDetail.setNumberOfProducts(orderDetailDTO.getNumberOfProduct());
+//		existingOrderDetail.setPrice(orderDetailDTO.getPrice());
+//		existingOrderDetail.setTotalMoney(orderDetailDTO.getTotalMoney());
 		
 		return existingOrderDetail;
 	};

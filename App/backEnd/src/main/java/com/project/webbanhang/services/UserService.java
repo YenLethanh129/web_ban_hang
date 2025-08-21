@@ -49,6 +49,7 @@ public class UserService implements IUserService{
 				.dateOfBirth(userDTO.getDateOfBirth())
 				.facebookAccountId(userDTO.getFacebookAccountId())
 				.googleAccountId(userDTO.getGoogleAccountId())
+				.isActive(true)
 				.build();
 
 		newUser.setRole(role);

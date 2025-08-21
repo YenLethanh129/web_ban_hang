@@ -35,10 +35,10 @@ public class OrderService implements IOrderService{
 			.addMappings(mapper -> mapper.skip(Order::setId));
 		Order order = new Order();
 		modelMapper.map(orderDTO, order);
-		order.setUser(user);
-		order.setOrderDate(new Date());
-		order.setStatus("PENDING");
-		order.setIsActive(true);
+//		order.setUser(user);
+//		order.setOrderDate(new Date());
+//		order.setStatus("PENDING");
+//		order.setIsActive(true);
 		orderRepository.save(order);
 		
 		return mapOrderToOrderResponse(order);
@@ -58,16 +58,16 @@ public class OrderService implements IOrderService{
 		Order existingOrder = orderRepository.findById(orderId)
 				.orElseThrow(() -> new DataNotFoundException("Can't found order with id: " + orderId));
 		
-		existingOrder.setFullName(orderDTO.getFullName());
-		existingOrder.setEmail(orderDTO.getEmail());
-		existingOrder.setPhoneNumber(orderDTO.getPhoneNumber());
-		existingOrder.setAddress(orderDTO.getAddress());
-		existingOrder.setNote(orderDTO.getNote());
-		existingOrder.setTotalMoney(orderDTO.getTotalMoney());
-		existingOrder.setShippingMethod(orderDTO.getShippingMethod());
-		existingOrder.setShippingDate(orderDTO.getShippingDate());
-		existingOrder.setShippingAddress(orderDTO.getShippingAddress());
-		existingOrder.setPaymentMethod(orderDTO.getPaymentMethod());
+//		existingOrder.setFullName(orderDTO.getFullName());
+//		existingOrder.setEmail(orderDTO.getEmail());
+//		existingOrder.setPhoneNumber(orderDTO.getPhoneNumber());
+//		existingOrder.setAddress(orderDTO.getAddress());
+//		existingOrder.setNote(orderDTO.getNote());
+//		existingOrder.setTotalMoney(orderDTO.getTotalMoney());
+//		existingOrder.setShippingMethod(orderDTO.getShippingMethod());
+//		existingOrder.setShippingDate(orderDTO.getShippingDate());
+//		existingOrder.setShippingAddress(orderDTO.getShippingAddress());
+//		existingOrder.setPaymentMethod(orderDTO.getPaymentMethod());
 		orderRepository.save(existingOrder);
 
 		return mapOrderToOrderResponse(existingOrder);
@@ -92,19 +92,19 @@ public class OrderService implements IOrderService{
 	public void deleteOrder(Long orderId) throws DataNotFoundException {
 		Order existingOrder = orderRepository.findById(orderId)
 				.orElseThrow(() -> new DataNotFoundException("Can't found order with id: " + orderId));
-		existingOrder.setIsActive(false);
+//		existingOrder.setIsActive(false);
 		orderRepository.save(existingOrder);
 	}
 
 	@Override
 	public List<OrderResponse> findByUserId(Long userId) {
 		
-		List<Order> existingOrders = orderRepository.findByUser_Id(userId);
+//		List<Order> existingOrders = orderRepository.findByUser_Id(userId);
 		List<OrderResponse> existingOrderResponses = new ArrayList<>();
-		
-		for (Order order : existingOrders) {
-			existingOrderResponses.add(mapOrderToOrderResponse(order));
-		}
+//
+//		for (Order order : existingOrders) {
+//			existingOrderResponses.add(mapOrderToOrderResponse(order));
+//		}
 		
 		return existingOrderResponses;
 	}

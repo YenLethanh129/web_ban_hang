@@ -17,18 +17,18 @@ public class Order extends BaseEntity{
     private Long id;
 
     @ManyToOne
-    @Column(name = "customer_id")
+    @JoinColumn(name = "customer_id")
     private Customer customerId;
 
-    @ManyToMany
-    @Column(name = "branch_id")
+    @ManyToOne
+    @JoinColumn(name = "branch_id")
     private Branch branch;
 
     @Column(name = "total_money")
     private Long totalMoney;
 
-    @OneToMany
-    @Column(name = "status_id")
+    @ManyToOne
+    @JoinColumn(name = "status_id")
     private OrderStatus status;
 
     @Column(name = "notes")

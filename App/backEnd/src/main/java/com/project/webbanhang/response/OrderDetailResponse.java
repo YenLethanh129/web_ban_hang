@@ -41,10 +41,10 @@ public class OrderDetailResponse{
 				.id(orderDetail.getId())
 				.orderId(orderDetail.getOrder().getId())
 				.productId(orderDetail.getProduct().getId())
-				.price(orderDetail.getPrice())
-				.numberOfProducts(orderDetail.getNumberOfProducts())
-				.totalMoney(orderDetail.getTotalMoney())
-				.size(orderDetail.getSize())
+//				.price(orderDetail.getPrice())
+//				.numberOfProducts(orderDetail.getNumberOfProducts())
+//				.totalMoney(orderDetail.getTotalMoney())
+//				.size(orderDetail.getSize())
 				.build();
 		
 		return orderDetailResponse;
