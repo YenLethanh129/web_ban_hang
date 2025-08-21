@@ -17,51 +17,20 @@ public class Order extends BaseEntity{
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
-    
-    @Column(name = "fullname", length = 100)
-    private String fullName;
-    
-    @Column(name = "email", length = 100)
-    private String email;
-    
-    @Column(name = "phone_number", nullable = false, length = 20)
-    private String phoneNumber;
-    
-    @Column(name = "address", nullable = false, length = 200)
-    private String address;
-    
-    @Column(name = "note")
-    private String note;
-    
-    @Column(name = "status")
-    private String status;
-    
+    @Column(name = "customer_id")
+    private Customer customerId;
+
+    @ManyToMany
+    @Column(name = "branch_id")
+    private Branch branch;
+
     @Column(name = "total_money")
-    private Float totalMoney;
-    
-    @Column(name = "order_date")
-    private Date orderDate;
-    
-    @Column(name = "shipping_method")
-    private String shippingMethod;
-    
-    @Column(name = "shipping_address")
-    private String shippingAddress;
-    
-    @Column(name = "shipping_date")
-    private Date shippingDate;
-    
-    @Column(name = "tracking_number")
-    private String trackingNumber;
-    
-    @Column(name = "payment_method")
-    private String paymentMethod;
-    
-    @Column(name = "payment_status")
-    private String paymentStatus;
-    
-    @Column(name = "is_active")
-    private Boolean isActive;
+    private Long totalMoney;
+
+    @OneToMany
+    @Column(name = "status_id")
+    private OrderStatus status;
+
+    @Column(name = "notes")
+    private String notes;
 }

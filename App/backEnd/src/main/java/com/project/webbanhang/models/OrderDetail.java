@@ -1,17 +1,9 @@
 package com.project.webbanhang.models;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.math.BigDecimal;
 
 @Entity
 @AllArgsConstructor
@@ -19,28 +11,31 @@ import lombok.Setter;
 @Setter
 @Getter
 @Table(name = "order_details")
-public class OrderDetail {
+public class OrderDetail extends BaseEntity {
 	@Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-	
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
+
+	@Column(name = "quantity")
+	private Long quantity;
+
 	@ManyToOne
-	@JoinColumn(name = "order_id")
+	@JoinColumn(name = "order_id", nullable = false)
 	private Order order;
-	
+
 	@ManyToOne
-	@JoinColumn(name = "product_id")
+	@JoinColumn(name = "product_id", nullable = false)
 	private Product product;
-	
-	@Column(name = "price", nullable = false)
-	private Float price;
-	
-	@Column(name = "number_of_products", nullable = false)
-	private int numberOfProducts;
-	
-	@Column(name = "total_money", nullable = false)
-	private Float totalMoney;
-	
-	@Column(name = "size")
-	private String size;
+
+	@Column(name = "color")
+	private String color;
+
+	@Column(name = "note")
+	private String note;
+
+	@Column(name = "total_amount")
+	private Long totalAmount;
+
+	@Column(name = "unit_price")
+	private Long unitPrice;
 }
