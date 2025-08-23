@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import jakarta.validation.constraints.Null;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -43,6 +44,7 @@ public class ProductService implements IProductService{
 				.thumbnail(productDTO.getThumbnail())
 				.description(productDTO.getDescription())
 				.category(existingCategory)
+				.tax(null)
 				.build();
 		return productRepository.save(newProduct);
 	}
@@ -53,8 +55,6 @@ public class ProductService implements IProductService{
 		return productRepository.findById(id)
 				.orElseThrow(() -> new DataNotFoundException("Can't found product with id " + id));
 	}
-	
-	
 
 	// Done
 	@Override
@@ -108,7 +108,6 @@ public class ProductService implements IProductService{
 		}
 		return productImageRepository.save(newProductImage);
 	}
-
 
 	@Override
 	public Page<ProductResponse> getProductsByCategoryId(Long categoryId, PageRequest pageable) throws DataNotFoundException {

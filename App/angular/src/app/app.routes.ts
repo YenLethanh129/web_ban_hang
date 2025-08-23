@@ -28,6 +28,7 @@ export const routes: Routes = [
   },
   { path: 'detail-product/:id', component: DetailProductComponent },
   { path: 'order', component: OrderComponent, canActivate: [AuthGuard] },
+  // { path: 'order', component: OrderComponent},
   { path: 'order-confirm/:id', component: OrderConfirmComponent },
   { path: 'login', component: LoginComponent, canActivate: [GuestGuard] },
   { path: 'product/:id', component: DetailProductComponent },

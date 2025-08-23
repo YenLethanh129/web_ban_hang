@@ -41,7 +41,6 @@ export class OrderComponent implements OnInit {
     paymentMethod: '',
     paymentStatus: '',
   };
-
   constructor(
     private cartService: CartService,
     private productService: ProductService,
@@ -54,17 +53,13 @@ export class OrderComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    if (!this.tokenService.isLoggedIn()) {
-      this.router.navigate(['/login']);
-      return;
-    }
     this.loadCartItems().then(() => {
       this.orderData.totalMoney = this.getTotalPrice();
     });
     this.loadUserData();
-    this.orderData.shippingMethod = 'standard'; // Default shipping method
-    this.orderData.paymentMethod = 'momo'; // Default payment method
-    this.orderData.paymentStatus = 'pending';
+    this.orderData.shippingMethod = 'STANDARD'; // Default shipping method
+    this.orderData.paymentMethod = 'MOMO'; // Default payment method
+    this.orderData.paymentStatus = 'PENDING';
   }
 
   onSubmit() {

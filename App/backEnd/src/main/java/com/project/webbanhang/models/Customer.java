@@ -1,10 +1,7 @@
 package com.project.webbanhang.models;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.ManyToAny;
 
 @Entity
@@ -12,10 +9,11 @@ import org.hibernate.annotations.ManyToAny;
 @NoArgsConstructor
 @Setter
 @Getter
+@Builder
 @Table(name = "customers")
 public class Customer extends BaseEntity{
+//    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne

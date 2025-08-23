@@ -380,3 +380,4 @@ history/
 
 # JetBrains Rider
 *.sln.iml
+application-debug.yml

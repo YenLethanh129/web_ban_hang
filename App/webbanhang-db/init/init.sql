@@ -55,7 +55,7 @@ GO
 
 CREATE TABLE [dbo].[categories] (
 [id] bigint NOT NULL IDENTITY(1,1),
-[name] varchar(255) NOT NULL,
+[name]nvarchar(255) NOT NULL,
 PRIMARY KEY ([id])
 );
 GO
@@ -72,9 +72,9 @@ GO
 
 CREATE TABLE [dbo].[taxes] (
 [id] bigint NOT NULL IDENTITY(1,1),
-[name] varchar(100) NOT NULL,
+[name]nvarchar(100) NOT NULL,
 [tax_rate] decimal(5,2) NOT NULL,
-[description] varchar(255),
+[description]nvarchar(255),
 [created_at] datetime2(6) NOT NULL,
 [last_modified] datetime2(6) NOT NULL,
 PRIMARY KEY ([id])
@@ -83,7 +83,7 @@ GO
 
 CREATE TABLE [dbo].[roles] (
 [id] bigint NOT NULL IDENTITY(1,1),
-[name] varchar(100),
+[name]nvarchar(100),
 [created_at] datetime2(6) NOT NULL,
 [last_modified] datetime2(6) NOT NULL,
 PRIMARY KEY ([id])
@@ -92,10 +92,10 @@ GO
 
 CREATE TABLE [dbo].[branches] (
 [id] bigint NOT NULL IDENTITY(1,1),
-[name] varchar(255) NOT NULL,
-[address] varchar(255),
-[phone] varchar(20),
-[manager] varchar(100),
+[name]nvarchar(255) NOT NULL,
+[address]nvarchar(255),
+[phone]nvarchar(20),
+[manager]nvarchar(100),
 [created_at] datetime2(6) NOT NULL,
 [last_modified] datetime2(6) NOT NULL,
 PRIMARY KEY ([id])
@@ -104,11 +104,11 @@ GO
 
 CREATE TABLE [dbo].[suppliers] (
 [id] bigint NOT NULL IDENTITY(1,1),
-[name] varchar(255) NOT NULL,
-[phone] varchar(20),
-[email] varchar(100),
-[address] varchar(255),
-[note] varchar(255),
+[name]nvarchar(255) NOT NULL,
+[phone]nvarchar(20),
+[email]nvarchar(100),
+[address]nvarchar(255),
+[note]nvarchar(255),
 [created_at] datetime2(6) NOT NULL,
 [last_modified] datetime2(6) NOT NULL,
 PRIMARY KEY ([id])
@@ -117,9 +117,9 @@ GO
 
 CREATE TABLE [dbo].[shipping_providers] (
 [id] bigint NOT NULL IDENTITY(1,1),
-[name] varchar(100) NOT NULL,
-[contact_info] varchar(200),
-[api_endpoint] varchar(200),
+[name]nvarchar(100) NOT NULL,
+[contact_info]nvarchar(200),
+[api_endpoint]nvarchar(200),
 [created_at] datetime2(6) DEFAULT (sysdatetime()) NOT NULL,
 [last_modified] datetime2(6) NOT NULL,
 PRIMARY KEY ([id])
@@ -128,28 +128,28 @@ GO
 
 CREATE TABLE [dbo].[payment_methods] (
 [id] bigint NOT NULL IDENTITY(1,1),
-[name] varchar(50) NOT NULL,
+[name]nvarchar(50) NOT NULL,
 PRIMARY KEY ([id])
 );
 GO
 
 CREATE TABLE [dbo].[payment_statuses] (
 [id] bigint NOT NULL IDENTITY(1,1),
-[status] varchar(50) NOT NULL,
+[status]nvarchar(50) NOT NULL,
 PRIMARY KEY ([id])
 );
 GO
 
 CREATE TABLE [dbo].[order_statuses] (
 [id] bigint NOT NULL IDENTITY(1,1),
-[status] varchar(50) NOT NULL,
+[status]nvarchar(50) NOT NULL,
 PRIMARY KEY ([id])
 );
 GO
 
 CREATE TABLE [dbo].[delivery_statuses] (
 [id] bigint NOT NULL IDENTITY(1,1),
-[name] varchar(50) NOT NULL,
+[name]nvarchar(50) NOT NULL,
 PRIMARY KEY ([id])
 );
 GO
@@ -162,12 +162,12 @@ CREATE TABLE [dbo].[employees] (
 [id] bigint NOT NULL IDENTITY(1,1),
 [branch_id] bigint NOT NULL,
 [full_name] nvarchar(100) NOT NULL,
-[phone] varchar(20),
-[email] varchar(100),
-[position] varchar(50),
+[phone]nvarchar(20),
+[email]nvarchar(100),
+[position]nvarchar(50),
 [hire_date] date NOT NULL,
 [resign_date] date,
-[status] varchar(20) DEFAULT ('ACTIVE'),
+[status]nvarchar(20) DEFAULT ('ACTIVE'),
 [created_at] datetime2(6) DEFAULT (sysdatetime()) NOT NULL,
 [last_modified] datetime2(6) NOT NULL,
 PRIMARY KEY ([id])
@@ -179,9 +179,9 @@ CREATE TABLE [dbo].[products] (
 [price] decimal(18,2) NOT NULL,
 [category_id] bigint,
 [tax_id] bigint,
-[description] varchar(255) NOT NULL,
-[name] varchar(255) NOT NULL,
-[thumbnail] varchar(255),
+[description]nvarchar(255) NOT NULL,
+[name]nvarchar(255) NOT NULL,
+[thumbnail]nvarchar(255),
 [created_at] datetime2(6) NOT NULL,
 [last_modified] datetime2(6) NOT NULL,
 PRIMARY KEY ([id])
@@ -191,9 +191,9 @@ GO
 CREATE TABLE [dbo].[ingredients] (
 [id] bigint NOT NULL IDENTITY(1,1),
 [category_id] bigint NOT NULL,
-[name] varchar(255) NOT NULL,
-[unit] varchar(50) NOT NULL,
-[description] varchar(255),
+[name]nvarchar(255) NOT NULL,
+[unit]nvarchar(50) NOT NULL,
+[description]nvarchar(255),
 [tax_id] bigint,
 [created_at] datetime2(6) DEFAULT (getdate()) NOT NULL,
 [last_modified] datetime2(6) DEFAULT (getdate()) NOT NULL,
@@ -206,7 +206,7 @@ CREATE TABLE [dbo].[ingredient_purchase_orders] (
 [supplier_id] bigint,
 [order_date] datetime2(6) DEFAULT (getdate()),
 [total_money] decimal(18,2),
-[note] varchar(255),
+[note]nvarchar(255),
 PRIMARY KEY ([id])
 );
 GO
@@ -223,10 +223,10 @@ CREATE TABLE [dbo].[users] (
 [facebook_account_id] bigint,
 [google_account_id] bigint,
 [role_id] bigint NOT NULL,
-[phone_number] varchar(20) NOT NULL,
+[phone_number]nvarchar(20) NOT NULL,
 [fullname] nvarchar(100),
 [address] nvarchar(200),
-[password] varchar(200) NOT NULL,
+[password]nvarchar(200) NOT NULL,
 [created_at] datetime2(6) DEFAULT (sysdatetime()) NOT NULL,
 [last_modified] datetime2(6) NOT NULL,
 PRIMARY KEY ([id])
@@ -236,7 +236,7 @@ GO
 CREATE TABLE [dbo].[product_images] (
 [id] bigint NOT NULL IDENTITY(1,1),
 [product_id] bigint,
-[image_url] varchar(300),
+[image_url]nvarchar(300),
 PRIMARY KEY ([id])
 );
 GO
@@ -289,7 +289,7 @@ CREATE TABLE [dbo].[employee_salaries] (
 [id] bigint NOT NULL IDENTITY(1,1),
 [employee_id] bigint NOT NULL,
 [base_salary] decimal(18,2) NOT NULL,
-[salary_type] varchar(20) DEFAULT ('MONTHLY'),
+[salary_type]nvarchar(20) DEFAULT ('MONTHLY'),
 [allowance] decimal(18,2) DEFAULT ((0.0)),
 [bonus] decimal(18,2) DEFAULT ((0.0)),
 [penalty] decimal(18,2) DEFAULT ((0.0)),
@@ -307,7 +307,7 @@ CREATE TABLE [dbo].[employee_shifts] (
 [shift_date] date NOT NULL,
 [start_time] time(7) NOT NULL,
 [end_time] time(7) NOT NULL,
-[status] varchar(20) DEFAULT ('PRESENT'),
+[status]nvarchar(20) DEFAULT ('PRESENT'),
 [created_at] datetime2(6) DEFAULT (getdate()) NOT NULL,
 [last_modified] datetime2(6) NOT NULL,
 PRIMARY KEY ([id])
@@ -340,7 +340,7 @@ CREATE TABLE [dbo].[ingredient_transfers] (
 [ingredient_id] bigint NOT NULL,
 [branch_id] bigint NOT NULL,
 [quantity] decimal(18,2) NOT NULL,
-[note] varchar(255),
+[note]nvarchar(255),
 [created_at] datetime2(6) DEFAULT (getdate()) NOT NULL,
 [last_modified] datetime2(6) NOT NULL,
 PRIMARY KEY ([id])
@@ -352,7 +352,7 @@ CREATE TABLE [dbo].[supplier_ingredient_prices] (
 [supplier_id] bigint NOT NULL,
 [ingredient_id] bigint NOT NULL,
 [price] decimal(18,2) NOT NULL,
-[unit] varchar(50) NOT NULL,
+[unit]nvarchar(50) NOT NULL,
 [effective_date] datetime2(6) DEFAULT (getdate()),
 [expired_date] datetime2(6),
 [created_at] datetime2(6) NOT NULL,
@@ -364,12 +364,12 @@ GO
 CREATE TABLE [dbo].[branch_expenses] (
 [id] bigint NOT NULL IDENTITY(1,1),
 [branch_id] bigint NOT NULL,
-[expense_type] varchar(100) NOT NULL,
+[expense_type]nvarchar(100) NOT NULL,
 [amount] decimal(18,2) NOT NULL,
 [start_date] date NOT NULL,
 [end_date] date,
-[payment_cycle] varchar(50) DEFAULT ('MONTHLY'),
-[note] varchar(255),
+[payment_cycle]nvarchar(50) DEFAULT ('MONTHLY'),
+[note]nvarchar(255),
 [created_at] datetime2(6) DEFAULT (getdate()) NOT NULL,
 [last_modified] datetime2(6) NOT NULL,
 PRIMARY KEY ([id])
@@ -383,10 +383,10 @@ GO
 CREATE TABLE [dbo].[customers] (
 [id] bigint NOT NULL,
 [user_id] bigint,
-[fullname] varchar(100) NOT NULL,
-[phone_number] varchar(20),
-[email] varchar(100),
-[address] varchar(200),
+[fullname]nvarchar(100) NOT NULL,
+[phone_number]nvarchar(20),
+[email]nvarchar(100),
+[address]nvarchar(200),
 [created_at] datetime2(6) DEFAULT (sysdatetime()) NOT NULL,
 [last_modified] datetime2(6) NOT NULL,
 PRIMARY KEY ([id])
@@ -399,8 +399,8 @@ CREATE TABLE [dbo].[tokens] (
 [revoked] bit NOT NULL,
 [expiration_date] datetime2(6),
 [user_id] bigint,
-[token_type] varchar(50),
-[token] varchar(255),
+[token_type]nvarchar(50),
+[token]nvarchar(255),
 PRIMARY KEY ([id])
 );
 GO
@@ -409,9 +409,9 @@ CREATE TABLE [dbo].[social_accounts] (
 [id] bigint NOT NULL IDENTITY(1,1),
 [provider_id] bigint NOT NULL,
 [user_id] bigint,
-[provider] varchar(20) NOT NULL,
-[name] varchar(100),
-[email] varchar(150),
+[provider]nvarchar(20) NOT NULL,
+[name]nvarchar(100),
+[email]nvarchar(150),
 [created_at] datetime2(6) NOT NULL,
 [last_modified] datetime2(6) NOT NULL,
 PRIMARY KEY ([id])
@@ -444,10 +444,10 @@ CREATE TABLE [dbo].[order_details] (
 [quantity] int NOT NULL,
 [order_id] bigint DEFAULT (CONVERT([bigint],(0))) NOT NULL,
 [product_id] bigint DEFAULT (CONVERT([bigint],(0))) NOT NULL,
-[color] varchar(255),
+[color]nvarchar(255),
 [created_at] datetime2(6) NOT NULL,
 [last_modified] datetime2(6) NOT NULL,
-[note] varchar(255),
+[note]nvarchar(255),
 [total_amount] decimal(18,2) DEFAULT ((0.0)) NOT NULL,
 [unit_price] decimal(18,2) DEFAULT ((0.0)) NOT NULL,
 PRIMARY KEY ([id])
@@ -461,8 +461,8 @@ CREATE TABLE [dbo].[order_payments] (
 [payment_status_id] bigint NOT NULL,
 [amount] decimal(18,2) NOT NULL,
 [payment_date] datetime2(6),
-[transaction_id] varchar(100),
-[notes] varchar(255),
+[transaction_id]nvarchar(100),
+[notes]nvarchar(255),
 [created_at] datetime2(6) DEFAULT (sysdatetime()) NOT NULL,
 [last_modified] datetime2(6) NOT NULL,
 PRIMARY KEY ([id])
@@ -475,9 +475,9 @@ CREATE TABLE [dbo].[order_shipments] (
 [shipping_provider_id] bigint,
 [shipping_address] nvarchar(500) NOT NULL,
 [shipping_cost] decimal(18,2),
-[shipping_method] varchar(50),
+[shipping_method]nvarchar(50),
 [estimated_delivery_date] datetime2(6),
-[notes] varchar(255),
+[notes]nvarchar(255),
 [created_at] datetime2(6) DEFAULT (sysdatetime()) NOT NULL,
 [last_modified] datetime2(6) NOT NULL,
 PRIMARY KEY ([id])
@@ -487,9 +487,9 @@ GO
 CREATE TABLE [dbo].[order_delivery_tracking] (
 [id] bigint NOT NULL IDENTITY(1,1),
 [order_id] bigint NOT NULL,
-[tracking_number] varchar(100) NOT NULL,
+[tracking_number]nvarchar(100) NOT NULL,
 [status_id] bigint NOT NULL,
-[location] varchar(255),
+[location]nvarchar(255),
 [estimated_delivery] datetime2(6),
 [delivery_person_id] bigint,
 [shipping_provider_id] bigint,
@@ -506,8 +506,8 @@ GO
 CREATE TABLE [dbo].[sales_summary] (
 [id] bigint NOT NULL IDENTITY(1,1),
 [branch_id] bigint,
-[period_type] varchar(20) NOT NULL,
-[period_value] varchar(20) NOT NULL,
+[period_type]nvarchar(20) NOT NULL,
+[period_value]nvarchar(20) NOT NULL,
 [total_orders] int NOT NULL,
 [total_products] int NOT NULL,
 [revenue_before_tax] decimal(18,2) NOT NULL,
@@ -522,8 +522,8 @@ GO
 CREATE TABLE [dbo].[expenses_summary] (
 [id] bigint NOT NULL IDENTITY(1,1),
 [branch_id] bigint,
-[period_type] varchar(20) NOT NULL,
-[period_value] varchar(20) NOT NULL,
+[period_type]nvarchar(20) NOT NULL,
+[period_value]nvarchar(20) NOT NULL,
 [total_purchase_orders] int NOT NULL,
 [total_ingredients] int NOT NULL,
 [expense_before_tax] decimal(18,2) NOT NULL,
@@ -538,8 +538,8 @@ GO
 CREATE TABLE [dbo].[profit_summary] (
 [id] bigint NOT NULL IDENTITY(1,1),
 [branch_id] bigint,
-[period_type] varchar(20) NOT NULL,
-[period_value] varchar(20) NOT NULL,
+[period_type]nvarchar(20) NOT NULL,
+[period_value]nvarchar(20) NOT NULL,
 [revenue_before_tax] decimal(18,2) NOT NULL,
 [revenue_after_tax] decimal(18,2) NOT NULL,
 [expense_before_tax] decimal(18,2) NOT NULL,
@@ -563,7 +563,7 @@ CREATE TABLE [dbo].[v_sales_summary] (
 [branch_id] bigint,
 [year] int NOT NULL,
 [month] int NOT NULL,
-[period] varchar(7) NOT NULL,
+[period]nvarchar(7) NOT NULL,
 [total_orders] int NOT NULL,
 [total_products] int NOT NULL,
 [revenue_before_tax] decimal(18,2) NOT NULL,
@@ -575,10 +575,10 @@ GO
 CREATE TABLE [dbo].[v_employee_payroll] (
 [employee_id] bigint NOT NULL,
 [full_name] nvarchar(100) NOT NULL,
-[branch_name] varchar(255) NOT NULL,
-[position_name] varchar(100),
+[branch_name]nvarchar(255) NOT NULL,
+[position_name]nvarchar(100),
 [base_salary] decimal(18,2),
-[salary_type] varchar(20),
+[salary_type]nvarchar(20),
 [total_allowances] decimal(18,2) NOT NULL,
 [total_bonus] decimal(18,2) NOT NULL,
 [total_deductions] decimal(18,2) NOT NULL,
@@ -590,17 +590,17 @@ GO
 
 CREATE TABLE [dbo].[v_inventory_status] (
 [ingredient_id] bigint NOT NULL,
-[ingredient_name] varchar(255) NOT NULL,
+[ingredient_name]nvarchar(255) NOT NULL,
 [location_id] bigint NOT NULL,
-[location_name] varchar(100) NOT NULL,
+[location_name]nvarchar(100) NOT NULL,
 [branch_id] bigint NOT NULL,
-[branch_name] varchar(255) NOT NULL,
+[branch_name]nvarchar(255) NOT NULL,
 [quantity_on_hand] decimal(18,2) NOT NULL,
 [quantity_reserved] decimal(18,2) NOT NULL,
 [available_quantity] decimal(18,2) NOT NULL,
 [minimum_stock] decimal(18,2),
-[stock_status] varchar(20) NOT NULL,
-[unit_of_measure] varchar(50) NOT NULL,
+[stock_status]nvarchar(20) NOT NULL,
+[unit_of_measure]nvarchar(50) NOT NULL,
 [last_updated] datetime2(6) NOT NULL
 );
 GO
@@ -609,7 +609,7 @@ CREATE TABLE [dbo].[v_profit_summary] (
 [branch_id] bigint,
 [year] int NOT NULL,
 [month] int NOT NULL,
-[period] varchar(7) NOT NULL,
+[period]nvarchar(7) NOT NULL,
 [revenue_before_tax] decimal(18,2) NOT NULL,
 [revenue_after_tax] decimal(18,2) NOT NULL,
 [expense_before_tax] decimal(18,2) NOT NULL,
@@ -626,7 +626,7 @@ CREATE TABLE [dbo].[v_expenses_summary] (
 [branch_id] bigint,
 [year] int NOT NULL,
 [month] int NOT NULL,
-[period] varchar(7) NOT NULL,
+[period]nvarchar(7) NOT NULL,
 [total_purchase_orders] int NOT NULL,
 [total_ingredients] decimal(18,2) NOT NULL,
 [expense_before_tax] decimal(18,2) NOT NULL,
@@ -637,17 +637,17 @@ GO
 
 CREATE TABLE [dbo].[v_products_with_prices] (
 [id] bigint NOT NULL,
-[name] varchar(255) NOT NULL,
-[description] varchar(500),
-[sku] varchar(100),
-[category_name] varchar(255),
+[name]nvarchar(255) NOT NULL,
+[description]nvarchar(500),
+[sku]nvarchar(100),
+[category_name]nvarchar(255),
 [current_price] decimal(18,2),
-[price_type] varchar(20),
-[tax_name] varchar(100),
+[price_type]nvarchar(20),
+[tax_name]nvarchar(100),
 [tax_rate] decimal(5,2),
-[unit_of_measure] varchar(50) NOT NULL,
+[unit_of_measure]nvarchar(50) NOT NULL,
 [weight] decimal(10,3),
-[dimensions] varchar(100),
+[dimensions]nvarchar(100),
 [is_active] bit NOT NULL,
 [created_at] datetime2(6),
 [updated_at] datetime2(6)

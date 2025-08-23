@@ -107,7 +107,7 @@ export class RegisterComponent {
         date_of_birth: this.registerData.dateOfBirth,
         facebook_account_id: 0,
         google_account_id: 0,
-        role_id: 1,
+        role_id: 2,
       };
 
       this.userService.register(registerDTO).subscribe({

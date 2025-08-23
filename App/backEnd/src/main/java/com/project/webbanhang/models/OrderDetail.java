@@ -27,8 +27,8 @@ public class OrderDetail extends BaseEntity {
 	@JoinColumn(name = "product_id", nullable = false)
 	private Product product;
 
-	@Column(name = "color")
-	private String color;
+	@Column(name = "size")
+	private String size;
 
 	@Column(name = "note")
 	private String note;

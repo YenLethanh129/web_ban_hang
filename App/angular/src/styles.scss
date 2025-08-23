@@ -1,6 +1,7 @@
 /* You can add global styles to this file, and also import other style files */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
+@import '@angular/material/prebuilt-themes/indigo-pink.css';
 
 // CSS Variables for consistent theming
 :root {
@@ -438,4 +439,93 @@ a {
   .no-print { display: none !important; }
   body { background: white !important; }
   .card { box-shadow: none !important; border: 1px solid #ddd !important; }
+}
+
+/* Custom Snackbar Styles */
+.snackbar-success {
+  background: linear-gradient(135deg, #4caf50, #45a049) !important;
+  color: white !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3) !important;
+  
+  .mat-simple-snackbar-action {
+    color: white !important;
+    font-weight: 600 !important;
+  }
+}
+
+.snackbar-error {
+  background: linear-gradient(135deg, #f44336, #d32f2f) !important;
+  color: white !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3) !important;
+  
+  .mat-simple-snackbar-action {
+    color: white !important;
+    font-weight: 600 !important;
+  }
+}
+
+.snackbar-info {
+  background: linear-gradient(135deg, #2196f3, #1976d2) !important;
+  color: white !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3) !important;
+  
+  .mat-simple-snackbar-action {
+    color: white !important;
+    font-weight: 600 !important;
+  }
+}
+
+.snackbar-warning {
+  background: linear-gradient(135deg, #ff9800, #f57c00) !important;
+  color: white !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3) !important;
+  
+  .mat-simple-snackbar-action {
+    color: white !important;
+    font-weight: 600 !important;
+  }
+}
+
+.snackbar-confirm {
+  background: linear-gradient(135deg, #9c27b0, #7b1fa2) !important;
+  color: white !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(156, 39, 176, 0.3) !important;
+  
+  .mat-simple-snackbar-action {
+    color: white !important;
+    font-weight: 600 !important;
+    background: rgba(255, 255, 255, 0.2) !important;
+    border-radius: 4px !important;
+    padding: 8px 16px !important;
+    margin-left: 8px !important;
+  }
+}
+
+/* Custom Snackbar Animation */
+.mat-mdc-snack-bar-container {
+  animation: slideInDown 0.3s ease-out !important;
+}
+
+@keyframes slideInDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .mat-mdc-snack-bar-container {
+    margin: 8px !important;
+    max-width: calc(100vw - 16px) !important;
+  }
 }

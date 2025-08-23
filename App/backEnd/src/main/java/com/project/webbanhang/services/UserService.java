@@ -2,6 +2,7 @@ package com.project.webbanhang.services;
 
 import java.util.Optional;
 
+import com.project.webbanhang.repositories.CustomerRepository;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -24,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 public class UserService implements IUserService{
 
 	private final UserRepository userRepository;
+	private final CustomerRepository customerRepository;
 	private final RoleRepository roleRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final JwtTokenUtil jwtTokenUtil;

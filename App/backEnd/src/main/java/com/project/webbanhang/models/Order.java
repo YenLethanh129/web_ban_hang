@@ -10,6 +10,7 @@ import lombok.*;
 @NoArgsConstructor
 @Setter
 @Getter
+@Builder
 @Table(name = "orders")
 public class Order extends BaseEntity{
     @Id
@@ -18,7 +19,7 @@ public class Order extends BaseEntity{
 
     @ManyToOne
     @JoinColumn(name = "customer_id")
-    private Customer customerId;
+    private Customer customer;
 
     @ManyToOne
     @JoinColumn(name = "branch_id")

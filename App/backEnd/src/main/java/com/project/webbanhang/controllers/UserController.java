@@ -3,10 +3,12 @@ package com.project.webbanhang.controllers;
 import com.project.webbanhang.components.LocalizationUtil;
 import com.project.webbanhang.dtos.UserDTO;
 import com.project.webbanhang.dtos.UserLoginDTO;
+import com.project.webbanhang.models.Customer;
 import com.project.webbanhang.models.User;
 import com.project.webbanhang.response.LoginResponse;
 import com.project.webbanhang.response.RegisterResponse;
 import com.project.webbanhang.response.UserResponse;
+import com.project.webbanhang.services.ICustomerService;
 import com.project.webbanhang.services.IUserService;
 import com.project.webbanhang.utils.MessageKey;
 
@@ -31,6 +33,7 @@ import java.util.List;
 public class UserController {
 	
 	private final IUserService userService;
+    private final ICustomerService customerService;
 	private final LocalizationUtil localizationUtil;
 	
     @PostMapping("/login")
@@ -72,11 +75,29 @@ public class UserController {
             }
             
             User user = userService.createUser(userDTO);
-            
+
+            Customer customer = Customer.builder()
+                    .id(user.getId())
+                    .user(user)
+                    .email(null)
+                    .address(user.getAddress())
+                    .phoneNumber(user.getPhoneNumber())
+                    .fullName(user.getFullName())
+                    .build();
+
+            customerService.createCustomer(customer);
+
+            UserResponse userResponse = UserResponse.builder()
+                    .userId(user.getId())
+                    .phoneNumber(user.getPhoneNumber())
+                    .fullName(user.getFullName())
+                    .address(user.getAddress())
+                    .build();
+
             return ResponseEntity.ok(
             			RegisterResponse.builder()
             				.message(localizationUtil.getLocalizedMessage(MessageKey.REGISTER_SUCCESSFULLY))
-            				.user(user)
+            				.userResponse(userResponse)
             				.build()
             		);
         } catch (Exception e) {

@@ -4,6 +4,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import com.project.webbanhang.models.Customer;
+import com.project.webbanhang.models.OrderStatus;
+import com.project.webbanhang.repositories.CustomerRepository;
+import com.project.webbanhang.repositories.OrderStatusRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
@@ -21,24 +25,29 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class OrderService implements IOrderService{
 	private final OrderRepository orderRepository;
-	private final UserRepository userRepository;
+	private final CustomerRepository customerRepository;
+	private final OrderStatusRepository orderStatusRepository;
 	private final ModelMapper modelMapper;
 	
 	@Override
 	public OrderResponse createOrder(OrderDTO orderDTO) throws DataNotFoundException {
 		// tim user
-		User user = userRepository.findById(orderDTO.getUserId())
+		Customer customer = customerRepository.findById(orderDTO.getUserId())
 				.orElseThrow(() -> new DataNotFoundException("Can't not found user with id " + orderDTO.getUserId()));
-		
-		// Dùng thư viện Model Maper để chuyển đổi
-		modelMapper.typeMap(OrderDTO.class, Order.class)
-			.addMappings(mapper -> mapper.skip(Order::setId));
-		Order order = new Order();
-		modelMapper.map(orderDTO, order);
-//		order.setUser(user);
-//		order.setOrderDate(new Date());
-//		order.setStatus("PENDING");
-//		order.setIsActive(true);
+
+		OrderStatus orderStatus = OrderStatus.builder()
+				.id(1L)
+				.status(OrderStatus.PENDING)
+				.build();
+
+		Order order = Order.builder()
+				.customer(customer)
+				.notes(orderDTO.getNote())
+				.branch(null)
+				.totalMoney((long) orderDTO.getTotalMoney())
+				.status(orderStatus)
+				.build();
+
 		orderRepository.save(order);
 		
 		return mapOrderToOrderResponse(order);

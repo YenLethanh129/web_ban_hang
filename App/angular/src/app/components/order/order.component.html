@@ -74,8 +74,7 @@
           [(ngModel)]="orderData.paymentMethod"
           name="paymentMethod"
         >
-          <option value="momo" selected>Thanh toán nhanh với Momo</option>
-          <option value="bank-transfer">Chuyển khoản ngân hàng</option>
+          <option value="MOMO" selected>Thanh toán nhanh với Momo</option>
         </select>
       </div>
 
@@ -86,8 +85,8 @@
           [(ngModel)]="orderData.shippingMethod"
           name="shippingMethod"
         >
-          <option value="express" selected>Giao hàng nhanh</option>
-          <option value="pickup">Nhận tại cửa hàng</option>
+          <option value="STANDARD" selected>Giao hàng thông thường</option>
+          <option value="FAST">Giao nhanh</option>
           <!-- <option value="standard">Giao hàng tiêu chuẩn</option> -->
         </select>
       </div>
