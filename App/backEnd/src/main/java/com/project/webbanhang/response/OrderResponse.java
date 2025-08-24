@@ -1,5 +1,6 @@
 package com.project.webbanhang.response;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -10,18 +11,16 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
-@Builder
+@SuperBuilder
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class OrderResponse extends BaseResponse{
     @JsonProperty("orderId")
-    private String orderId;
-    
-    @JsonProperty("address")
-    private String address;
+    private Long orderId;
     
     @Column(name = "note")
     private String note;
@@ -30,10 +29,10 @@ public class OrderResponse extends BaseResponse{
     private String status;
     
     @Column(name = "total_money")
-    private Float totalMoney;
+    private Long totalMoney;
     
     @Column(name = "order_date")
-    private Date orderDate;
+    private LocalDateTime orderDate;
     
     @Column(name = "shipping_method")
     private String shippingMethod;

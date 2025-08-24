@@ -3,11 +3,15 @@ package com.project.webbanhang.models;
 import jakarta.persistence.*;
 import lombok.*;
 
+/**
+ * 1 MOMO
+ */
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
 @Setter
 @Getter
+@Builder
 @Table(name = "payment_methods")
 public class PaymentMethod {
     @Id
@@ -16,4 +20,6 @@ public class PaymentMethod {
 
     @Column(name = "name")
     private String name;
+
+    public static String MOMO = "MOMO";
 }

@@ -95,15 +95,17 @@ export class OrderComponent implements OnInit {
           const product = await this.productService
             .getProductById(productId)
             .toPromise();
-          return { 
-            product, 
+          return {
+            product,
             quantity: cartItem.quantity,
-            size: cartItem.size 
+            size: cartItem.size,
           };
         })
       );
       this.cartItems = items.filter(
-        (item): item is { product: ProductDTO; quantity: number; size: string } =>
+        (
+          item
+        ): item is { product: ProductDTO; quantity: number; size: string } =>
           item.product !== undefined
       );
     } catch (error) {
@@ -115,7 +117,8 @@ export class OrderComponent implements OnInit {
 
   getTotalPrice(): number {
     return this.cartItems.reduce(
-      (total, item) => total + item.product.price * item.quantity, 0
+      (total, item) => total + item.product.price * item.quantity,
+      0
     );
   }
 
@@ -134,35 +137,35 @@ export class OrderComponent implements OnInit {
       payment_status: this.orderData.paymentStatus,
     };
 
-    console.log("OrderDTO: ",orderDTO);
+    console.log('OrderDTO: ', orderDTO);
     this.orderService.createOrder(orderDTO).subscribe({
       next: (response: any) => {
         console.log('Đơn hàng đã được tạo:', response);
         this.orderId = response.orderId;
         this.momoInfoOrderDTO = {
           order_id: response.order_id ?? response.orderId,
-          amount: this.getTotalPrice()
+          amount: this.getTotalPrice(),
         };
-        this.createOrderDetail(this.orderId);
         this.createOrderDetail(this.orderId);
       },
       error: (error) => {
         console.error('Lỗi khi tạo đơn hàng:', error);
       },
-    }); 
+    });
   }
 
   createOrderDetail(orderId: number): void {
-    this.cartItems.forEach(item => {
+    this.cartItems.forEach((item) => {
       const orderDetailDTO: OrderDetailDTO = {
         order_id: orderId,
         product_id: item.product.id,
-        number_of_product: item.quantity,
-        price: item.product.price,
+        quantity: item.quantity,
+        unit_price: item.product.price,
         total_money: item.product.price * item.quantity,
-        size: item.size ?? "L",
+        size: item.size ?? 'L',
       };
-      
+
+      console.log('OrderDetailDTO: ', orderDetailDTO);
       this.orderDetailService.createOrderDetail(orderDetailDTO).subscribe({
         next: (response) => {
           console.log('Đơn hàng chi tiết đã được tạo:', response);
@@ -179,11 +182,11 @@ export class OrderComponent implements OnInit {
           console.log('Mã thanh toán MoMo:', response);
           if (response.payUrl) {
             // Chuyển hướng đến URL thanh toán MoMo
-          window.location.href = response.payUrl;
-        } else {
-          console.error('Không tìm thấy payUrl trong response');
-        }
-      },
+            window.location.href = response.payUrl;
+          } else {
+            console.error('Không tìm thấy payUrl trong response');
+          }
+        },
         error: (error) => {
           console.error('Lỗi khi lấy mã thanh toán: ', error);
         },

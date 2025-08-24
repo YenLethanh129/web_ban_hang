@@ -1,8 +1,8 @@
 package com.project.webbanhang.services;
 
 import com.project.webbanhang.api.MomoApi;
-import com.project.webbanhang.dtos.CreateMomoRequestDTO;
-import com.project.webbanhang.dtos.MomoInfoOrderDTO;
+import com.project.webbanhang.dtos.momo.CreateMomoRequestDTO;
+import com.project.webbanhang.dtos.momo.MomoInfoOrderDTO;
 import com.project.webbanhang.response.CreateMomoResponse;
 import com.project.webbanhang.utils.HmacUtil;
 import lombok.RequiredArgsConstructor;

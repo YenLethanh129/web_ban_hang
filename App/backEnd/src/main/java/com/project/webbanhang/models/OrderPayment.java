@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Setter
 @Getter
+@Builder
 @Table(name = "order_payments")
 public class OrderPayment extends BaseEntity {
     @Id
@@ -34,7 +35,7 @@ public class OrderPayment extends BaseEntity {
     @Column(name = "payment_date")
     private LocalDateTime paymentDate;
 
-    @Column(name = "transaction_id")
+    @Column(name = "transaction_id", nullable = true)
     private String transactionId;
 
     @Column(name = "notes")

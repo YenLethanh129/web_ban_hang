@@ -1,4 +1,4 @@
-package com.project.webbanhang.dtos;
+package com.project.webbanhang.dtos.momo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Min;

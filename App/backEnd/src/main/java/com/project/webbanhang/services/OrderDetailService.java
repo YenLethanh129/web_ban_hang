@@ -78,28 +78,19 @@ public class OrderDetailService implements IOrderDetailService{
 	}
 	
 	private OrderDetail mapOrderDetailDTOToOrderDetail(OrderDetailDTO orderDetailDTO) {
-//		modelMapper.typeMap(OrderDetailDTO.class, OrderDetail.class)
-//	    	.addMappings(mapper -> {
-//	    		mapper.skip(OrderDetail::setId); // Bỏ qua thuộc tính ID
-//	    		mapper.skip(OrderDetail::setOrder); // Bỏ qua ánh xạ Order
-//	    		mapper.skip(OrderDetail::setProduct); // Bỏ qua ánh xạ Product
-//	    });
-
-//		modelMapper.map(orderDetailDTO, existingOrderDetail);
-		
-		Order order = orderRepository.findById(orderDetailDTO.getOrderId())
+		Order existingOrder = orderRepository.findById(orderDetailDTO.getOrderId())
 				.orElse(null);
-		Product product = productRepository.findById(orderDetailDTO.getProductId())
+		Product existingProduct = productRepository.findById(orderDetailDTO.getProductId())
 				.orElse(null);
-		OrderDetail existingOrderDetail = new OrderDetail();
-		
-		existingOrderDetail.setOrder(order);
-		existingOrderDetail.setProduct(product);
-//		existingOrderDetail.setSize(orderDetailDTO.getSize());
-//		existingOrderDetail.setNumberOfProducts(orderDetailDTO.getNumberOfProduct());
-//		existingOrderDetail.setPrice(orderDetailDTO.getPrice());
-//		existingOrderDetail.setTotalMoney(orderDetailDTO.getTotalMoney());
-		
+		OrderDetail existingOrderDetail = OrderDetail.builder()
+				.order(existingOrder)
+				.quantity(orderDetailDTO.getQuantity())
+				.product(existingProduct)
+				.size(orderDetailDTO.getSize())
+				.note(null)
+				.totalAmount(orderDetailDTO.getTotalMoney())
+				.unitPrice(orderDetailDTO.getUnitPrice())
+				.build();
 		return existingOrderDetail;
 	};
 

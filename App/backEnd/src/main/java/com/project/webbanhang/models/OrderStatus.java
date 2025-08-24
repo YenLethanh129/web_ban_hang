@@ -3,6 +3,14 @@ package com.project.webbanhang.models;
 import jakarta.persistence.*;
 import lombok.*;
 
+/**
+ 1	PENDING
+ 2	PROCESSING
+ 3	IN_TRANSIT
+ 4	OUT_FOR_DELIVERY
+ 5	DELIVERED
+ 6	DELIVERY_FAILED
+ * */
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
@@ -10,15 +18,6 @@ import lombok.*;
 @Getter
 @Builder
 @Table(name = "order_statuses")
-
-/**
-1	PENDING
-2	PROCESSING
-3	IN_TRANSIT
-4	OUT_FOR_DELIVERY
-5	DELIVERED
-6	DELIVERY_FAILED
-* */
 public class OrderStatus {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -3,11 +3,18 @@ package com.project.webbanhang.models;
 import jakarta.persistence.*;
 import lombok.*;
 
+/**
+ * (1, 'PENDING'),
+ * (2, 'PAID'),
+ * (3, 'REFUNDED'),
+ * (4, 'VOIDED');
+ * */
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
 @Setter
 @Getter
+@Builder
 @Table(name = "payment_statuses")
 public class PaymentStatus {
     @Id
@@ -17,15 +24,23 @@ public class PaymentStatus {
     @Column(name = "status")
     private String status;
 
-    // Đang chờ xử lý
+    /**
+     * Đang chờ xử lý
+     */
     public static String PENDING = "PENDING";
 
-    // Đã thanh toán
+    /**
+     * Đã Thanh Toán
+     */
     public static String PAID = "PAID";
 
-    // Hoàn trả
+    /**
+     * Hoàn trả đơn hàng
+     */
     public static String REFUNDED = "REFUNDED";
 
-    // Vô hiệu
+    /**
+     * Vô hiệu hóa đơn hàng
+     */
     public static String VOIDED = "VOIDED";
 }

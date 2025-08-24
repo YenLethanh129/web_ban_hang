@@ -10,18 +10,19 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @Setter
 @Getter
+@Builder
 @Table(name = "order_details")
 public class OrderDetail extends BaseEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Column(name = "quantity")
-	private Long quantity;
-
 	@ManyToOne
 	@JoinColumn(name = "order_id", nullable = false)
 	private Order order;
+
+	@Column(name = "quantity")
+	private Long quantity;
 
 	@ManyToOne
 	@JoinColumn(name = "product_id", nullable = false)

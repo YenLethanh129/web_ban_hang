@@ -1,22 +1,18 @@
 package com.project.webbanhang.services;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
-import com.project.webbanhang.models.Customer;
-import com.project.webbanhang.models.OrderStatus;
-import com.project.webbanhang.repositories.CustomerRepository;
-import com.project.webbanhang.repositories.OrderStatusRepository;
+import com.project.webbanhang.models.*;
+import com.project.webbanhang.repositories.*;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import com.project.webbanhang.dtos.OrderDTO;
 import com.project.webbanhang.exceptions.DataNotFoundException;
-import com.project.webbanhang.models.Order;
-import com.project.webbanhang.models.User;
-import com.project.webbanhang.repositories.OrderRepository;
-import com.project.webbanhang.repositories.UserRepository;
 import com.project.webbanhang.response.OrderResponse;
 
 import lombok.RequiredArgsConstructor;
@@ -26,9 +22,18 @@ import lombok.RequiredArgsConstructor;
 public class OrderService implements IOrderService{
 	private final OrderRepository orderRepository;
 	private final CustomerRepository customerRepository;
-	private final OrderStatusRepository orderStatusRepository;
+    private final PaymentMethodRepository paymentMethodRepository;
+    private final OrderPaymentRepository orderPaymentRepository;
 	private final ModelMapper modelMapper;
-	
+
+    /**
+     * Create OrderStatus();
+     * Create Order -> getOrderId();
+     * Create PaymentMethod();
+     * Create PaymentStatus();
+     * Create OrderPayment();
+     * Return OrderResponse();
+     * */
 	@Override
 	public OrderResponse createOrder(OrderDTO orderDTO) throws DataNotFoundException {
 		// tim user
@@ -48,9 +53,31 @@ public class OrderService implements IOrderService{
 				.status(orderStatus)
 				.build();
 
-		orderRepository.save(order);
+		Order existsOrderRepository = orderRepository.save(order);
+
+        Optional<PaymentMethod> existsPaymentMethod = paymentMethodRepository.findByName(orderDTO.getPaymentMethod());
+        if (existsPaymentMethod.isEmpty()) {
+            throw new DataNotFoundException("Can't not found Payment Method");
+        }
+
+        PaymentStatus paymentStatus = PaymentStatus.builder()
+                .id(1L)
+                .status(PaymentStatus.PENDING)
+                .build();
+
+        OrderPayment orderPayment = OrderPayment.builder()
+                .order(existsOrderRepository)
+                .paymentMethod(existsPaymentMethod.get())
+                .paymentStatus(paymentStatus)
+                .amount(existsOrderRepository.getTotalMoney())
+                .paymentDate(LocalDateTime.now())
+                .transactionId(null)
+                .notes(existsOrderRepository.getNotes())
+                .build();
+
+        orderPaymentRepository.save(orderPayment);
 		
-		return mapOrderToOrderResponse(order);
+		return mapOrderToOrderResponse(existsOrderRepository);
 	}
 
 	@Override
@@ -118,14 +145,35 @@ public class OrderService implements IOrderService{
 		return existingOrderResponses;
 	}
 
+    /**
+     * @param order
+     * getShippingMethod()
+     * getOrderPayment()
+     * @return orderResponse
+     */
 	private OrderResponse mapOrderToOrderResponse(Order order) {
-		modelMapper.typeMap(Order.class, OrderResponse.class)
-			.addMappings(mapper -> {
-				mapper.map(Order::getId, OrderResponse::setOrderId);
-			});
-		OrderResponse existingOrderResponse = new OrderResponse();
-		modelMapper.map(order, existingOrderResponse);
-    	
+//		modelMapper.typeMap(Order.class, OrderResponse.class)
+//			.addMappings(mapper -> {
+//				mapper.map(Order::getId, OrderResponse::setOrderId);
+//			});
+//		OrderResponse existingOrderResponse = new OrderResponse();
+//		modelMapper.map(order, existingOrderResponse);
+
+        Optional<OrderPayment> existingOrderPayement = orderPaymentRepository.findByOrderId(order.getId());
+
+        OrderResponse existingOrderResponse = OrderResponse.builder()
+                .orderId(order.getId())
+                .note(order.getNotes())
+                .totalMoney(order.getTotalMoney())
+                .status(order.getStatus().getStatus())
+                .orderDate(order.getCreatedAt())
+                .shippingMethod("STANDARD")
+                .paymentMethod(existingOrderPayement.get().getPaymentMethod().getName())
+                .paymentStatus(existingOrderPayement.get().getPaymentStatus().getStatus())
+                .createdAt(order.getCreatedAt())
+                .lastModified(order.getLastModified())
+                .build();
+
 		return existingOrderResponse;
 	}
 }

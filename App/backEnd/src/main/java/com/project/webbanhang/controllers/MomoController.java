@@ -1,6 +1,6 @@
 package com.project.webbanhang.controllers;
 
-import com.project.webbanhang.dtos.MomoInfoOrderDTO;
+import com.project.webbanhang.dtos.momo.MomoInfoOrderDTO;
 import com.project.webbanhang.response.CreateMomoResponse;
 import com.project.webbanhang.services.MomoService;
 import lombok.RequiredArgsConstructor;
