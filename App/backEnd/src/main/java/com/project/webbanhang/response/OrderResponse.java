@@ -19,27 +19,27 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @NoArgsConstructor
 public class OrderResponse extends BaseResponse{
-    @JsonProperty("orderId")
+    @JsonProperty("order_id")
     private Long orderId;
-    
-    @Column(name = "note")
+
+    @JsonProperty("note")
     private String note;
-    
-    @Column(name = "status")
+
+    @JsonProperty("status")
     private String status;
-    
-    @Column(name = "total_money")
+
+    @JsonProperty("total_money")
     private Long totalMoney;
-    
-    @Column(name = "order_date")
+
+    @JsonProperty("order_date")
     private LocalDateTime orderDate;
-    
-    @Column(name = "shipping_method")
+
+    @JsonProperty("shipping_method")
     private String shippingMethod;
 
-    @Column(name = "payment_method")
+    @JsonProperty("payment_method")
     private String paymentMethod;
-    
-    @Column(name = "payment_status")
+
+    @JsonProperty("payment_status")
     private String paymentStatus;
 }

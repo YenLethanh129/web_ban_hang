@@ -141,7 +141,7 @@ export class OrderComponent implements OnInit {
     this.orderService.createOrder(orderDTO).subscribe({
       next: (response: any) => {
         console.log('Đơn hàng đã được tạo:', response);
-        this.orderId = response.orderId;
+        this.orderId = response.order_id;
         this.momoInfoOrderDTO = {
           order_id: response.order_id ?? response.orderId,
           amount: this.getTotalPrice(),
@@ -176,6 +176,8 @@ export class OrderComponent implements OnInit {
       });
     });
 
+    this.clearCart();
+
     if (this.momoInfoOrderDTO) {
       this.momoService.createQR(this.momoInfoOrderDTO).subscribe({
         next: (response: CreateMomoResponse) => {
@@ -192,5 +194,10 @@ export class OrderComponent implements OnInit {
         },
       });
     }
+  }
+
+  clearCart(): void {
+    this.cartService.clearCart();
+    this.cartItems = [];
   }
 }

@@ -22,7 +22,7 @@ import lombok.experimental.SuperBuilder;
 public class BaseResponse {
 	@JsonProperty("created_at")
 	private LocalDateTime createdAt;
-	
-	@JsonProperty("updated_at")
+
+	@JsonProperty("last_modified")
 	private LocalDateTime lastModified;
 }

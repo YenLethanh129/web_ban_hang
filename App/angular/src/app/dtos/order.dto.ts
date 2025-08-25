@@ -14,22 +14,15 @@ export interface OrderDTO {
 
 export interface OrderResponseDTO {
   order_id: number;
-  product_id: number;
-  number_of_product: number;
-  price: number;
-  total_money: number;
-  size: string;
   note: string;
   status: string;
-  totalMoney: number;
-  orderDate: string;
-  shippingMethod: string;
-  paymentMethod: string;
-  paymentStatus: string | null;
+  total_money: number;
+  order_date: string;
+  shipping_method: string;
+  payment_method: string;
+  payment_status: string | null;
   created_at: string;
-  updated_at: string;
-  orderId: string;
-  address: string;
+  last_modified: string;
 }
 
 export interface OrderDetailDTO {
@@ -38,6 +31,15 @@ export interface OrderDetailDTO {
   quantity: number;
   unit_price: number;
   total_money: number;
+  size: string;
+}
+
+export interface OrderDetailResponseDTO {
+  product_name: string;
+  product_thumbnail: string;
+  quantity: number;
+  unit_price: number;
+  total_amount: number;
   size: string;
 }
 

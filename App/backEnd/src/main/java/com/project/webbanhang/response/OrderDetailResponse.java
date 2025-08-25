@@ -15,38 +15,28 @@ import lombok.Setter;
 @Getter
 @Builder
 public class OrderDetailResponse{
-	
-	private Long id;
+	@JsonProperty("product_name")
+	private String productName;
 
-	@JsonProperty("order_id")
-	private Long orderId;
+	@JsonProperty("product_thumbnail")
+	private String productThumbnail;
 	
-	@JsonProperty("product_id")
-	private Long productId;
+	@JsonProperty("quantity")
+	private Long quantity;
 	
-	@JsonProperty("price")
-	private Float price;
-	
-	@JsonProperty("number_of_products")
-	private int numberOfProducts;
-	
-	@JsonProperty("total_money")
-	private Float totalMoney;
-	
-	@JsonProperty("color")
+	@JsonProperty("size")
 	private String size;
 	
+	@JsonProperty("total_amount")
+	private Long totalAmount;
+	
+	@JsonProperty("unit_price")
+	private Long unitPrice;
+
 	public static OrderDetailResponse fromEntity(OrderDetail orderDetail) {
 		OrderDetailResponse orderDetailResponse = OrderDetailResponse.builder()
-				.id(orderDetail.getId())
-				.orderId(orderDetail.getOrder().getId())
-				.productId(orderDetail.getProduct().getId())
-//				.price(orderDetail.getPrice())
-//				.numberOfProducts(orderDetail.getNumberOfProducts())
-//				.totalMoney(orderDetail.getTotalMoney())
-//				.size(orderDetail.getSize())
 				.build();
-		
+
 		return orderDetailResponse;
 	}
 }

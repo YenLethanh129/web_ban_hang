@@ -4,32 +4,74 @@
       <div class="success-icon">
         <i class="fas fa-check-circle"></i>
       </div>
-      <h2>Đặt hàng không thành công!</h2>
-      <p class="order-id">Mã đơn hàng: #123456</p>
+      <h2>Đặt hàng thành công!</h2>
+      <p class="order-id">Mã đơn hàng: {{ orderResponse?.order_id }}</p>
 
       <div class="order-details">
         <h3>Chi tiết đơn hàng</h3>
-        <div class="info-group">
-          <p><strong>Họ và tên:</strong> Nguyễn Văn A</p>
-          <p><strong>Số điện thoại:</strong> 0123456789</p>
-          <p><strong>Địa chỉ:</strong> Gia Lai</p>
+
+        <!-- Loading state -->
+        <div *ngIf="isLoading" class="loading-container">
+          <div class="spinner-border" role="status">
+            <span class="sr-only">Đang tải...</span>
+          </div>
+          <p>Đang tải thông tin đơn hàng...</p>
         </div>
 
-        <div class="product-list">
-          <div class="product-item">
-            <img src="path-to-product-image" alt="Product Image" />
+        <!-- Order details content -->
+        <div
+          class="product-list"
+          *ngIf="!isLoading && listOrderDetails.length > 0"
+        >
+          <div class="product-item" *ngFor="let item of listOrderDetails">
+            <div class="product-image">
+              <img
+                [src]="
+                  item.product_thumbnail || 'assets/images/default-product.jpg'
+                "
+                [alt]="item.product_name"
+              />
+            </div>
+
             <div class="product-info">
-              <h4>Tên sản phẩm</h4>
-              <p>Số lượng: 1</p>
-              <p class="price">5.000đ</p>
+              <div class="product-header">
+                <h5>{{ item.product_name }}</h5>
+                <div class="product-price">
+                  {{ item.unit_price | number }} VNĐ
+                </div>
+              </div>
+
+              <div class="product-details">
+                <div class="product-size">Size: {{ item.size }}</div>
+                <div class="product-right">
+                  <div class="product-quantity">
+                    Số lượng: {{ item.quantity }}
+                  </div>
+                  <div class="product-total">
+                    Tiền hàng: {{ item.total_amount | number }} VNĐ
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Price Summary -->
+          <div class="price-summary">
+            <div class="summary-row total">
+              <span class="label">Tổng đơn hàng:</span>
+              <span class="value"
+                >{{ orderResponse?.total_money | number }} VNĐ</span
+              >
             </div>
           </div>
         </div>
 
-        <div class="price-summary">
-          <p>Tổng tiền hàng: <span>5.000đ</span></p>
-          <p>Phí vận chuyển: <span>15.000đ</span></p>
-          <h4>Tổng thanh toán: <span>20.000đ</span></h4>
+        <!-- Empty state -->
+        <div
+          *ngIf="!isLoading && listOrderDetails.length === 0"
+          class="empty-order"
+        >
+          <p>Không có thông tin chi tiết đơn hàng</p>
         </div>
       </div>
 

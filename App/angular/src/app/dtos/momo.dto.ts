@@ -10,3 +10,19 @@ export interface CreateMomoResponse {
     deeplink: string | null;
     qrCodeUrl: string | null;
 }
+
+export interface MomoIpnRequestDTO {
+    orderType: string;
+    amount: number;
+    partnerCode: string;
+    orderId: string;
+    extraData: string;
+    signature: string;
+    transId: number;
+    responseTime: number;
+    resultCode: number;
+    message: string;
+    payType: string;
+    requestId: string;
+    orderInfo: string;
+}

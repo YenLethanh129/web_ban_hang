@@ -14,7 +14,7 @@ public interface IOrderDetailService {
 	
 	List<OrderDetailResponse> getOrderDetails();
 	
-	OrderDetailResponse getOrderDetailByOrderId(Long orderId);
+	List<OrderDetailResponse> getOrderDetailsByOrderId(Long orderId) throws DataNotFoundException;
 	
 	OrderDetailResponse updateOrderDetail(Long orderDetailId, OrderDetailDTO orderDetailDTO) throws DataNotFoundException;
 	

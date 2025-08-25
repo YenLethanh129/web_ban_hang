@@ -151,14 +151,7 @@ public class OrderService implements IOrderService{
      * getOrderPayment()
      * @return orderResponse
      */
-	private OrderResponse mapOrderToOrderResponse(Order order) {
-//		modelMapper.typeMap(Order.class, OrderResponse.class)
-//			.addMappings(mapper -> {
-//				mapper.map(Order::getId, OrderResponse::setOrderId);
-//			});
-//		OrderResponse existingOrderResponse = new OrderResponse();
-//		modelMapper.map(order, existingOrderResponse);
-
+	public OrderResponse mapOrderToOrderResponse(Order order) {
         Optional<OrderPayment> existingOrderPayement = orderPaymentRepository.findByOrderId(order.getId());
 
         OrderResponse existingOrderResponse = OrderResponse.builder()

@@ -50,12 +50,10 @@ public class OrderController {
     		@Valid @PathVariable("order_id") Long orderId
     ) {
         try {
-        	
         	 OrderResponse existingOrderResponse = orderService.getOrderById(orderId);
-        	
             return ResponseEntity.ok(existingOrderResponse);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Get orders failed");
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
     
