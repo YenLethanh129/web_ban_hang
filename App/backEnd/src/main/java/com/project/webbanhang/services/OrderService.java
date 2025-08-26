@@ -133,15 +133,13 @@ public class OrderService implements IOrderService{
 	}
 
 	@Override
-	public List<OrderResponse> findByUserId(Long userId) {
-		
-//		List<Order> existingOrders = orderRepository.findByUser_Id(userId);
+	public List<OrderResponse> findAllByCustomerId(Long userId) {
+		List<Order> existingOrder = orderRepository.findAllByCustomerId(userId);
 		List<OrderResponse> existingOrderResponses = new ArrayList<>();
-//
-//		for (Order order : existingOrders) {
-//			existingOrderResponses.add(mapOrderToOrderResponse(order));
-//		}
-		
+		for (Order order : existingOrder) {
+			OrderResponse orderResponse = mapOrderToOrderResponse(order);
+			existingOrderResponses.add(orderResponse);
+		}
 		return existingOrderResponses;
 	}
 

@@ -14,7 +14,6 @@ import { CategoryService } from '../../services/category.service';
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss',
 })
-
 export class HeaderComponent implements OnInit {
   username: string = '';
   searchTerm: string = '';
@@ -29,11 +28,10 @@ export class HeaderComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    // Load categories
     this.loadCategories();
-    // if (this.isLoggedIn) {
-    //   this.loadUserProfile();
-    // }
+    if (this.isLoggedIn) {
+      this.loadUserProfile();
+    }
   }
 
   private loadCategories() {

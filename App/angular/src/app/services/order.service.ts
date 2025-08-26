@@ -34,4 +34,15 @@ export class OrderService {
       headers,
     });
   }
+
+  getOrdersByUserId(userId: number): Observable<OrderResponseDTO[]> {
+    const token = this.tokenService.getToken();
+    const headers = new HttpHeaders({
+      'Accept-Language': 'vi',
+      Authorization: `Bearer ${token}`,
+    });
+    return this.http.get<OrderResponseDTO[]>(`${this.apiUrl}/user/${userId}`, {
+      headers,
+    });
+  }
 }

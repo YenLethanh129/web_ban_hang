@@ -12,7 +12,7 @@ public interface IOrderService {
 	
 	OrderResponse getOrderById(Long orderId) throws DataNotFoundException;
 	
-	List<OrderResponse> findByUserId(Long userId);
+	List<OrderResponse> findAllByCustomerId(Long userId);
 	
 	OrderResponse updateOrder(Long orderId, OrderDTO orderDTO) throws DataNotFoundException;
 	

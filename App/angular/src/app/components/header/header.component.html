@@ -34,8 +34,12 @@
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" routerLink="/books" routerLinkActive="active">
-              Thông báo
+            <a
+              class="nav-link"
+              routerLink="/info-order"
+              routerLinkActive="active"
+            >
+              Thông tin đơn hàng
             </a>
           </li>
           <li class="nav-item">
@@ -43,7 +47,7 @@
           </li>
           <ng-container *ngIf="isLoggedIn">
             <li class="nav-item">
-              <a class="nav-link">Thanh Yên</a>
+              <a class="nav-link">{{ username ? username : "User" }}</a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="javascript:void(0)" (click)="logout()"

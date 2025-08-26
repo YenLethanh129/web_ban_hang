@@ -77,9 +77,8 @@ public class OrderController {
     		@Valid @PathVariable("user_id") Long userId
     ) {
         try {
-        	
-        	List<OrderResponse> existingOrderResponses = orderService.findByUserId(userId);
-        	
+        	List<OrderResponse> existingOrderResponses = orderService.findAllByCustomerId(userId);
+
             return ResponseEntity.ok(existingOrderResponses);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Get orders failed");
