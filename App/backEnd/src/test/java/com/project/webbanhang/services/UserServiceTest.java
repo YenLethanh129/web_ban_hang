@@ -2,6 +2,7 @@ package com.project.webbanhang.services;
 
 import com.project.webbanhang.components.JwtTokenUtil;
 import com.project.webbanhang.dtos.UserDTO;
+import com.project.webbanhang.exceptions.DataNotFoundException;
 import com.project.webbanhang.models.Role;
 import com.project.webbanhang.models.User;
 import com.project.webbanhang.repositories.RoleRepository;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
@@ -112,5 +114,52 @@ public class UserServiceTest {
         assertEquals("Test User", result.getFullName());
         assertEquals("encodePassword", result.getPassword());
         assertEquals(role, result.getRole());
+    }
+
+    @Test
+    void createUser_fail_existsByPhoneNumber() throws Exception {
+        Mockito.when(userRepository.existsByPhoneNumber(userDTO.getPhoneNumber()))
+                .thenReturn(true);
+
+        Exception exception = assertThrows(DataIntegrityViolationException.class, () -> {
+            userService.createUser(userDTO);
+        });
+
+        assertEquals("Phone number already exists", exception.getMessage());
+    }
+
+    @Test
+    void createUser_fail_roleNotFound() throws Exception {
+        Mockito.when(userRepository.existsByPhoneNumber(userDTO.getPhoneNumber()))
+                .thenReturn(false);
+
+        Mockito.when(roleRepository.findById(userDTO.getRoleId()))
+                .thenReturn(Optional.empty());
+
+        Exception exception = assertThrows(DataNotFoundException.class, () -> {
+            userService.createUser(userDTO);
+        });
+
+        assertEquals("Role not found", exception.getMessage());
+    }
+
+    @Test
+    void createUser_fail_registerAdmin() throws Exception{
+        Role roleAdmin = Role.builder()
+                .id(2L)
+                .name("ADMIN")
+                .build();
+
+        Mockito.when(userRepository.existsByPhoneNumber(userDTO.getPhoneNumber()))
+                .thenReturn(false);
+
+        Mockito.when(roleRepository.findById(userDTO.getRoleId()))
+                .thenReturn(Optional.of(roleAdmin));
+
+        Exception exception = assertThrows(Exception.class, () -> {
+            userService.createUser(userDTO);
+        });
+
+        assertEquals("You cann't register an admin account", exception.getMessage());
     }
 }
