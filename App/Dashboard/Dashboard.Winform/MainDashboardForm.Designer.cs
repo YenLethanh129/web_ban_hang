@@ -2,7 +2,7 @@
 
 namespace Dashboard.Winform
 {
-    partial class Form1
+    partial class MainDashboardForm
     {
         /// <summary>
         ///  Required designer variable.
@@ -86,6 +86,7 @@ namespace Dashboard.Winform
             // 
             label1.AutoSize = true;
             label1.Font = new Font("Segoe UI", 17.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            label1.ForeColor = Color.WhiteSmoke;
             label1.Location = new Point(12, 9);
             label1.Name = "label1";
             label1.Size = new Size(126, 31);
@@ -169,11 +170,10 @@ namespace Dashboard.Winform
             btnOkeCustomDate.TabIndex = 8;
             btnOkeCustomDate.Text = "Oke";
             btnOkeCustomDate.UseVisualStyleBackColor = true;
-            btnOkeCustomDate.Click += btnOkeCustomDate_Click;
             // 
             // panel1
             // 
-            panel1.BackColor = Color.White;
+            panel1.BackColor = Color.FromArgb(42, 45, 86);
             panel1.Controls.Add(lblNumberOfOrders);
             panel1.Controls.Add(label2);
             panel1.Location = new Point(12, 57);
@@ -186,6 +186,7 @@ namespace Dashboard.Winform
             // 
             lblNumberOfOrders.AutoSize = true;
             lblNumberOfOrders.Font = new Font("Segoe UI", 13F);
+            lblNumberOfOrders.ForeColor = Color.WhiteSmoke;
             lblNumberOfOrders.Location = new Point(15, 17);
             lblNumberOfOrders.Name = "lblNumberOfOrders";
             lblNumberOfOrders.Size = new Size(52, 25);
@@ -196,6 +197,7 @@ namespace Dashboard.Winform
             // 
             label2.AutoSize = true;
             label2.Font = new Font("Segoe UI", 9.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            label2.ForeColor = Color.WhiteSmoke;
             label2.Location = new Point(15, 0);
             label2.Name = "label2";
             label2.Size = new Size(83, 17);
@@ -204,7 +206,7 @@ namespace Dashboard.Winform
             // 
             // panel2
             // 
-            panel2.BackColor = Color.White;
+            panel2.BackColor = Color.FromArgb(42, 45, 86);
             panel2.Controls.Add(label3);
             panel2.Controls.Add(lblTotalOfProfit);
             panel2.Location = new Point(516, 57);
@@ -217,6 +219,7 @@ namespace Dashboard.Winform
             // 
             label3.AutoSize = true;
             label3.Font = new Font("Segoe UI", 13F);
+            label3.ForeColor = Color.WhiteSmoke;
             label3.Location = new Point(29, 17);
             label3.Name = "label3";
             label3.Size = new Size(52, 25);
@@ -227,6 +230,7 @@ namespace Dashboard.Winform
             // 
             lblTotalOfProfit.AutoSize = true;
             lblTotalOfProfit.Font = new Font("Segoe UI", 10F);
+            lblTotalOfProfit.ForeColor = Color.WhiteSmoke;
             lblTotalOfProfit.Location = new Point(29, 0);
             lblTotalOfProfit.Name = "lblTotalOfProfit";
             lblTotalOfProfit.Size = new Size(101, 19);
@@ -235,7 +239,7 @@ namespace Dashboard.Winform
             // 
             // panel3
             // 
-            panel3.BackColor = Color.White;
+            panel3.BackColor = Color.FromArgb(42, 45, 86);
             panel3.Controls.Add(label5);
             panel3.Controls.Add(lblTotalOfRevenue);
             panel3.Location = new Point(197, 57);
@@ -248,6 +252,7 @@ namespace Dashboard.Winform
             // 
             label5.AutoSize = true;
             label5.Font = new Font("Segoe UI", 13F);
+            label5.ForeColor = Color.WhiteSmoke;
             label5.Location = new Point(29, 19);
             label5.Name = "label5";
             label5.Size = new Size(52, 25);
@@ -258,6 +263,7 @@ namespace Dashboard.Winform
             // 
             lblTotalOfRevenue.AutoSize = true;
             lblTotalOfRevenue.Font = new Font("Segoe UI", 10F);
+            lblTotalOfRevenue.ForeColor = Color.WhiteSmoke;
             lblTotalOfRevenue.Location = new Point(29, 0);
             lblTotalOfRevenue.Name = "lblTotalOfRevenue";
             lblTotalOfRevenue.Size = new Size(108, 19);
@@ -266,6 +272,7 @@ namespace Dashboard.Winform
             // 
             // chart1
             // 
+            chart1.BackColor = Color.FromArgb(42, 45, 86);
             chartArea1.Name = "ChartArea1";
             chart1.ChartAreas.Add(chartArea1);
             legend1.Docking = Docking.Top;
@@ -288,6 +295,7 @@ namespace Dashboard.Winform
             // 
             // chart2
             // 
+            chart2.BackColor = Color.FromArgb(42, 45, 86);
             chartArea2.Name = "ChartArea1";
             chart2.ChartAreas.Add(chartArea2);
             legend2.Docking = Docking.Bottom;
@@ -314,7 +322,7 @@ namespace Dashboard.Winform
             // 
             // panel4
             // 
-            panel4.BackColor = Color.White;
+            panel4.BackColor = Color.FromArgb(42, 45, 86);
             panel4.Controls.Add(lblNumberOfProducts);
             panel4.Controls.Add(lblNumberOfSuppliers);
             panel4.Controls.Add(label11);
@@ -332,6 +340,7 @@ namespace Dashboard.Winform
             // 
             lblNumberOfProducts.AutoSize = true;
             lblNumberOfProducts.Font = new Font("Segoe UI", 13F);
+            lblNumberOfProducts.ForeColor = Color.WhiteSmoke;
             lblNumberOfProducts.Location = new Point(15, 144);
             lblNumberOfProducts.Name = "lblNumberOfProducts";
             lblNumberOfProducts.Size = new Size(52, 25);
@@ -342,6 +351,7 @@ namespace Dashboard.Winform
             // 
             lblNumberOfSuppliers.AutoSize = true;
             lblNumberOfSuppliers.Font = new Font("Segoe UI", 13F);
+            lblNumberOfSuppliers.ForeColor = Color.WhiteSmoke;
             lblNumberOfSuppliers.Location = new Point(15, 93);
             lblNumberOfSuppliers.Name = "lblNumberOfSuppliers";
             lblNumberOfSuppliers.Size = new Size(52, 25);
@@ -352,6 +362,7 @@ namespace Dashboard.Winform
             // 
             label11.AutoSize = true;
             label11.Font = new Font("Segoe UI", 9.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            label11.ForeColor = Color.WhiteSmoke;
             label11.Location = new Point(15, 127);
             label11.Name = "label11";
             label11.Size = new Size(66, 17);
@@ -362,6 +373,7 @@ namespace Dashboard.Winform
             // 
             label9.AutoSize = true;
             label9.Font = new Font("Segoe UI", 9.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            label9.ForeColor = Color.WhiteSmoke;
             label9.Location = new Point(15, 76);
             label9.Name = "label9";
             label9.Size = new Size(89, 17);
@@ -372,6 +384,7 @@ namespace Dashboard.Winform
             // 
             label7.AutoSize = true;
             label7.Font = new Font("Segoe UI", 12F);
+            label7.ForeColor = Color.WhiteSmoke;
             label7.Location = new Point(3, 0);
             label7.Name = "label7";
             label7.Size = new Size(78, 21);
@@ -382,6 +395,7 @@ namespace Dashboard.Winform
             // 
             lblNumberOfCustomers.AutoSize = true;
             lblNumberOfCustomers.Font = new Font("Segoe UI", 13F);
+            lblNumberOfCustomers.ForeColor = Color.WhiteSmoke;
             lblNumberOfCustomers.Location = new Point(15, 42);
             lblNumberOfCustomers.Name = "lblNumberOfCustomers";
             lblNumberOfCustomers.Size = new Size(52, 25);
@@ -392,6 +406,7 @@ namespace Dashboard.Winform
             // 
             label6.AutoSize = true;
             label6.Font = new Font("Segoe UI", 9.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            label6.ForeColor = Color.WhiteSmoke;
             label6.Location = new Point(15, 25);
             label6.Name = "label6";
             label6.Size = new Size(76, 17);
@@ -400,7 +415,7 @@ namespace Dashboard.Winform
             // 
             // panel5
             // 
-            panel5.BackColor = Color.White;
+            panel5.BackColor = Color.FromArgb(42, 45, 86);
             panel5.Controls.Add(dgvUnderstock);
             panel5.Controls.Add(label13);
             panel5.Location = new Point(188, 370);
@@ -446,16 +461,18 @@ namespace Dashboard.Winform
             // 
             label13.AutoSize = true;
             label13.Font = new Font("Segoe UI", 12F);
+            label13.ForeColor = Color.WhiteSmoke;
             label13.Location = new Point(3, 0);
             label13.Name = "label13";
             label13.Size = new Size(67, 21);
             label13.TabIndex = 2;
             label13.Text = "Tồn Kho";
             // 
-            // Form1
+            // MainDashboardForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
+            BackColor = Color.FromArgb(24, 28, 63);
             ClientSize = new Size(972, 558);
             Controls.Add(panel5);
             Controls.Add(panel4);
@@ -474,7 +491,7 @@ namespace Dashboard.Winform
             Controls.Add(dtpStart);
             Controls.Add(label1);
             Font = new Font("Segoe UI", 9F);
-            Name = "Form1";
+            Name = "MainDashboardForm";
             Text = "Dashboard";
             panel1.ResumeLayout(false);
             panel1.PerformLayout();

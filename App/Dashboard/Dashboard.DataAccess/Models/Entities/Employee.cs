@@ -7,8 +7,12 @@ using Microsoft.EntityFrameworkCore;
 namespace Dashboard.DataAccess.Models.Entities;
 
 [Table("employees")]
-public partial class Employee : BaseAuditableEntity
+public partial class Employee
 {
+    [Key]
+    [Column("id")]
+    public long Id { get; set; }
+
     [Column("branch_id")]
     public long BranchId { get; set; }
 
@@ -42,6 +46,14 @@ public partial class Employee : BaseAuditableEntity
     [Unicode(false)]
     public string? Status { get; set; }
 
+    [Column("created_at")]
+    [Precision(6)]
+    public DateTime CreatedAt { get; set; }
+
+    [Column("last_modified")]
+    [Precision(6)]
+    public DateTime LastModified { get; set; }
+
     [ForeignKey("BranchId")]
     [InverseProperty("Employees")]
     public virtual Branch Branch { get; set; } = null!;
@@ -52,11 +64,20 @@ public partial class Employee : BaseAuditableEntity
     [InverseProperty("Employee")]
     public virtual ICollection<EmployeeShift> EmployeeShifts { get; set; } = new List<EmployeeShift>();
 
+    [InverseProperty("WarehouseStaff")]
+    public virtual ICollection<GoodsReceivedNote> GoodsReceivedNotes { get; set; } = new List<GoodsReceivedNote>();
+
+    [InverseProperty("Employee")]
+    public virtual ICollection<IngredientPurchaseOrder> IngredientPurchaseOrders { get; set; } = new List<IngredientPurchaseOrder>();
+
     [InverseProperty("DeliveryPerson")]
     public virtual ICollection<OrderDeliveryTracking> OrderDeliveryTrackings { get; set; } = new List<OrderDeliveryTracking>();
 
     [InverseProperty("Employee")]
     public virtual ICollection<Payroll> Payrolls { get; set; } = new List<Payroll>();
+
+    [InverseProperty("ApprovedByNavigation")]
+    public virtual ICollection<PurchaseReturn> PurchaseReturns { get; set; } = new List<PurchaseReturn>();
 
     [InverseProperty("Employee")]
     public virtual ICollection<User> Users { get; set; } = new List<User>();

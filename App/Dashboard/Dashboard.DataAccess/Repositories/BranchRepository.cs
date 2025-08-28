@@ -16,6 +16,6 @@ public class BranchRepository : Repository<Branch>, IBranchRepository
 
     public void Update(Branch branch)
     {
-        _dbContext.Update(branch);
+        _context.Update(branch);
     }
 }

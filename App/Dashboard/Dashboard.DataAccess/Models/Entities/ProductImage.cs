@@ -7,8 +7,11 @@ using Microsoft.EntityFrameworkCore;
 namespace Dashboard.DataAccess.Models.Entities;
 
 [Table("product_images")]
-public partial class ProductImage : BaseEntity
-{ 
+public partial class ProductImage
+{
+    [Key]
+    [Column("id")]
+    public long Id { get; set; }
 
     [Column("product_id")]
     public long? ProductId { get; set; }

@@ -1,4 +1,4 @@
-﻿ using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -7,16 +7,14 @@ using Microsoft.EntityFrameworkCore;
 namespace Dashboard.DataAccess.Models.Entities;
 
 [Table("order_details")]
-public partial class OrderDetail : BaseAuditableEntity
+public partial class OrderDetail
 {
+    [Key]
+    [Column("id")]
+    public long Id { get; set; }
+
     [Column("quantity")]
     public int Quantity { get; set; }
-
-    [Column("unit_price", TypeName = "decimal(18, 2)")]
-    public decimal UnitPrice { get; set; }
-
-    [Column("total_amount", TypeName = "decimal(18, 2)")]
-    public decimal TotalAmount { get; set; }
 
     [Column("order_id")]
     public long OrderId { get; set; }
@@ -24,14 +22,29 @@ public partial class OrderDetail : BaseAuditableEntity
     [Column("product_id")]
     public long ProductId { get; set; }
 
-    [Column("note")]
-    [StringLength(255)]
-    [Unicode(false)]
-    public string? Note { get; set; }
     [Column("color")]
     [StringLength(255)]
     [Unicode(false)]
     public string? Color { get; set; }
+
+    [Column("created_at")]
+    [Precision(6)]
+    public DateTime CreatedAt { get; set; }
+
+    [Column("last_modified")]
+    [Precision(6)]
+    public DateTime LastModified { get; set; }
+
+    [Column("note")]
+    [StringLength(255)]
+    [Unicode(false)]
+    public string? Note { get; set; }
+
+    [Column("total_amount", TypeName = "decimal(18, 2)")]
+    public decimal TotalAmount { get; set; }
+
+    [Column("unit_price", TypeName = "decimal(18, 2)")]
+    public decimal UnitPrice { get; set; }
 
     [ForeignKey("OrderId")]
     [InverseProperty("OrderDetails")]

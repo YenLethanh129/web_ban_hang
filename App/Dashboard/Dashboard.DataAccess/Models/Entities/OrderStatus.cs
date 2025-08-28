@@ -7,12 +7,17 @@ using Microsoft.EntityFrameworkCore;
 namespace Dashboard.DataAccess.Models.Entities;
 
 [Table("order_statuses")]
-public partial class OrderStatus : BaseEntity
+[Index("Name", Name = "UQ__order_st__72E12F1B05345EFE", IsUnique = true)]
+public partial class OrderStatus
 {
-    [Column("status")]
+    [Key]
+    [Column("id")]
+    public long Id { get; set; }
+
+    [Column("name")]
     [StringLength(50)]
     [Unicode(false)]
-    public string Status { get; set; } = null!;
+    public string Name { get; set; } = null!;
 
     [InverseProperty("Status")]
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();

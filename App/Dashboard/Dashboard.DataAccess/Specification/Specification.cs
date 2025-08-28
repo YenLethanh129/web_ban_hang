@@ -1,4 +1,4 @@
-﻿using System.Linq.Expressions;
+﻿                   using System.Linq.Expressions;
 
 namespace Dashboard.DataAccess.Specification;
 
@@ -21,7 +21,6 @@ public class Specification<T> : ISpecification<T>
 
     public Expression<Func<T, bool>>? Where { get; }
     public List<Expression<Func<T, object>>> Includes { get; } = [];
-
     protected void AddIncludes(Expression<Func<T, object>> include)
     {
         Includes.Add(include);

@@ -1,6 +1,7 @@
 ﻿using Ardalis.GuardClauses;
 using Dashboard.DataAccess.Context;
 using Dashboard.DataAccess.Data.Interceptors;
+using Dashboard.DataAccess.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
@@ -17,6 +18,7 @@ public static class DependencyInjection
         Guard.Against.Null(Context, message: "Connection string 'WebbanhangDB' not found.");
         builder.Services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
         builder.Services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
+        builder.Services.AddScoped<IProductRepository, ProductRepository>();
 
         builder.Services.AddDbContext<WebbanhangDbContext>((sp, options)=>
         {

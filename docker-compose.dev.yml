@@ -26,7 +26,7 @@ services:
       dockerfile: Dockerfile
     container_name: webbanhang-db.configurator
     volumes:
-      - ./App/webbanhang-db/init/init.sql:/init.sql
+      - ./App/webbanhang-db/init:/init-sql
     environment:
       - ACCEPT_EULA=Y
       - SA_PASSWORD=${SA_PASSWORD}
@@ -38,8 +38,10 @@ services:
         condition: service_healthy
     command: >
       bash -c '
-      envsubst < /init.sql > /tmp/init_parsed.sql &&
+      envsubst < /init-sql/init.sql > /tmp/init_parsed.sql &&
       /opt/mssql-tools18/bin/sqlcmd -C -S webbanhang-db -U sa -P "$${SA_PASSWORD}" -d master -i /tmp/init_parsed.sql &&
+      envsubst < /init-sql/sample_data.sql > /tmp/sample_date_parsed.sql &&
+      /opt/mssql-tools18/bin/sqlcmd -C -S webbanhang-db -U sa -P "$${SA_PASSWORD}" -d master -i /tmp/sample_date_parsed.sql &&
       echo "All done!"'
     networks:
       - app-network

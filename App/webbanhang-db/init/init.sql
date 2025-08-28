@@ -55,7 +55,7 @@ GO
 
 CREATE TABLE [dbo].[categories] (
 [id] bigint NOT NULL IDENTITY(1,1),
-[name] varchar(255) NOT NULL,
+[name] varchar(255) NOT NULL UNIQUE,
 PRIMARY KEY ([id])
 );
 GO
@@ -83,7 +83,7 @@ GO
 
 CREATE TABLE [dbo].[roles] (
 [id] bigint NOT NULL IDENTITY(1,1),
-[name] varchar(100),
+[name] varchar(100) UNIQUE NOT NULL,
 [created_at] datetime2(6) NOT NULL,
 [last_modified] datetime2(6) NOT NULL,
 PRIMARY KEY ([id])
@@ -117,7 +117,7 @@ GO
 
 CREATE TABLE [dbo].[shipping_providers] (
 [id] bigint NOT NULL IDENTITY(1,1),
-[name] varchar(100) NOT NULL,
+[name] varchar(100) NOT NULL UNIQUE,
 [contact_info] varchar(200),
 [api_endpoint] varchar(200),
 [created_at] datetime2(6) DEFAULT (sysdatetime()) NOT NULL,
@@ -128,28 +128,52 @@ GO
 
 CREATE TABLE [dbo].[payment_methods] (
 [id] bigint NOT NULL IDENTITY(1,1),
-[name] varchar(50) NOT NULL,
+[name] varchar(50) NOT NULL UNIQUE,
 PRIMARY KEY ([id])
 );
 GO
 
 CREATE TABLE [dbo].[payment_statuses] (
 [id] bigint NOT NULL IDENTITY(1,1),
-[status] varchar(50) NOT NULL,
+[name] varchar(50) NOT NULL UNIQUE,
 PRIMARY KEY ([id])
 );
 GO
 
 CREATE TABLE [dbo].[order_statuses] (
 [id] bigint NOT NULL IDENTITY(1,1),
-[status] varchar(50) NOT NULL,
+[name] varchar(50) NOT NULL UNIQUE,
 PRIMARY KEY ([id])
 );
 GO
 
 CREATE TABLE [dbo].[delivery_statuses] (
 [id] bigint NOT NULL IDENTITY(1,1),
-[name] varchar(50) NOT NULL,
+[name] varchar(50) NOT NULL UNIQUE,
+PRIMARY KEY ([id])
+);
+GO
+
+CREATE TABLE [dbo].[purchase_order_statuses] (
+[id] bigint NOT NULL IDENTITY(1,1),
+[name] varchar(50) NOT NULL UNIQUE,
+[description] varchar(255),
+PRIMARY KEY ([id])
+);
+GO
+
+CREATE TABLE [dbo].[invoice_statuses] (
+[id] bigint NOT NULL IDENTITY(1,1),
+[name] varchar(50) NOT NULL UNIQUE,
+[description] varchar(255),
+PRIMARY KEY ([id])
+);
+GO
+
+CREATE TABLE [dbo].[goods_received_statuses] (
+[id] bigint NOT NULL IDENTITY(1,1),
+[name] varchar(50) NOT NULL UNIQUE,
+[description] varchar(255),
 PRIMARY KEY ([id])
 );
 GO
@@ -178,6 +202,7 @@ CREATE TABLE [dbo].[products] (
 [id] bigint NOT NULL IDENTITY(1,1),
 [price] decimal(18,2) NOT NULL,
 [category_id] bigint,
+[is_active] BIT DEFAULT (CONVERT([bit],(1))) NOT NULL,
 [tax_id] bigint,
 [description] varchar(255) NOT NULL,
 [name] varchar(255) NOT NULL,
@@ -193,6 +218,7 @@ CREATE TABLE [dbo].[ingredients] (
 [category_id] bigint NOT NULL,
 [name] varchar(255) NOT NULL,
 [unit] varchar(50) NOT NULL,
+[is_active] BIT DEFAULT (CONVERT([bit],(1))) NOT NULL,
 [description] varchar(255),
 [tax_id] bigint,
 [created_at] datetime2(6) DEFAULT (getdate()) NOT NULL,
@@ -203,10 +229,21 @@ GO
 
 CREATE TABLE [dbo].[ingredient_purchase_orders] (
 [id] bigint NOT NULL IDENTITY(1,1),
+[purchase_order_code] VARCHAR(50) NOT NULL UNIQUE,
 [supplier_id] bigint,
+[branch_id] bigint,
+[employee_id] bigint,
 [order_date] datetime2(6) DEFAULT (getdate()),
-[total_money] decimal(18,2),
-[note] varchar(255),
+[expected_delivery_date] datetime2(6),
+[status_id] bigint DEFAULT (1),
+[total_amount_before_tax] decimal(18,2) DEFAULT (0),
+[total_tax_amount] decimal(18,2) DEFAULT (0),
+[total_amount_after_tax] decimal(18,2) DEFAULT (0),
+[discount_amount] decimal(18,2) DEFAULT (0),
+[final_amount] decimal(18,2) DEFAULT (0),
+[note] varchar(500),
+[created_at] datetime2(6) DEFAULT (getdate()) NOT NULL,
+[last_modified] datetime2(6) NOT NULL,
 PRIMARY KEY ([id])
 );
 GO
@@ -218,10 +255,10 @@ GO
 CREATE TABLE [dbo].[users] (
 [id] bigint NOT NULL IDENTITY(1,1),
 [employee_id] bigint,
-[is_active] bit DEFAULT (CONVERT([bit],(1))),
 [date_of_birth] date,
 [facebook_account_id] bigint,
 [google_account_id] bigint,
+[is_active] BIT DEFAULT (CONVERT([bit],(1))) NOT NULL,
 [role_id] bigint NOT NULL,
 [phone_number] varchar(20) NOT NULL,
 [fullname] nvarchar(100),
@@ -376,6 +413,164 @@ PRIMARY KEY ([id])
 );
 GO
 
+-- Purchase Invoices from Suppliers
+CREATE TABLE [dbo].[purchase_invoices] (
+[id] bigint NOT NULL IDENTITY(1,1),
+[invoice_code] VARCHAR(50) NOT NULL UNIQUE,
+[purchase_order_id] bigint,
+[supplier_id] bigint NOT NULL,
+[branch_id] bigint,
+[invoice_date] datetime2(6) NOT NULL,
+[due_date] datetime2(6),
+[payment_date] datetime2(6),
+[status_id] bigint DEFAULT (1),
+[total_amount_before_tax] decimal(18,2) DEFAULT (0),
+[total_tax_amount] decimal(18,2) DEFAULT (0),
+[total_amount_after_tax] decimal(18,2) DEFAULT (0),
+[paid_amount] decimal(18,2) DEFAULT (0),
+[remaining_amount] decimal(18,2) DEFAULT (0),
+[discount_amount] decimal(18,2) DEFAULT (0),
+[payment_method] varchar(50),
+[payment_reference] varchar(100),
+[note] varchar(500),
+[created_at] datetime2(6) DEFAULT (getdate()) NOT NULL,
+[last_modified] datetime2(6) NOT NULL,
+PRIMARY KEY ([id])
+);
+GO
+
+-- Purchase Invoice Details
+CREATE TABLE [dbo].[purchase_invoice_details] (
+[id] bigint NOT NULL IDENTITY(1,1),
+[invoice_id] bigint NOT NULL,
+[ingredient_id] bigint NOT NULL,
+[quantity] decimal(18,2) NOT NULL,
+[unit_price] decimal(18,2) NOT NULL,
+[amount_before_tax] decimal(18,2) NOT NULL,
+[tax_rate] decimal(5,2) DEFAULT (0),
+[tax_amount] decimal(18,2) DEFAULT (0),
+[amount_after_tax] decimal(18,2) NOT NULL,
+[discount_rate] decimal(5,2) DEFAULT (0),
+[discount_amount] decimal(18,2) DEFAULT (0),
+[final_amount] decimal(18,2) NOT NULL,
+[expiry_date] date,
+[batch_number] varchar(50),
+[note] varchar(255),
+[created_at] datetime2(6) DEFAULT (getdate()) NOT NULL,
+[last_modified] datetime2(6) NOT NULL,
+PRIMARY KEY ([id])
+);
+GO
+
+-- Goods Received Notes (Phiếu nhập kho)
+CREATE TABLE [dbo].[goods_received_notes] (
+[id] bigint NOT NULL IDENTITY(1,1),
+[grn_code] VARCHAR(50) NOT NULL UNIQUE,
+[purchase_order_id] bigint,
+[invoice_id] bigint,
+[supplier_id] bigint NOT NULL,
+[branch_id] bigint NOT NULL,
+[warehouse_staff_id] bigint,
+[received_date] datetime2(6) DEFAULT (getdate()),
+[status_id] bigint DEFAULT (1),
+[total_quantity_ordered] decimal(18,2) DEFAULT (0),
+[total_quantity_received] decimal(18,2) DEFAULT (0),
+[total_quantity_rejected] decimal(18,2) DEFAULT (0),
+[delivery_note_number] varchar(100),
+[vehicle_number] varchar(20),
+[driver_name] varchar(100),
+[note] varchar(500),
+[created_at] datetime2(6) DEFAULT (getdate()) NOT NULL,
+[last_modified] datetime2(6) NOT NULL,
+PRIMARY KEY ([id])
+);
+GO
+
+-- Goods Received Details
+CREATE TABLE [dbo].[goods_received_details] (
+[id] bigint NOT NULL IDENTITY(1,1),
+[grn_id] bigint NOT NULL,
+[ingredient_id] bigint NOT NULL,
+[ordered_quantity] decimal(18,2) NOT NULL,
+[received_quantity] decimal(18,2) NOT NULL,
+[rejected_quantity] decimal(18,2) DEFAULT (0),
+[quality_status] varchar(20) DEFAULT ('ACCEPTED'),
+[rejection_reason] varchar(255),
+[unit_price] decimal(18,2),
+[expiry_date] date,
+[batch_number] varchar(50),
+[storage_location] varchar(100),
+[note] varchar(255),
+[created_at] datetime2(6) DEFAULT (getdate()) NOT NULL,
+[last_modified] datetime2(6) NOT NULL,
+PRIMARY KEY ([id])
+);
+GO
+
+-- Purchase Returns (Phiếu trả hàng)
+CREATE TABLE [dbo].[purchase_returns] (
+[id] bigint NOT NULL IDENTITY(1,1),
+[return_code] VARCHAR(50) NOT NULL UNIQUE,
+[grn_id] bigint,
+[invoice_id] bigint,
+[supplier_id] bigint NOT NULL,
+[branch_id] bigint NOT NULL,
+[return_date] datetime2(6) DEFAULT (getdate()),
+[return_reason] varchar(255),
+[status_id] bigint DEFAULT (1),
+[total_return_amount] decimal(18,2) DEFAULT (0),
+[refund_amount] decimal(18,2) DEFAULT (0),
+[credit_note_number] varchar(100),
+[approved_by] bigint,
+[approval_date] datetime2(6),
+[note] varchar(500),
+[created_at] datetime2(6) DEFAULT (getdate()) NOT NULL,
+[last_modified] datetime2(6) NOT NULL,
+PRIMARY KEY ([id])
+);
+GO
+
+-- Purchase Return Details
+CREATE TABLE [dbo].[purchase_return_details] (
+[id] bigint NOT NULL IDENTITY(1,1),
+[return_id] bigint NOT NULL,
+[ingredient_id] bigint NOT NULL,
+[return_quantity] decimal(18,2) NOT NULL,
+[unit_price] decimal(18,2),
+[return_amount] decimal(18,2),
+[return_reason] varchar(255),
+[batch_number] varchar(50),
+[expiry_date] date,
+[quality_issue] varchar(255),
+[note] varchar(255),
+[created_at] datetime2(6) DEFAULT (getdate()) NOT NULL,
+[last_modified] datetime2(6) NOT NULL,
+PRIMARY KEY ([id])
+);
+GO
+
+-- Supplier Performance Tracking
+CREATE TABLE [dbo].[supplier_performance] (
+[id] bigint NOT NULL IDENTITY(1,1),
+[supplier_id] bigint NOT NULL,
+[evaluation_period] varchar(20) NOT NULL, -- MONTHLY, QUARTERLY, YEARLY
+[period_value] varchar(20) NOT NULL, -- 2024-01, 2024-Q1, 2024
+[total_orders] int DEFAULT (0),
+[total_amount] decimal(18,2) DEFAULT (0),
+[on_time_deliveries] int DEFAULT (0),
+[late_deliveries] int DEFAULT (0),
+[quality_score] decimal(3,2) DEFAULT (0), -- 0.00 to 5.00
+[service_score] decimal(3,2) DEFAULT (0), -- 0.00 to 5.00
+[overall_rating] decimal(3,2) DEFAULT (0), -- 0.00 to 5.00
+[total_returns] int DEFAULT (0),
+[return_value] decimal(18,2) DEFAULT (0),
+[comments] varchar(500),
+[created_at] datetime2(6) DEFAULT (getdate()) NOT NULL,
+[last_modified] datetime2(6) NOT NULL,
+PRIMARY KEY ([id])
+);
+GO
+
 -- ====================================================================
 -- LEVEL 4: TABLES WITH LEVEL 3 DEPENDENCIES
 -- ====================================================================
@@ -424,6 +619,8 @@ GO
 
 CREATE TABLE [dbo].[orders] (
 [id] bigint NOT NULL IDENTITY(1,1),
+[order_uuid] CHAR(36) NOT NULL UNIQUE,   
+[order_code] VARCHAR(20) NOT NULL UNIQUE,
 [customer_id] bigint NOT NULL,
 [branch_id] bigint,
 [total_money] decimal(18,2),
@@ -707,6 +904,30 @@ ON DELETE NO ACTION
 ON UPDATE NO ACTION;
 GO
 
+ALTER TABLE [dbo].[ingredient_purchase_orders]
+ADD CONSTRAINT [FK_purchase_order_branch]
+FOREIGN KEY ([branch_id]) 
+REFERENCES [dbo].[branches]([id])
+ON DELETE NO ACTION
+ON UPDATE NO ACTION;
+GO
+
+ALTER TABLE [dbo].[ingredient_purchase_orders]
+ADD CONSTRAINT [FK_purchase_order_employee]
+FOREIGN KEY ([employee_id]) 
+REFERENCES [dbo].[employees]([id])
+ON DELETE NO ACTION
+ON UPDATE NO ACTION;
+GO
+
+ALTER TABLE [dbo].[ingredient_purchase_orders]
+ADD CONSTRAINT [FK_purchase_order_status]
+FOREIGN KEY ([status_id]) 
+REFERENCES [dbo].[purchase_order_statuses]([id])
+ON DELETE NO ACTION
+ON UPDATE NO ACTION;
+GO
+
 -- Level 3 table constraints
 ALTER TABLE [dbo].[users]
 ADD CONSTRAINT [FK_users_employees]
@@ -849,6 +1070,189 @@ ADD CONSTRAINT [FK_branch_expenses_branches]
 FOREIGN KEY ([branch_id]) 
 REFERENCES [dbo].[branches]([id])
 ON DELETE NO ACTION
+ON UPDATE NO ACTION;
+GO
+
+-- Purchase Invoice constraints
+ALTER TABLE [dbo].[purchase_invoices]
+ADD CONSTRAINT [FK_invoice_purchase_order]
+FOREIGN KEY ([purchase_order_id]) 
+REFERENCES [dbo].[ingredient_purchase_orders]([id])
+ON DELETE NO ACTION
+ON UPDATE NO ACTION;
+GO
+
+ALTER TABLE [dbo].[purchase_invoices]
+ADD CONSTRAINT [FK_invoice_supplier]
+FOREIGN KEY ([supplier_id]) 
+REFERENCES [dbo].[suppliers]([id])
+ON DELETE NO ACTION
+ON UPDATE NO ACTION;
+GO
+
+ALTER TABLE [dbo].[purchase_invoices]
+ADD CONSTRAINT [FK_invoice_branch]
+FOREIGN KEY ([branch_id]) 
+REFERENCES [dbo].[branches]([id])
+ON DELETE NO ACTION
+ON UPDATE NO ACTION;
+GO
+
+ALTER TABLE [dbo].[purchase_invoices]
+ADD CONSTRAINT [FK_invoice_status]
+FOREIGN KEY ([status_id]) 
+REFERENCES [dbo].[invoice_statuses]([id])
+ON DELETE NO ACTION
+ON UPDATE NO ACTION;
+GO
+
+-- Purchase Invoice Details constraints
+ALTER TABLE [dbo].[purchase_invoice_details]
+ADD CONSTRAINT [FK_invoice_detail_invoice]
+FOREIGN KEY ([invoice_id]) 
+REFERENCES [dbo].[purchase_invoices]([id])
+ON DELETE CASCADE
+ON UPDATE NO ACTION;
+GO
+
+ALTER TABLE [dbo].[purchase_invoice_details]
+ADD CONSTRAINT [FK_invoice_detail_ingredient]
+FOREIGN KEY ([ingredient_id]) 
+REFERENCES [dbo].[ingredients]([id])
+ON DELETE NO ACTION
+ON UPDATE NO ACTION;
+GO
+
+-- Goods Received Notes constraints
+ALTER TABLE [dbo].[goods_received_notes]
+ADD CONSTRAINT [FK_grn_purchase_order]
+FOREIGN KEY ([purchase_order_id]) 
+REFERENCES [dbo].[ingredient_purchase_orders]([id])
+ON DELETE NO ACTION
+ON UPDATE NO ACTION;
+GO
+
+ALTER TABLE [dbo].[goods_received_notes]
+ADD CONSTRAINT [FK_grn_invoice]
+FOREIGN KEY ([invoice_id]) 
+REFERENCES [dbo].[purchase_invoices]([id])
+ON DELETE NO ACTION
+ON UPDATE NO ACTION;
+GO
+
+ALTER TABLE [dbo].[goods_received_notes]
+ADD CONSTRAINT [FK_grn_supplier]
+FOREIGN KEY ([supplier_id]) 
+REFERENCES [dbo].[suppliers]([id])
+ON DELETE NO ACTION
+ON UPDATE NO ACTION;
+GO
+
+ALTER TABLE [dbo].[goods_received_notes]
+ADD CONSTRAINT [FK_grn_branch]
+FOREIGN KEY ([branch_id]) 
+REFERENCES [dbo].[branches]([id])
+ON DELETE NO ACTION
+ON UPDATE NO ACTION;
+GO
+
+ALTER TABLE [dbo].[goods_received_notes]
+ADD CONSTRAINT [FK_grn_warehouse_staff]
+FOREIGN KEY ([warehouse_staff_id]) 
+REFERENCES [dbo].[employees]([id])
+ON DELETE NO ACTION
+ON UPDATE NO ACTION;
+GO
+
+ALTER TABLE [dbo].[goods_received_notes]
+ADD CONSTRAINT [FK_grn_status]
+FOREIGN KEY ([status_id]) 
+REFERENCES [dbo].[goods_received_statuses]([id])
+ON DELETE NO ACTION
+ON UPDATE NO ACTION;
+GO
+
+-- Goods Received Details constraints
+ALTER TABLE [dbo].[goods_received_details]
+ADD CONSTRAINT [FK_grn_detail_grn]
+FOREIGN KEY ([grn_id]) 
+REFERENCES [dbo].[goods_received_notes]([id])
+ON DELETE CASCADE
+ON UPDATE NO ACTION;
+GO
+
+ALTER TABLE [dbo].[goods_received_details]
+ADD CONSTRAINT [FK_grn_detail_ingredient]
+FOREIGN KEY ([ingredient_id]) 
+REFERENCES [dbo].[ingredients]([id])
+ON DELETE NO ACTION
+ON UPDATE NO ACTION;
+GO
+
+-- Purchase Returns constraints
+ALTER TABLE [dbo].[purchase_returns]
+ADD CONSTRAINT [FK_return_grn]
+FOREIGN KEY ([grn_id]) 
+REFERENCES [dbo].[goods_received_notes]([id])
+ON DELETE NO ACTION
+ON UPDATE NO ACTION;
+GO
+
+ALTER TABLE [dbo].[purchase_returns]
+ADD CONSTRAINT [FK_return_invoice]
+FOREIGN KEY ([invoice_id]) 
+REFERENCES [dbo].[purchase_invoices]([id])
+ON DELETE NO ACTION
+ON UPDATE NO ACTION;
+GO
+
+ALTER TABLE [dbo].[purchase_returns]
+ADD CONSTRAINT [FK_return_supplier]
+FOREIGN KEY ([supplier_id]) 
+REFERENCES [dbo].[suppliers]([id])
+ON DELETE NO ACTION
+ON UPDATE NO ACTION;
+GO
+
+ALTER TABLE [dbo].[purchase_returns]
+ADD CONSTRAINT [FK_return_branch]
+FOREIGN KEY ([branch_id]) 
+REFERENCES [dbo].[branches]([id])
+ON DELETE NO ACTION
+ON UPDATE NO ACTION;
+GO
+
+ALTER TABLE [dbo].[purchase_returns]
+ADD CONSTRAINT [FK_return_approved_by]
+FOREIGN KEY ([approved_by]) 
+REFERENCES [dbo].[employees]([id])
+ON DELETE NO ACTION
+ON UPDATE NO ACTION;
+GO
+
+-- Purchase Return Details constraints
+ALTER TABLE [dbo].[purchase_return_details]
+ADD CONSTRAINT [FK_return_detail_return]
+FOREIGN KEY ([return_id]) 
+REFERENCES [dbo].[purchase_returns]([id])
+ON DELETE CASCADE
+ON UPDATE NO ACTION;
+GO
+
+ALTER TABLE [dbo].[purchase_return_details]
+ADD CONSTRAINT [FK_return_detail_ingredient]
+FOREIGN KEY ([ingredient_id]) 
+REFERENCES [dbo].[ingredients]([id])
+ON DELETE NO ACTION
+ON UPDATE NO ACTION;
+GO
+
+-- Supplier Performance constraints
+ALTER TABLE [dbo].[supplier_performance]
+ADD CONSTRAINT [FK_performance_supplier]
+FOREIGN KEY ([supplier_id]) 
+REFERENCES [dbo].[suppliers]([id])
+ON DELETE CASCADE
 ON UPDATE NO ACTION;
 GO
 
@@ -1065,10 +1469,4 @@ ON DELETE NO ACTION
 ON UPDATE NO ACTION;
 GO
 
-ALTER TABLE [dbo].[v_products_with_prices]
-ADD CONSTRAINT [FK_v_products_with_prices_products_id]
-FOREIGN KEY ([id]) 
-REFERENCES [dbo].[products]([id])
-ON DELETE CASCADE
-ON UPDATE NO ACTION;
-GO
+PRINT 'Database schema created successfully.';

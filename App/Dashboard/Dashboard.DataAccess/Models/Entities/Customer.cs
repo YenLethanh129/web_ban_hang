@@ -7,8 +7,12 @@ using Microsoft.EntityFrameworkCore;
 namespace Dashboard.DataAccess.Models.Entities;
 
 [Table("customers")]
-public partial class Customer : BaseAuditableEntity
+public partial class Customer
 {
+    [Key]
+    [Column("id")]
+    public long Id { get; set; }
+
     [Column("user_id")]
     public long? UserId { get; set; }
 
@@ -32,11 +36,18 @@ public partial class Customer : BaseAuditableEntity
     [Unicode(false)]
     public string? Address { get; set; }
 
+    [Column("created_at")]
+    [Precision(6)]
+    public DateTime CreatedAt { get; set; }
+
+    [Column("last_modified")]
+    [Precision(6)]
+    public DateTime LastModified { get; set; }
+
+    [ForeignKey("Id")]
+    [InverseProperty("Customer")]
+    public virtual User IdNavigation { get; set; } = null!;
 
     [InverseProperty("Customer")]
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
-
-    [ForeignKey("Id")]
-    [InverseProperty("Customers")]
-    public virtual User? User { get; set; }
 }

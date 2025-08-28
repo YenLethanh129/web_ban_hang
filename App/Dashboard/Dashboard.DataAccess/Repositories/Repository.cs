@@ -14,6 +14,7 @@ public interface IRepository<T> where T : class
     Task<T?> GetAsync(long id);
     Task<T?> GetAsync(string id);
     Task<T?> GetAsync(Guid id);
+    Task<T?> AddAsync(T entity);
 
     void Add(T entity);
     void AddRange(IEnumerable<T> entities);
@@ -24,15 +25,15 @@ public interface IRepository<T> where T : class
     Task<T?> GetWithSpecAsync(ISpecification<T> spec, bool asNoTracking = false);
 }
 
-public class Repository<T> where T : class
+public abstract class Repository<T> where T : class
 {
-    protected readonly WebbanhangDbContext _dbContext;
+    protected readonly WebbanhangDbContext _context;
 
     private readonly DbSet<T> _dbSet;
 
     public Repository(WebbanhangDbContext dbContext)
     {
-        _dbContext = dbContext;
+        _context = dbContext;
         _dbSet = dbContext.Set<T>();
     }
 
@@ -68,6 +69,11 @@ public class Repository<T> where T : class
     public async Task<T?> GetAsync(Guid id)
     {
         return await _dbSet.FindAsync(id);
+    }
+    public async Task<T?> AddAsync(T entity)
+    {
+        var addedEntity = await _dbSet.AddAsync(entity);
+        return addedEntity.Entity;
     }
 
     public void Add(T entity)

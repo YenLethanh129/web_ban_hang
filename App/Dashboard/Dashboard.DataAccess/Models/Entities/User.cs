@@ -1,17 +1,20 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Dashboard.DataAccess.Models.Entities;
 
 [Table("users")]
-public partial class User : BaseAuditableEntity
+public partial class User
 {
+    [Key]
+    [Column("id")]
+    public long Id { get; set; }
+
     [Column("employee_id")]
     public long? EmployeeId { get; set; }
-
-    [Column("is_active")]
-    public bool? IsActive { get; set; }
 
     [Column("date_of_birth")]
     public DateOnly? DateOfBirth { get; set; }
@@ -21,6 +24,9 @@ public partial class User : BaseAuditableEntity
 
     [Column("google_account_id")]
     public long? GoogleAccountId { get; set; }
+
+    [Column("is_active")]
+    public bool IsActive { get; set; }
 
     [Column("role_id")]
     public long RoleId { get; set; }
@@ -32,12 +38,10 @@ public partial class User : BaseAuditableEntity
 
     [Column("fullname")]
     [StringLength(100)]
-    [Unicode(true)]
     public string? Fullname { get; set; }
 
     [Column("address")]
     [StringLength(200)]
-    [Unicode(true)]
     public string? Address { get; set; }
 
     [Column("password")]
@@ -45,8 +49,16 @@ public partial class User : BaseAuditableEntity
     [Unicode(false)]
     public string Password { get; set; } = null!;
 
-    [InverseProperty("User")]
-    public virtual ICollection<Customer> Customers { get; set; } = new List<Customer>();
+    [Column("created_at")]
+    [Precision(6)]
+    public DateTime CreatedAt { get; set; }
+
+    [Column("last_modified")]
+    [Precision(6)]
+    public DateTime LastModified { get; set; }
+
+    [InverseProperty("IdNavigation")]
+    public virtual Customer? Customer { get; set; }
 
     [ForeignKey("EmployeeId")]
     [InverseProperty("Users")]

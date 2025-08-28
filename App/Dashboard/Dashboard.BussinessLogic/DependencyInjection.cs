@@ -1,4 +1,7 @@
-﻿using FluentValidation;
+﻿using Dashboard.BussinessLogic.Mappings;
+using Dashboard.BussinessLogic.Services;
+using Dashboard.DataAccess.Data;
+using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -7,13 +10,18 @@ using System.Reflection;
 namespace Dashboard.BussinessLogic;
 public static class DependencyInjection
 {
-    public static void AddApplicationServices(this IHostApplicationBuilder builder)
+    public static void AddBussinessLogicServices(this IHostApplicationBuilder builder)
     {
+
+        builder.Services.AddAutoMapper(typeof(ProductMappingProfile));
+
         builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
-
         builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
-
         builder.Services.AddMediatR(Assembly.GetExecutingAssembly());
+
+        builder.Services.AddScoped<IProductService, ProductService>();
+        builder.Services.AddScoped<IBranchService, BranchService>();
+        builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
     }
 }

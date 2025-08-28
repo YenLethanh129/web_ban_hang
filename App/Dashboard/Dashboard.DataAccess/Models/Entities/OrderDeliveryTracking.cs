@@ -7,8 +7,12 @@ using Microsoft.EntityFrameworkCore;
 namespace Dashboard.DataAccess.Models.Entities;
 
 [Table("order_delivery_tracking")]
-public partial class OrderDeliveryTracking : BaseAuditableEntity
+public partial class OrderDeliveryTracking
 {
+    [Key]
+    [Column("id")]
+    public long Id { get; set; }
+
     [Column("order_id")]
     public long OrderId { get; set; }
 
@@ -34,6 +38,14 @@ public partial class OrderDeliveryTracking : BaseAuditableEntity
 
     [Column("shipping_provider_id")]
     public long? ShippingProviderId { get; set; }
+
+    [Column("created_at")]
+    [Precision(6)]
+    public DateTime CreatedAt { get; set; }
+
+    [Column("last_modified")]
+    [Precision(6)]
+    public DateTime LastModified { get; set; }
 
     [ForeignKey("DeliveryPersonId")]
     [InverseProperty("OrderDeliveryTrackings")]

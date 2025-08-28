@@ -7,13 +7,20 @@ using Microsoft.EntityFrameworkCore;
 namespace Dashboard.DataAccess.Models.Entities;
 
 [Table("products")]
-public partial class Product : BaseAuditableEntity
+public partial class Product
 {
+    [Key]
+    [Column("id")]
+    public long Id { get; set; }
+
     [Column("price", TypeName = "decimal(18, 2)")]
     public decimal Price { get; set; }
 
     [Column("category_id")]
     public long? CategoryId { get; set; }
+
+    [Column("is_active")]
+    public bool IsActive { get; set; }
 
     [Column("tax_id")]
     public long? TaxId { get; set; }
@@ -33,6 +40,14 @@ public partial class Product : BaseAuditableEntity
     [Unicode(false)]
     public string? Thumbnail { get; set; }
 
+    [Column("created_at")]
+    [Precision(6)]
+    public DateTime CreatedAt { get; set; }
+
+    [Column("last_modified")]
+    [Precision(6)]
+    public DateTime LastModified { get; set; }
+
     [ForeignKey("CategoryId")]
     [InverseProperty("Products")]
     public virtual Category? Category { get; set; }
@@ -48,5 +63,5 @@ public partial class Product : BaseAuditableEntity
 
     [ForeignKey("TaxId")]
     [InverseProperty("Products")]
-    public virtual Taxes? Tax { get; set; }
+    public virtual Taxis? Tax { get; set; }
 }

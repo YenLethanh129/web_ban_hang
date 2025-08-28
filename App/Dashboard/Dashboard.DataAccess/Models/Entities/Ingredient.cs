@@ -7,8 +7,12 @@ using Microsoft.EntityFrameworkCore;
 namespace Dashboard.DataAccess.Models.Entities;
 
 [Table("ingredients")]
-public partial class Ingredient : BaseAuditableEntity
+public partial class Ingredient
 {
+    [Key]
+    [Column("id")]
+    public long Id { get; set; }
+
     [Column("category_id")]
     public long CategoryId { get; set; }
 
@@ -22,6 +26,9 @@ public partial class Ingredient : BaseAuditableEntity
     [Unicode(false)]
     public string Unit { get; set; } = null!;
 
+    [Column("is_active")]
+    public bool IsActive { get; set; }
+
     [Column("description")]
     [StringLength(255)]
     [Unicode(false)]
@@ -30,8 +37,23 @@ public partial class Ingredient : BaseAuditableEntity
     [Column("tax_id")]
     public long? TaxId { get; set; }
 
+    [Column("created_at")]
+    [Precision(6)]
+    public DateTime CreatedAt { get; set; }
+
+    [Column("last_modified")]
+    [Precision(6)]
+    public DateTime LastModified { get; set; }
+
     [InverseProperty("Ingredient")]
     public virtual ICollection<BranchIngredientInventory> BranchIngredientInventories { get; set; } = new List<BranchIngredientInventory>();
+
+    [ForeignKey("CategoryId")]
+    [InverseProperty("Ingredients")]
+    public virtual IngredientCategory Category { get; set; } = null!;
+
+    [InverseProperty("Ingredient")]
+    public virtual ICollection<GoodsReceivedDetail> GoodsReceivedDetails { get; set; } = new List<GoodsReceivedDetail>();
 
     [InverseProperty("Ingredient")]
     public virtual ICollection<IngredientPurchaseOrderDetail> IngredientPurchaseOrderDetails { get; set; } = new List<IngredientPurchaseOrderDetail>();
@@ -46,12 +68,15 @@ public partial class Ingredient : BaseAuditableEntity
     public virtual ICollection<ProductRecipe> ProductRecipes { get; set; } = new List<ProductRecipe>();
 
     [InverseProperty("Ingredient")]
+    public virtual ICollection<PurchaseInvoiceDetail> PurchaseInvoiceDetails { get; set; } = new List<PurchaseInvoiceDetail>();
+
+    [InverseProperty("Ingredient")]
+    public virtual ICollection<PurchaseReturnDetail> PurchaseReturnDetails { get; set; } = new List<PurchaseReturnDetail>();
+
+    [InverseProperty("Ingredient")]
     public virtual ICollection<SupplierIngredientPrice> SupplierIngredientPrices { get; set; } = new List<SupplierIngredientPrice>();
 
     [ForeignKey("TaxId")]
     [InverseProperty("Ingredients")]
-    public virtual Taxes? Tax { get; set; }
-    [ForeignKey("CategoryId")]
-    [InverseProperty("Ingredients")]
-    public virtual IngredientCategory? Category { get; set; } = null!;
+    public virtual Taxis? Tax { get; set; }
 }

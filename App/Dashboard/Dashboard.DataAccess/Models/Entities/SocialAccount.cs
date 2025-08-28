@@ -1,12 +1,17 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Dashboard.DataAccess.Models.Entities;
 
 [Table("social_accounts")]
-public partial class SocialAccount : BaseAuditableEntity
+public partial class SocialAccount
 {
+    [Key]
+    [Column("id")]
+    public long Id { get; set; }
 
     [Column("provider_id")]
     public long ProviderId { get; set; }
@@ -28,6 +33,14 @@ public partial class SocialAccount : BaseAuditableEntity
     [StringLength(150)]
     [Unicode(false)]
     public string? Email { get; set; }
+
+    [Column("created_at")]
+    [Precision(6)]
+    public DateTime CreatedAt { get; set; }
+
+    [Column("last_modified")]
+    [Precision(6)]
+    public DateTime LastModified { get; set; }
 
     [ForeignKey("UserId")]
     [InverseProperty("SocialAccounts")]

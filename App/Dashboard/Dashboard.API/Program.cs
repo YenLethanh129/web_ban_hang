@@ -8,7 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 builder.AddDataAccess();
 
-builder.AddApplicationServices();
+builder.AddBussinessLogicServices();
 
 builder.Services.AddDbContext<WebbanhangDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("WebbanhangDB")));

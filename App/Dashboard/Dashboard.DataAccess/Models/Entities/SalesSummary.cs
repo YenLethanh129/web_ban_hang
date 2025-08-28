@@ -7,8 +7,11 @@ using Microsoft.EntityFrameworkCore;
 namespace Dashboard.DataAccess.Models.Entities;
 
 [Table("sales_summary")]
-public partial class SalesSummary : BaseAuditableEntity
+public partial class SalesSummary
 {
+    [Key]
+    [Column("id")]
+    public long Id { get; set; }
 
     [Column("branch_id")]
     public long? BranchId { get; set; }
@@ -37,6 +40,14 @@ public partial class SalesSummary : BaseAuditableEntity
 
     [Column("tax_amount", TypeName = "decimal(18, 2)")]
     public decimal TaxAmount { get; set; }
+
+    [Column("created_at")]
+    [Precision(6)]
+    public DateTime CreatedAt { get; set; }
+
+    [Column("last_modified")]
+    [Precision(6)]
+    public DateTime LastModified { get; set; }
 
     [ForeignKey("BranchId")]
     [InverseProperty("SalesSummaries")]

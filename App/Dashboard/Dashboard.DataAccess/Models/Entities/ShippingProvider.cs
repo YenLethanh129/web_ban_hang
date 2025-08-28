@@ -7,8 +7,13 @@ using Microsoft.EntityFrameworkCore;
 namespace Dashboard.DataAccess.Models.Entities;
 
 [Table("shipping_providers")]
-public partial class ShippingProvider : BaseAuditableEntity
+[Index("Name", Name = "UQ__shipping__72E12F1B8D36D97F", IsUnique = true)]
+public partial class ShippingProvider
 {
+    [Key]
+    [Column("id")]
+    public long Id { get; set; }
+
     [Column("name")]
     [StringLength(100)]
     [Unicode(false)]
@@ -23,6 +28,14 @@ public partial class ShippingProvider : BaseAuditableEntity
     [StringLength(200)]
     [Unicode(false)]
     public string? ApiEndpoint { get; set; }
+
+    [Column("created_at")]
+    [Precision(6)]
+    public DateTime CreatedAt { get; set; }
+
+    [Column("last_modified")]
+    [Precision(6)]
+    public DateTime LastModified { get; set; }
 
     [InverseProperty("ShippingProvider")]
     public virtual ICollection<OrderDeliveryTracking> OrderDeliveryTrackings { get; set; } = new List<OrderDeliveryTracking>();

@@ -1,12 +1,17 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Dashboard.DataAccess.Models.Entities;
 
 [Table("supplier_ingredient_prices")]
-public partial class SupplierIngredientPrice : BaseAuditableEntity
+public partial class SupplierIngredientPrice
 {
+    [Key]
+    [Column("id")]
+    public long Id { get; set; }
 
     [Column("supplier_id")]
     public long SupplierId { get; set; }
@@ -29,6 +34,14 @@ public partial class SupplierIngredientPrice : BaseAuditableEntity
     [Column("expired_date")]
     [Precision(6)]
     public DateTime? ExpiredDate { get; set; }
+
+    [Column("created_at")]
+    [Precision(6)]
+    public DateTime CreatedAt { get; set; }
+
+    [Column("last_modified")]
+    [Precision(6)]
+    public DateTime LastModified { get; set; }
 
     [ForeignKey("IngredientId")]
     [InverseProperty("SupplierIngredientPrices")]

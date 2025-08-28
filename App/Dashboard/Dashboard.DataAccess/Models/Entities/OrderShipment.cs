@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -7,8 +7,12 @@ using Microsoft.EntityFrameworkCore;
 namespace Dashboard.DataAccess.Models.Entities;
 
 [Table("order_shipments")]
-public partial class OrderShipment : BaseAuditableEntity
+public partial class OrderShipment
 {
+    [Key]
+    [Column("id")]
+    public long Id { get; set; }
+
     [Column("order_id")]
     public long OrderId { get; set; }
 
@@ -17,7 +21,6 @@ public partial class OrderShipment : BaseAuditableEntity
 
     [Column("shipping_address")]
     [StringLength(500)]
-    [Unicode(true)]
     public string ShippingAddress { get; set; } = null!;
 
     [Column("shipping_cost", TypeName = "decimal(18, 2)")]
@@ -36,6 +39,14 @@ public partial class OrderShipment : BaseAuditableEntity
     [StringLength(255)]
     [Unicode(false)]
     public string? Notes { get; set; }
+
+    [Column("created_at")]
+    [Precision(6)]
+    public DateTime CreatedAt { get; set; }
+
+    [Column("last_modified")]
+    [Precision(6)]
+    public DateTime LastModified { get; set; }
 
     [ForeignKey("OrderId")]
     [InverseProperty("OrderShipments")]

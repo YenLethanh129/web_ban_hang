@@ -7,8 +7,12 @@ using Microsoft.EntityFrameworkCore;
 namespace Dashboard.DataAccess.Models.Entities;
 
 [Table("categories")]
-public partial class Category : BaseEntity
+[Index("Name", Name = "UQ__categori__72E12F1BFB7E3EEA", IsUnique = true)]
+public partial class Category
 {
+    [Key]
+    [Column("id")]
+    public long Id { get; set; }
 
     [Column("name")]
     [StringLength(255)]

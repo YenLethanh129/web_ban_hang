@@ -1,12 +1,18 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Dashboard.DataAccess.Models.Entities;
 
 [Table("branches")]
-public partial class Branch : BaseAuditableEntity
+public partial class Branch
 {
+    [Key]
+    [Column("id")]
+    public long Id { get; set; }
+
     [Column("name")]
     [StringLength(255)]
     [Unicode(false)]
@@ -27,6 +33,14 @@ public partial class Branch : BaseAuditableEntity
     [Unicode(false)]
     public string? Manager { get; set; }
 
+    [Column("created_at")]
+    [Precision(6)]
+    public DateTime CreatedAt { get; set; }
+
+    [Column("last_modified")]
+    [Precision(6)]
+    public DateTime LastModified { get; set; }
+
     [InverseProperty("Branch")]
     public virtual ICollection<BranchExpense> BranchExpenses { get; set; } = new List<BranchExpense>();
 
@@ -37,17 +51,29 @@ public partial class Branch : BaseAuditableEntity
     public virtual ICollection<Employee> Employees { get; set; } = new List<Employee>();
 
     [InverseProperty("Branch")]
+    public virtual ICollection<ExpensesSummary> ExpensesSummaries { get; set; } = new List<ExpensesSummary>();
+
+    [InverseProperty("Branch")]
+    public virtual ICollection<GoodsReceivedNote> GoodsReceivedNotes { get; set; } = new List<GoodsReceivedNote>();
+
+    [InverseProperty("Branch")]
+    public virtual ICollection<IngredientPurchaseOrder> IngredientPurchaseOrders { get; set; } = new List<IngredientPurchaseOrder>();
+
+    [InverseProperty("Branch")]
     public virtual ICollection<IngredientTransfer> IngredientTransfers { get; set; } = new List<IngredientTransfer>();
 
     [InverseProperty("Branch")]
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 
     [InverseProperty("Branch")]
-    public virtual ICollection<SalesSummary> SalesSummaries { get; set; } = new List<SalesSummary>();
-
-    [InverseProperty("Branch")]
     public virtual ICollection<ProfitSummary> ProfitSummaries { get; set; } = new List<ProfitSummary>();
 
     [InverseProperty("Branch")]
-    public virtual ICollection<ExpensesSummary> ExpensesSummaries { get; set; } = new List<ExpensesSummary>();
+    public virtual ICollection<PurchaseInvoice> PurchaseInvoices { get; set; } = new List<PurchaseInvoice>();
+
+    [InverseProperty("Branch")]
+    public virtual ICollection<PurchaseReturn> PurchaseReturns { get; set; } = new List<PurchaseReturn>();
+
+    [InverseProperty("Branch")]
+    public virtual ICollection<SalesSummary> SalesSummaries { get; set; } = new List<SalesSummary>();
 }
