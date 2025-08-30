@@ -1,13 +1,11 @@
 package com.project.webbanhang.services;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import com.project.webbanhang.models.*;
 import com.project.webbanhang.repositories.*;
+import com.project.webbanhang.utils.TrackingNumberGenerator;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
@@ -20,32 +18,34 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class OrderService implements IOrderService{
+	private final IOrderPaymentService orderPaymentService;
+	private final IOrderDeliveryTrackingService orderDeliveryTrackingService;
+	private final IOrderShipmentService orderShipmentService;
+
 	private final OrderRepository orderRepository;
 	private final CustomerRepository customerRepository;
-    private final PaymentMethodRepository paymentMethodRepository;
     private final OrderPaymentRepository orderPaymentRepository;
-	private final ModelMapper modelMapper;
 
-    /**
-     * Create OrderStatus();
-     * Create Order -> getOrderId();
-     * Create PaymentMethod();
-     * Create PaymentStatus();
-     * Create OrderPayment();
-     * Return OrderResponse();
-     * */
+	/**
+	 * create OrderDeliveryTracking
+	 * create OrderPayment
+	 * create OrderShipment
+	 * */
 	@Override
-	public OrderResponse createOrder(OrderDTO orderDTO) throws DataNotFoundException {
+	public OrderResponse createOrder(OrderDTO orderDTO) throws Exception {
 		// tim user
 		Customer customer = customerRepository.findById(orderDTO.getUserId())
 				.orElseThrow(() -> new DataNotFoundException("Can't not found user with id " + orderDTO.getUserId()));
-
 		OrderStatus orderStatus = OrderStatus.builder()
 				.id(1L)
-				.status(OrderStatus.PENDING)
+				.name(OrderStatus.PENDING)
 				.build();
+		String orderUUID = UUID.randomUUID().toString();
+		String orderCode = "ORD" + TrackingNumberGenerator.generateRandomTrackingNumber(3);
 
 		Order order = Order.builder()
+				.orderUUID(orderUUID)
+				.orderCode(orderCode)
 				.customer(customer)
 				.notes(orderDTO.getNote())
 				.branch(null)
@@ -55,28 +55,10 @@ public class OrderService implements IOrderService{
 
 		Order existsOrderRepository = orderRepository.save(order);
 
-        Optional<PaymentMethod> existsPaymentMethod = paymentMethodRepository.findByName(orderDTO.getPaymentMethod());
-        if (existsPaymentMethod.isEmpty()) {
-            throw new DataNotFoundException("Can't not found Payment Method");
-        }
+		orderDeliveryTrackingService.createOrderDeliveryTrackingService(existsOrderRepository);
+		orderPaymentService.createOrderPayment(existsOrderRepository, orderDTO.getPaymentMethod());
+		orderShipmentService.createOrderShipment(existsOrderRepository, orderDTO.getAddress());
 
-        PaymentStatus paymentStatus = PaymentStatus.builder()
-                .id(1L)
-                .status(PaymentStatus.PENDING)
-                .build();
-
-        OrderPayment orderPayment = OrderPayment.builder()
-                .order(existsOrderRepository)
-                .paymentMethod(existsPaymentMethod.get())
-                .paymentStatus(paymentStatus)
-                .amount(existsOrderRepository.getTotalMoney())
-                .paymentDate(LocalDateTime.now())
-                .transactionId(null)
-                .notes(existsOrderRepository.getNotes())
-                .build();
-
-        orderPaymentRepository.save(orderPayment);
-		
 		return mapOrderToOrderResponse(existsOrderRepository);
 	}
 
@@ -156,11 +138,11 @@ public class OrderService implements IOrderService{
                 .orderId(order.getId())
                 .note(order.getNotes())
                 .totalMoney(order.getTotalMoney())
-                .status(order.getStatus().getStatus())
+                .status(order.getStatus().getName())
                 .orderDate(order.getCreatedAt())
                 .shippingMethod("STANDARD")
                 .paymentMethod(existingOrderPayement.get().getPaymentMethod().getName())
-                .paymentStatus(existingOrderPayement.get().getPaymentStatus().getStatus())
+                .paymentStatus(existingOrderPayement.get().getPaymentStatus().getName())
                 .createdAt(order.getCreatedAt())
                 .lastModified(order.getLastModified())
                 .build();

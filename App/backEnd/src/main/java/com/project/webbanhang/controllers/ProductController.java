@@ -52,7 +52,7 @@ public class ProductController {
     ) {
     	try {
     		//PageRequest pageRequest = PageRequest.of(page, limit, Sort.by("createdAt").descending());
-    		PageRequest pageRequest = PageRequest.of(page, limit);
+    		PageRequest pageRequest = PageRequest.of(page - 1, limit, Sort.by("categoryId"));
         	Page<ProductResponse> productPage = productService.getAllProducts(pageRequest);
         	List<ProductResponse> products = productPage.getContent();
         	

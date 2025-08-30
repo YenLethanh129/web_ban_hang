@@ -45,7 +45,6 @@ public class ProductImageService implements IProductImageService{
 	@Override
 	public void deleteProductImages(Long id) {
 		// TODO Auto-generated method stub
-		
 	}
 
 }

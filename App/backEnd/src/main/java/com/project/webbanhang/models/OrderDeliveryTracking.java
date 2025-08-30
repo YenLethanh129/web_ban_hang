@@ -2,6 +2,7 @@ package com.project.webbanhang.models;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
 
@@ -10,6 +11,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Setter
 @Getter
+@Builder
 @Table(name = "order_delivery_tracking")
 public class OrderDeliveryTracking extends BaseEntity {
     @Id

@@ -40,7 +40,7 @@ public class OrderController {
             
             return ResponseEntity.ok(existingOrderResponse);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Create order failed");
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 

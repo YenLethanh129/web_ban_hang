@@ -17,6 +17,13 @@ public class Order extends BaseEntity{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+
+    @Column(name = "order_uuid")
+    private String orderUUID;
+
+    @Column(name = "order_code")
+    private String orderCode;
+
     @ManyToOne
     @JoinColumn(name = "customer_id")
     private Customer customer;

@@ -3,6 +3,13 @@ package com.project.webbanhang.models;
 import jakarta.persistence.*;
 import lombok.*;
 
+/**
+ * 1 ADMIN
+ * 2 MANAGER
+ * 3 EMPLOYEE
+ * 4 CUSTOMER
+ * 5 GUEST
+ */
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
@@ -20,5 +27,5 @@ public class Role extends BaseEntity{
     
     public static String ADMIN = "ADMIN";
     
-    public static String USER = "USER";
+    public static String CUSTOMER = "CUSTOMER";
 }

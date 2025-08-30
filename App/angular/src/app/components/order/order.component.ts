@@ -133,7 +133,8 @@ export class OrderComponent implements OnInit {
       total_money: this.orderData.totalMoney!,
       shipping_method: this.orderData.shippingMethod,
       shipping_address: this.orderData.shippingAddress,
-      payment_method: this.orderData.paymentMethod,
+      payment_method:
+        this.orderData.paymentMethod == 'MOMO' ? 'E_WALLET' : 'E_WALLET',
       payment_status: this.orderData.paymentStatus,
     };
 

@@ -2,7 +2,9 @@ package com.project.webbanhang.services;
 
 import java.util.Optional;
 
+import com.project.webbanhang.components.LocalizationUtil;
 import com.project.webbanhang.repositories.CustomerRepository;
+import com.project.webbanhang.utils.MessageKey;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -30,19 +32,25 @@ public class UserService implements IUserService{
 	private final PasswordEncoder passwordEncoder;
 	private final JwtTokenUtil jwtTokenUtil;
 	private final AuthenticationManager authenticationManager;
-	
+	private final LocalizationUtil localizationUtil;
+
 	@Override
 	public User createUser(UserDTO userDTO) throws Exception {
 		String phoneNumber = userDTO.getPhoneNumber();
 		if (userRepository.existsByPhoneNumber(phoneNumber)) {
-			throw new DataIntegrityViolationException("Phone number already exists");
+			throw new Exception(localizationUtil.getLocalizedMessage(MessageKey.PHONE_HAS_EXIST));
 		}
-		Role role = roleRepository.findById(userDTO.getRoleId())
-				.orElseThrow(() -> new DataNotFoundException("Role not found"));
-		if (role.getName().toUpperCase().equals(Role.ADMIN)) {
-			throw new Exception("You cann't register an admin account");
+
+		Optional<Role> existingRole = roleRepository.findByName(userDTO.getRoleName());
+		if (existingRole.isEmpty()) {
+//			throw new Exception("Server is under maintenance, please try again later!");
+			throw new Exception(localizationUtil.getLocalizedMessage(MessageKey.ROLE_NOT_EXIST));
 		}
-		// Convert UserDTO -> User
+		if (!existingRole.get().getName().toUpperCase().equals(Role.CUSTOMER)) {
+//			throw new Exception("You can't register order role!");
+			throw new Exception(localizationUtil.getLocalizedMessage(MessageKey.ROLE_NOT_CUSTOMER));
+		}
+
 		User newUser = User.builder()
 				.fullName(userDTO.getFullName())
 				.phoneNumber(userDTO.getPhoneNumber())
@@ -54,7 +62,7 @@ public class UserService implements IUserService{
 				.isActive(true)
 				.build();
 
-		newUser.setRole(role);
+		newUser.setRole(existingRole.get());
 		
 		if (userDTO.getFacebookAccountId() == 0 && userDTO.getGoogleAccountId() == 0) {
 			String password = userDTO.getPassword();

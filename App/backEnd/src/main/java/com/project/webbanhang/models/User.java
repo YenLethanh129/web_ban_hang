@@ -28,14 +28,27 @@ public class User extends BaseEntity implements UserDetails{
     @Column(name = "employee_id")
     private Long employeeId;
 
-    @Column(name = "fullname", length = 100)
-    private String fullName;
-    
+    @Column(name = "date_of_birth")
+    private Date dateOfBirth;
+
+    @Column(name = "facebook_account_id")
+    private Long facebookAccountId;
+
+    @Column(name = "google_account_id")
+    private Long googleAccountId;
+
     @Column(name = "is_active")
     private boolean isActive;
 
+    @ManyToOne
+    @JoinColumn(name = "role_id")
+    private Role role;
+
     @Column(name = "phone_number", length = 20, nullable = false)
     private String phoneNumber;
+
+    @Column(name = "fullname", length = 100)
+    private String fullName;
 
     @Column(name = "address", length = 200)
     private String address;
@@ -43,24 +56,10 @@ public class User extends BaseEntity implements UserDetails{
     @Column(name = "password", length = 200, nullable = false)
     private String password;
 
-    @Column(name = "date_of_birth")
-    private Date dateOfBirth;
-    
-    @Column(name = "facebook_account_id")
-    private Long facebookAccountId;
-    
-    @Column(name = "google_account_id")
-    private Long googleAccountId;
-    
-    @ManyToOne
-    @JoinColumn(name = "role_id")
-    private Role role;
-
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
 		List<SimpleGrantedAuthority> authorityList = new ArrayList<>();
 		authorityList.add(new SimpleGrantedAuthority("ROLE_"+getRole().getName().toUpperCase()));
-		//authorityList.add(new SimpleGrantedAuthority("ROLE_USER"));
 		return authorityList;
 	}
 

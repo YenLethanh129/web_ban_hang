@@ -21,8 +21,8 @@ public class PaymentStatus {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "status")
-    private String status;
+    @Column(name = "name")
+    private String name;
 
     /**
      * Đang chờ xử lý

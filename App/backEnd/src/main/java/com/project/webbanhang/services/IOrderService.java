@@ -8,7 +8,7 @@ import com.project.webbanhang.response.OrderResponse;
 
 public interface IOrderService {
 
-	OrderResponse createOrder(OrderDTO orderDTO) throws DataNotFoundException;
+	OrderResponse createOrder(OrderDTO orderDTO) throws Exception;
 	
 	OrderResponse getOrderById(Long orderId) throws DataNotFoundException;
 	

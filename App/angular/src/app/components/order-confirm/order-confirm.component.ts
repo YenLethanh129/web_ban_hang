@@ -7,7 +7,7 @@ import {
 } from '../../dtos/order.dto';
 import { OrderService } from '../../services/order.service';
 import { OrderDetailService } from '../../services/order.detail.service';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { MomoIpnRequestDTO } from '../../dtos/momo.dto';
 import { MomoService } from '../../services/momo.service';
 
@@ -26,6 +26,7 @@ export class OrderConfirmComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
+    private location: Location,
     private orderService: OrderService,
     private momoService: MomoService,
     private orderDetailService: OrderDetailService
@@ -35,6 +36,7 @@ export class OrderConfirmComponent implements OnInit {
     this.isLoading = true; // ← Bắt đầu loading
     this.route.params.subscribe((params) => {
       const orderId = +params['id'];
+      this.cleanUrl();
       this.loadOrder(orderId);
       this.getOrderDetails(orderId);
       this.ipnHandler(orderId);
@@ -53,6 +55,10 @@ export class OrderConfirmComponent implements OnInit {
         this.isLoading = false;
       },
     });
+  }
+
+  private cleanUrl(): void {
+    this.location.replaceState(`/order-confirm`);
   }
 
   getOrderDetails(orderId: number): void {

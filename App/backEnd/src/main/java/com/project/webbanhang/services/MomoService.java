@@ -51,7 +51,7 @@ public class MomoService implements IMomoService{
         // Lay thong tin don thanh toan
         String orderId = momoInfoOrderDTO.getOrderId().toString();
 
-        REDIRECT_URL = REDIRECT_URL + "/" + momoInfoOrderDTO.getOrderId();
+        String redirectUrl = REDIRECT_URL + "/" + momoInfoOrderDTO.getOrderId();
         Long amount = momoInfoOrderDTO.getAmount();
         String orderInfo = "Thanh toan don hang: " + orderId;
         String requestId = UUID.randomUUID().toString();
@@ -65,7 +65,7 @@ public class MomoService implements IMomoService{
                         "&orderId=" + orderId +
                         "&orderInfo=" + orderInfo +
                         "&partnerCode=" + PARTNER_CODE +
-                        "&redirectUrl=" + REDIRECT_URL +
+                        "&redirectUrl=" + redirectUrl +
                         "&requestId=" + requestId +
                         "&requestType=" + REQUEST_TYPE;
         String signature;
@@ -80,7 +80,7 @@ public class MomoService implements IMomoService{
                 .requestId(requestId)
                 .requestType(REQUEST_TYPE)
                 .ipnUrl(IPN_URL)
-                .redirectUrl(REDIRECT_URL)
+                .redirectUrl(redirectUrl)
                 .orderId(orderId)
                 .orderInfo(orderInfo)
                 .lang("vi")
@@ -101,12 +101,12 @@ public class MomoService implements IMomoService{
         if (existingOrder.isPresent() && existingOrderPayment.isPresent()) {
             PaymentStatus paymentStatus = PaymentStatus.builder()
                     .id(2L)
-                    .status(PaymentStatus.PAID)
+                    .name(PaymentStatus.PAID)
                     .build();
 
             OrderStatus orderStatus = OrderStatus.builder()
                     .id(2L)
-                    .status(OrderStatus.PROCESSING)
+                    .name(OrderStatus.PROCESSING)
                     .build();
 
             existingOrder.get().setStatus(orderStatus);
