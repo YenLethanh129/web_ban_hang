@@ -7,12 +7,8 @@ using Microsoft.EntityFrameworkCore;
 namespace Dashboard.DataAccess.Models.Entities;
 
 [Table("ingredient_transfers")]
-public partial class IngredientTransfer
+public partial class IngredientTransfer : BaseAuditableEntity
 {
-    [Key]
-    [Column("id")]
-    public long Id { get; set; }
-
     [Column("ingredient_id")]
     public long IngredientId { get; set; }
 
@@ -26,14 +22,6 @@ public partial class IngredientTransfer
     [StringLength(255)]
     [Unicode(false)]
     public string? Note { get; set; }
-
-    [Column("created_at")]
-    [Precision(6)]
-    public DateTime CreatedAt { get; set; }
-
-    [Column("last_modified")]
-    [Precision(6)]
-    public DateTime LastModified { get; set; }
 
     [ForeignKey("BranchId")]
     [InverseProperty("IngredientTransfers")]

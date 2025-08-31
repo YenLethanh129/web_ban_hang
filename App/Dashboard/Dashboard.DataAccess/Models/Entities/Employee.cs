@@ -7,12 +7,8 @@ using Microsoft.EntityFrameworkCore;
 namespace Dashboard.DataAccess.Models.Entities;
 
 [Table("employees")]
-public partial class Employee
+public partial class Employee : BaseAuditableEntity
 {
-    [Key]
-    [Column("id")]
-    public long Id { get; set; }
-
     [Column("branch_id")]
     public long BranchId { get; set; }
 
@@ -45,14 +41,6 @@ public partial class Employee
     [StringLength(20)]
     [Unicode(false)]
     public string? Status { get; set; }
-
-    [Column("created_at")]
-    [Precision(6)]
-    public DateTime CreatedAt { get; set; }
-
-    [Column("last_modified")]
-    [Precision(6)]
-    public DateTime LastModified { get; set; }
 
     [ForeignKey("BranchId")]
     [InverseProperty("Employees")]

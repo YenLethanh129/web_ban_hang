@@ -8,12 +8,8 @@ namespace Dashboard.DataAccess.Models.Entities;
 
 [Table("goods_received_statuses")]
 [Index("Name", Name = "UQ__goods_re__72E12F1B5B4629D9", IsUnique = true)]
-public partial class GoodsReceivedStatus
+public partial class GoodsReceivedStatus : BaseEntity
 {
-    [Key]
-    [Column("id")]
-    public long Id { get; set; }
-
     [Column("name")]
     [StringLength(50)]
     [Unicode(false)]

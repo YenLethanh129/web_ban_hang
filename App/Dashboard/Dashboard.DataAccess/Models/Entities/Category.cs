@@ -8,12 +8,8 @@ namespace Dashboard.DataAccess.Models.Entities;
 
 [Table("categories")]
 [Index("Name", Name = "UQ__categori__72E12F1BFB7E3EEA", IsUnique = true)]
-public partial class Category
+public partial class Category : BaseEntity
 {
-    [Key]
-    [Column("id")]
-    public long Id { get; set; }
-
     [Column("name")]
     [StringLength(255)]
     [Unicode(false)]

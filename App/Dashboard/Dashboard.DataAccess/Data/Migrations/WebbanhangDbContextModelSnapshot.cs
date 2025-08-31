@@ -67,7 +67,7 @@ namespace Dashboard.DataAccess.Data.Migrations
                         .HasColumnName("phone");
 
                     b.HasKey("Id")
-                        .HasName("PK__branches__3213E83F228C5BCB");
+                        .HasName("PK__branches__3213E83F4514DD9B");
 
                     b.ToTable("branches");
                 });
@@ -131,7 +131,7 @@ namespace Dashboard.DataAccess.Data.Migrations
                         .HasColumnName("start_date");
 
                     b.HasKey("Id")
-                        .HasName("PK__branch_e__3213E83F9C2D1119");
+                        .HasName("PK__branch_e__3213E83FC6B11CF5");
 
                     b.HasIndex("BranchId");
 
@@ -172,7 +172,7 @@ namespace Dashboard.DataAccess.Data.Migrations
                         .HasColumnName("quantity");
 
                     b.HasKey("Id")
-                        .HasName("PK__branch_i__3213E83F4191B3B5");
+                        .HasName("PK__branch_i__3213E83FCC79BFE6");
 
                     b.HasIndex("BranchId");
 
@@ -198,7 +198,10 @@ namespace Dashboard.DataAccess.Data.Migrations
                         .HasColumnName("name");
 
                     b.HasKey("Id")
-                        .HasName("PK__categori__3213E83F650E2080");
+                        .HasName("PK__categori__3213E83F081D2F09");
+
+                    b.HasIndex(new[] { "Name" }, "UQ__categori__72E12F1BFB7E3EEA")
+                        .IsUnique();
 
                     b.ToTable("categories");
                 });
@@ -251,7 +254,7 @@ namespace Dashboard.DataAccess.Data.Migrations
                         .HasColumnName("user_id");
 
                     b.HasKey("Id")
-                        .HasName("PK__customer__3213E83F7FAC9DFD");
+                        .HasName("PK__customer__3213E83F99FE37C6");
 
                     b.ToTable("customers");
                 });
@@ -273,7 +276,10 @@ namespace Dashboard.DataAccess.Data.Migrations
                         .HasColumnName("name");
 
                     b.HasKey("Id")
-                        .HasName("PK__delivery__3213E83FA692EDBC");
+                        .HasName("PK__delivery__3213E83F906BA1F6");
+
+                    b.HasIndex(new[] { "Name" }, "UQ__delivery__72E12F1BA335DE00")
+                        .IsUnique();
 
                     b.ToTable("delivery_statuses");
                 });
@@ -344,78 +350,11 @@ namespace Dashboard.DataAccess.Data.Migrations
                         .HasColumnName("status");
 
                     b.HasKey("Id")
-                        .HasName("PK__employee__3213E83F62A64C81");
+                        .HasName("PK__employee__3213E83F2B6C67A0");
 
                     b.HasIndex("BranchId");
 
                     b.ToTable("employees");
-                });
-
-            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.EmployeePayrollView", b =>
-                {
-                    b.Property<decimal?>("BaseSalary")
-                        .HasColumnType("decimal(18, 2)")
-                        .HasColumnName("base_salary");
-
-                    b.Property<string>("BranchName")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(255)")
-                        .HasColumnName("branch_name");
-
-                    b.Property<DateOnly?>("EffectiveDate")
-                        .HasColumnType("date")
-                        .HasColumnName("effective_date");
-
-                    b.Property<long>("EmployeeId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("employee_id");
-
-                    b.Property<DateOnly?>("EndDate")
-                        .HasColumnType("date")
-                        .HasColumnName("end_date");
-
-                    b.Property<string>("FullName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .IsUnicode(true)
-                        .HasColumnType("nvarchar(100)")
-                        .HasColumnName("full_name");
-
-                    b.Property<decimal>("GrossSalary")
-                        .HasColumnType("decimal(18, 2)")
-                        .HasColumnName("gross_salary");
-
-                    b.Property<string>("PositionName")
-                        .HasMaxLength(100)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("position_name");
-
-                    b.Property<string>("SalaryType")
-                        .HasMaxLength(20)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(20)")
-                        .HasColumnName("salary_type");
-
-                    b.Property<decimal>("TotalAllowances")
-                        .HasColumnType("decimal(18, 2)")
-                        .HasColumnName("total_allowances");
-
-                    b.Property<decimal>("TotalBonus")
-                        .HasColumnType("decimal(18, 2)")
-                        .HasColumnName("total_bonus");
-
-                    b.Property<decimal>("TotalDeductions")
-                        .HasColumnType("decimal(18, 2)")
-                        .HasColumnName("total_deductions");
-
-                    b.HasIndex("EmployeeId");
-
-                    b.ToTable("v_employee_payroll");
-
-                    b.ToView("v_employee_payroll", (string)null);
                 });
 
             modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.EmployeeSalary", b =>
@@ -430,7 +369,7 @@ namespace Dashboard.DataAccess.Data.Migrations
                     b.Property<decimal?>("Allowance")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("decimal(18, 2)")
-                        .HasDefaultValue(0m)
+                        .HasDefaultValue(0.0m)
                         .HasColumnName("allowance");
 
                     b.Property<decimal>("BaseSalary")
@@ -440,7 +379,7 @@ namespace Dashboard.DataAccess.Data.Migrations
                     b.Property<decimal?>("Bonus")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("decimal(18, 2)")
-                        .HasDefaultValue(0m)
+                        .HasDefaultValue(0.0m)
                         .HasColumnName("bonus");
 
                     b.Property<DateTime>("CreatedAt")
@@ -466,7 +405,7 @@ namespace Dashboard.DataAccess.Data.Migrations
                     b.Property<decimal?>("Penalty")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("decimal(18, 2)")
-                        .HasDefaultValue(0m)
+                        .HasDefaultValue(0.0m)
                         .HasColumnName("penalty");
 
                     b.Property<string>("SalaryType")
@@ -484,7 +423,7 @@ namespace Dashboard.DataAccess.Data.Migrations
                         .HasColumnName("tax_rate");
 
                     b.HasKey("Id")
-                        .HasName("PK__employee__3213E83F55211C0A");
+                        .HasName("PK__employee__3213E83FD6680FE2");
 
                     b.HasIndex("EmployeeId");
 
@@ -537,7 +476,7 @@ namespace Dashboard.DataAccess.Data.Migrations
                         .HasColumnName("status");
 
                     b.HasKey("Id")
-                        .HasName("PK__employee__3213E83FADEFFA2B");
+                        .HasName("PK__employee__3213E83FD6C7B96C");
 
                     b.HasIndex("EmployeeId");
 
@@ -604,59 +543,259 @@ namespace Dashboard.DataAccess.Data.Migrations
                         .HasColumnName("total_purchase_orders");
 
                     b.HasKey("Id")
-                        .HasName("PK__expenses__3213E83F847BC26B");
+                        .HasName("PK__expenses__3213E83F27D3985C");
 
                     b.HasIndex("BranchId");
 
                     b.ToTable("expenses_summary");
                 });
 
-            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.ExpensesSummaryView", b =>
+            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.GoodsReceivedDetail", b =>
                 {
-                    b.Property<long?>("BranchId")
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("BatchNumber")
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("batch_number");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(6)
+                        .HasColumnType("datetime2(6)")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("(getdate())");
+
+                    b.Property<DateOnly?>("ExpiryDate")
+                        .HasColumnType("date")
+                        .HasColumnName("expiry_date");
+
+                    b.Property<long>("GrnId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("grn_id");
+
+                    b.Property<long>("IngredientId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("ingredient_id");
+
+                    b.Property<DateTime>("LastModified")
+                        .HasPrecision(6)
+                        .HasColumnType("datetime2(6)")
+                        .HasColumnName("last_modified");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(255)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("note");
+
+                    b.Property<decimal>("OrderedQuantity")
+                        .HasColumnType("decimal(18, 2)")
+                        .HasColumnName("ordered_quantity");
+
+                    b.Property<string>("QualityStatus")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)")
+                        .HasDefaultValue("ACCEPTED")
+                        .HasColumnName("quality_status");
+
+                    b.Property<decimal>("ReceivedQuantity")
+                        .HasColumnType("decimal(18, 2)")
+                        .HasColumnName("received_quantity");
+
+                    b.Property<decimal?>("RejectedQuantity")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18, 2)")
+                        .HasDefaultValue(0m)
+                        .HasColumnName("rejected_quantity");
+
+                    b.Property<string>("RejectionReason")
+                        .HasMaxLength(255)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("rejection_reason");
+
+                    b.Property<string>("StorageLocation")
+                        .HasMaxLength(100)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("storage_location");
+
+                    b.Property<decimal?>("UnitPrice")
+                        .HasColumnType("decimal(18, 2)")
+                        .HasColumnName("unit_price");
+
+                    b.HasKey("Id")
+                        .HasName("PK__goods_re__3213E83FB45A7D74");
+
+                    b.HasIndex("GrnId");
+
+                    b.HasIndex("IngredientId");
+
+                    b.ToTable("goods_received_details");
+                });
+
+            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.GoodsReceivedNote", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("BranchId")
                         .HasColumnType("bigint")
                         .HasColumnName("branch_id");
 
-                    b.Property<decimal>("ExpenseAfterTax")
-                        .HasColumnType("decimal(18, 2)")
-                        .HasColumnName("expense_after_tax");
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(6)
+                        .HasColumnType("datetime2(6)")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("(getdate())");
 
-                    b.Property<decimal>("ExpenseBeforeTax")
-                        .HasColumnType("decimal(18, 2)")
-                        .HasColumnName("expense_before_tax");
-
-                    b.Property<int>("Month")
-                        .HasColumnType("int")
-                        .HasColumnName("month");
-
-                    b.Property<string>("Period")
-                        .IsRequired()
-                        .HasMaxLength(7)
+                    b.Property<string>("DeliveryNoteNumber")
+                        .HasMaxLength(100)
                         .IsUnicode(false)
-                        .HasColumnType("varchar(7)")
-                        .HasColumnName("period");
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("delivery_note_number");
 
-                    b.Property<decimal>("TaxAmount")
+                    b.Property<string>("DriverName")
+                        .HasMaxLength(100)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("driver_name");
+
+                    b.Property<string>("GrnCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("grn_code");
+
+                    b.Property<long?>("InvoiceId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("invoice_id");
+
+                    b.Property<DateTime>("LastModified")
+                        .HasPrecision(6)
+                        .HasColumnType("datetime2(6)")
+                        .HasColumnName("last_modified");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(500)")
+                        .HasColumnName("note");
+
+                    b.Property<long?>("PurchaseOrderId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("purchase_order_id");
+
+                    b.Property<DateTime?>("ReceivedDate")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(6)
+                        .HasColumnType("datetime2(6)")
+                        .HasColumnName("received_date")
+                        .HasDefaultValueSql("(getdate())");
+
+                    b.Property<long?>("StatusId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(1L)
+                        .HasColumnName("status_id");
+
+                    b.Property<long>("SupplierId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("supplier_id");
+
+                    b.Property<decimal?>("TotalQuantityOrdered")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("decimal(18, 2)")
-                        .HasColumnName("tax_amount");
+                        .HasDefaultValue(0m)
+                        .HasColumnName("total_quantity_ordered");
 
-                    b.Property<decimal>("TotalIngredients")
-                        .HasColumnType("decimal(18,2)")
-                        .HasColumnName("total_ingredients");
+                    b.Property<decimal?>("TotalQuantityReceived")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18, 2)")
+                        .HasDefaultValue(0m)
+                        .HasColumnName("total_quantity_received");
 
-                    b.Property<int>("TotalPurchaseOrders")
-                        .HasColumnType("int")
-                        .HasColumnName("total_purchase_orders");
+                    b.Property<decimal?>("TotalQuantityRejected")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18, 2)")
+                        .HasDefaultValue(0m)
+                        .HasColumnName("total_quantity_rejected");
 
-                    b.Property<int>("Year")
-                        .HasColumnType("int")
-                        .HasColumnName("year");
+                    b.Property<string>("VehicleNumber")
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("vehicle_number");
+
+                    b.Property<long?>("WarehouseStaffId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("warehouse_staff_id");
+
+                    b.HasKey("Id")
+                        .HasName("PK__goods_re__3213E83FC2694A22");
 
                     b.HasIndex("BranchId");
 
-                    b.ToTable("v_expenses_summary");
+                    b.HasIndex("InvoiceId");
 
-                    b.ToView("v_expenses_summary", (string)null);
+                    b.HasIndex("PurchaseOrderId");
+
+                    b.HasIndex("StatusId");
+
+                    b.HasIndex("SupplierId");
+
+                    b.HasIndex("WarehouseStaffId");
+
+                    b.HasIndex(new[] { "GrnCode" }, "UQ__goods_re__D27DBA9E53D946EE")
+                        .IsUnique();
+
+                    b.ToTable("goods_received_notes");
+                });
+
+            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.GoodsReceivedStatus", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(255)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("description");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("name");
+
+                    b.HasKey("Id")
+                        .HasName("PK__goods_re__3213E83F8F12AE54");
+
+                    b.HasIndex(new[] { "Name" }, "UQ__goods_re__72E12F1B5B4629D9")
+                        .IsUnique();
+
+                    b.ToTable("goods_received_statuses");
                 });
 
             modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.Ingredient", b =>
@@ -685,6 +824,12 @@ namespace Dashboard.DataAccess.Data.Migrations
                         .HasColumnType("varchar(255)")
                         .HasColumnName("description");
 
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
                     b.Property<DateTime>("LastModified")
                         .ValueGeneratedOnAdd()
                         .HasPrecision(6)
@@ -711,7 +856,7 @@ namespace Dashboard.DataAccess.Data.Migrations
                         .HasColumnName("unit");
 
                     b.HasKey("Id")
-                        .HasName("PK__ingredie__3213E83F3CE86B2E");
+                        .HasName("PK__ingredie__3213E83FBDC4B752");
 
                     b.HasIndex("CategoryId");
 
@@ -736,7 +881,6 @@ namespace Dashboard.DataAccess.Data.Migrations
 
                     b.Property<string>("Description")
                         .HasMaxLength(255)
-                        .IsUnicode(true)
                         .HasColumnType("nvarchar(255)")
                         .HasColumnName("description");
 
@@ -748,12 +892,11 @@ namespace Dashboard.DataAccess.Data.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .IsUnicode(true)
                         .HasColumnType("nvarchar(50)")
                         .HasColumnName("name");
 
                     b.HasKey("Id")
-                        .HasName("PK__ingredie__3213E83F6A754175");
+                        .HasName("PK__ingredie__3213E83F71C1F796");
 
                     b.ToTable("ingredient_categories");
                 });
@@ -767,10 +910,47 @@ namespace Dashboard.DataAccess.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
+                    b.Property<long?>("BranchId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("branch_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(6)
+                        .HasColumnType("datetime2(6)")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("(getdate())");
+
+                    b.Property<decimal?>("DiscountAmount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18, 2)")
+                        .HasDefaultValue(0m)
+                        .HasColumnName("discount_amount");
+
+                    b.Property<long?>("EmployeeId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("employee_id");
+
+                    b.Property<DateTime?>("ExpectedDeliveryDate")
+                        .HasPrecision(6)
+                        .HasColumnType("datetime2(6)")
+                        .HasColumnName("expected_delivery_date");
+
+                    b.Property<decimal?>("FinalAmount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18, 2)")
+                        .HasDefaultValue(0m)
+                        .HasColumnName("final_amount");
+
+                    b.Property<DateTime>("LastModified")
+                        .HasPrecision(6)
+                        .HasColumnType("datetime2(6)")
+                        .HasColumnName("last_modified");
+
                     b.Property<string>("Note")
-                        .HasMaxLength(255)
+                        .HasMaxLength(500)
                         .IsUnicode(false)
-                        .HasColumnType("varchar(255)")
+                        .HasColumnType("varchar(500)")
                         .HasColumnName("note");
 
                     b.Property<DateTime?>("OrderDate")
@@ -780,18 +960,54 @@ namespace Dashboard.DataAccess.Data.Migrations
                         .HasColumnName("order_date")
                         .HasDefaultValueSql("(getdate())");
 
+                    b.Property<string>("PurchaseOrderCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("purchase_order_code");
+
+                    b.Property<long?>("StatusId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(1L)
+                        .HasColumnName("status_id");
+
                     b.Property<long?>("SupplierId")
                         .HasColumnType("bigint")
                         .HasColumnName("supplier_id");
 
-                    b.Property<decimal?>("TotalMoney")
+                    b.Property<decimal?>("TotalAmountAfterTax")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("decimal(18, 2)")
-                        .HasColumnName("total_money");
+                        .HasDefaultValue(0m)
+                        .HasColumnName("total_amount_after_tax");
+
+                    b.Property<decimal?>("TotalAmountBeforeTax")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18, 2)")
+                        .HasDefaultValue(0m)
+                        .HasColumnName("total_amount_before_tax");
+
+                    b.Property<decimal?>("TotalTaxAmount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18, 2)")
+                        .HasDefaultValue(0m)
+                        .HasColumnName("total_tax_amount");
 
                     b.HasKey("Id")
-                        .HasName("PK__ingredie__3213E83F762D28A7");
+                        .HasName("PK__ingredie__3213E83F117A1FF1");
+
+                    b.HasIndex("BranchId");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.HasIndex("StatusId");
 
                     b.HasIndex("SupplierId");
+
+                    b.HasIndex(new[] { "PurchaseOrderCode" }, "UQ__ingredie__19DA46F1B121FE7C")
+                        .IsUnique();
 
                     b.ToTable("ingredient_purchase_orders");
                 });
@@ -840,7 +1056,7 @@ namespace Dashboard.DataAccess.Data.Migrations
                         .HasColumnName("unit_price");
 
                     b.HasKey("Id")
-                        .HasName("PK__ingredie__3213E83FD6072415");
+                        .HasName("PK__ingredie__3213E83F1DCD047F");
 
                     b.HasIndex("IngredientId");
 
@@ -889,7 +1105,7 @@ namespace Dashboard.DataAccess.Data.Migrations
                         .HasColumnName("quantity");
 
                     b.HasKey("Id")
-                        .HasName("PK__ingredie__3213E83F4CF0E1E6");
+                        .HasName("PK__ingredie__3213E83F69D4D00C");
 
                     b.HasIndex("BranchId");
 
@@ -928,90 +1144,179 @@ namespace Dashboard.DataAccess.Data.Migrations
                         .HasColumnName("quantity");
 
                     b.HasKey("Id")
-                        .HasName("PK__ingredie__3213E83F724F0268");
+                        .HasName("PK__ingredie__3213E83FA666C6E1");
 
                     b.HasIndex("IngredientId");
 
                     b.ToTable("ingredient_warehouse");
                 });
 
-            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.InventoryStatusView", b =>
+            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.InventoryMovement", b =>
                 {
-                    b.Property<decimal>("AvailableQuantity")
-                        .HasColumnType("decimal(18, 2)")
-                        .HasColumnName("available_quantity");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<long>("BranchId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("branch_id");
+                        .HasColumnType("bigint");
 
-                    b.Property<string>("BranchName")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(255)")
-                        .HasColumnName("branch_name");
-
-                    b.Property<long>("IngredientId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("ingredient_id");
-
-                    b.Property<string>("IngredientName")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(255)")
-                        .HasColumnName("ingredient_name");
-
-                    b.Property<DateTime>("LastUpdated")
+                    b.Property<DateTime>("CreatedAt")
                         .HasPrecision(6)
                         .HasColumnType("datetime2(6)")
-                        .HasColumnName("last_updated");
+                        .HasColumnName("created_at");
 
-                    b.Property<long>("LocationId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("location_id");
+                    b.Property<long?>("EmployeeId")
+                        .HasColumnType("bigint");
 
-                    b.Property<string>("LocationName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("location_name");
+                    b.Property<long>("IngredientId")
+                        .HasColumnType("bigint");
 
-                    b.Property<decimal?>("MinimumStock")
-                        .HasColumnType("decimal(18, 2)")
-                        .HasColumnName("minimum_stock");
+                    b.Property<DateTime>("LastModified")
+                        .HasPrecision(6)
+                        .HasColumnType("datetime2(6)")
+                        .HasColumnName("last_modified");
 
-                    b.Property<decimal>("QuantityOnHand")
-                        .HasColumnType("decimal(18, 2)")
-                        .HasColumnName("quantity_on_hand");
+                    b.Property<DateTime>("MovementDate")
+                        .HasColumnType("datetime2");
 
-                    b.Property<decimal>("QuantityReserved")
-                        .HasColumnType("decimal(18, 2)")
-                        .HasColumnName("quantity_reserved");
-
-                    b.Property<string>("StockStatus")
+                    b.Property<string>("MovementType")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(20)")
-                        .HasColumnName("stock_status");
+                        .HasColumnType("nvarchar(20)");
 
-                    b.Property<string>("UnitOfMeasure")
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<decimal>("Quantity")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("QuantityAfter")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("QuantityBefore")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("ReferenceCode")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<long?>("ReferenceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ReferenceType")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.HasIndex("IngredientId");
+
+                    b.HasIndex("ReferenceType", "ReferenceId");
+
+                    b.HasIndex("BranchId", "IngredientId", "MovementDate");
+
+                    b.ToTable("inventory_movements");
+                });
+
+            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.InventoryThreshold", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<decimal>("AverageDailyConsumption")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<long>("BranchId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasPrecision(6)
+                        .HasColumnType("datetime2(6)")
+                        .HasColumnName("created_at");
+
+                    b.Property<long>("IngredientId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastCalculatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("LastModified")
+                        .HasPrecision(6)
+                        .HasColumnType("datetime2(6)")
+                        .HasColumnName("last_modified");
+
+                    b.Property<int>("LeadTimeDays")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("MaximumStock")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("MinimumStock")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("ReorderPoint")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("SafetyStock")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IngredientId");
+
+                    b.HasIndex("BranchId", "IngredientId")
+                        .IsUnique();
+
+                    b.ToTable("inventory_thresholds");
+                });
+
+            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.InvoiceStatus", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(255)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("description");
+
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(50)
                         .IsUnicode(false)
                         .HasColumnType("varchar(50)")
-                        .HasColumnName("unit_of_measure");
+                        .HasColumnName("name");
 
-                    b.HasIndex("BranchId");
+                    b.HasKey("Id")
+                        .HasName("PK__invoice___3213E83F06395854");
 
-                    b.HasIndex("IngredientId");
+                    b.HasIndex(new[] { "Name" }, "UQ__invoice___72E12F1B28814C66")
+                        .IsUnique();
 
-                    b.ToTable("v_inventory_status");
-
-                    b.ToView("v_inventory_status", (string)null);
+                    b.ToTable("invoice_statuses");
                 });
 
             modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.Order", b =>
@@ -1045,9 +1350,23 @@ namespace Dashboard.DataAccess.Data.Migrations
 
                     b.Property<string>("Notes")
                         .HasMaxLength(500)
-                        .IsUnicode(true)
                         .HasColumnType("nvarchar(500)")
                         .HasColumnName("notes");
+
+                    b.Property<string>("OrderCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("order_code");
+
+                    b.Property<string>("OrderUuid")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .IsUnicode(false)
+                        .HasColumnType("char(36)")
+                        .HasColumnName("order_uuid")
+                        .IsFixedLength();
 
                     b.Property<long?>("StatusId")
                         .HasColumnType("bigint")
@@ -1058,13 +1377,19 @@ namespace Dashboard.DataAccess.Data.Migrations
                         .HasColumnName("total_money");
 
                     b.HasKey("Id")
-                        .HasName("PK__orders__3213E83F9CC372E1");
+                        .HasName("PK__orders__3213E83F663C9EB0");
 
                     b.HasIndex("BranchId");
 
                     b.HasIndex("CustomerId");
 
                     b.HasIndex("StatusId");
+
+                    b.HasIndex(new[] { "OrderUuid" }, "UQ__orders__3DE398663640EAE7")
+                        .IsUnique();
+
+                    b.HasIndex(new[] { "OrderCode" }, "UQ__orders__99D12D3FB3E1E0BA")
+                        .IsUnique();
 
                     b.ToTable("orders");
                 });
@@ -1125,7 +1450,7 @@ namespace Dashboard.DataAccess.Data.Migrations
                         .HasColumnName("tracking_number");
 
                     b.HasKey("Id")
-                        .HasName("PK__order_de__3213E83FE5070075");
+                        .HasName("PK__order_de__3213E83F5863CFF7");
 
                     b.HasIndex("DeliveryPersonId");
 
@@ -1190,7 +1515,7 @@ namespace Dashboard.DataAccess.Data.Migrations
                         .HasColumnName("unit_price");
 
                     b.HasKey("Id")
-                        .HasName("PK__order_de__3213E83F619D82EA");
+                        .HasName("PK__order_de__3213E83F4CE42D1D");
 
                     b.HasIndex("OrderId");
 
@@ -1254,7 +1579,7 @@ namespace Dashboard.DataAccess.Data.Migrations
                         .HasColumnName("transaction_id");
 
                     b.HasKey("Id")
-                        .HasName("PK__order_pa__3213E83F8B2AD3E1");
+                        .HasName("PK__order_pa__3213E83F1BEAD382");
 
                     b.HasIndex("OrderId");
 
@@ -1304,7 +1629,6 @@ namespace Dashboard.DataAccess.Data.Migrations
                     b.Property<string>("ShippingAddress")
                         .IsRequired()
                         .HasMaxLength(500)
-                        .IsUnicode(true)
                         .HasColumnType("nvarchar(500)")
                         .HasColumnName("shipping_address");
 
@@ -1323,7 +1647,7 @@ namespace Dashboard.DataAccess.Data.Migrations
                         .HasColumnName("shipping_provider_id");
 
                     b.HasKey("Id")
-                        .HasName("PK__order_sh__3213E83F9A3C5D2F");
+                        .HasName("PK__order_sh__3213E83F6D88CAE2");
 
                     b.HasIndex("OrderId");
 
@@ -1341,15 +1665,18 @@ namespace Dashboard.DataAccess.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<string>("Status")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(50)
                         .IsUnicode(false)
                         .HasColumnType("varchar(50)")
-                        .HasColumnName("status");
+                        .HasColumnName("name");
 
                     b.HasKey("Id")
-                        .HasName("PK__order_st__3213E83F5808452C");
+                        .HasName("PK__order_st__3213E83FB26D3DF0");
+
+                    b.HasIndex(new[] { "Name" }, "UQ__order_st__72E12F1B05345EFE")
+                        .IsUnique();
 
                     b.ToTable("order_statuses");
                 });
@@ -1371,7 +1698,10 @@ namespace Dashboard.DataAccess.Data.Migrations
                         .HasColumnName("name");
 
                     b.HasKey("Id")
-                        .HasName("PK__payment___3213E83F30F0438C");
+                        .HasName("PK__payment___3213E83F9BB41367");
+
+                    b.HasIndex(new[] { "Name" }, "UQ__payment___72E12F1BEC94A5AC")
+                        .IsUnique();
 
                     b.ToTable("payment_methods");
                 });
@@ -1385,15 +1715,18 @@ namespace Dashboard.DataAccess.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<string>("Status")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(50)
                         .IsUnicode(false)
                         .HasColumnType("varchar(50)")
-                        .HasColumnName("status");
+                        .HasColumnName("name");
 
                     b.HasKey("Id")
-                        .HasName("PK__payment___3213E83F1777CE46");
+                        .HasName("PK__payment___3213E83F2EAECF1C");
+
+                    b.HasIndex(new[] { "Name" }, "UQ__payment___72E12F1B7D0643E4")
+                        .IsUnique();
 
                     b.ToTable("payment_statuses");
                 });
@@ -1464,7 +1797,7 @@ namespace Dashboard.DataAccess.Data.Migrations
                         .HasColumnName("year");
 
                     b.HasKey("Id")
-                        .HasName("PK__payrolls__3213E83FF57EF7CF");
+                        .HasName("PK__payrolls__3213E83F432AAB89");
 
                     b.HasIndex("EmployeeId");
 
@@ -1496,6 +1829,12 @@ namespace Dashboard.DataAccess.Data.Migrations
                         .HasColumnType("varchar(255)")
                         .HasColumnName("description");
 
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
                     b.Property<DateTime>("LastModified")
                         .HasPrecision(6)
                         .HasColumnType("datetime2(6)")
@@ -1523,7 +1862,7 @@ namespace Dashboard.DataAccess.Data.Migrations
                         .HasColumnName("thumbnail");
 
                     b.HasKey("Id")
-                        .HasName("PK__products__3213E83F6A754175");
+                        .HasName("PK__products__3213E83FAB8FAA1E");
 
                     b.HasIndex("CategoryId");
 
@@ -1552,7 +1891,7 @@ namespace Dashboard.DataAccess.Data.Migrations
                         .HasColumnName("product_id");
 
                     b.HasKey("Id")
-                        .HasName("PK__product___3213E83F711F91E7");
+                        .HasName("PK__product___3213E83FD8C6F7A9");
 
                     b.HasIndex("ProductId");
 
@@ -1591,102 +1930,13 @@ namespace Dashboard.DataAccess.Data.Migrations
                         .HasColumnName("quantity");
 
                     b.HasKey("Id")
-                        .HasName("PK__product___3213E83FBB161C8F");
+                        .HasName("PK__product___3213E83FA96E90A9");
 
                     b.HasIndex("IngredientId");
 
                     b.HasIndex("ProductId");
 
                     b.ToTable("product_recipes");
-                });
-
-            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.ProductWithPricesView", b =>
-                {
-                    b.Property<string>("CategoryName")
-                        .HasMaxLength(255)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(255)")
-                        .HasColumnName("category_name");
-
-                    b.Property<DateTime?>("CreatedAt")
-                        .HasPrecision(6)
-                        .HasColumnType("datetime2(6)")
-                        .HasColumnName("created_at");
-
-                    b.Property<decimal?>("CurrentPrice")
-                        .HasColumnType("decimal(18, 2)")
-                        .HasColumnName("current_price");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(500)")
-                        .HasColumnName("description");
-
-                    b.Property<string>("Dimensions")
-                        .HasMaxLength(100)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("dimensions");
-
-                    b.Property<long>("Id")
-                        .HasColumnType("bigint")
-                        .HasColumnName("id");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit")
-                        .HasColumnName("is_active");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(255)")
-                        .HasColumnName("name");
-
-                    b.Property<string>("PriceType")
-                        .HasMaxLength(20)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(20)")
-                        .HasColumnName("price_type");
-
-                    b.Property<string>("Sku")
-                        .HasMaxLength(100)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("sku");
-
-                    b.Property<string>("TaxName")
-                        .HasMaxLength(100)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("tax_name");
-
-                    b.Property<decimal?>("TaxRate")
-                        .HasColumnType("decimal(5, 2)")
-                        .HasColumnName("tax_rate");
-
-                    b.Property<string>("UnitOfMeasure")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("unit_of_measure");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasPrecision(6)
-                        .HasColumnType("datetime2(6)")
-                        .HasColumnName("updated_at");
-
-                    b.Property<decimal?>("Weight")
-                        .HasColumnType("decimal(10, 3)")
-                        .HasColumnName("weight");
-
-                    b.HasIndex("Id");
-
-                    b.ToTable("v_products_with_prices");
-
-                    b.ToView("v_products_with_prices", (string)null);
                 });
 
             modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.ProfitSummary", b =>
@@ -1765,75 +2015,577 @@ namespace Dashboard.DataAccess.Data.Migrations
                         .HasColumnName("vat_to_pay");
 
                     b.HasKey("Id")
-                        .HasName("PK__profit_s__3213E83FB3B36FC9");
+                        .HasName("PK__profit_s__3213E83FBBCC3CFF");
 
                     b.HasIndex("BranchId");
 
                     b.ToTable("profit_summary");
                 });
 
-            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.ProfitSummaryView", b =>
+            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.PurchaseInvoice", b =>
                 {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
                     b.Property<long?>("BranchId")
                         .HasColumnType("bigint")
                         .HasColumnName("branch_id");
 
-                    b.Property<decimal>("ExpenseAfterTax")
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(6)
+                        .HasColumnType("datetime2(6)")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("(getdate())");
+
+                    b.Property<decimal?>("DiscountAmount")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("decimal(18, 2)")
-                        .HasColumnName("expense_after_tax");
+                        .HasDefaultValue(0m)
+                        .HasColumnName("discount_amount");
 
-                    b.Property<decimal>("ExpenseBeforeTax")
-                        .HasColumnType("decimal(18, 2)")
-                        .HasColumnName("expense_before_tax");
+                    b.Property<DateTime?>("DueDate")
+                        .HasPrecision(6)
+                        .HasColumnType("datetime2(6)")
+                        .HasColumnName("due_date");
 
-                    b.Property<decimal>("InputTax")
-                        .HasColumnType("decimal(18, 2)")
-                        .HasColumnName("input_tax");
-
-                    b.Property<int>("Month")
-                        .HasColumnType("int")
-                        .HasColumnName("month");
-
-                    b.Property<decimal>("OutputTax")
-                        .HasColumnType("decimal(18, 2)")
-                        .HasColumnName("output_tax");
-
-                    b.Property<string>("Period")
+                    b.Property<string>("InvoiceCode")
                         .IsRequired()
-                        .HasMaxLength(7)
+                        .HasMaxLength(50)
                         .IsUnicode(false)
-                        .HasColumnType("varchar(7)")
-                        .HasColumnName("period");
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("invoice_code");
 
-                    b.Property<decimal>("ProfitAfterTax")
+                    b.Property<DateTime>("InvoiceDate")
+                        .HasPrecision(6)
+                        .HasColumnType("datetime2(6)")
+                        .HasColumnName("invoice_date");
+
+                    b.Property<DateTime>("LastModified")
+                        .HasPrecision(6)
+                        .HasColumnType("datetime2(6)")
+                        .HasColumnName("last_modified");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(500)")
+                        .HasColumnName("note");
+
+                    b.Property<decimal?>("PaidAmount")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("decimal(18, 2)")
-                        .HasColumnName("profit_after_tax");
+                        .HasDefaultValue(0m)
+                        .HasColumnName("paid_amount");
 
-                    b.Property<decimal>("ProfitBeforeTax")
+                    b.Property<DateTime?>("PaymentDate")
+                        .HasPrecision(6)
+                        .HasColumnType("datetime2(6)")
+                        .HasColumnName("payment_date");
+
+                    b.Property<string>("PaymentMethod")
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("payment_method");
+
+                    b.Property<string>("PaymentReference")
+                        .HasMaxLength(100)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("payment_reference");
+
+                    b.Property<long?>("PurchaseOrderId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("purchase_order_id");
+
+                    b.Property<decimal?>("RemainingAmount")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("decimal(18, 2)")
-                        .HasColumnName("profit_before_tax");
+                        .HasDefaultValue(0m)
+                        .HasColumnName("remaining_amount");
 
-                    b.Property<decimal>("RevenueAfterTax")
+                    b.Property<long?>("StatusId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(1L)
+                        .HasColumnName("status_id");
+
+                    b.Property<long>("SupplierId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("supplier_id");
+
+                    b.Property<decimal?>("TotalAmountAfterTax")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("decimal(18, 2)")
-                        .HasColumnName("revenue_after_tax");
+                        .HasDefaultValue(0m)
+                        .HasColumnName("total_amount_after_tax");
 
-                    b.Property<decimal>("RevenueBeforeTax")
+                    b.Property<decimal?>("TotalAmountBeforeTax")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("decimal(18, 2)")
-                        .HasColumnName("revenue_before_tax");
+                        .HasDefaultValue(0m)
+                        .HasColumnName("total_amount_before_tax");
 
-                    b.Property<decimal>("VatToPay")
+                    b.Property<decimal?>("TotalTaxAmount")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("decimal(18, 2)")
-                        .HasColumnName("vat_to_pay");
+                        .HasDefaultValue(0m)
+                        .HasColumnName("total_tax_amount");
 
-                    b.Property<int>("Year")
-                        .HasColumnType("int")
-                        .HasColumnName("year");
+                    b.HasKey("Id")
+                        .HasName("PK__purchase__3213E83F73ECDCDE");
 
                     b.HasIndex("BranchId");
 
-                    b.ToTable("v_profit_summary");
+                    b.HasIndex("PurchaseOrderId");
 
-                    b.ToView("v_profit_summary", (string)null);
+                    b.HasIndex("StatusId");
+
+                    b.HasIndex("SupplierId");
+
+                    b.HasIndex(new[] { "InvoiceCode" }, "UQ__purchase__5ED70A355181E3E1")
+                        .IsUnique();
+
+                    b.ToTable("purchase_invoices");
+                });
+
+            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.PurchaseInvoiceDetail", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<decimal>("AmountAfterTax")
+                        .HasColumnType("decimal(18, 2)")
+                        .HasColumnName("amount_after_tax");
+
+                    b.Property<decimal>("AmountBeforeTax")
+                        .HasColumnType("decimal(18, 2)")
+                        .HasColumnName("amount_before_tax");
+
+                    b.Property<string>("BatchNumber")
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("batch_number");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(6)
+                        .HasColumnType("datetime2(6)")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("(getdate())");
+
+                    b.Property<decimal?>("DiscountAmount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18, 2)")
+                        .HasDefaultValue(0m)
+                        .HasColumnName("discount_amount");
+
+                    b.Property<decimal?>("DiscountRate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(5, 2)")
+                        .HasDefaultValue(0m)
+                        .HasColumnName("discount_rate");
+
+                    b.Property<DateOnly?>("ExpiryDate")
+                        .HasColumnType("date")
+                        .HasColumnName("expiry_date");
+
+                    b.Property<decimal>("FinalAmount")
+                        .HasColumnType("decimal(18, 2)")
+                        .HasColumnName("final_amount");
+
+                    b.Property<long>("IngredientId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("ingredient_id");
+
+                    b.Property<long>("InvoiceId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("invoice_id");
+
+                    b.Property<DateTime>("LastModified")
+                        .HasPrecision(6)
+                        .HasColumnType("datetime2(6)")
+                        .HasColumnName("last_modified");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(255)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("note");
+
+                    b.Property<decimal>("Quantity")
+                        .HasColumnType("decimal(18, 2)")
+                        .HasColumnName("quantity");
+
+                    b.Property<decimal?>("TaxAmount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18, 2)")
+                        .HasDefaultValue(0m)
+                        .HasColumnName("tax_amount");
+
+                    b.Property<decimal?>("TaxRate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(5, 2)")
+                        .HasDefaultValue(0m)
+                        .HasColumnName("tax_rate");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("decimal(18, 2)")
+                        .HasColumnName("unit_price");
+
+                    b.HasKey("Id")
+                        .HasName("PK__purchase__3213E83F1FC51C06");
+
+                    b.HasIndex("IngredientId");
+
+                    b.HasIndex("InvoiceId");
+
+                    b.ToTable("purchase_invoice_details");
+                });
+
+            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.PurchaseOrderStatus", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(255)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("description");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("name");
+
+                    b.HasKey("Id")
+                        .HasName("PK__purchase__3213E83FBD9D52EE");
+
+                    b.HasIndex(new[] { "Name" }, "UQ__purchase__72E12F1B763CAB51")
+                        .IsUnique();
+
+                    b.ToTable("purchase_order_statuses");
+                });
+
+            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.PurchaseReturn", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime?>("ApprovalDate")
+                        .HasPrecision(6)
+                        .HasColumnType("datetime2(6)")
+                        .HasColumnName("approval_date");
+
+                    b.Property<long?>("ApprovedBy")
+                        .HasColumnType("bigint")
+                        .HasColumnName("approved_by");
+
+                    b.Property<long>("BranchId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("branch_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(6)
+                        .HasColumnType("datetime2(6)")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("(getdate())");
+
+                    b.Property<string>("CreditNoteNumber")
+                        .HasMaxLength(100)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("credit_note_number");
+
+                    b.Property<long?>("GrnId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("grn_id");
+
+                    b.Property<long?>("InvoiceId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("invoice_id");
+
+                    b.Property<DateTime>("LastModified")
+                        .HasPrecision(6)
+                        .HasColumnType("datetime2(6)")
+                        .HasColumnName("last_modified");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(500)")
+                        .HasColumnName("note");
+
+                    b.Property<decimal?>("RefundAmount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18, 2)")
+                        .HasDefaultValue(0m)
+                        .HasColumnName("refund_amount");
+
+                    b.Property<string>("ReturnCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("return_code");
+
+                    b.Property<DateTime?>("ReturnDate")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(6)
+                        .HasColumnType("datetime2(6)")
+                        .HasColumnName("return_date")
+                        .HasDefaultValueSql("(getdate())");
+
+                    b.Property<string>("ReturnReason")
+                        .HasMaxLength(255)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("return_reason");
+
+                    b.Property<long?>("StatusId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(1L)
+                        .HasColumnName("status_id");
+
+                    b.Property<long>("SupplierId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("supplier_id");
+
+                    b.Property<decimal?>("TotalReturnAmount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18, 2)")
+                        .HasDefaultValue(0m)
+                        .HasColumnName("total_return_amount");
+
+                    b.HasKey("Id")
+                        .HasName("PK__purchase__3213E83FD75D4F59");
+
+                    b.HasIndex("ApprovedBy");
+
+                    b.HasIndex("BranchId");
+
+                    b.HasIndex("GrnId");
+
+                    b.HasIndex("InvoiceId");
+
+                    b.HasIndex("SupplierId");
+
+                    b.HasIndex(new[] { "ReturnCode" }, "UQ__purchase__51FB33A06DB976E7")
+                        .IsUnique();
+
+                    b.ToTable("purchase_returns");
+                });
+
+            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.PurchaseReturnDetail", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("BatchNumber")
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("batch_number");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(6)
+                        .HasColumnType("datetime2(6)")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("(getdate())");
+
+                    b.Property<DateOnly?>("ExpiryDate")
+                        .HasColumnType("date")
+                        .HasColumnName("expiry_date");
+
+                    b.Property<long>("IngredientId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("ingredient_id");
+
+                    b.Property<DateTime>("LastModified")
+                        .HasPrecision(6)
+                        .HasColumnType("datetime2(6)")
+                        .HasColumnName("last_modified");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(255)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("note");
+
+                    b.Property<string>("QualityIssue")
+                        .HasMaxLength(255)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("quality_issue");
+
+                    b.Property<decimal?>("ReturnAmount")
+                        .HasColumnType("decimal(18, 2)")
+                        .HasColumnName("return_amount");
+
+                    b.Property<long>("ReturnId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("return_id");
+
+                    b.Property<decimal>("ReturnQuantity")
+                        .HasColumnType("decimal(18, 2)")
+                        .HasColumnName("return_quantity");
+
+                    b.Property<string>("ReturnReason")
+                        .HasMaxLength(255)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("return_reason");
+
+                    b.Property<decimal?>("UnitPrice")
+                        .HasColumnType("decimal(18, 2)")
+                        .HasColumnName("unit_price");
+
+                    b.HasKey("Id")
+                        .HasName("PK__purchase__3213E83FA0FB62AC");
+
+                    b.HasIndex("IngredientId");
+
+                    b.HasIndex("ReturnId");
+
+                    b.ToTable("purchase_return_details");
+                });
+
+            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.Recipe", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasPrecision(6)
+                        .HasColumnType("datetime2(6)")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("LastModified")
+                        .HasPrecision(6)
+                        .HasColumnType("datetime2(6)")
+                        .HasColumnName("last_modified");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<long>("ProductId")
+                        .HasColumnType("bigint");
+
+                    b.Property<decimal>("ServingSize")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId", "Name")
+                        .IsUnique();
+
+                    b.ToTable("recipes");
+                });
+
+            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.RecipeIngredient", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasPrecision(6)
+                        .HasColumnType("datetime2(6)")
+                        .HasColumnName("created_at");
+
+                    b.Property<long>("IngredientId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsOptional")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("LastModified")
+                        .HasPrecision(6)
+                        .HasColumnType("datetime2(6)")
+                        .HasColumnName("last_modified");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<decimal>("Quantity")
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<long>("RecipeId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<decimal?>("WastePercentage")
+                        .HasColumnType("decimal(18,4)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IngredientId");
+
+                    b.HasIndex("RecipeId", "IngredientId")
+                        .IsUnique();
+
+                    b.ToTable("recipe_ingredients");
                 });
 
             modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.Role", b =>
@@ -1856,13 +2608,17 @@ namespace Dashboard.DataAccess.Data.Migrations
                         .HasColumnName("last_modified");
 
                     b.Property<string>("Name")
+                        .IsRequired()
                         .HasMaxLength(100)
                         .IsUnicode(false)
                         .HasColumnType("varchar(100)")
                         .HasColumnName("name");
 
                     b.HasKey("Id")
-                        .HasName("PK__roles__3213E83F1579A6F1");
+                        .HasName("PK__roles__3213E83FDA1EB870");
+
+                    b.HasIndex(new[] { "Name" }, "UQ__roles__72E12F1B8563DF69")
+                        .IsUnique();
 
                     b.ToTable("roles");
                 });
@@ -1927,59 +2683,11 @@ namespace Dashboard.DataAccess.Data.Migrations
                         .HasColumnName("total_products");
 
                     b.HasKey("Id")
-                        .HasName("PK__sales_su__3213E83F44A784A9");
+                        .HasName("PK__sales_su__3213E83FCC378A81");
 
                     b.HasIndex("BranchId");
 
                     b.ToTable("sales_summary");
-                });
-
-            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.SalesSummaryView", b =>
-                {
-                    b.Property<long?>("BranchId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("branch_id");
-
-                    b.Property<int>("Month")
-                        .HasColumnType("int")
-                        .HasColumnName("month");
-
-                    b.Property<string>("Period")
-                        .IsRequired()
-                        .HasMaxLength(7)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(7)")
-                        .HasColumnName("period");
-
-                    b.Property<decimal>("RevenueAfterTax")
-                        .HasColumnType("decimal(18, 2)")
-                        .HasColumnName("revenue_after_tax");
-
-                    b.Property<decimal>("RevenueBeforeTax")
-                        .HasColumnType("decimal(18, 2)")
-                        .HasColumnName("revenue_before_tax");
-
-                    b.Property<decimal>("TaxAmount")
-                        .HasColumnType("decimal(18, 2)")
-                        .HasColumnName("tax_amount");
-
-                    b.Property<int>("TotalOrders")
-                        .HasColumnType("int")
-                        .HasColumnName("total_orders");
-
-                    b.Property<int>("TotalProducts")
-                        .HasColumnType("int")
-                        .HasColumnName("total_products");
-
-                    b.Property<int>("Year")
-                        .HasColumnType("int")
-                        .HasColumnName("year");
-
-                    b.HasIndex("BranchId");
-
-                    b.ToTable("v_sales_summary");
-
-                    b.ToView("v_sales_summary", (string)null);
                 });
 
             modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.ShippingProvider", b =>
@@ -2023,7 +2731,10 @@ namespace Dashboard.DataAccess.Data.Migrations
                         .HasColumnName("name");
 
                     b.HasKey("Id")
-                        .HasName("PK__shipping__3213E83FA8D871A4");
+                        .HasName("PK__shipping__3213E83F7B4A3DDF");
+
+                    b.HasIndex(new[] { "Name" }, "UQ__shipping__72E12F1B8D36D97F")
+                        .IsUnique();
 
                     b.ToTable("shipping_providers");
                 });
@@ -2075,7 +2786,7 @@ namespace Dashboard.DataAccess.Data.Migrations
                         .HasColumnName("user_id");
 
                     b.HasKey("Id")
-                        .HasName("PK__social_a__3213E83F2A02110D");
+                        .HasName("PK__social_a__3213E83F4D3B725E");
 
                     b.HasIndex("UserId");
 
@@ -2133,7 +2844,7 @@ namespace Dashboard.DataAccess.Data.Migrations
                         .HasColumnName("phone");
 
                     b.HasKey("Id")
-                        .HasName("PK__supplier__3213E83FC084036E");
+                        .HasName("PK__supplier__3213E83FD72856BA");
 
                     b.ToTable("suppliers");
                 });
@@ -2189,13 +2900,120 @@ namespace Dashboard.DataAccess.Data.Migrations
                         .HasColumnName("unit");
 
                     b.HasKey("Id")
-                        .HasName("PK__supplier__3213E83F441DA26C");
+                        .HasName("PK__supplier__3213E83FCBEFFDFF");
 
                     b.HasIndex("IngredientId");
 
                     b.HasIndex("SupplierId");
 
                     b.ToTable("supplier_ingredient_prices");
+                });
+
+            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.SupplierPerformance", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Comments")
+                        .HasMaxLength(500)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(500)")
+                        .HasColumnName("comments");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(6)
+                        .HasColumnType("datetime2(6)")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("(getdate())");
+
+                    b.Property<string>("EvaluationPeriod")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("evaluation_period");
+
+                    b.Property<DateTime>("LastModified")
+                        .HasPrecision(6)
+                        .HasColumnType("datetime2(6)")
+                        .HasColumnName("last_modified");
+
+                    b.Property<int?>("LateDeliveries")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0)
+                        .HasColumnName("late_deliveries");
+
+                    b.Property<int?>("OnTimeDeliveries")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0)
+                        .HasColumnName("on_time_deliveries");
+
+                    b.Property<decimal?>("OverallRating")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(3, 2)")
+                        .HasDefaultValue(0m)
+                        .HasColumnName("overall_rating");
+
+                    b.Property<string>("PeriodValue")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("period_value");
+
+                    b.Property<decimal?>("QualityScore")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(3, 2)")
+                        .HasDefaultValue(0m)
+                        .HasColumnName("quality_score");
+
+                    b.Property<decimal?>("ReturnValue")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18, 2)")
+                        .HasDefaultValue(0m)
+                        .HasColumnName("return_value");
+
+                    b.Property<decimal?>("ServiceScore")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(3, 2)")
+                        .HasDefaultValue(0m)
+                        .HasColumnName("service_score");
+
+                    b.Property<long>("SupplierId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("supplier_id");
+
+                    b.Property<decimal?>("TotalAmount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18, 2)")
+                        .HasDefaultValue(0m)
+                        .HasColumnName("total_amount");
+
+                    b.Property<int?>("TotalOrders")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0)
+                        .HasColumnName("total_orders");
+
+                    b.Property<int?>("TotalReturns")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0)
+                        .HasColumnName("total_returns");
+
+                    b.HasKey("Id")
+                        .HasName("PK__supplier__3213E83F241CD2A2");
+
+                    b.HasIndex("SupplierId");
+
+                    b.ToTable("supplier_performance");
                 });
 
             modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.Taxes", b =>
@@ -2235,7 +3053,7 @@ namespace Dashboard.DataAccess.Data.Migrations
                         .HasColumnName("tax_rate");
 
                     b.HasKey("Id")
-                        .HasName("PK__taxes__3213E83FACB47953");
+                        .HasName("PK__taxes__3213E83F92587024");
 
                     b.ToTable("taxes");
                 });
@@ -2279,7 +3097,7 @@ namespace Dashboard.DataAccess.Data.Migrations
                         .HasColumnName("user_id");
 
                     b.HasKey("Id")
-                        .HasName("PK__tokens__3213E83F593BCD93");
+                        .HasName("PK__tokens__3213E83F23FD3269");
 
                     b.HasIndex("UserId");
 
@@ -2297,7 +3115,6 @@ namespace Dashboard.DataAccess.Data.Migrations
 
                     b.Property<string>("Address")
                         .HasMaxLength(200)
-                        .IsUnicode(true)
                         .HasColumnType("nvarchar(200)")
                         .HasColumnName("address");
 
@@ -2322,7 +3139,6 @@ namespace Dashboard.DataAccess.Data.Migrations
 
                     b.Property<string>("Fullname")
                         .HasMaxLength(100)
-                        .IsUnicode(true)
                         .HasColumnType("nvarchar(100)")
                         .HasColumnName("fullname");
 
@@ -2330,7 +3146,7 @@ namespace Dashboard.DataAccess.Data.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("google_account_id");
 
-                    b.Property<bool?>("IsActive")
+                    b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
                         .HasDefaultValue(true)
@@ -2360,13 +3176,308 @@ namespace Dashboard.DataAccess.Data.Migrations
                         .HasColumnName("role_id");
 
                     b.HasKey("Id")
-                        .HasName("PK__users__3213E83F62990E3B");
+                        .HasName("PK__users__3213E83FDE9A3EE9");
 
                     b.HasIndex("EmployeeId");
 
                     b.HasIndex("RoleId");
 
                     b.ToTable("users");
+                });
+
+            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.VEmployeePayroll", b =>
+                {
+                    b.Property<decimal?>("BaseSalary")
+                        .HasColumnType("decimal(18, 2)")
+                        .HasColumnName("base_salary");
+
+                    b.Property<string>("BranchName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("branch_name");
+
+                    b.Property<DateOnly?>("EffectiveDate")
+                        .HasColumnType("date")
+                        .HasColumnName("effective_date");
+
+                    b.Property<long>("EmployeeId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("employee_id");
+
+                    b.Property<DateOnly?>("EndDate")
+                        .HasColumnType("date")
+                        .HasColumnName("end_date");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("full_name");
+
+                    b.Property<decimal>("GrossSalary")
+                        .HasColumnType("decimal(18, 2)")
+                        .HasColumnName("gross_salary");
+
+                    b.Property<string>("PositionName")
+                        .HasMaxLength(100)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("position_name");
+
+                    b.Property<string>("SalaryType")
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("salary_type");
+
+                    b.Property<decimal>("TotalAllowances")
+                        .HasColumnType("decimal(18, 2)")
+                        .HasColumnName("total_allowances");
+
+                    b.Property<decimal>("TotalBonus")
+                        .HasColumnType("decimal(18, 2)")
+                        .HasColumnName("total_bonus");
+
+                    b.Property<decimal>("TotalDeductions")
+                        .HasColumnType("decimal(18, 2)")
+                        .HasColumnName("total_deductions");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.ToTable("v_employee_payroll");
+                });
+
+            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.VExpensesSummary", b =>
+                {
+                    b.Property<long?>("BranchId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("branch_id");
+
+                    b.Property<decimal>("ExpenseAfterTax")
+                        .HasColumnType("decimal(18, 2)")
+                        .HasColumnName("expense_after_tax");
+
+                    b.Property<decimal>("ExpenseBeforeTax")
+                        .HasColumnType("decimal(18, 2)")
+                        .HasColumnName("expense_before_tax");
+
+                    b.Property<int>("Month")
+                        .HasColumnType("int")
+                        .HasColumnName("month");
+
+                    b.Property<string>("Period")
+                        .IsRequired()
+                        .HasMaxLength(7)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(7)")
+                        .HasColumnName("period");
+
+                    b.Property<decimal>("TaxAmount")
+                        .HasColumnType("decimal(18, 2)")
+                        .HasColumnName("tax_amount");
+
+                    b.Property<decimal>("TotalIngredients")
+                        .HasColumnType("decimal(18, 2)")
+                        .HasColumnName("total_ingredients");
+
+                    b.Property<int>("TotalPurchaseOrders")
+                        .HasColumnType("int")
+                        .HasColumnName("total_purchase_orders");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("int")
+                        .HasColumnName("year");
+
+                    b.HasIndex("BranchId");
+
+                    b.ToTable("v_expenses_summary");
+                });
+
+            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.VInventoryStatus", b =>
+                {
+                    b.Property<decimal>("AvailableQuantity")
+                        .HasColumnType("decimal(18, 2)")
+                        .HasColumnName("available_quantity");
+
+                    b.Property<long>("BranchId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("branch_id");
+
+                    b.Property<string>("BranchName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("branch_name");
+
+                    b.Property<long>("IngredientId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("ingredient_id");
+
+                    b.Property<string>("IngredientName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("ingredient_name");
+
+                    b.Property<DateTime>("LastUpdated")
+                        .HasPrecision(6)
+                        .HasColumnType("datetime2(6)")
+                        .HasColumnName("last_updated");
+
+                    b.Property<long>("LocationId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("location_id");
+
+                    b.Property<string>("LocationName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("location_name");
+
+                    b.Property<decimal?>("MinimumStock")
+                        .HasColumnType("decimal(18, 2)")
+                        .HasColumnName("minimum_stock");
+
+                    b.Property<decimal>("QuantityOnHand")
+                        .HasColumnType("decimal(18, 2)")
+                        .HasColumnName("quantity_on_hand");
+
+                    b.Property<decimal>("QuantityReserved")
+                        .HasColumnType("decimal(18, 2)")
+                        .HasColumnName("quantity_reserved");
+
+                    b.Property<string>("StockStatus")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("stock_status");
+
+                    b.Property<string>("UnitOfMeasure")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("unit_of_measure");
+
+                    b.HasIndex("BranchId");
+
+                    b.HasIndex("IngredientId");
+
+                    b.ToTable("v_inventory_status");
+                });
+
+            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.VProfitSummary", b =>
+                {
+                    b.Property<long?>("BranchId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("branch_id");
+
+                    b.Property<decimal>("ExpenseAfterTax")
+                        .HasColumnType("decimal(18, 2)")
+                        .HasColumnName("expense_after_tax");
+
+                    b.Property<decimal>("ExpenseBeforeTax")
+                        .HasColumnType("decimal(18, 2)")
+                        .HasColumnName("expense_before_tax");
+
+                    b.Property<decimal>("InputTax")
+                        .HasColumnType("decimal(18, 2)")
+                        .HasColumnName("input_tax");
+
+                    b.Property<int>("Month")
+                        .HasColumnType("int")
+                        .HasColumnName("month");
+
+                    b.Property<decimal>("OutputTax")
+                        .HasColumnType("decimal(18, 2)")
+                        .HasColumnName("output_tax");
+
+                    b.Property<string>("Period")
+                        .IsRequired()
+                        .HasMaxLength(7)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(7)")
+                        .HasColumnName("period");
+
+                    b.Property<decimal>("ProfitAfterTax")
+                        .HasColumnType("decimal(18, 2)")
+                        .HasColumnName("profit_after_tax");
+
+                    b.Property<decimal>("ProfitBeforeTax")
+                        .HasColumnType("decimal(18, 2)")
+                        .HasColumnName("profit_before_tax");
+
+                    b.Property<decimal>("RevenueAfterTax")
+                        .HasColumnType("decimal(18, 2)")
+                        .HasColumnName("revenue_after_tax");
+
+                    b.Property<decimal>("RevenueBeforeTax")
+                        .HasColumnType("decimal(18, 2)")
+                        .HasColumnName("revenue_before_tax");
+
+                    b.Property<decimal>("VatToPay")
+                        .HasColumnType("decimal(18, 2)")
+                        .HasColumnName("vat_to_pay");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("int")
+                        .HasColumnName("year");
+
+                    b.HasIndex("BranchId");
+
+                    b.ToTable("v_profit_summary");
+                });
+
+            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.VSalesSummary", b =>
+                {
+                    b.Property<long?>("BranchId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("branch_id");
+
+                    b.Property<int>("Month")
+                        .HasColumnType("int")
+                        .HasColumnName("month");
+
+                    b.Property<string>("Period")
+                        .IsRequired()
+                        .HasMaxLength(7)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(7)")
+                        .HasColumnName("period");
+
+                    b.Property<decimal>("RevenueAfterTax")
+                        .HasColumnType("decimal(18, 2)")
+                        .HasColumnName("revenue_after_tax");
+
+                    b.Property<decimal>("RevenueBeforeTax")
+                        .HasColumnType("decimal(18, 2)")
+                        .HasColumnName("revenue_before_tax");
+
+                    b.Property<decimal>("TaxAmount")
+                        .HasColumnType("decimal(18, 2)")
+                        .HasColumnName("tax_amount");
+
+                    b.Property<int>("TotalOrders")
+                        .HasColumnType("int")
+                        .HasColumnName("total_orders");
+
+                    b.Property<int>("TotalProducts")
+                        .HasColumnType("int")
+                        .HasColumnName("total_products");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("int")
+                        .HasColumnName("year");
+
+                    b.HasIndex("BranchId");
+
+                    b.ToTable("v_sales_summary");
                 });
 
             modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.BranchExpense", b =>
@@ -2401,14 +3512,14 @@ namespace Dashboard.DataAccess.Data.Migrations
 
             modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.Customer", b =>
                 {
-                    b.HasOne("Dashboard.DataAccess.Models.Entities.User", "User")
-                        .WithMany("Customers")
-                        .HasForeignKey("Id")
+                    b.HasOne("Dashboard.DataAccess.Models.Entities.User", "IdNavigation")
+                        .WithOne("Customer")
+                        .HasForeignKey("Dashboard.DataAccess.Models.Entities.Customer", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_customers_users");
 
-                    b.Navigation("User");
+                    b.Navigation("IdNavigation");
                 });
 
             modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.Employee", b =>
@@ -2420,17 +3531,6 @@ namespace Dashboard.DataAccess.Data.Migrations
                         .HasConstraintName("FK_employees_branch");
 
                     b.Navigation("Branch");
-                });
-
-            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.EmployeePayrollView", b =>
-                {
-                    b.HasOne("Dashboard.DataAccess.Models.Entities.Employee", "Employee")
-                        .WithMany()
-                        .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Employee");
                 });
 
             modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.EmployeeSalary", b =>
@@ -2465,13 +3565,71 @@ namespace Dashboard.DataAccess.Data.Migrations
                     b.Navigation("Branch");
                 });
 
-            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.ExpensesSummaryView", b =>
+            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.GoodsReceivedDetail", b =>
+                {
+                    b.HasOne("Dashboard.DataAccess.Models.Entities.GoodsReceivedNote", "Grn")
+                        .WithMany("GoodsReceivedDetails")
+                        .HasForeignKey("GrnId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_grn_detail_grn");
+
+                    b.HasOne("Dashboard.DataAccess.Models.Entities.Ingredient", "Ingredient")
+                        .WithMany("GoodsReceivedDetails")
+                        .HasForeignKey("IngredientId")
+                        .IsRequired()
+                        .HasConstraintName("FK_grn_detail_ingredient");
+
+                    b.Navigation("Grn");
+
+                    b.Navigation("Ingredient");
+                });
+
+            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.GoodsReceivedNote", b =>
                 {
                     b.HasOne("Dashboard.DataAccess.Models.Entities.Branch", "Branch")
-                        .WithMany()
-                        .HasForeignKey("BranchId");
+                        .WithMany("GoodsReceivedNotes")
+                        .HasForeignKey("BranchId")
+                        .IsRequired()
+                        .HasConstraintName("FK_grn_branch");
+
+                    b.HasOne("Dashboard.DataAccess.Models.Entities.PurchaseInvoice", "Invoice")
+                        .WithMany("GoodsReceivedNotes")
+                        .HasForeignKey("InvoiceId")
+                        .HasConstraintName("FK_grn_invoice");
+
+                    b.HasOne("Dashboard.DataAccess.Models.Entities.IngredientPurchaseOrder", "PurchaseOrder")
+                        .WithMany("GoodsReceivedNotes")
+                        .HasForeignKey("PurchaseOrderId")
+                        .HasConstraintName("FK_grn_purchase_order");
+
+                    b.HasOne("Dashboard.DataAccess.Models.Entities.GoodsReceivedStatus", "Status")
+                        .WithMany("GoodsReceivedNotes")
+                        .HasForeignKey("StatusId")
+                        .HasConstraintName("FK_grn_status");
+
+                    b.HasOne("Dashboard.DataAccess.Models.Entities.Supplier", "Supplier")
+                        .WithMany("GoodsReceivedNotes")
+                        .HasForeignKey("SupplierId")
+                        .IsRequired()
+                        .HasConstraintName("FK_grn_supplier");
+
+                    b.HasOne("Dashboard.DataAccess.Models.Entities.Employee", "WarehouseStaff")
+                        .WithMany("GoodsReceivedNotes")
+                        .HasForeignKey("WarehouseStaffId")
+                        .HasConstraintName("FK_grn_warehouse_staff");
 
                     b.Navigation("Branch");
+
+                    b.Navigation("Invoice");
+
+                    b.Navigation("PurchaseOrder");
+
+                    b.Navigation("Status");
+
+                    b.Navigation("Supplier");
+
+                    b.Navigation("WarehouseStaff");
                 });
 
             modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.Ingredient", b =>
@@ -2494,10 +3652,31 @@ namespace Dashboard.DataAccess.Data.Migrations
 
             modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.IngredientPurchaseOrder", b =>
                 {
+                    b.HasOne("Dashboard.DataAccess.Models.Entities.Branch", "Branch")
+                        .WithMany("IngredientPurchaseOrders")
+                        .HasForeignKey("BranchId")
+                        .HasConstraintName("FK_purchase_order_branch");
+
+                    b.HasOne("Dashboard.DataAccess.Models.Entities.Employee", "Employee")
+                        .WithMany("IngredientPurchaseOrders")
+                        .HasForeignKey("EmployeeId")
+                        .HasConstraintName("FK_purchase_order_employee");
+
+                    b.HasOne("Dashboard.DataAccess.Models.Entities.PurchaseOrderStatus", "Status")
+                        .WithMany("IngredientPurchaseOrders")
+                        .HasForeignKey("StatusId")
+                        .HasConstraintName("FK_purchase_order_status");
+
                     b.HasOne("Dashboard.DataAccess.Models.Entities.Supplier", "Supplier")
                         .WithMany("IngredientPurchaseOrders")
                         .HasForeignKey("SupplierId")
                         .HasConstraintName("FK_purchase_order_supplier");
+
+                    b.Navigation("Branch");
+
+                    b.Navigation("Employee");
+
+                    b.Navigation("Status");
 
                     b.Navigation("Supplier");
                 });
@@ -2551,7 +3730,33 @@ namespace Dashboard.DataAccess.Data.Migrations
                     b.Navigation("Ingredient");
                 });
 
-            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.InventoryStatusView", b =>
+            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.InventoryMovement", b =>
+                {
+                    b.HasOne("Dashboard.DataAccess.Models.Entities.Branch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Dashboard.DataAccess.Models.Entities.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Dashboard.DataAccess.Models.Entities.Ingredient", "Ingredient")
+                        .WithMany("InventoryMovements")
+                        .HasForeignKey("IngredientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Branch");
+
+                    b.Navigation("Employee");
+
+                    b.Navigation("Ingredient");
+                });
+
+            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.InventoryThreshold", b =>
                 {
                     b.HasOne("Dashboard.DataAccess.Models.Entities.Branch", "Branch")
                         .WithMany()
@@ -2560,7 +3765,7 @@ namespace Dashboard.DataAccess.Data.Migrations
                         .IsRequired();
 
                     b.HasOne("Dashboard.DataAccess.Models.Entities.Ingredient", "Ingredient")
-                        .WithMany()
+                        .WithMany("InventoryThresholds")
                         .HasForeignKey("IngredientId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -2749,17 +3954,6 @@ namespace Dashboard.DataAccess.Data.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.ProductWithPricesView", b =>
-                {
-                    b.HasOne("Dashboard.DataAccess.Models.Entities.Product", "Product")
-                        .WithMany()
-                        .HasForeignKey("Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Product");
-                });
-
             modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.ProfitSummary", b =>
                 {
                     b.HasOne("Dashboard.DataAccess.Models.Entities.Branch", "Branch")
@@ -2770,13 +3964,146 @@ namespace Dashboard.DataAccess.Data.Migrations
                     b.Navigation("Branch");
                 });
 
-            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.ProfitSummaryView", b =>
+            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.PurchaseInvoice", b =>
                 {
                     b.HasOne("Dashboard.DataAccess.Models.Entities.Branch", "Branch")
-                        .WithMany()
-                        .HasForeignKey("BranchId");
+                        .WithMany("PurchaseInvoices")
+                        .HasForeignKey("BranchId")
+                        .HasConstraintName("FK_invoice_branch");
+
+                    b.HasOne("Dashboard.DataAccess.Models.Entities.IngredientPurchaseOrder", "PurchaseOrder")
+                        .WithMany("PurchaseInvoices")
+                        .HasForeignKey("PurchaseOrderId")
+                        .HasConstraintName("FK_invoice_purchase_order");
+
+                    b.HasOne("Dashboard.DataAccess.Models.Entities.InvoiceStatus", "Status")
+                        .WithMany("PurchaseInvoices")
+                        .HasForeignKey("StatusId")
+                        .HasConstraintName("FK_invoice_status");
+
+                    b.HasOne("Dashboard.DataAccess.Models.Entities.Supplier", "Supplier")
+                        .WithMany("PurchaseInvoices")
+                        .HasForeignKey("SupplierId")
+                        .IsRequired()
+                        .HasConstraintName("FK_invoice_supplier");
 
                     b.Navigation("Branch");
+
+                    b.Navigation("PurchaseOrder");
+
+                    b.Navigation("Status");
+
+                    b.Navigation("Supplier");
+                });
+
+            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.PurchaseInvoiceDetail", b =>
+                {
+                    b.HasOne("Dashboard.DataAccess.Models.Entities.Ingredient", "Ingredient")
+                        .WithMany("PurchaseInvoiceDetails")
+                        .HasForeignKey("IngredientId")
+                        .IsRequired()
+                        .HasConstraintName("FK_invoice_detail_ingredient");
+
+                    b.HasOne("Dashboard.DataAccess.Models.Entities.PurchaseInvoice", "Invoice")
+                        .WithMany("PurchaseInvoiceDetails")
+                        .HasForeignKey("InvoiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_invoice_detail_invoice");
+
+                    b.Navigation("Ingredient");
+
+                    b.Navigation("Invoice");
+                });
+
+            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.PurchaseReturn", b =>
+                {
+                    b.HasOne("Dashboard.DataAccess.Models.Entities.Employee", "ApprovedByNavigation")
+                        .WithMany("PurchaseReturns")
+                        .HasForeignKey("ApprovedBy")
+                        .HasConstraintName("FK_return_approved_by");
+
+                    b.HasOne("Dashboard.DataAccess.Models.Entities.Branch", "Branch")
+                        .WithMany("PurchaseReturns")
+                        .HasForeignKey("BranchId")
+                        .IsRequired()
+                        .HasConstraintName("FK_return_branch");
+
+                    b.HasOne("Dashboard.DataAccess.Models.Entities.GoodsReceivedNote", "Grn")
+                        .WithMany("PurchaseReturns")
+                        .HasForeignKey("GrnId")
+                        .HasConstraintName("FK_return_grn");
+
+                    b.HasOne("Dashboard.DataAccess.Models.Entities.PurchaseInvoice", "Invoice")
+                        .WithMany("PurchaseReturns")
+                        .HasForeignKey("InvoiceId")
+                        .HasConstraintName("FK_return_invoice");
+
+                    b.HasOne("Dashboard.DataAccess.Models.Entities.Supplier", "Supplier")
+                        .WithMany("PurchaseReturns")
+                        .HasForeignKey("SupplierId")
+                        .IsRequired()
+                        .HasConstraintName("FK_return_supplier");
+
+                    b.Navigation("ApprovedByNavigation");
+
+                    b.Navigation("Branch");
+
+                    b.Navigation("Grn");
+
+                    b.Navigation("Invoice");
+
+                    b.Navigation("Supplier");
+                });
+
+            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.PurchaseReturnDetail", b =>
+                {
+                    b.HasOne("Dashboard.DataAccess.Models.Entities.Ingredient", "Ingredient")
+                        .WithMany("PurchaseReturnDetails")
+                        .HasForeignKey("IngredientId")
+                        .IsRequired()
+                        .HasConstraintName("FK_return_detail_ingredient");
+
+                    b.HasOne("Dashboard.DataAccess.Models.Entities.PurchaseReturn", "Return")
+                        .WithMany("PurchaseReturnDetails")
+                        .HasForeignKey("ReturnId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_return_detail_return");
+
+                    b.Navigation("Ingredient");
+
+                    b.Navigation("Return");
+                });
+
+            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.Recipe", b =>
+                {
+                    b.HasOne("Dashboard.DataAccess.Models.Entities.Product", "Product")
+                        .WithMany("Recipes")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.RecipeIngredient", b =>
+                {
+                    b.HasOne("Dashboard.DataAccess.Models.Entities.Ingredient", "Ingredient")
+                        .WithMany("RecipeIngredients")
+                        .HasForeignKey("IngredientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Dashboard.DataAccess.Models.Entities.Recipe", "Recipe")
+                        .WithMany("RecipeIngredients")
+                        .HasForeignKey("RecipeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Ingredient");
+
+                    b.Navigation("Recipe");
                 });
 
             modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.SalesSummary", b =>
@@ -2785,15 +4112,6 @@ namespace Dashboard.DataAccess.Data.Migrations
                         .WithMany("SalesSummaries")
                         .HasForeignKey("BranchId")
                         .HasConstraintName("FK_sales_summary_branches");
-
-                    b.Navigation("Branch");
-                });
-
-            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.SalesSummaryView", b =>
-                {
-                    b.HasOne("Dashboard.DataAccess.Models.Entities.Branch", "Branch")
-                        .WithMany()
-                        .HasForeignKey("BranchId");
 
                     b.Navigation("Branch");
                 });
@@ -2827,6 +4145,18 @@ namespace Dashboard.DataAccess.Data.Migrations
                     b.Navigation("Supplier");
                 });
 
+            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.SupplierPerformance", b =>
+                {
+                    b.HasOne("Dashboard.DataAccess.Models.Entities.Supplier", "Supplier")
+                        .WithMany("SupplierPerformances")
+                        .HasForeignKey("SupplierId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_performance_supplier");
+
+                    b.Navigation("Supplier");
+                });
+
             modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.Token", b =>
                 {
                     b.HasOne("Dashboard.DataAccess.Models.Entities.User", "User")
@@ -2855,6 +4185,63 @@ namespace Dashboard.DataAccess.Data.Migrations
                     b.Navigation("Role");
                 });
 
+            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.VEmployeePayroll", b =>
+                {
+                    b.HasOne("Dashboard.DataAccess.Models.Entities.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Employee");
+                });
+
+            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.VExpensesSummary", b =>
+                {
+                    b.HasOne("Dashboard.DataAccess.Models.Entities.Branch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("BranchId");
+
+                    b.Navigation("Branch");
+                });
+
+            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.VInventoryStatus", b =>
+                {
+                    b.HasOne("Dashboard.DataAccess.Models.Entities.Branch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Dashboard.DataAccess.Models.Entities.Ingredient", "Ingredient")
+                        .WithMany()
+                        .HasForeignKey("IngredientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Branch");
+
+                    b.Navigation("Ingredient");
+                });
+
+            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.VProfitSummary", b =>
+                {
+                    b.HasOne("Dashboard.DataAccess.Models.Entities.Branch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("BranchId");
+
+                    b.Navigation("Branch");
+                });
+
+            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.VSalesSummary", b =>
+                {
+                    b.HasOne("Dashboard.DataAccess.Models.Entities.Branch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("BranchId");
+
+                    b.Navigation("Branch");
+                });
+
             modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.Branch", b =>
                 {
                     b.Navigation("BranchExpenses");
@@ -2865,11 +4252,19 @@ namespace Dashboard.DataAccess.Data.Migrations
 
                     b.Navigation("ExpensesSummaries");
 
+                    b.Navigation("GoodsReceivedNotes");
+
+                    b.Navigation("IngredientPurchaseOrders");
+
                     b.Navigation("IngredientTransfers");
 
                     b.Navigation("Orders");
 
                     b.Navigation("ProfitSummaries");
+
+                    b.Navigation("PurchaseInvoices");
+
+                    b.Navigation("PurchaseReturns");
 
                     b.Navigation("SalesSummaries");
                 });
@@ -2895,16 +4290,36 @@ namespace Dashboard.DataAccess.Data.Migrations
 
                     b.Navigation("EmployeeShifts");
 
+                    b.Navigation("GoodsReceivedNotes");
+
+                    b.Navigation("IngredientPurchaseOrders");
+
                     b.Navigation("OrderDeliveryTrackings");
 
                     b.Navigation("Payrolls");
 
+                    b.Navigation("PurchaseReturns");
+
                     b.Navigation("Users");
+                });
+
+            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.GoodsReceivedNote", b =>
+                {
+                    b.Navigation("GoodsReceivedDetails");
+
+                    b.Navigation("PurchaseReturns");
+                });
+
+            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.GoodsReceivedStatus", b =>
+                {
+                    b.Navigation("GoodsReceivedNotes");
                 });
 
             modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.Ingredient", b =>
                 {
                     b.Navigation("BranchIngredientInventories");
+
+                    b.Navigation("GoodsReceivedDetails");
 
                     b.Navigation("IngredientPurchaseOrderDetails");
 
@@ -2912,7 +4327,17 @@ namespace Dashboard.DataAccess.Data.Migrations
 
                     b.Navigation("IngredientWarehouses");
 
+                    b.Navigation("InventoryMovements");
+
+                    b.Navigation("InventoryThresholds");
+
                     b.Navigation("ProductRecipes");
+
+                    b.Navigation("PurchaseInvoiceDetails");
+
+                    b.Navigation("PurchaseReturnDetails");
+
+                    b.Navigation("RecipeIngredients");
 
                     b.Navigation("SupplierIngredientPrices");
                 });
@@ -2924,7 +4349,16 @@ namespace Dashboard.DataAccess.Data.Migrations
 
             modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.IngredientPurchaseOrder", b =>
                 {
+                    b.Navigation("GoodsReceivedNotes");
+
                     b.Navigation("IngredientPurchaseOrderDetails");
+
+                    b.Navigation("PurchaseInvoices");
+                });
+
+            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.InvoiceStatus", b =>
+                {
+                    b.Navigation("PurchaseInvoices");
                 });
 
             modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.Order", b =>
@@ -2960,6 +4394,32 @@ namespace Dashboard.DataAccess.Data.Migrations
                     b.Navigation("ProductImages");
 
                     b.Navigation("ProductRecipes");
+
+                    b.Navigation("Recipes");
+                });
+
+            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.PurchaseInvoice", b =>
+                {
+                    b.Navigation("GoodsReceivedNotes");
+
+                    b.Navigation("PurchaseInvoiceDetails");
+
+                    b.Navigation("PurchaseReturns");
+                });
+
+            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.PurchaseOrderStatus", b =>
+                {
+                    b.Navigation("IngredientPurchaseOrders");
+                });
+
+            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.PurchaseReturn", b =>
+                {
+                    b.Navigation("PurchaseReturnDetails");
+                });
+
+            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.Recipe", b =>
+                {
+                    b.Navigation("RecipeIngredients");
                 });
 
             modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.Role", b =>
@@ -2976,9 +4436,17 @@ namespace Dashboard.DataAccess.Data.Migrations
 
             modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.Supplier", b =>
                 {
+                    b.Navigation("GoodsReceivedNotes");
+
                     b.Navigation("IngredientPurchaseOrders");
 
+                    b.Navigation("PurchaseInvoices");
+
+                    b.Navigation("PurchaseReturns");
+
                     b.Navigation("SupplierIngredientPrices");
+
+                    b.Navigation("SupplierPerformances");
                 });
 
             modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.Taxes", b =>
@@ -2990,7 +4458,7 @@ namespace Dashboard.DataAccess.Data.Migrations
 
             modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.User", b =>
                 {
-                    b.Navigation("Customers");
+                    b.Navigation("Customer");
 
                     b.Navigation("SocialAccounts");
 

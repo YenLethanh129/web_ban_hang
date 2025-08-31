@@ -7,12 +7,8 @@ using Microsoft.EntityFrameworkCore;
 namespace Dashboard.DataAccess.Models.Entities;
 
 [Table("ingredient_categories")]
-public partial class IngredientCategory
+public partial class IngredientCategory : BaseAuditableEntity
 {
-    [Key]
-    [Column("id")]
-    public long Id { get; set; }
-
     [Column("name")]
     [StringLength(50)]
     public string Name { get; set; } = null!;
@@ -20,14 +16,6 @@ public partial class IngredientCategory
     [Column("description")]
     [StringLength(255)]
     public string? Description { get; set; }
-
-    [Column("created_at")]
-    [Precision(6)]
-    public DateTime CreatedAt { get; set; }
-
-    [Column("last_modified")]
-    [Precision(6)]
-    public DateTime LastModified { get; set; }
 
     [InverseProperty("Category")]
     public virtual ICollection<Ingredient> Ingredients { get; set; } = new List<Ingredient>();

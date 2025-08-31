@@ -8,11 +8,8 @@ namespace Dashboard.DataAccess.Models.Entities;
 
 [Table("payment_methods")]
 [Index("Name", Name = "UQ__payment___72E12F1BEC94A5AC", IsUnique = true)]
-public partial class PaymentMethod
+public partial class PaymentMethod : BaseEntity
 {
-    [Key]
-    [Column("id")]
-    public long Id { get; set; }
 
     [Column("name")]
     [StringLength(50)]

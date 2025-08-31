@@ -8,12 +8,8 @@ namespace Dashboard.DataAccess.Models.Entities;
 
 [Table("purchase_invoices")]
 [Index("InvoiceCode", Name = "UQ__purchase__5ED70A355181E3E1", IsUnique = true)]
-public partial class PurchaseInvoice
+public partial class PurchaseInvoice : BaseAuditableEntity
 {
-    [Key]
-    [Column("id")]
-    public long Id { get; set; }
-
     [Column("invoice_code")]
     [StringLength(50)]
     [Unicode(false)]
@@ -75,14 +71,6 @@ public partial class PurchaseInvoice
     [StringLength(500)]
     [Unicode(false)]
     public string? Note { get; set; }
-
-    [Column("created_at")]
-    [Precision(6)]
-    public DateTime CreatedAt { get; set; }
-
-    [Column("last_modified")]
-    [Precision(6)]
-    public DateTime LastModified { get; set; }
 
     [ForeignKey("BranchId")]
     [InverseProperty("PurchaseInvoices")]

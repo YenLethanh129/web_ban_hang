@@ -2,17 +2,14 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Runtime.InteropServices;
 using Microsoft.EntityFrameworkCore;
 
 namespace Dashboard.DataAccess.Models.Entities;
 
 [Table("branches")]
-public partial class Branch
+public partial class Branch : BaseAuditableEntity
 {
-    [Key]
-    [Column("id")]
-    public long Id { get; set; }
-
     [Column("name")]
     [StringLength(255)]
     [Unicode(false)]
@@ -32,14 +29,6 @@ public partial class Branch
     [StringLength(100)]
     [Unicode(false)]
     public string? Manager { get; set; }
-
-    [Column("created_at")]
-    [Precision(6)]
-    public DateTime CreatedAt { get; set; }
-
-    [Column("last_modified")]
-    [Precision(6)]
-    public DateTime LastModified { get; set; }
 
     [InverseProperty("Branch")]
     public virtual ICollection<BranchExpense> BranchExpenses { get; set; } = new List<BranchExpense>();

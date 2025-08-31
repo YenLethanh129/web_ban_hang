@@ -19,8 +19,12 @@ public static class DependencyInjection
         builder.Services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
         builder.Services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
         builder.Services.AddScoped<IProductRepository, ProductRepository>();
+        builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
+        builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+        builder.Services.AddScoped<IBranchRepository, BranchRepository>();
+        builder.Services.AddScoped<IIngredientRepository, IngredientRepository>();
 
-        builder.Services.AddDbContext<WebbanhangDbContext>((sp, options)=>
+        builder.Services.AddDbContext<WebbanhangDbContext>((sp, options) =>
         {
             options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
             options.UseSqlServer(Context);
@@ -31,4 +35,3 @@ public static class DependencyInjection
         builder.Services.AddScoped<WebbanhangDbContextInitializer>();
     }
 }
-

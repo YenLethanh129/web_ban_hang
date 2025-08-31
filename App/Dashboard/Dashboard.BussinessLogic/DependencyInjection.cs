@@ -10,10 +10,11 @@ using System.Reflection;
 namespace Dashboard.BussinessLogic;
 public static class DependencyInjection
 {
+    // Keep the existing method for IHostApplicationBuilder
     public static void AddBussinessLogicServices(this IHostApplicationBuilder builder)
     {
-
         builder.Services.AddAutoMapper(typeof(ProductMappingProfile));
+        builder.Services.AddAutoMapper(typeof(CustomerMappingProfile));
 
         builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
         builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
@@ -22,6 +23,7 @@ public static class DependencyInjection
         builder.Services.AddScoped<IProductService, ProductService>();
         builder.Services.AddScoped<IBranchService, BranchService>();
         builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-
+        builder.Services.AddScoped<IOrderService, OrderService>();
+        builder.Services.AddScoped<IReportingService, ReportingService>();
     }
 }

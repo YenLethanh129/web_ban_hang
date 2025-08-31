@@ -7,11 +7,8 @@ using Microsoft.EntityFrameworkCore;
 namespace Dashboard.DataAccess.Models.Entities;
 
 [Table("goods_received_details")]
-public partial class GoodsReceivedDetail
+public partial class GoodsReceivedDetail : BaseAuditableEntity
 {
-    [Key]
-    [Column("id")]
-    public long Id { get; set; }
 
     [Column("grn_id")]
     public long GrnId { get; set; }
@@ -58,14 +55,6 @@ public partial class GoodsReceivedDetail
     [StringLength(255)]
     [Unicode(false)]
     public string? Note { get; set; }
-
-    [Column("created_at")]
-    [Precision(6)]
-    public DateTime CreatedAt { get; set; }
-
-    [Column("last_modified")]
-    [Precision(6)]
-    public DateTime LastModified { get; set; }
 
     [ForeignKey("GrnId")]
     [InverseProperty("GoodsReceivedDetails")]

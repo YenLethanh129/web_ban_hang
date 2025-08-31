@@ -7,11 +7,8 @@ using Microsoft.EntityFrameworkCore;
 namespace Dashboard.DataAccess.Models.Entities;
 
 [Table("product_recipes")]
-public partial class ProductRecipe
+public partial class ProductRecipe : BaseAuditableEntity
 {
-    [Key]
-    [Column("id")]
-    public long Id { get; set; }
 
     [Column("product_id")]
     public long ProductId { get; set; }
@@ -21,14 +18,6 @@ public partial class ProductRecipe
 
     [Column("quantity", TypeName = "decimal(18, 2)")]
     public decimal Quantity { get; set; }
-
-    [Column("created_at")]
-    [Precision(6)]
-    public DateTime CreatedAt { get; set; }
-
-    [Column("last_modified")]
-    [Precision(6)]
-    public DateTime LastModified { get; set; }
 
     [ForeignKey("IngredientId")]
     [InverseProperty("ProductRecipes")]

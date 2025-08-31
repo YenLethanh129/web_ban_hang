@@ -7,12 +7,8 @@ using Microsoft.EntityFrameworkCore;
 namespace Dashboard.DataAccess.Models.Entities;
 
 [Table("order_details")]
-public partial class OrderDetail
+public partial class OrderDetail : BaseAuditableEntity
 {
-    [Key]
-    [Column("id")]
-    public long Id { get; set; }
-
     [Column("quantity")]
     public int Quantity { get; set; }
 
@@ -26,14 +22,6 @@ public partial class OrderDetail
     [StringLength(255)]
     [Unicode(false)]
     public string? Color { get; set; }
-
-    [Column("created_at")]
-    [Precision(6)]
-    public DateTime CreatedAt { get; set; }
-
-    [Column("last_modified")]
-    [Precision(6)]
-    public DateTime LastModified { get; set; }
 
     [Column("note")]
     [StringLength(255)]

@@ -7,14 +7,13 @@ namespace Dashboard.DataAccess.Repositories;
 public interface IRepository<T> where T : class
 {
     Task<IEnumerable<T>> GetAllAsync(bool asNoTracking = false);
-
     Task<int> GetCountAsync();
-
     Task<T?> GetAsync(int id);
     Task<T?> GetAsync(long id);
     Task<T?> GetAsync(string id);
     Task<T?> GetAsync(Guid id);
     Task<T?> AddAsync(T entity);
+    Task<T?> AnyAsnc(Func<T, bool>? predicate = null);
 
     void Add(T entity);
     void AddRange(IEnumerable<T> entities);
@@ -70,6 +69,16 @@ public abstract class Repository<T> where T : class
     {
         return await _dbSet.FindAsync(id);
     }
+
+    public async Task<T?> AnyAsnc(Func<T, bool>? predicate = null)
+    {
+        if (predicate == null)
+        {
+            return await _dbSet.FirstOrDefaultAsync();
+        }
+        return await Task.FromResult(_dbSet.AsEnumerable().FirstOrDefault(predicate));
+    }
+
     public async Task<T?> AddAsync(T entity)
     {
         var addedEntity = await _dbSet.AddAsync(entity);

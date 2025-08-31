@@ -7,12 +7,8 @@ using Microsoft.EntityFrameworkCore;
 namespace Dashboard.DataAccess.Models.Entities;
 
 [Table("ingredients")]
-public partial class Ingredient
+public partial class Ingredient : BaseAuditableEntity
 {
-    [Key]
-    [Column("id")]
-    public long Id { get; set; }
-
     [Column("category_id")]
     public long CategoryId { get; set; }
 
@@ -36,14 +32,6 @@ public partial class Ingredient
 
     [Column("tax_id")]
     public long? TaxId { get; set; }
-
-    [Column("created_at")]
-    [Precision(6)]
-    public DateTime CreatedAt { get; set; }
-
-    [Column("last_modified")]
-    [Precision(6)]
-    public DateTime LastModified { get; set; }
 
     [InverseProperty("Ingredient")]
     public virtual ICollection<BranchIngredientInventory> BranchIngredientInventories { get; set; } = new List<BranchIngredientInventory>();
@@ -78,5 +66,15 @@ public partial class Ingredient
 
     [ForeignKey("TaxId")]
     [InverseProperty("Ingredients")]
-    public virtual Taxis? Tax { get; set; }
+    public virtual Taxes? Tax { get; set; }
+
+    [InverseProperty("Ingredient")]
+    public virtual ICollection<RecipeIngredient> RecipeIngredients { get; set; } = [];
+    
+    [InverseProperty("Ingredient")]
+    public virtual ICollection<InventoryThreshold> InventoryThresholds { get; set; } = new List<InventoryThreshold>();
+    
+    [InverseProperty("Ingredient")]
+    public virtual ICollection<InventoryMovement> InventoryMovements { get; set; } = new List<InventoryMovement>();
+
 }

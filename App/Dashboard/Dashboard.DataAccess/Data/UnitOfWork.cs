@@ -6,8 +6,7 @@ namespace Dashboard.DataAccess.Data;
 
 public interface IUnitOfWork : IDisposable
 {
-    IBranchRepository Branchs { get; }
-
+    IRepository<T> Repository<T>() where T : class;
     Task SaveChangesAsync();
     void BeginTransaction();
     void Commit();
@@ -17,16 +16,26 @@ public interface IUnitOfWork : IDisposable
 public class UnitOfWork : IUnitOfWork
 {
     private readonly WebbanhangDbContext _context;
-    private IDbContextTransaction? _transaction;
-
+    private readonly Dictionary<Type, object> _repositories = [];
+    private IDbContextTransaction? _transaction; 
     public UnitOfWork(WebbanhangDbContext dbContext)
     {
         _context = dbContext;
+    }
+    public IRepository<T> Repository<T>() where T : class
+    {
+        if (_repositories.TryGetValue(typeof(T), out var repo))
+        {
+            return (IRepository<T>)repo;
+        }
 
-        Branchs = new BranchRepository(_context);
+        var repositoryType = typeof(Repository<>);
+        var repositoryInstance = Activator.CreateInstance(repositoryType.MakeGenericType(typeof(T)), _context)!;
+
+        _repositories.Add(typeof(T), repositoryInstance);
+        return (IRepository<T>)repositoryInstance;
     }
 
-    public IBranchRepository Branchs { get; private set; }
 
     public async Task SaveChangesAsync()
     {

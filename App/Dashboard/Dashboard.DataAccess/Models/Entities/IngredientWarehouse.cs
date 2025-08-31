@@ -7,25 +7,13 @@ using Microsoft.EntityFrameworkCore;
 namespace Dashboard.DataAccess.Models.Entities;
 
 [Table("ingredient_warehouse")]
-public partial class IngredientWarehouse
+public partial class IngredientWarehouse : BaseAuditableEntity
 {
-    [Key]
-    [Column("id")]
-    public long Id { get; set; }
-
     [Column("ingredient_id")]
     public long IngredientId { get; set; }
 
     [Column("quantity", TypeName = "decimal(18, 2)")]
     public decimal Quantity { get; set; }
-
-    [Column("created_at")]
-    [Precision(6)]
-    public DateTime CreatedAt { get; set; }
-
-    [Column("last_modified")]
-    [Precision(6)]
-    public DateTime LastModified { get; set; }
 
     [ForeignKey("IngredientId")]
     [InverseProperty("IngredientWarehouses")]

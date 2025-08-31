@@ -13,14 +13,14 @@ namespace Dashboard.Winform
         ///  Clean up any resources being used.
         /// </summary>
         /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing && (components != null))
-            {
-                components.Dispose();
-            }
-            base.Dispose(disposing);
-        }
+        //protected override void Dispose(bool disposing)
+        //{
+        //    if (disposing && (components != null))
+        //    {
+        //        components.Dispose();
+        //    }
+        //    base.Dispose(disposing);
+        //}
 
         #region Windows Form Designer generated code
 
@@ -251,24 +251,24 @@ namespace Dashboard.Winform
             // label5
             // 
             label5.AutoSize = true;
-            label5.Font = new Font("Segoe UI", 13F);
+            label5.Font = new Font("Segoe UI", 10F);
             label5.ForeColor = Color.WhiteSmoke;
-            label5.Location = new Point(29, 19);
+            label5.Location = new Point(29, 0);
             label5.Name = "label5";
-            label5.Size = new Size(52, 25);
-            label5.TabIndex = 1;
-            label5.Text = "1000";
+            label5.Size = new Size(108, 19);
+            label5.TabIndex = 0;
+            label5.Text = "Tổng doanh thu";
             // 
             // lblTotalOfRevenue
             // 
             lblTotalOfRevenue.AutoSize = true;
-            lblTotalOfRevenue.Font = new Font("Segoe UI", 10F);
+            lblTotalOfRevenue.Font = new Font("Segoe UI", 13F);
             lblTotalOfRevenue.ForeColor = Color.WhiteSmoke;
-            lblTotalOfRevenue.Location = new Point(29, 0);
+            lblTotalOfRevenue.Location = new Point(29, 19);
             lblTotalOfRevenue.Name = "lblTotalOfRevenue";
-            lblTotalOfRevenue.Size = new Size(108, 19);
-            lblTotalOfRevenue.TabIndex = 0;
-            lblTotalOfRevenue.Text = "Tổng doanh thu";
+            lblTotalOfRevenue.Size = new Size(52, 25);
+            lblTotalOfRevenue.TabIndex = 1;
+            lblTotalOfRevenue.Text = "1000";
             // 
             // chart1
             // 
@@ -289,6 +289,7 @@ namespace Dashboard.Winform
             chart1.Text = "chart1";
             title1.Alignment = ContentAlignment.TopLeft;
             title1.Font = new Font("Microsoft Sans Serif", 12F);
+            title1.ForeColor = Color.WhiteSmoke;
             title1.Name = "Title1";
             title1.Text = "Tổng Doanh Thu";
             chart1.Titles.Add(title1);
@@ -316,6 +317,7 @@ namespace Dashboard.Winform
             chart2.Text = "chart2";
             title2.Alignment = ContentAlignment.TopLeft;
             title2.Font = new Font("Microsoft Sans Serif", 12F);
+            title2.ForeColor = Color.WhiteSmoke;
             title2.Name = "Title1";
             title2.Text = "Top 5 Sản Phẩm Bán Chạy";
             chart2.Titles.Add(title2);
@@ -493,6 +495,7 @@ namespace Dashboard.Winform
             Font = new Font("Segoe UI", 9F);
             Name = "MainDashboardForm";
             Text = "Dashboard";
+            Load += MainDashboardForm_Load;
             panel1.ResumeLayout(false);
             panel1.PerformLayout();
             panel2.ResumeLayout(false);

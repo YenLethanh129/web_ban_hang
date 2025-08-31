@@ -7,12 +7,8 @@ using Microsoft.EntityFrameworkCore;
 namespace Dashboard.DataAccess.Models.Entities;
 
 [Table("supplier_ingredient_prices")]
-public partial class SupplierIngredientPrice
+public partial class SupplierIngredientPrice : BaseAuditableEntity
 {
-    [Key]
-    [Column("id")]
-    public long Id { get; set; }
-
     [Column("supplier_id")]
     public long SupplierId { get; set; }
 
@@ -34,14 +30,6 @@ public partial class SupplierIngredientPrice
     [Column("expired_date")]
     [Precision(6)]
     public DateTime? ExpiredDate { get; set; }
-
-    [Column("created_at")]
-    [Precision(6)]
-    public DateTime CreatedAt { get; set; }
-
-    [Column("last_modified")]
-    [Precision(6)]
-    public DateTime LastModified { get; set; }
 
     [ForeignKey("IngredientId")]
     [InverseProperty("SupplierIngredientPrices")]

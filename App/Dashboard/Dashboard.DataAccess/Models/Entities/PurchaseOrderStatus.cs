@@ -8,12 +8,8 @@ namespace Dashboard.DataAccess.Models.Entities;
 
 [Table("purchase_order_statuses")]
 [Index("Name", Name = "UQ__purchase__72E12F1B763CAB51", IsUnique = true)]
-public partial class PurchaseOrderStatus
+public partial class PurchaseOrderStatus : BaseEntity  
 {
-    [Key]
-    [Column("id")]
-    public long Id { get; set; }
-
     [Column("name")]
     [StringLength(50)]
     [Unicode(false)]

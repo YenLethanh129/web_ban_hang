@@ -9,12 +9,8 @@ namespace Dashboard.DataAccess.Models.Entities;
 [Table("orders")]
 [Index("OrderUuid", Name = "UQ__orders__3DE398663640EAE7", IsUnique = true)]
 [Index("OrderCode", Name = "UQ__orders__99D12D3FB3E1E0BA", IsUnique = true)]
-public partial class Order
+public partial class Order : BaseAuditableEntity
 {
-    [Key]
-    [Column("id")]
-    public long Id { get; set; }
-
     [Column("order_uuid")]
     [StringLength(36)]
     [Unicode(false)]
@@ -37,14 +33,6 @@ public partial class Order
     [Column("status_id")]
     public long? StatusId { get; set; }
 
-    [Column("created_at")]
-    [Precision(6)]
-    public DateTime CreatedAt { get; set; }
-
-    [Column("last_modified")]
-    [Precision(6)]
-    public DateTime LastModified { get; set; }
-
     [Column("notes")]
     [StringLength(500)]
     public string? Notes { get; set; }
@@ -58,16 +46,16 @@ public partial class Order
     public virtual Customer Customer { get; set; } = null!;
 
     [InverseProperty("Order")]
-    public virtual ICollection<OrderDeliveryTracking> OrderDeliveryTrackings { get; set; } = new List<OrderDeliveryTracking>();
+    public virtual ICollection<OrderDeliveryTracking> OrderDeliveryTrackings { get; set; } = [];
 
     [InverseProperty("Order")]
-    public virtual ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
+    public virtual ICollection<OrderDetail> OrderDetails { get; set; } = [];
 
     [InverseProperty("Order")]
-    public virtual ICollection<OrderPayment> OrderPayments { get; set; } = new List<OrderPayment>();
+    public virtual ICollection<OrderPayment> OrderPayments { get; set; } = [];
 
     [InverseProperty("Order")]
-    public virtual ICollection<OrderShipment> OrderShipments { get; set; } = new List<OrderShipment>();
+    public virtual ICollection<OrderShipment> OrderShipments { get; set; } = [];
 
     [ForeignKey("StatusId")]
     [InverseProperty("Orders")]

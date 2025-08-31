@@ -8,12 +8,8 @@ namespace Dashboard.DataAccess.Models.Entities;
 
 [Table("ingredient_purchase_orders")]
 [Index("PurchaseOrderCode", Name = "UQ__ingredie__19DA46F1B121FE7C", IsUnique = true)]
-public partial class IngredientPurchaseOrder
+public partial class IngredientPurchaseOrder : BaseAuditableEntity
 {
-    [Key]
-    [Column("id")]
-    public long Id { get; set; }
-
     [Column("purchase_order_code")]
     [StringLength(50)]
     [Unicode(false)]
@@ -58,14 +54,6 @@ public partial class IngredientPurchaseOrder
     [StringLength(500)]
     [Unicode(false)]
     public string? Note { get; set; }
-
-    [Column("created_at")]
-    [Precision(6)]
-    public DateTime CreatedAt { get; set; }
-
-    [Column("last_modified")]
-    [Precision(6)]
-    public DateTime LastModified { get; set; }
 
     [ForeignKey("BranchId")]
     [InverseProperty("IngredientPurchaseOrders")]

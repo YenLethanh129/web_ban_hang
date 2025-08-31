@@ -8,12 +8,8 @@ namespace Dashboard.DataAccess.Models.Entities;
 
 [Table("invoice_statuses")]
 [Index("Name", Name = "UQ__invoice___72E12F1B28814C66", IsUnique = true)]
-public partial class InvoiceStatus
+public partial class InvoiceStatus: BaseEntity
 {
-    [Key]
-    [Column("id")]
-    public long Id { get; set; }
-
     [Column("name")]
     [StringLength(50)]
     [Unicode(false)]

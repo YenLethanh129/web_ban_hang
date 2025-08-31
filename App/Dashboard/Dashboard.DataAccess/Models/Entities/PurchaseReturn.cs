@@ -8,12 +8,8 @@ namespace Dashboard.DataAccess.Models.Entities;
 
 [Table("purchase_returns")]
 [Index("ReturnCode", Name = "UQ__purchase__51FB33A06DB976E7", IsUnique = true)]
-public partial class PurchaseReturn
+public partial class PurchaseReturn : BaseAuditableEntity
 {
-    [Key]
-    [Column("id")]
-    public long Id { get; set; }
-
     [Column("return_code")]
     [StringLength(50)]
     [Unicode(false)]
@@ -65,14 +61,6 @@ public partial class PurchaseReturn
     [StringLength(500)]
     [Unicode(false)]
     public string? Note { get; set; }
-
-    [Column("created_at")]
-    [Precision(6)]
-    public DateTime CreatedAt { get; set; }
-
-    [Column("last_modified")]
-    [Precision(6)]
-    public DateTime LastModified { get; set; }
 
     [ForeignKey("ApprovedBy")]
     [InverseProperty("PurchaseReturns")]

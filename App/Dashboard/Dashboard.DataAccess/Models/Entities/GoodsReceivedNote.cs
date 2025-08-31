@@ -8,12 +8,8 @@ namespace Dashboard.DataAccess.Models.Entities;
 
 [Table("goods_received_notes")]
 [Index("GrnCode", Name = "UQ__goods_re__D27DBA9E53D946EE", IsUnique = true)]
-public partial class GoodsReceivedNote
+public partial class GoodsReceivedNote : BaseAuditableEntity
 {
-    [Key]
-    [Column("id")]
-    public long Id { get; set; }
-
     [Column("grn_code")]
     [StringLength(50)]
     [Unicode(false)]
@@ -69,14 +65,6 @@ public partial class GoodsReceivedNote
     [StringLength(500)]
     [Unicode(false)]
     public string? Note { get; set; }
-
-    [Column("created_at")]
-    [Precision(6)]
-    public DateTime CreatedAt { get; set; }
-
-    [Column("last_modified")]
-    [Precision(6)]
-    public DateTime LastModified { get; set; }
 
     [ForeignKey("BranchId")]
     [InverseProperty("GoodsReceivedNotes")]

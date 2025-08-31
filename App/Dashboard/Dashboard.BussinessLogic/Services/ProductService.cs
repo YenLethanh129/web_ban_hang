@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Dashboard.BussinessLogic.Dtos;
 using Dashboard.BussinessLogic.Dtos.ProductDtos;
+using Dashboard.Common.Enums;
 using Dashboard.DataAccess.Data;
 using Dashboard.DataAccess.Models.Entities;
 using Dashboard.DataAccess.Repositories;
@@ -17,6 +18,7 @@ public interface IProductService
     Task<ProductDto> UpdateProductAsync(UpdateProductInput input);
     Task<bool> DeleteProductAsync(int id);
     Task<bool> IsProductNameExistsAsync(string name, int? excludeId = null);
+    Task<int> GetAmount(GetProductsInput input);
 }
 
 public class ProductService : IProductService
@@ -45,40 +47,34 @@ public class ProductService : IProductService
             var specification = new Specification<Product>(p =>
                 (string.IsNullOrEmpty(input.Name) || p.Name.Contains(input.Name)) &&
                 (!input.CategoryId.HasValue || p.CategoryId == input.CategoryId.Value) &&
-                //(!input.IsActive.HasValue || p.IsActive == input.IsActive.Value) &&
+                (!input.IsActive.HasValue || p.IsActive == input.IsActive.Value) &&
                 (!input.MinPrice.HasValue || p.Price >= input.MinPrice.Value) &&
-                (!input.MaxPrice.HasValue || p.Price <= input.MaxPrice.Value)
+                (!input.MaxPrice.HasValue || p.Price <= input.MaxPrice.Value) && 
+                (!input.StartDate.HasValue || p.CreatedAt.Date == input.StartDate.Value) &&
+                (!input.EndDate.HasValue || p.CreatedAt.Date <= input.EndDate.Value)
             );
 
             specification.Includes.Add(p => p.Category!);
             specification.Includes.Add(p => p.ProductImages);
 
-            var allProducts = await _productRepository.GetAllWithSpecAsync(specification);
+            var allProducts = await _productRepository.GetAllWithSpecAsync(specification, true);
 
             IEnumerable<Product> sortedProducts = allProducts;
-            if (!string.IsNullOrEmpty(input.SortBy))
+            if (input.SortBy.HasValue)
             {
-                switch (input.SortBy.ToLower())
+                sortedProducts = input.SortBy switch
                 {
-                    case "name":
-                        sortedProducts = input.IsDescending
-                            ? allProducts.OrderByDescending(p => p.Name)
-                            : allProducts.OrderBy(p => p.Name);
-                        break;
-                    case "price":
-                        sortedProducts = input.IsDescending
-                            ? allProducts.OrderByDescending(p => p.Price)
-                            : allProducts.OrderBy(p => p.Price);
-                        break;
-                    case "createddate":
-                        sortedProducts = input.IsDescending
-                            ? allProducts.OrderByDescending(p => p.CreatedAt)
-                            : allProducts.OrderBy(p => p.CreatedAt);
-                        break;
-                    default:
-                        sortedProducts = allProducts.OrderByDescending(p => p.CreatedAt);
-                        break;
-                }
+                    SortByEnum.Name => input.IsDescending
+                                                ? allProducts.OrderByDescending(p => p.Name)
+                                                : allProducts.OrderBy(p => p.Name),
+                    SortByEnum.Price => input.IsDescending
+                                                ? allProducts.OrderByDescending(p => p.Price)
+                                                : allProducts.OrderBy(p => p.Price),
+                    SortByEnum.CreatedDate => input.IsDescending
+                                                ? allProducts.OrderByDescending(p => p.CreatedAt)
+                                                : allProducts.OrderBy(p => p.CreatedAt),
+                    _ => allProducts.OrderByDescending(p => p.CreatedAt),
+                };
             }
             else
             {
@@ -92,7 +88,6 @@ public class ProductService : IProductService
                 .Take(input.PageSize)
                 .ToList();
 
-            // Map sang DTO
             var productDtos = _mapper.Map<IEnumerable<ProductDto>>(pagedProducts);
 
             return new PagedList<ProductDto>
@@ -169,11 +164,11 @@ public class ProductService : IProductService
             product.ProductImages.Clear();
             if (input.ImageUrls.Any())
             {
-                product.ProductImages = input.ImageUrls.Select((url) => new ProductImage
+                product.ProductImages = [.. input.ImageUrls.Select((url) => new ProductImage
                 {
                     ProductId = product.Id,
                     ImageUrl = url,
-                }).ToList();
+                })];
             }
 
             _productRepository.Update(product);
@@ -218,6 +213,31 @@ public class ProductService : IProductService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurred while checking product name exists");
+            throw;
+        }
+    }
+
+    public async Task<int> GetAmount(GetProductsInput input)
+    {
+        try
+        {
+            var specification = new Specification<Product>(p =>
+                            (string.IsNullOrEmpty(input.Name) || p.Name.Contains(input.Name)) &&
+                            (!input.CategoryId.HasValue || p.CategoryId == input.CategoryId.Value) &&
+                            (!input.IsActive.HasValue || p.IsActive == input.IsActive.Value) &&
+                            (!input.MinPrice.HasValue || p.Price >= input.MinPrice.Value) &&
+                            (!input.MaxPrice.HasValue || p.Price <= input.MaxPrice.Value) &&
+                            (!input.StartDate.HasValue || p.CreatedAt.Date == input.StartDate.Value) &&
+                            (!input.EndDate.HasValue || p.CreatedAt.Date <= input.EndDate.Value)
+                        );
+            var allProducts = await _productRepository.GetAllWithSpecAsync(specification, true);
+
+            return allProducts.Count();
+
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while getting product amount");
             throw;
         }
     }

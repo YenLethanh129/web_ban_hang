@@ -7,6 +7,7 @@
   <ItemGroup>
     <!-- Aspire -->
     <PackageVersion Include="Aspire.Hosting.AppHost" Version="9.3.1" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.19" />
     <!-- Microsoft Extensions -->
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="8.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="$(MicrosoftExtensionsVersion)" />
@@ -29,6 +30,7 @@
     <PackageVersion Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1" />
     <PackageVersion Include="AutoMapper" Version="13.0.1" />
     <PackageVersion Include="Ardalis.GuardClauses" Version="5.0" />
+    <PackageVersion Include="MailKit" Version="4.2.0" />
     <!-- Testing -->
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
     <PackageVersion Include="Moq" Version="4.20.72" />
@@ -66,6 +68,9 @@
     <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.9.0" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="1.9.0" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.9.0" />
+    <PackageVersion Include="System.Text.Json" Version="8.0.6" />
     <PackageVersion Include="WinForms.DataVisualization" Version="1.10.0" />
+    <!-- SATA UI Framework -->
+    <PackageVersion Include="SATAUiFramework" Version="1.0.0" />
   </ItemGroup>
 </Project>

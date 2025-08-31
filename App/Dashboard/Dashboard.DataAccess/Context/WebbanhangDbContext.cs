@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Dashboard.Common.Enums;
 using Dashboard.DataAccess.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -102,7 +101,7 @@ public partial class WebbanhangDbContext : DbContext
 
     public virtual DbSet<SupplierPerformance> SupplierPerformances { get; set; }
 
-    public virtual DbSet<Taxis> Taxes { get; set; }
+    public virtual DbSet<Taxes> Taxes { get; set; }
 
     public virtual DbSet<Token> Tokens { get; set; }
 
@@ -114,11 +113,14 @@ public partial class WebbanhangDbContext : DbContext
 
     public virtual DbSet<VInventoryStatus> VInventoryStatuses { get; set; }
 
-    public virtual DbSet<VProductsWithPrice> VProductsWithPrices { get; set; }
-
     public virtual DbSet<VProfitSummary> VProfitSummaries { get; set; }
 
     public virtual DbSet<VSalesSummary> VSalesSummaries { get; set; }
+
+    public virtual DbSet<Recipe> Recipes { get; set; }
+    public virtual DbSet<RecipeIngredient> RecipeIngredients { get; set; }
+    public virtual DbSet<InventoryThreshold> InventoryThresholds { get; set; }
+    public virtual DbSet<InventoryMovement> InventoryMovements { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -270,6 +272,68 @@ public partial class WebbanhangDbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PK__goods_re__3213E83F8F12AE54");
         });
+
+        modelBuilder.Entity<Recipe>(entity =>
+        {
+            entity.HasIndex(e => new { e.ProductId, e.Name }).IsUnique();
+            
+            entity.HasOne(d => d.Product)
+                .WithMany(p => p.Recipes)
+                .HasForeignKey(d => d.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<RecipeIngredient>(entity =>
+        {
+            entity.HasIndex(e => new { e.RecipeId, e.IngredientId }).IsUnique();
+
+            entity.HasOne(d => d.Recipe)
+                .WithMany(p => p.RecipeIngredients)
+                .HasForeignKey(d => d.RecipeId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(d => d.Ingredient)
+                .WithMany(p => p.RecipeIngredients)
+                .HasForeignKey(d => d.IngredientId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<InventoryThreshold>(entity =>
+        {
+            entity.HasIndex(e => new { e.BranchId, e.IngredientId }).IsUnique();
+
+            entity.HasOne(d => d.Branch)
+                .WithMany()
+                .HasForeignKey(d => d.BranchId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(d => d.Ingredient)
+                .WithMany(p => p.InventoryThresholds)
+                .HasForeignKey(d => d.IngredientId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<InventoryMovement>(entity =>
+        {
+            entity.HasIndex(e => new { e.BranchId, e.IngredientId, e.MovementDate });
+            entity.HasIndex(e => new { e.ReferenceType, e.ReferenceId });
+
+            entity.HasOne(d => d.Branch)
+                .WithMany()
+                .HasForeignKey(d => d.BranchId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(d => d.Ingredient)
+                .WithMany(p => p.InventoryMovements)
+                .HasForeignKey(d => d.IngredientId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(d => d.Employee)
+                .WithMany()
+                .HasForeignKey(d => d.EmployeeId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
 
         modelBuilder.Entity<Ingredient>(entity =>
         {
@@ -653,7 +717,7 @@ public partial class WebbanhangDbContext : DbContext
             entity.HasOne(d => d.Supplier).WithMany(p => p.SupplierPerformances).HasConstraintName("FK_performance_supplier");
         });
 
-        modelBuilder.Entity<Taxis>(entity =>
+        modelBuilder.Entity<Taxes>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__taxes__3213E83F92587024");
         });
