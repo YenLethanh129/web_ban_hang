@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Dashboard.BussinessLogic.Dtos;
+using Dashboard.BussinessLogic.Dtos.IngredientDtos;
 using Dashboard.BussinessLogic.Dtos.ReportDtos;
 using Dashboard.Common.Enums;
 using Dashboard.DataAccess.Data;
@@ -21,15 +22,18 @@ public interface IReportingService
 public class ReportingService : IReportingService
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IIngredientRepository _ingredientRepository;
     private readonly IOrderService _orderService;
     private readonly IMapper _mapper;
 
     public ReportingService(
         IUnitOfWork unitOfWork,
+        IIngredientRepository ingredientRepository,
         IOrderService orderService,
         IMapper mapper)
     {
         _unitOfWork = unitOfWork;
+        _ingredientRepository = ingredientRepository;
         _orderService = orderService;
         _mapper = mapper;
     }
@@ -45,6 +49,7 @@ public class ReportingService : IReportingService
             var todayOrderSummary = await _orderService.GetOrderSummaryAsync(today, today);
             var monthlyOrderSummary = await _orderService.GetOrderSummaryAsync(startOfMonth, today);
             var yearlyOrderSummary = await _orderService.GetOrderSummaryAsync(startOfYear, today);
+            var understockIngredients = await _ingredientRepository.GetLowStockWarehouseIngredientsAsync();
 
             var todayExpenses = await GetExpensesForPeriodAsync(today, today);
             var monthlyExpenses = await GetExpensesForPeriodAsync(startOfMonth, today);
@@ -53,6 +58,8 @@ public class ReportingService : IReportingService
             var topProducts = await GetTopSellingProductsAsync(startOfMonth, today);
 
             var branchPerformance = await _orderService.GetBranchOrderSummaryAsync(startOfMonth, today);
+
+            var understockIngredientsDto = _mapper.Map<List<LowStockIngredientDto>>(understockIngredients);
 
             return new DashboardSummaryDto
             {
@@ -68,6 +75,7 @@ public class ReportingService : IReportingService
                 TotalOrders = yearlyOrderSummary.TotalOrders,
                 PendingOrders = yearlyOrderSummary.PendingOrders,
                 TopProducts = topProducts,
+                UnderstockIngredients = understockIngredientsDto,
                 BranchPerformance = [.. branchPerformance.Select(bp => new BranchPerformanceDto
                 {
                     BranchId = bp.BranchId,

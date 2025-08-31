@@ -14,7 +14,6 @@ public partial class Customer : BaseAuditableEntity
 
     [Column("fullname")]
     [StringLength(100)]
-    [Unicode(false)]
     public string Fullname { get; set; } = null!;
 
     [Column("phone_number")]
@@ -29,7 +28,6 @@ public partial class Customer : BaseAuditableEntity
 
     [Column("address")]
     [StringLength(200)]
-    [Unicode(false)]
     public string? Address { get; set; }
 
     [ForeignKey("Id")]

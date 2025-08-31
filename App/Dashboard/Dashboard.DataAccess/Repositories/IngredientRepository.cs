@@ -111,12 +111,11 @@ public class IngredientRepository : Repository<Ingredient>, IIngredientRepositor
     {
         return await _context.Ingredients
             .Include(i => i.Category)
-            .Include(i => i.IngredientWarehouses)
+            .Include(i => i.IngredientWarehouse)
             .Include(i => i.InventoryThresholds)
-            .Include(i => i.InventoryThresholds)
-            .Where(i => i.IngredientWarehouses.Any(iw =>
+            .Where(i => i.IngredientWarehouse != null &&
                 i.InventoryThresholds.Any(it =>
-                    iw.Quantity <= it.MinimumStock)))
+                    i.IngredientWarehouse.Quantity <= it.MinimumStock))
             .ToListAsync();
     }
         public async Task<Ingredient> CreateIngredientAsync(Ingredient ingredient)

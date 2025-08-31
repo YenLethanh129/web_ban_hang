@@ -2,11 +2,11 @@
 
 public class BranchIngredientInventoryDto
 {
-    public int Id { get; set; }
-    public int BranchId { get; set; }
+    public long Id { get; set; }
+    public long BranchId { get; set; }
     public string BranchName { get; set; } = string.Empty;
-    public int IngredientId { get; set; }
-    public IngredientDto Ingredient { get; set; } = new();
+    public long IngredientId { get; set; }
+    public LowStockIngredientDto Ingredient { get; set; } = new();
     public decimal CurrentStock { get; set; }
     public decimal MinimumThreshold { get; set; }
     public decimal MaximumThreshold { get; set; }

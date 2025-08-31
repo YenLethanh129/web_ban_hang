@@ -47,6 +47,10 @@ public partial class WebbanhangDbContext : DbContext
 
     public virtual DbSet<IngredientTransfer> IngredientTransfers { get; set; }
 
+    public virtual DbSet<IngredientTransferRequest> IngredientTransferRequests { get; set; }
+
+    public virtual DbSet<IngredientTransferRequestDetail> IngredientTransferRequestDetails { get; set; }
+
     public virtual DbSet<IngredientWarehouse> IngredientWarehouses { get; set; }
 
     public virtual DbSet<InvoiceStatus> InvoiceStatuses { get; set; }
@@ -411,7 +415,7 @@ public partial class WebbanhangDbContext : DbContext
 
             entity.Property(e => e.LastModified).HasDefaultValueSql("(getdate())");
 
-            entity.HasOne(d => d.Ingredient).WithMany(p => p.IngredientWarehouses)
+            entity.HasOne(d => d.Ingredient).WithOne(p => p.IngredientWarehouse)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_ingredient_warehouse");
         });

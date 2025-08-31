@@ -4,6 +4,7 @@ using Dashboard.DataAccess.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Dashboard.DataAccess.Data.Migrations
 {
     [DbContext(typeof(WebbanhangDbContext))]
-    partial class WebbanhangDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250831140741_RefactorWarehouseSystem")]
+    partial class RefactorWarehouseSystem
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -33,7 +36,8 @@ namespace Dashboard.DataAccess.Data.Migrations
 
                     b.Property<string>("Address")
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(255)")
                         .HasColumnName("address");
 
                     b.Property<DateTime>("CreatedAt")
@@ -48,13 +52,15 @@ namespace Dashboard.DataAccess.Data.Migrations
 
                     b.Property<string>("Manager")
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(100)")
                         .HasColumnName("manager");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(255)")
                         .HasColumnName("name");
 
                     b.Property<string>("Phone")
@@ -100,7 +106,8 @@ namespace Dashboard.DataAccess.Data.Migrations
                     b.Property<string>("ExpenseType")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(100)")
                         .HasColumnName("expense_type");
 
                     b.Property<DateTime>("LastModified")
@@ -110,7 +117,8 @@ namespace Dashboard.DataAccess.Data.Migrations
 
                     b.Property<string>("Note")
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(255)")
                         .HasColumnName("note");
 
                     b.Property<string>("PaymentCycle")
@@ -168,7 +176,8 @@ namespace Dashboard.DataAccess.Data.Migrations
 
                     b.Property<string>("Location")
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(100)")
                         .HasColumnName("location");
 
                     b.Property<decimal>("MinimumStock")
@@ -206,7 +215,8 @@ namespace Dashboard.DataAccess.Data.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(255)")
                         .HasColumnName("name");
 
                     b.HasKey("Id")
@@ -226,7 +236,8 @@ namespace Dashboard.DataAccess.Data.Migrations
 
                     b.Property<string>("Address")
                         .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)")
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(200)")
                         .HasColumnName("address");
 
                     b.Property<DateTime>("CreatedAt")
@@ -245,7 +256,8 @@ namespace Dashboard.DataAccess.Data.Migrations
                     b.Property<string>("Fullname")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(100)")
                         .HasColumnName("fullname");
 
                     b.Property<DateTime>("LastModified")
@@ -343,7 +355,8 @@ namespace Dashboard.DataAccess.Data.Migrations
 
                     b.Property<string>("Position")
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)")
                         .HasColumnName("position");
 
                     b.Property<DateOnly?>("ResignDate")
@@ -829,7 +842,8 @@ namespace Dashboard.DataAccess.Data.Migrations
 
                     b.Property<string>("Description")
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(255)")
                         .HasColumnName("description");
 
                     b.Property<bool>("IsActive")
@@ -848,7 +862,8 @@ namespace Dashboard.DataAccess.Data.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(255)")
                         .HasColumnName("name");
 
                     b.Property<long?>("TaxId")
@@ -858,7 +873,8 @@ namespace Dashboard.DataAccess.Data.Migrations
                     b.Property<string>("Unit")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)")
                         .HasColumnName("unit");
 
                     b.HasKey("Id")
@@ -1082,7 +1098,8 @@ namespace Dashboard.DataAccess.Data.Migrations
 
                     b.Property<string>("ApprovedBy")
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(100)")
                         .HasColumnName("approved_by");
 
                     b.Property<long>("BranchId")
@@ -1111,7 +1128,8 @@ namespace Dashboard.DataAccess.Data.Migrations
 
                     b.Property<string>("Note")
                         .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(500)")
                         .HasColumnName("note");
 
                     b.Property<decimal>("Quantity")
@@ -1120,7 +1138,8 @@ namespace Dashboard.DataAccess.Data.Migrations
 
                     b.Property<string>("RequestedBy")
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(100)")
                         .HasColumnName("requested_by");
 
                     b.Property<string>("Status")
@@ -1162,7 +1181,8 @@ namespace Dashboard.DataAccess.Data.Migrations
 
                     b.Property<string>("ApprovedBy")
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(100)")
                         .HasColumnName("approved_by");
 
                     b.Property<DateTime?>("ApprovedDate")
@@ -1189,7 +1209,8 @@ namespace Dashboard.DataAccess.Data.Migrations
 
                     b.Property<string>("Note")
                         .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(500)")
                         .HasColumnName("note");
 
                     b.Property<DateTime>("RequestDate")
@@ -1206,7 +1227,8 @@ namespace Dashboard.DataAccess.Data.Migrations
                     b.Property<string>("RequestedBy")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(100)")
                         .HasColumnName("requested_by");
 
                     b.Property<DateTime>("RequiredDate")
@@ -1260,7 +1282,8 @@ namespace Dashboard.DataAccess.Data.Migrations
 
                     b.Property<string>("Note")
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(255)")
                         .HasColumnName("note");
 
                     b.Property<decimal>("RequestedQuantity")
@@ -1318,7 +1341,8 @@ namespace Dashboard.DataAccess.Data.Migrations
 
                     b.Property<string>("Location")
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(100)")
                         .HasColumnName("location");
 
                     b.Property<decimal?>("MaximumStock")
@@ -2016,7 +2040,8 @@ namespace Dashboard.DataAccess.Data.Migrations
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(255)")
                         .HasColumnName("description");
 
                     b.Property<bool>("IsActive")
@@ -2033,7 +2058,8 @@ namespace Dashboard.DataAccess.Data.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(255)")
                         .HasColumnName("name");
 
                     b.Property<decimal>("Price")
@@ -2993,7 +3019,8 @@ namespace Dashboard.DataAccess.Data.Migrations
 
                     b.Property<string>("Address")
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(255)")
                         .HasColumnName("address");
 
                     b.Property<DateTime>("CreatedAt")
@@ -3015,12 +3042,14 @@ namespace Dashboard.DataAccess.Data.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(255)")
                         .HasColumnName("name");
 
                     b.Property<string>("Note")
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(255)")
                         .HasColumnName("note");
 
                     b.Property<string>("Phone")

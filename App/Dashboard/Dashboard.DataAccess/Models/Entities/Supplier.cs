@@ -11,7 +11,6 @@ public partial class Supplier : BaseAuditableEntity
 {
     [Column("name")]
     [StringLength(255)]
-    [Unicode(false)]
     public string Name { get; set; } = null!;
 
     [Column("phone")]
@@ -26,12 +25,10 @@ public partial class Supplier : BaseAuditableEntity
 
     [Column("address")]
     [StringLength(255)]
-    [Unicode(false)]
     public string? Address { get; set; }
 
     [Column("note")]
     [StringLength(255)]
-    [Unicode(false)]
     public string? Note { get; set; }
 
     [InverseProperty("Supplier")]

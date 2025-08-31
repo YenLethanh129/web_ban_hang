@@ -14,7 +14,7 @@ GO
 
 CREATE TABLE [dbo].[categories] (
 [id] bigint NOT NULL IDENTITY(1,1),
-[name] varchar(255) NOT NULL UNIQUE,
+[name] nvarchar(255) NOT NULL UNIQUE,
 PRIMARY KEY ([id])
 );
 GO
@@ -51,10 +51,10 @@ GO
 
 CREATE TABLE [dbo].[branches] (
 [id] bigint NOT NULL IDENTITY(1,1),
-[name] varchar(255) NOT NULL,
-[address] varchar(255),
+[name] nvarchar(255) NOT NULL,
+[address] nvarchar(255),
 [phone] varchar(20),
-[manager] varchar(100),
+[manager] nvarchar(100),
 [created_at] datetime2(6) NOT NULL,
 [last_modified] datetime2(6) NOT NULL,
 PRIMARY KEY ([id])
@@ -63,11 +63,11 @@ GO
 
 CREATE TABLE [dbo].[suppliers] (
 [id] bigint NOT NULL IDENTITY(1,1),
-[name] varchar(255) NOT NULL,
+[name] nvarchar(255) NOT NULL,
 [phone] varchar(20),
 [email] varchar(100),
-[address] varchar(255),
-[note] varchar(255),
+[address] nvarchar(255),
+[note] nvarchar(255),
 [created_at] datetime2(6) NOT NULL,
 [last_modified] datetime2(6) NOT NULL,
 PRIMARY KEY ([id])
@@ -147,7 +147,7 @@ CREATE TABLE [dbo].[employees] (
 [full_name] nvarchar(100) NOT NULL,
 [phone] varchar(20),
 [email] varchar(100),
-[position] varchar(50),
+[position] nvarchar(50),
 [hire_date] date NOT NULL,
 [resign_date] date,
 [status] varchar(20) DEFAULT ('ACTIVE'),
@@ -163,8 +163,8 @@ CREATE TABLE [dbo].[products] (
 [category_id] bigint,
 [is_active] BIT DEFAULT (CONVERT([bit],(1))) NOT NULL,
 [tax_id] bigint,
-[description] varchar(255) NOT NULL,
-[name] varchar(255) NOT NULL,
+[description] nvarchar(255) NOT NULL,
+[name] nvarchar(255) NOT NULL,
 [thumbnail] varchar(255),
 [created_at] datetime2(6) NOT NULL,
 [last_modified] datetime2(6) NOT NULL,
@@ -175,10 +175,10 @@ GO
 CREATE TABLE [dbo].[ingredients] (
 [id] bigint NOT NULL IDENTITY(1,1),
 [category_id] bigint NOT NULL,
-[name] varchar(255) NOT NULL,
-[unit] varchar(50) NOT NULL,
+[name] nvarchar(255) NOT NULL,
+[unit] nvarchar(50) NOT NULL,
 [is_active] BIT DEFAULT (CONVERT([bit],(1))) NOT NULL,
-[description] varchar(255),
+[description] nvarchar(255),
 [tax_id] bigint,
 [created_at] datetime2(6) DEFAULT (getdate()) NOT NULL,
 [last_modified] datetime2(6) DEFAULT (getdate()) NOT NULL,
@@ -317,6 +317,10 @@ CREATE TABLE [dbo].[branch_ingredient_inventory] (
 [quantity] decimal(18,2) NOT NULL,
 [created_at] datetime2(6) NOT NULL,
 [last_modified] datetime2(6) DEFAULT (getdate()) NOT NULL,
+[last_transfer_date] datetime2(7),
+[location] nvarchar(100),
+[minimum_stock] decimal(18,2) DEFAULT (0.0) NOT NULL,
+[reserved_quantity] decimal(18,2) DEFAULT (0.0) NOT NULL,
 PRIMARY KEY ([id])
 );
 GO
@@ -327,6 +331,9 @@ CREATE TABLE [dbo].[ingredient_warehouse] (
 [quantity] decimal(18,2) NOT NULL,
 [created_at] datetime2(6) NOT NULL,
 [last_modified] datetime2(6) DEFAULT (getdate()) NOT NULL,
+[location] nvarchar(100),
+[maximum_stock] decimal(18,2),
+[minimum_stock] decimal(18,2) DEFAULT (0.0) NOT NULL,
 PRIMARY KEY ([id])
 );
 GO
@@ -336,9 +343,15 @@ CREATE TABLE [dbo].[ingredient_transfers] (
 [ingredient_id] bigint NOT NULL,
 [branch_id] bigint NOT NULL,
 [quantity] decimal(18,2) NOT NULL,
-[note] varchar(255),
+[note] nvarchar(500),
 [created_at] datetime2(6) DEFAULT (getdate()) NOT NULL,
 [last_modified] datetime2(6) NOT NULL,
+[approved_by] nvarchar(100),
+[completed_date] datetime2(7),
+[requested_by] nvarchar(100),
+[status] varchar(20) DEFAULT ('') NOT NULL,
+[transfer_date] datetime2(7) DEFAULT ('0001-01-01T00:00:00.0000000') NOT NULL,
+[transfer_type] varchar(20) DEFAULT ('') NOT NULL,
 PRIMARY KEY ([id])
 );
 GO
@@ -360,12 +373,12 @@ GO
 CREATE TABLE [dbo].[branch_expenses] (
 [id] bigint NOT NULL IDENTITY(1,1),
 [branch_id] bigint NOT NULL,
-[expense_type] varchar(100) NOT NULL,
+[expense_type] nvarchar(100) NOT NULL,
 [amount] decimal(18,2) NOT NULL,
 [start_date] date NOT NULL,
 [end_date] date,
 [payment_cycle] varchar(50) DEFAULT ('MONTHLY'),
-[note] varchar(255),
+[note] nvarchar(255),
 [created_at] datetime2(6) DEFAULT (getdate()) NOT NULL,
 [last_modified] datetime2(6) NOT NULL,
 PRIMARY KEY ([id])
@@ -537,10 +550,10 @@ GO
 CREATE TABLE [dbo].[customers] (
 [id] bigint NOT NULL,
 [user_id] bigint,
-[fullname] varchar(100) NOT NULL,
+[fullname] nvarchar(100) NOT NULL,
 [phone_number] varchar(20),
 [email] varchar(100),
-[address] varchar(200),
+[address] nvarchar(200),
 [created_at] datetime2(6) DEFAULT (sysdatetime()) NOT NULL,
 [last_modified] datetime2(6) NOT NULL,
 PRIMARY KEY ([id])
@@ -1545,5 +1558,206 @@ ON DELETE CASCADE
 ON UPDATE NO ACTION;
 GO
 
+-- ====================================================================
+-- ADDITIONAL TABLES FROM INIT_SCHEMA1
+-- ====================================================================
+
+CREATE TABLE [dbo].[ingredient_transfer_requests] (
+[id] bigint NOT NULL IDENTITY(1,1),
+[branch_id] bigint NOT NULL,
+[request_number] varchar(50) NOT NULL,
+[request_date] datetime2(7) NOT NULL,
+[required_date] datetime2(7) NOT NULL,
+[status] varchar(20) NOT NULL,
+[total_items] int NOT NULL,
+[approved_date] datetime2(7),
+[completed_date] datetime2(7),
+[note] nvarchar(500),
+[requested_by] nvarchar(100) NOT NULL,
+[approved_by] nvarchar(100),
+[created_at] datetime2(6) NOT NULL,
+[last_modified] datetime2(6) NOT NULL,
+PRIMARY KEY ([id])
+);
+GO
+
+CREATE TABLE [dbo].[ingredient_transfer_request_details] (
+[id] bigint NOT NULL IDENTITY(1,1),
+[transfer_request_id] bigint NOT NULL,
+[ingredient_id] bigint NOT NULL,
+[requested_quantity] decimal(18,2) NOT NULL,
+[approved_quantity] decimal(18,2),
+[transferred_quantity] decimal(18,2) NOT NULL,
+[status] varchar(20) NOT NULL,
+[note] nvarchar(255),
+[created_at] datetime2(6) NOT NULL,
+[last_modified] datetime2(6) NOT NULL,
+PRIMARY KEY ([id])
+);
+GO
+
+CREATE TABLE [dbo].[recipes] (
+[id] bigint NOT NULL IDENTITY(1,1),
+[Name] nvarchar(255) NOT NULL,
+[Description] nvarchar(500),
+[ProductId] bigint NOT NULL,
+[ServingSize] decimal(18,2) NOT NULL,
+[Unit] nvarchar(50) NOT NULL,
+[IsActive] bit NOT NULL,
+[Notes] nvarchar(500),
+[created_at] datetime2(6) NOT NULL,
+[last_modified] datetime2(6) NOT NULL,
+PRIMARY KEY ([id])
+);
+GO
+
+CREATE TABLE [dbo].[recipe_ingredients] (
+[id] bigint NOT NULL IDENTITY(1,1),
+[RecipeId] bigint NOT NULL,
+[IngredientId] bigint NOT NULL,
+[Quantity] decimal(18,4) NOT NULL,
+[Unit] nvarchar(50) NOT NULL,
+[WastePercentage] decimal(18,4),
+[Notes] nvarchar(500),
+[IsOptional] bit NOT NULL,
+[SortOrder] int NOT NULL,
+[created_at] datetime2(6) NOT NULL,
+[last_modified] datetime2(6) NOT NULL,
+PRIMARY KEY ([id])
+);
+GO
+
+-- ====================================================================
+-- VIEWS FROM INIT_SCHEMA1
+-- ====================================================================
+
+CREATE TABLE [dbo].[v_employee_payroll] (
+[employee_id] bigint NOT NULL,
+[full_name] nvarchar(100) NOT NULL,
+[branch_name] nvarchar(255) NOT NULL,
+[position_name] nvarchar(100),
+[base_salary] decimal(18,2),
+[salary_type] varchar(20),
+[total_allowances] decimal(18,2) NOT NULL,
+[total_bonus] decimal(18,2) NOT NULL,
+[total_deductions] decimal(18,2) NOT NULL,
+[gross_salary] decimal(18,2) NOT NULL,
+[effective_date] date,
+[end_date] date
+);
+GO
+
+CREATE TABLE [dbo].[v_inventory_status] (
+[ingredient_id] bigint NOT NULL,
+[ingredient_name] nvarchar(255) NOT NULL,
+[location_id] bigint NOT NULL,
+[location_name] nvarchar(100) NOT NULL,
+[branch_id] bigint NOT NULL,
+[branch_name] nvarchar(255) NOT NULL,
+[quantity_on_hand] decimal(18,2) NOT NULL,
+[quantity_reserved] decimal(18,2) NOT NULL,
+[available_quantity] decimal(18,2) NOT NULL,
+[minimum_stock] decimal(18,2),
+[stock_status] varchar(20) NOT NULL,
+[unit_of_measure] nvarchar(50) NOT NULL,
+[last_updated] datetime2(6) NOT NULL
+);
+GO
+
+CREATE TABLE [dbo].[v_expenses_summary] (
+[branch_id] bigint,
+[year] int NOT NULL,
+[month] int NOT NULL,
+[period] varchar(7) NOT NULL,
+[total_purchase_orders] int NOT NULL,
+[total_ingredients] decimal(18,2) NOT NULL,
+[expense_before_tax] decimal(18,2) NOT NULL,
+[expense_after_tax] decimal(18,2) NOT NULL,
+[tax_amount] decimal(18,2) NOT NULL
+);
+GO
+
+CREATE TABLE [dbo].[v_profit_summary] (
+[branch_id] bigint,
+[year] int NOT NULL,
+[month] int NOT NULL,
+[period] varchar(7) NOT NULL,
+[revenue_before_tax] decimal(18,2) NOT NULL,
+[revenue_after_tax] decimal(18,2) NOT NULL,
+[expense_before_tax] decimal(18,2) NOT NULL,
+[expense_after_tax] decimal(18,2) NOT NULL,
+[output_tax] decimal(18,2) NOT NULL,
+[input_tax] decimal(18,2) NOT NULL,
+[vat_to_pay] decimal(18,2) NOT NULL,
+[profit_before_tax] decimal(18,2) NOT NULL,
+[profit_after_tax] decimal(18,2) NOT NULL
+);
+GO
+
+CREATE TABLE [dbo].[v_sales_summary] (
+[branch_id] bigint,
+[year] int NOT NULL,
+[month] int NOT NULL,
+[period] varchar(7) NOT NULL,
+[total_orders] int NOT NULL,
+[total_products] int NOT NULL,
+[revenue_before_tax] decimal(18,2) NOT NULL,
+[revenue_after_tax] decimal(18,2) NOT NULL,
+[tax_amount] decimal(18,2) NOT NULL
+);
+GO
+
+-- ====================================================================
+-- FOREIGN KEY CONSTRAINTS FOR NEW TABLES
+-- ====================================================================
+
+ALTER TABLE [dbo].[ingredient_transfer_requests]
+ADD CONSTRAINT [FK_ingredient_transfer_requests_branches_BranchId]
+FOREIGN KEY ([branch_id]) 
+REFERENCES [dbo].[branches]([id])
+ON DELETE CASCADE
+ON UPDATE NO ACTION;
+GO
+
+ALTER TABLE [dbo].[ingredient_transfer_request_details]
+ADD CONSTRAINT [FK_ingredient_transfer_request_details_requests_TransferRequestId]
+FOREIGN KEY ([transfer_request_id]) 
+REFERENCES [dbo].[ingredient_transfer_requests]([id])
+ON DELETE CASCADE
+ON UPDATE NO ACTION;
+GO
+
+ALTER TABLE [dbo].[ingredient_transfer_request_details]
+ADD CONSTRAINT [FK_ingredient_transfer_request_details_ingredients_IngredientId]
+FOREIGN KEY ([ingredient_id]) 
+REFERENCES [dbo].[ingredients]([id])
+ON DELETE CASCADE
+ON UPDATE NO ACTION;
+GO
+
+ALTER TABLE [dbo].[recipes]
+ADD CONSTRAINT [FK_recipes_products_ProductId]
+FOREIGN KEY ([ProductId]) 
+REFERENCES [dbo].[products]([id])
+ON DELETE CASCADE
+ON UPDATE NO ACTION;
+GO
+
+ALTER TABLE [dbo].[recipe_ingredients]
+ADD CONSTRAINT [FK_recipe_ingredients_recipes_RecipeId]
+FOREIGN KEY ([RecipeId]) 
+REFERENCES [dbo].[recipes]([id])
+ON DELETE CASCADE
+ON UPDATE NO ACTION;
+GO
+
+ALTER TABLE [dbo].[recipe_ingredients]
+ADD CONSTRAINT [FK_recipe_ingredients_ingredients_IngredientId]
+FOREIGN KEY ([IngredientId]) 
+REFERENCES [dbo].[ingredients]([id])
+ON DELETE CASCADE
+ON UPDATE NO ACTION;
+GO
 
 PRINT 'Database schema created successfully.';
+PRINT 'Added missing tables and updated Unicode support.';

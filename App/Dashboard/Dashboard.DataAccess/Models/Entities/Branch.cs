@@ -12,12 +12,10 @@ public partial class Branch : BaseAuditableEntity
 {
     [Column("name")]
     [StringLength(255)]
-    [Unicode(false)]
     public string Name { get; set; } = null!;
 
     [Column("address")]
     [StringLength(255)]
-    [Unicode(false)]
     public string? Address { get; set; }
 
     [Column("phone")]
@@ -27,7 +25,6 @@ public partial class Branch : BaseAuditableEntity
 
     [Column("manager")]
     [StringLength(100)]
-    [Unicode(false)]
     public string? Manager { get; set; }
 
     [InverseProperty("Branch")]
@@ -50,6 +47,9 @@ public partial class Branch : BaseAuditableEntity
 
     [InverseProperty("Branch")]
     public virtual ICollection<IngredientTransfer> IngredientTransfers { get; set; } = new List<IngredientTransfer>();
+
+    [InverseProperty("Branch")]
+    public virtual ICollection<IngredientTransferRequest> IngredientTransferRequests { get; set; } = new List<IngredientTransferRequest>();
 
     [InverseProperty("Branch")]
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();

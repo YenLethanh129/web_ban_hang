@@ -1,4 +1,6 @@
-﻿namespace Dashboard.BussinessLogic.Dtos.ReportDtos;
+﻿using Dashboard.BussinessLogic.Dtos.IngredientDtos;
+
+namespace Dashboard.BussinessLogic.Dtos.ReportDtos;
 
 public class DashboardSummaryDto
 {
@@ -13,8 +15,9 @@ public class DashboardSummaryDto
     public decimal YearlyExpenses { get; set; }
     public int TotalOrders { get; set; }
     public int PendingOrders { get; set; }
-    public List<TopSellingProductDto> TopProducts { get; set; } = new();
-    public List<BranchPerformanceDto> BranchPerformance { get; set; } = new();
+    public List<TopSellingProductDto> TopProducts { get; set; } = [];
+    public List<LowStockIngredientDto> UnderstockIngredients { get; set; } = [];
+    public List<BranchPerformanceDto> BranchPerformance { get; set; } = [];
 }
 
 public class TopSellingProductDto

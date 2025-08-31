@@ -17,11 +17,8 @@ public class UnitOfWork : IUnitOfWork
 {
     private readonly WebbanhangDbContext _context;
     private readonly Dictionary<Type, object> _repositories = [];
-    private IDbContextTransaction? _transaction; 
-    public UnitOfWork(WebbanhangDbContext dbContext)
-    {
-        _context = dbContext;
-    }
+    private IDbContextTransaction? _transaction;
+    public UnitOfWork(WebbanhangDbContext dbContext) => _context = dbContext;
     public IRepository<T> Repository<T>() where T : class
     {
         if (_repositories.TryGetValue(typeof(T), out var repo))

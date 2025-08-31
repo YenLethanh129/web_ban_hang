@@ -12,7 +12,6 @@ public partial class Category : BaseEntity
 {
     [Column("name")]
     [StringLength(255)]
-    [Unicode(false)]
     public string Name { get; set; } = null!;
 
     [InverseProperty("Category")]

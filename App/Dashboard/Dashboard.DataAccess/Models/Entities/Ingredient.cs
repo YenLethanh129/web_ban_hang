@@ -14,12 +14,10 @@ public partial class Ingredient : BaseAuditableEntity
 
     [Column("name")]
     [StringLength(255)]
-    [Unicode(false)]
     public string Name { get; set; } = null!;
 
     [Column("unit")]
     [StringLength(50)]
-    [Unicode(false)]
     public string Unit { get; set; } = null!;
 
     [Column("is_active")]
@@ -27,7 +25,6 @@ public partial class Ingredient : BaseAuditableEntity
 
     [Column("description")]
     [StringLength(255)]
-    [Unicode(false)]
     public string? Description { get; set; }
 
     [Column("tax_id")]
@@ -50,7 +47,10 @@ public partial class Ingredient : BaseAuditableEntity
     public virtual ICollection<IngredientTransfer> IngredientTransfers { get; set; } = new List<IngredientTransfer>();
 
     [InverseProperty("Ingredient")]
-    public virtual ICollection<IngredientWarehouse> IngredientWarehouses { get; set; } = new List<IngredientWarehouse>();
+    public virtual ICollection<IngredientTransferRequestDetail> TransferRequestDetails { get; set; } = new List<IngredientTransferRequestDetail>();
+
+    [InverseProperty("Ingredient")]
+    public virtual IngredientWarehouse? IngredientWarehouse { get; set; }
 
     [InverseProperty("Ingredient")]
     public virtual ICollection<ProductRecipe> ProductRecipes { get; set; } = new List<ProductRecipe>();

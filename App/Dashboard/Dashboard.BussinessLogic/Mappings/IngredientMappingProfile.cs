@@ -8,8 +8,9 @@ public class IngredientMappingProfile : Profile
 {
     public IngredientMappingProfile()
     {
-        CreateMap<Ingredient, IngredientDto>()
-            .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.Name));
+        CreateMap<Ingredient, LowStockIngredientDto>()
+            .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.Name))
+            .ForMember(dest => dest.InStockQuantity, opt => opt.MapFrom(src => src.IngredientWarehouse != null ? src.IngredientWarehouse.Quantity : 0));
 
         CreateMap<BranchIngredientInventory, BranchIngredientInventoryDto>()
             .ForMember(dest => dest.BranchName, opt => opt.MapFrom(src => src.Branch.Name));

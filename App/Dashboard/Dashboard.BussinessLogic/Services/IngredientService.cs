@@ -34,8 +34,8 @@ public interface IIngredientService
     Task<IEnumerable<BranchIngredientInventoryDto>> GetAllBranchInventoriesAsync();
     Task<BranchIngredientInventoryDto?> GetBranchInventoryByIngredientAsync(long branchId, long ingredientId);
     Task<WarehouseIngredientInventoryDto?> GetWarehouseInventoryByIngredientAsync(long ingredientId);
-    Task<IEnumerable<IngredientDto>> GetLowStockIngredientsAsync(long branchId);
-    Task<IEnumerable<IngredientDto>> GetLowStockWarehouseIngredientsAsync();
+    Task<IEnumerable<LowStockIngredientDto>> GetLowStockIngredientsAsync(long branchId);
+    Task<IEnumerable<LowStockIngredientDto>> GetLowStockWarehouseIngredientsAsync();
     Task<IngredientDto?> GetIngredientByIdAsync(long id);
 }
 
@@ -182,18 +182,18 @@ public class IngredientService : IIngredientService
         return warehouseInventory != null ? _mapper.Map<WarehouseIngredientInventoryDto>(warehouseInventory) : null;
     }
 
-    public async Task<IEnumerable<IngredientDto>> GetLowStockIngredientsAsync(long branchId)
+    public async Task<IEnumerable<LowStockIngredientDto>> GetLowStockIngredientsAsync(long branchId)
     {
         var lowStockIngredients = await _ingredientRepository.GetLowStockIngredientsAsync(branchId);
 
-        return _mapper.Map<IEnumerable<IngredientDto>>(lowStockIngredients);
+        return _mapper.Map<IEnumerable<LowStockIngredientDto>>(lowStockIngredients);
     }
 
-    public async Task<IEnumerable<IngredientDto>> GetLowStockWarehouseIngredientsAsync()
+    public async Task<IEnumerable<LowStockIngredientDto>> GetLowStockWarehouseIngredientsAsync()
     {
         var lowStockIngredients = await _ingredientRepository.GetLowStockWarehouseIngredientsAsync();
 
-        return _mapper.Map<IEnumerable<IngredientDto>>(lowStockIngredients);
+        return _mapper.Map<IEnumerable<LowStockIngredientDto>>(lowStockIngredients);
     }
 
     public async Task<IngredientDto?> GetIngredientByIdAsync(long id)
@@ -405,7 +405,6 @@ public class IngredientService : IIngredientService
     {
         try
         {
-            // Validate input
             if (input.CurrentStock < 0)
                 throw new ArgumentException("Current stock cannot be negative");
 
@@ -415,14 +414,12 @@ public class IngredientService : IIngredientService
             if (input.MaximumThreshold < input.MinimumThreshold)
                 throw new ArgumentException("Maximum threshold must be greater than or equal to minimum threshold");
 
-            // Check if warehouse inventory exists
             var existingInventory = await _ingredientRepository
                 .GetWarehouseInventoryByIngredientAsync(input.IngredientId);
 
             if (existingInventory == null)
                 throw new InvalidOperationException($"Warehouse inventory for ingredient ID {input.IngredientId} not found");
 
-            // Update inventory
             _mapper.Map(input, existingInventory);
             var updatedInventory = await _ingredientRepository
                 .UpdateWarehouseInventoryAsync(existingInventory);
@@ -439,7 +436,6 @@ public class IngredientService : IIngredientService
     {
         try
         {
-            // Check if warehouse inventory exists
             var existingInventory = await _ingredientRepository
                 .GetWarehouseInventoryByIngredientAsync(ingredientId);
 

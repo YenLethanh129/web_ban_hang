@@ -87,9 +87,9 @@ namespace Dashboard.Winform
             label1.AutoSize = true;
             label1.Font = new Font("Segoe UI", 17.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
             label1.ForeColor = Color.WhiteSmoke;
-            label1.Location = new Point(12, 9);
+            label1.Location = new Point(14, 12);
             label1.Name = "label1";
-            label1.Size = new Size(126, 31);
+            label1.Size = new Size(156, 40);
             label1.TabIndex = 0;
             label1.Text = "Dashboard";
             // 
@@ -97,76 +97,72 @@ namespace Dashboard.Winform
             // 
             dtpStart.CustomFormat = "dd/MM/yyyy";
             dtpStart.Format = DateTimePickerFormat.Short;
-            dtpStart.Location = new Point(164, 17);
+            dtpStart.Location = new Point(187, 23);
+            dtpStart.Margin = new Padding(3, 4, 3, 4);
             dtpStart.Name = "dtpStart";
-            dtpStart.Size = new Size(87, 23);
+            dtpStart.Size = new Size(99, 27);
             dtpStart.TabIndex = 1;
             // 
             // dtpEnd
             // 
             dtpEnd.CustomFormat = "dd/MM/yyyy";
             dtpEnd.Format = DateTimePickerFormat.Short;
-            dtpEnd.Location = new Point(269, 17);
+            dtpEnd.Location = new Point(307, 23);
+            dtpEnd.Margin = new Padding(3, 4, 3, 4);
             dtpEnd.Name = "dtpEnd";
-            dtpEnd.Size = new Size(87, 23);
+            dtpEnd.Size = new Size(99, 27);
             dtpEnd.TabIndex = 2;
             // 
             // btnThisMonth
             // 
-            btnThisMonth.Location = new Point(854, 14);
-            btnThisMonth.Margin = new Padding(3, 2, 3, 2);
+            btnThisMonth.Location = new Point(976, 19);
             btnThisMonth.Name = "btnThisMonth";
-            btnThisMonth.Size = new Size(105, 30);
+            btnThisMonth.Size = new Size(120, 40);
             btnThisMonth.TabIndex = 3;
             btnThisMonth.Text = "Tháng này";
             btnThisMonth.UseVisualStyleBackColor = true;
             // 
             // btnLast30Days
             // 
-            btnLast30Days.Location = new Point(744, 14);
-            btnLast30Days.Margin = new Padding(3, 2, 3, 2);
+            btnLast30Days.Location = new Point(850, 19);
             btnLast30Days.Name = "btnLast30Days";
-            btnLast30Days.Size = new Size(105, 30);
+            btnLast30Days.Size = new Size(120, 40);
             btnLast30Days.TabIndex = 4;
             btnLast30Days.Text = "30 ngày qua";
             btnLast30Days.UseVisualStyleBackColor = true;
             // 
             // Last7Days
             // 
-            Last7Days.Location = new Point(634, 14);
-            Last7Days.Margin = new Padding(3, 2, 3, 2);
+            Last7Days.Location = new Point(725, 19);
             Last7Days.Name = "Last7Days";
-            Last7Days.Size = new Size(105, 30);
+            Last7Days.Size = new Size(120, 40);
             Last7Days.TabIndex = 5;
             Last7Days.Text = "7 ngày qua";
             Last7Days.UseVisualStyleBackColor = true;
             // 
             // btnToday
             // 
-            btnToday.Location = new Point(524, 14);
-            btnToday.Margin = new Padding(3, 2, 3, 2);
+            btnToday.Location = new Point(599, 19);
             btnToday.Name = "btnToday";
-            btnToday.Size = new Size(105, 30);
+            btnToday.Size = new Size(120, 40);
             btnToday.TabIndex = 6;
             btnToday.Text = "Hôm nay";
             btnToday.UseVisualStyleBackColor = true;
             // 
             // btnCustomDate
             // 
-            btnCustomDate.Location = new Point(413, 14);
-            btnCustomDate.Margin = new Padding(3, 2, 3, 2);
+            btnCustomDate.Location = new Point(472, 19);
             btnCustomDate.Name = "btnCustomDate";
-            btnCustomDate.Size = new Size(105, 30);
+            btnCustomDate.Size = new Size(120, 40);
             btnCustomDate.TabIndex = 7;
             btnCustomDate.Text = "Tùy chọn";
             btnCustomDate.UseVisualStyleBackColor = true;
             // 
             // btnOkeCustomDate
             // 
-            btnOkeCustomDate.Location = new Point(373, 14);
-            btnOkeCustomDate.Margin = new Padding(3, 2, 3, 2);
+            btnOkeCustomDate.Location = new Point(426, 19);
             btnOkeCustomDate.Name = "btnOkeCustomDate";
-            btnOkeCustomDate.Size = new Size(35, 30);
+            btnOkeCustomDate.Size = new Size(40, 40);
             btnOkeCustomDate.TabIndex = 8;
             btnOkeCustomDate.Text = "Oke";
             btnOkeCustomDate.UseVisualStyleBackColor = true;
@@ -176,10 +172,9 @@ namespace Dashboard.Winform
             panel1.BackColor = Color.FromArgb(42, 45, 86);
             panel1.Controls.Add(lblNumberOfOrders);
             panel1.Controls.Add(label2);
-            panel1.Location = new Point(12, 57);
-            panel1.Margin = new Padding(3, 2, 3, 2);
+            panel1.Location = new Point(14, 76);
             panel1.Name = "panel1";
-            panel1.Size = new Size(179, 51);
+            panel1.Size = new Size(205, 68);
             panel1.TabIndex = 10;
             // 
             // lblNumberOfOrders
@@ -187,9 +182,9 @@ namespace Dashboard.Winform
             lblNumberOfOrders.AutoSize = true;
             lblNumberOfOrders.Font = new Font("Segoe UI", 13F);
             lblNumberOfOrders.ForeColor = Color.WhiteSmoke;
-            lblNumberOfOrders.Location = new Point(15, 17);
+            lblNumberOfOrders.Location = new Point(17, 23);
             lblNumberOfOrders.Name = "lblNumberOfOrders";
-            lblNumberOfOrders.Size = new Size(52, 25);
+            lblNumberOfOrders.Size = new Size(61, 30);
             lblNumberOfOrders.TabIndex = 1;
             lblNumberOfOrders.Text = "1000";
             // 
@@ -198,9 +193,9 @@ namespace Dashboard.Winform
             label2.AutoSize = true;
             label2.Font = new Font("Segoe UI", 9.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
             label2.ForeColor = Color.WhiteSmoke;
-            label2.Location = new Point(15, 0);
+            label2.Location = new Point(17, 0);
             label2.Name = "label2";
-            label2.Size = new Size(83, 17);
+            label2.Size = new Size(108, 23);
             label2.TabIndex = 0;
             label2.Text = "Số đơn hàng";
             // 
@@ -209,10 +204,9 @@ namespace Dashboard.Winform
             panel2.BackColor = Color.FromArgb(42, 45, 86);
             panel2.Controls.Add(label3);
             panel2.Controls.Add(lblTotalOfProfit);
-            panel2.Location = new Point(516, 57);
-            panel2.Margin = new Padding(3, 2, 3, 2);
+            panel2.Location = new Point(590, 76);
             panel2.Name = "panel2";
-            panel2.Size = new Size(443, 51);
+            panel2.Size = new Size(506, 68);
             panel2.TabIndex = 11;
             // 
             // label3
@@ -220,9 +214,9 @@ namespace Dashboard.Winform
             label3.AutoSize = true;
             label3.Font = new Font("Segoe UI", 13F);
             label3.ForeColor = Color.WhiteSmoke;
-            label3.Location = new Point(29, 17);
+            label3.Location = new Point(33, 23);
             label3.Name = "label3";
-            label3.Size = new Size(52, 25);
+            label3.Size = new Size(61, 30);
             label3.TabIndex = 1;
             label3.Text = "1000";
             // 
@@ -231,9 +225,9 @@ namespace Dashboard.Winform
             lblTotalOfProfit.AutoSize = true;
             lblTotalOfProfit.Font = new Font("Segoe UI", 10F);
             lblTotalOfProfit.ForeColor = Color.WhiteSmoke;
-            lblTotalOfProfit.Location = new Point(29, 0);
+            lblTotalOfProfit.Location = new Point(33, 0);
             lblTotalOfProfit.Name = "lblTotalOfProfit";
-            lblTotalOfProfit.Size = new Size(101, 19);
+            lblTotalOfProfit.Size = new Size(126, 23);
             lblTotalOfProfit.TabIndex = 0;
             lblTotalOfProfit.Text = "Tổng lợi nhuận";
             // 
@@ -242,10 +236,9 @@ namespace Dashboard.Winform
             panel3.BackColor = Color.FromArgb(42, 45, 86);
             panel3.Controls.Add(label5);
             panel3.Controls.Add(lblTotalOfRevenue);
-            panel3.Location = new Point(197, 57);
-            panel3.Margin = new Padding(3, 2, 3, 2);
+            panel3.Location = new Point(225, 76);
             panel3.Name = "panel3";
-            panel3.Size = new Size(313, 51);
+            panel3.Size = new Size(358, 68);
             panel3.TabIndex = 11;
             // 
             // label5
@@ -253,9 +246,9 @@ namespace Dashboard.Winform
             label5.AutoSize = true;
             label5.Font = new Font("Segoe UI", 10F);
             label5.ForeColor = Color.WhiteSmoke;
-            label5.Location = new Point(29, 0);
+            label5.Location = new Point(33, 0);
             label5.Name = "label5";
-            label5.Size = new Size(108, 19);
+            label5.Size = new Size(134, 23);
             label5.TabIndex = 0;
             label5.Text = "Tổng doanh thu";
             // 
@@ -264,9 +257,9 @@ namespace Dashboard.Winform
             lblTotalOfRevenue.AutoSize = true;
             lblTotalOfRevenue.Font = new Font("Segoe UI", 13F);
             lblTotalOfRevenue.ForeColor = Color.WhiteSmoke;
-            lblTotalOfRevenue.Location = new Point(29, 19);
+            lblTotalOfRevenue.Location = new Point(33, 25);
             lblTotalOfRevenue.Name = "lblTotalOfRevenue";
-            lblTotalOfRevenue.Size = new Size(52, 25);
+            lblTotalOfRevenue.Size = new Size(61, 30);
             lblTotalOfRevenue.TabIndex = 1;
             lblTotalOfRevenue.Text = "1000";
             // 
@@ -278,13 +271,14 @@ namespace Dashboard.Winform
             legend1.Docking = Docking.Top;
             legend1.Name = "Legend1";
             chart1.Legends.Add(legend1);
-            chart1.Location = new Point(12, 113);
+            chart1.Location = new Point(14, 151);
+            chart1.Margin = new Padding(3, 4, 3, 4);
             chart1.Name = "chart1";
             series1.ChartArea = "ChartArea1";
             series1.Legend = "Legend1";
             series1.Name = "Series1";
             chart1.Series.Add(series1);
-            chart1.Size = new Size(597, 252);
+            chart1.Size = new Size(682, 336);
             chart1.TabIndex = 12;
             chart1.Text = "chart1";
             title1.Alignment = ContentAlignment.TopLeft;
@@ -302,7 +296,8 @@ namespace Dashboard.Winform
             legend2.Docking = Docking.Bottom;
             legend2.Name = "Legend1";
             chart2.Legends.Add(legend2);
-            chart2.Location = new Point(615, 113);
+            chart2.Location = new Point(703, 151);
+            chart2.Margin = new Padding(3, 4, 3, 4);
             chart2.Name = "chart2";
             series2.ChartArea = "ChartArea1";
             series2.ChartType = SeriesChartType.Doughnut;
@@ -312,7 +307,7 @@ namespace Dashboard.Winform
             series2.Legend = "Legend1";
             series2.Name = "Series1";
             chart2.Series.Add(series2);
-            chart2.Size = new Size(344, 436);
+            chart2.Size = new Size(393, 581);
             chart2.TabIndex = 13;
             chart2.Text = "chart2";
             title2.Alignment = ContentAlignment.TopLeft;
@@ -332,10 +327,9 @@ namespace Dashboard.Winform
             panel4.Controls.Add(label7);
             panel4.Controls.Add(lblNumberOfCustomers);
             panel4.Controls.Add(label6);
-            panel4.Location = new Point(12, 370);
-            panel4.Margin = new Padding(3, 2, 3, 2);
+            panel4.Location = new Point(14, 493);
             panel4.Name = "panel4";
-            panel4.Size = new Size(170, 179);
+            panel4.Size = new Size(194, 239);
             panel4.TabIndex = 11;
             // 
             // lblNumberOfProducts
@@ -343,9 +337,9 @@ namespace Dashboard.Winform
             lblNumberOfProducts.AutoSize = true;
             lblNumberOfProducts.Font = new Font("Segoe UI", 13F);
             lblNumberOfProducts.ForeColor = Color.WhiteSmoke;
-            lblNumberOfProducts.Location = new Point(15, 144);
+            lblNumberOfProducts.Location = new Point(17, 192);
             lblNumberOfProducts.Name = "lblNumberOfProducts";
-            lblNumberOfProducts.Size = new Size(52, 25);
+            lblNumberOfProducts.Size = new Size(61, 30);
             lblNumberOfProducts.TabIndex = 15;
             lblNumberOfProducts.Text = "1000";
             // 
@@ -354,9 +348,9 @@ namespace Dashboard.Winform
             lblNumberOfSuppliers.AutoSize = true;
             lblNumberOfSuppliers.Font = new Font("Segoe UI", 13F);
             lblNumberOfSuppliers.ForeColor = Color.WhiteSmoke;
-            lblNumberOfSuppliers.Location = new Point(15, 93);
+            lblNumberOfSuppliers.Location = new Point(17, 124);
             lblNumberOfSuppliers.Name = "lblNumberOfSuppliers";
-            lblNumberOfSuppliers.Size = new Size(52, 25);
+            lblNumberOfSuppliers.Size = new Size(61, 30);
             lblNumberOfSuppliers.TabIndex = 4;
             lblNumberOfSuppliers.Text = "1000";
             // 
@@ -365,9 +359,9 @@ namespace Dashboard.Winform
             label11.AutoSize = true;
             label11.Font = new Font("Segoe UI", 9.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
             label11.ForeColor = Color.WhiteSmoke;
-            label11.Location = new Point(15, 127);
+            label11.Location = new Point(17, 169);
             label11.Name = "label11";
-            label11.Size = new Size(66, 17);
+            label11.Size = new Size(87, 23);
             label11.TabIndex = 14;
             label11.Text = "Sản phẩm";
             // 
@@ -376,9 +370,9 @@ namespace Dashboard.Winform
             label9.AutoSize = true;
             label9.Font = new Font("Segoe UI", 9.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
             label9.ForeColor = Color.WhiteSmoke;
-            label9.Location = new Point(15, 76);
+            label9.Location = new Point(17, 101);
             label9.Name = "label9";
-            label9.Size = new Size(89, 17);
+            label9.Size = new Size(117, 23);
             label9.TabIndex = 3;
             label9.Text = "Nhà cung cấp";
             // 
@@ -389,7 +383,7 @@ namespace Dashboard.Winform
             label7.ForeColor = Color.WhiteSmoke;
             label7.Location = new Point(3, 0);
             label7.Name = "label7";
-            label7.Size = new Size(78, 21);
+            label7.Size = new Size(98, 28);
             label7.TabIndex = 2;
             label7.Text = "Doanh Số";
             // 
@@ -398,9 +392,9 @@ namespace Dashboard.Winform
             lblNumberOfCustomers.AutoSize = true;
             lblNumberOfCustomers.Font = new Font("Segoe UI", 13F);
             lblNumberOfCustomers.ForeColor = Color.WhiteSmoke;
-            lblNumberOfCustomers.Location = new Point(15, 42);
+            lblNumberOfCustomers.Location = new Point(17, 56);
             lblNumberOfCustomers.Name = "lblNumberOfCustomers";
-            lblNumberOfCustomers.Size = new Size(52, 25);
+            lblNumberOfCustomers.Size = new Size(61, 30);
             lblNumberOfCustomers.TabIndex = 1;
             lblNumberOfCustomers.Text = "1000";
             // 
@@ -409,9 +403,9 @@ namespace Dashboard.Winform
             label6.AutoSize = true;
             label6.Font = new Font("Segoe UI", 9.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
             label6.ForeColor = Color.WhiteSmoke;
-            label6.Location = new Point(15, 25);
+            label6.Location = new Point(17, 33);
             label6.Name = "label6";
-            label6.Size = new Size(76, 17);
+            label6.Size = new Size(101, 23);
             label6.TabIndex = 0;
             label6.Text = "Khách hàng";
             // 
@@ -420,10 +414,9 @@ namespace Dashboard.Winform
             panel5.BackColor = Color.FromArgb(42, 45, 86);
             panel5.Controls.Add(dgvUnderstock);
             panel5.Controls.Add(label13);
-            panel5.Location = new Point(188, 370);
-            panel5.Margin = new Padding(3, 2, 3, 2);
+            panel5.Location = new Point(215, 493);
             panel5.Name = "panel5";
-            panel5.Size = new Size(421, 179);
+            panel5.Size = new Size(481, 239);
             panel5.TabIndex = 16;
             // 
             // dgvUnderstock
@@ -446,7 +439,8 @@ namespace Dashboard.Winform
             dataGridViewCellStyle2.SelectionForeColor = SystemColors.HighlightText;
             dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
             dgvUnderstock.DefaultCellStyle = dataGridViewCellStyle2;
-            dgvUnderstock.Location = new Point(9, 25);
+            dgvUnderstock.Location = new Point(10, 33);
+            dgvUnderstock.Margin = new Padding(3, 4, 3, 4);
             dgvUnderstock.Name = "dgvUnderstock";
             dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle3.BackColor = SystemColors.Control;
@@ -456,7 +450,8 @@ namespace Dashboard.Winform
             dataGridViewCellStyle3.SelectionForeColor = SystemColors.HighlightText;
             dataGridViewCellStyle3.WrapMode = DataGridViewTriState.True;
             dgvUnderstock.RowHeadersDefaultCellStyle = dataGridViewCellStyle3;
-            dgvUnderstock.Size = new Size(400, 150);
+            dgvUnderstock.RowHeadersWidth = 51;
+            dgvUnderstock.Size = new Size(457, 200);
             dgvUnderstock.TabIndex = 3;
             // 
             // label13
@@ -466,16 +461,16 @@ namespace Dashboard.Winform
             label13.ForeColor = Color.WhiteSmoke;
             label13.Location = new Point(3, 0);
             label13.Name = "label13";
-            label13.Size = new Size(67, 21);
+            label13.Size = new Size(85, 28);
             label13.TabIndex = 2;
             label13.Text = "Tồn Kho";
             // 
             // MainDashboardForm
             // 
-            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(24, 28, 63);
-            ClientSize = new Size(972, 558);
+            ClientSize = new Size(1111, 744);
             Controls.Add(panel5);
             Controls.Add(panel4);
             Controls.Add(chart2);
@@ -493,6 +488,7 @@ namespace Dashboard.Winform
             Controls.Add(dtpStart);
             Controls.Add(label1);
             Font = new Font("Segoe UI", 9F);
+            Margin = new Padding(3, 4, 3, 4);
             Name = "MainDashboardForm";
             Text = "Dashboard";
             Load += MainDashboardForm_Load;

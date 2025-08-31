@@ -18,10 +18,33 @@ public partial class IngredientTransfer : BaseAuditableEntity
     [Column("quantity", TypeName = "decimal(18, 2)")]
     public decimal Quantity { get; set; }
 
-    [Column("note")]
-    [StringLength(255)]
+    [Column("transfer_type")]
+    [StringLength(20)]
     [Unicode(false)]
+    public string TransferType { get; set; } = "OUT"; // OUT: từ warehouse đến branch, IN: từ branch về warehouse
+
+    [Column("status")]
+    [StringLength(20)]
+    [Unicode(false)]
+    public string Status { get; set; } = "PENDING"; // PENDING, COMPLETED, CANCELLED
+
+    [Column("transfer_date")]
+    public DateTime TransferDate { get; set; }
+
+    [Column("completed_date")]
+    public DateTime? CompletedDate { get; set; }
+
+    [Column("note")]
+    [StringLength(500)]
     public string? Note { get; set; }
+
+    [Column("requested_by")]
+    [StringLength(100)]
+    public string? RequestedBy { get; set; }
+
+    [Column("approved_by")]
+    [StringLength(100)]
+    public string? ApprovedBy { get; set; }
 
     [ForeignKey("BranchId")]
     [InverseProperty("IngredientTransfers")]

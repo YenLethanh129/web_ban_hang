@@ -15,9 +15,9 @@ namespace Dashboard.Winform
             _presenter = presenter;
             _model = _presenter.Model;
 
-            SetupCharts();
             InitializeEvents();
             SetupDataBinding();
+            SetupCharts();
         }
 
         private void InitializeEvents()
@@ -36,19 +36,12 @@ namespace Dashboard.Winform
 
         private void SetupDataBinding()
         {
-            // Bind revenue data to existing labels
             lblTotalOfRevenue.DataBindings.Clear();
             lblTotalOfRevenue.DataBindings.Add("Text", _model, nameof(_model.MonthlyRevenueFormatted));
 
-            // Use label3 for profit (it's inside panel2)
-            label3.DataBindings.Clear();
-            label3.DataBindings.Add("Text", _model, nameof(_model.MonthlyProfitFormatted));
-
-            // Bind order count
             lblNumberOfOrders.DataBindings.Clear();
             lblNumberOfOrders.DataBindings.Add("Text", _model, nameof(_model.TotalOrders));
 
-            // Bind customer, supplier, product counts
             lblNumberOfCustomers.DataBindings.Clear();
             lblNumberOfCustomers.DataBindings.Add("Text", _model, "CustomerCount");
 

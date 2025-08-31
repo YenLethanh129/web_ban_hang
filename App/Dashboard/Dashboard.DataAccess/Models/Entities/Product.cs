@@ -24,12 +24,10 @@ public partial class Product : BaseAuditableEntity
 
     [Column("description")]
     [StringLength(255)]
-    [Unicode(false)]
     public string Description { get; set; } = null!;
 
     [Column("name")]
     [StringLength(255)]
-    [Unicode(false)]
     public string Name { get; set; } = null!;
 
     [Column("thumbnail")]

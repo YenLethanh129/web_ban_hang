@@ -28,7 +28,6 @@ public partial class Employee : BaseAuditableEntity
 
     [Column("position")]
     [StringLength(50)]
-    [Unicode(false)]
     public string? Position { get; set; }
 
     [Column("hire_date")]
