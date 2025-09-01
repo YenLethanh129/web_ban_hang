@@ -1,11 +1,28 @@
-    <div class="page-background">
-  <div class="container">
-    <div class="register-section">
-      <div class="register-box">
-        <h2>Đăng ký tài khoản</h2>
-        <form (ngSubmit)="onSubmit()" #registerForm="ngForm">
-          <div class="form-group">
-            <label for="fullName">Họ và tên</label>
+<div class="register-page">
+  <div class="register-container">
+    <div class="register-form-wrapper">
+      <div class="register-header">
+        <div class="brand-section">
+          <h1 class="brand-title">FUNNY BOY</h1>
+          <p class="brand-subtitle">Coffee & Tea</p>
+        </div>
+        <h2 class="register-title">Tạo tài khoản mới</h2>
+        <p class="register-subtitle">
+          Tham gia cộng đồng yêu thích trà & cà phê
+        </p>
+      </div>
+
+      <form
+        (ngSubmit)="onSubmit()"
+        #registerForm="ngForm"
+        class="register-form"
+      >
+        <div class="form-group">
+          <label for="fullName" class="form-label">
+            <i class="fas fa-user"></i>
+            Họ và tên
+          </label>
+          <div class="input-wrapper">
             <input
               type="text"
               class="form-control"
@@ -15,20 +32,27 @@
               required
               #fullName="ngModel"
               (focus)="showFullNameError = true"
-              placeholder="Nhập họ và tên"
+              placeholder="Nhập họ và tên đầy đủ"
             />
-            <div
-              *ngIf="
-                showFullNameError && fullName.touched && !registerData.fullName
-              "
-              class="text-danger"
-            >
-              Vui lòng nhập họ và tên
-            </div>
+            <i class="fas fa-user input-icon"></i>
           </div>
+          <div
+            *ngIf="
+              showFullNameError && fullName.touched && !registerData.fullName
+            "
+            class="error-message"
+          >
+            <i class="fas fa-exclamation-circle"></i>
+            Vui lòng nhập họ và tên
+          </div>
+        </div>
 
-          <div class="form-group">
-            <label for="phoneNumber">Số điện thoại</label>
+        <div class="form-group">
+          <label for="phoneNumber" class="form-label">
+            <i class="fas fa-phone"></i>
+            Số điện thoại
+          </label>
+          <div class="input-wrapper">
             <input
               type="tel"
               class="form-control"
@@ -39,22 +63,29 @@
               required
               #phone="ngModel"
               (focus)="showPhoneError = true"
-              placeholder="Nhập số điện thoại của bạn"
+              placeholder="Nhập số điện thoại (10 số)"
             />
-            <div
-              *ngIf="
-                showPhoneError &&
-                phone.touched &&
-                registerData.phoneNumber.length !== 10
-              "
-              class="text-danger"
-            >
-              Số điện thoại phải là 10 số
-            </div>
+            <i class="fas fa-phone input-icon"></i>
           </div>
+          <div
+            *ngIf="
+              showPhoneError &&
+              phone.touched &&
+              registerData.phoneNumber.length !== 10
+            "
+            class="error-message"
+          >
+            <i class="fas fa-exclamation-circle"></i>
+            Số điện thoại phải là 10 số
+          </div>
+        </div>
 
-          <div class="form-group">
-            <label for="dateOfBirth">Ngày sinh</label>
+        <div class="form-group">
+          <label for="dateOfBirth" class="form-label">
+            <i class="fas fa-calendar-alt"></i>
+            Ngày sinh
+          </label>
+          <div class="input-wrapper">
             <input
               type="date"
               class="form-control"
@@ -65,24 +96,31 @@
               #dateOfBirth="ngModel"
               (focus)="showDateOfBirthError = true"
             />
-            <div
-              *ngIf="
-                showDateOfBirthError &&
-                dateOfBirth.touched &&
-                (!registerData.dateOfBirth || !validateAge())
-              "
-              class="text-danger"
-            >
-              {{
-                !registerData.dateOfBirth
-                  ? "Vui lòng chọn ngày sinh"
-                  : "Bạn phải trên 18 tuổi"
-              }}
-            </div>
+            <i class="fas fa-calendar-alt input-icon"></i>
           </div>
+          <div
+            *ngIf="
+              showDateOfBirthError &&
+              dateOfBirth.touched &&
+              (!registerData.dateOfBirth || !validateAge())
+            "
+            class="error-message"
+          >
+            <i class="fas fa-exclamation-circle"></i>
+            {{
+              !registerData.dateOfBirth
+                ? "Vui lòng chọn ngày sinh"
+                : "Bạn phải trên 18 tuổi"
+            }}
+          </div>
+        </div>
 
-          <div class="form-group">
-            <label for="address">Địa chỉ</label>
+        <div class="form-group">
+          <label for="address" class="form-label">
+            <i class="fas fa-map-marker-alt"></i>
+            Địa chỉ
+          </label>
+          <div class="input-wrapper">
             <textarea
               class="form-control"
               id="address"
@@ -91,84 +129,94 @@
               required
               #address="ngModel"
               (focus)="showAddressError = true"
-              placeholder="Nhập địa chỉ của bạn"
-              rows="2"
+              placeholder="Nhập địa chỉ đầy đủ của bạn"
+              rows="3"
             ></textarea>
-            <div
-              *ngIf="
-                showAddressError && address.touched && !registerData.address
-              "
-              class="text-danger"
-            >
-              Vui lòng nhập địa chỉ
-            </div>
+            <i class="fas fa-map-marker-alt input-icon"></i>
           </div>
-
-          <div class="form-group">
-            <label for="password">Mật khẩu</label>
-            <div class="password-input">
-              <input
-                [type]="showPassword ? 'text' : 'password'"
-                class="form-control"
-                id="password"
-                name="password"
-                [(ngModel)]="registerData.password"
-                required
-                #password="ngModel"
-                (focus)="showPasswordError = true"
-                placeholder="Nhập mật khẩu"
-              />
-              <i
-                class="fa-solid password-toggle"
-                [class.fa-eye]="!showPassword"
-                [class.fa-eye-slash]="showPassword"
-                (click)="togglePasswordVisibility('password')"
-              ></i>
-            </div>
-            <div
-              *ngIf="
-                showPasswordError && password.touched && !validatePassword()
-              "
-              class="text-danger"
-            >
-              Mật khẩu phải có ít nhất 6 ký tự
-            </div>
+          <div
+            *ngIf="showAddressError && address.touched && !registerData.address"
+            class="error-message"
+          >
+            <i class="fas fa-exclamation-circle"></i>
+            Vui lòng nhập địa chỉ
           </div>
+        </div>
 
-          <div class="form-group">
-            <label for="confirmPassword">Xác nhận mật khẩu</label>
-            <div class="password-input">
-              <input
-                [type]="showConfirmPassword ? 'text' : 'password'"
-                class="form-control"
-                id="confirmPassword"
-                name="confirmPassword"
-                [(ngModel)]="registerData.confirmPassword"
-                required
-                #confirmPassword="ngModel"
-                (focus)="showConfirmPasswordError = true"
-                placeholder="Nhập lại mật khẩu"
-              />
-              <i
-                class="fa-solid password-toggle"
-                [class.fa-eye]="!showConfirmPassword"
-                [class.fa-eye-slash]="showConfirmPassword"
-                (click)="togglePasswordVisibility('confirmPassword')"
-              ></i>
-            </div>
-            <div
-              *ngIf="
-                showConfirmPasswordError &&
-                confirmPassword.touched &&
-                !validateConfirmPassword()
-              "
-              class="text-danger"
-            >
-              Mật khẩu xác nhận không khớp
-            </div>
+        <div class="form-group">
+          <label for="password" class="form-label">
+            <i class="fas fa-lock"></i>
+            Mật khẩu
+          </label>
+          <div class="input-wrapper password-wrapper">
+            <input
+              [type]="showPassword ? 'text' : 'password'"
+              class="form-control"
+              id="password"
+              name="password"
+              [(ngModel)]="registerData.password"
+              required
+              #password="ngModel"
+              (focus)="showPasswordError = true"
+              placeholder="Nhập mật khẩu (ít nhất 6 ký tự)"
+            />
+            <i class="fas fa-lock input-icon"></i>
+            <i
+              class="fa-solid password-toggle"
+              [class.fa-eye]="!showPassword"
+              [class.fa-eye-slash]="showPassword"
+              (click)="togglePasswordVisibility('password')"
+            ></i>
           </div>
+          <div
+            *ngIf="showPasswordError && password.touched && !validatePassword()"
+            class="error-message"
+          >
+            <i class="fas fa-exclamation-circle"></i>
+            Mật khẩu phải có ít nhất 6 ký tự
+          </div>
+        </div>
 
-          <div class="form-check terms-check">
+        <div class="form-group">
+          <label for="confirmPassword" class="form-label">
+            <i class="fas fa-lock"></i>
+            Xác nhận mật khẩu
+          </label>
+          <div class="input-wrapper password-wrapper">
+            <input
+              [type]="showConfirmPassword ? 'text' : 'password'"
+              class="form-control"
+              id="confirmPassword"
+              name="confirmPassword"
+              [(ngModel)]="registerData.confirmPassword"
+              required
+              #confirmPassword="ngModel"
+              (focus)="showConfirmPasswordError = true"
+              placeholder="Nhập lại mật khẩu để xác nhận"
+            />
+            <i class="fas fa-lock input-icon"></i>
+            <i
+              class="fa-solid password-toggle"
+              [class.fa-eye]="!showConfirmPassword"
+              [class.fa-eye-slash]="showConfirmPassword"
+              (click)="togglePasswordVisibility('confirmPassword')"
+            ></i>
+          </div>
+          <div
+            *ngIf="
+              showConfirmPasswordError &&
+              confirmPassword.touched &&
+              !validateConfirmPassword()
+            "
+            class="error-message"
+          >
+            <i class="fas fa-exclamation-circle"></i>
+            Mật khẩu xác nhận không khớp
+          </div>
+        </div>
+
+        <div class="terms-agreement">
+          <div class="terms-check">
             <input
               type="checkbox"
               class="form-check-input"
@@ -178,27 +226,36 @@
               required
             />
             <label class="form-check-label" for="agreeTerms">
-              Tôi đồng ý với các <a href="#">điều khoản và điều kiện</a>
+              <span class="checkmark"></span>
+              Tôi đồng ý với các
+              <a href="#" class="terms-link">điều khoản và điều kiện</a>
+              của Funny Boy
             </label>
           </div>
+        </div>
 
-          <button
-            type="submit"
-            class="btn btn-primary register-button"
-            [disabled]="isLoading"
-          >
-            <span
-              *ngIf="isLoading"
-              class="spinner-border spinner-border-sm me-2"
-            ></span>
-            {{ isLoading ? "Đang xử lý..." : "Đăng ký" }}
-          </button>
+        <button
+          type="submit"
+          class="btn btn-primary register-button"
+          [disabled]="isLoading"
+        >
+          <span *ngIf="isLoading" class="loading-spinner"></span>
+          <i *ngIf="!isLoading" class="fas fa-user-plus"></i>
+          {{ isLoading ? "Đang tạo tài khoản..." : "Đăng ký tài khoản" }}
+        </button>
 
-          <div class="login-link">
-            Đã có tài khoản? <a [routerLink]="['/login']">Đăng nhập</a>
-          </div>
-        </form>
-      </div>
+        <div class="divider">
+          <span>hoặc</span>
+        </div>
+
+        <div class="login-link">
+          <p>Đã có tài khoản?</p>
+          <a [routerLink]="['/login']" class="login-btn">
+            <i class="fas fa-sign-in-alt"></i>
+            Đăng nhập ngay
+          </a>
+        </div>
+      </form>
     </div>
   </div>
 </div>

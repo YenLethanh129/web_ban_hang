@@ -4,21 +4,17 @@ import { HttpClientModule } from '@angular/common/http';
 import { ProductDTO } from '../../models/product.dto';
 import { ProductService } from '../../services/product.service';
 import { CommonModule } from '@angular/common';
-import { CartService } from '../../services/cart.service'
+import { CartService } from '../../services/cart.service';
 import { Router } from '@angular/router';
+import { NotificationService } from '../../services/notification.service';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [
-    RouterModule,
-    HttpClientModule,
-    CommonModule
-],
+  imports: [RouterModule, HttpClientModule, CommonModule],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })
-
 export class HomeComponent implements OnInit {
   products: ProductDTO[] = [];
   currentPage: number = 1;
@@ -29,7 +25,8 @@ export class HomeComponent implements OnInit {
   constructor(
     private productService: ProductService,
     private cartService: CartService,
-    private router: Router
+    private router: Router,
+    private notificationService: NotificationService
   ) {}
 
   ngOnInit(): void {
@@ -60,6 +57,10 @@ export class HomeComponent implements OnInit {
       },
       error: (error) => {
         console.error('Lỗi khi lấy danh sách sản phẩm:', error);
+        this.notificationService.showHttpError(
+          error,
+          'Không thể tải danh sách sản phẩm'
+        );
         this.isLoading = false;
       },
     });
@@ -79,6 +80,10 @@ export class HomeComponent implements OnInit {
       },
       error: (error) => {
         console.error('Lỗi khi tải thêm sản phẩm:', error);
+        this.notificationService.showHttpError(
+          error,
+          'Không thể tải thêm sản phẩm'
+        );
         this.currentPage--; // Rollback page number on error
         this.isLoading = false;
       },
@@ -87,11 +92,16 @@ export class HomeComponent implements OnInit {
 
   addToCart(product: ProductDTO): void {
     this.cartService.addToCart(product.id, 1);
-    alert(`Đã thêm 1 ${product.name} vào giỏ hàng`);
+    this.notificationService.showSuccess(
+      `🛒 Đã thêm "${product.name}" vào giỏ hàng!`
+    );
   }
 
   buyNow(product: ProductDTO): void {
     this.cartService.addToCart(product.id, 1);
+    this.notificationService.showSuccess(
+      `🛍️ Đã thêm "${product.name}" vào giỏ hàng!`
+    );
     this.router.navigate(['/order']);
   }
 }

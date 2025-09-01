@@ -60,6 +60,7 @@ export class OrderComponent implements OnInit {
     this.orderData.shippingMethod = 'STANDARD'; // Default shipping method
     this.orderData.paymentMethod = 'MOMO'; // Default payment method
     this.orderData.paymentStatus = 'PENDING';
+    this.isLoading = false;
   }
 
   onSubmit() {

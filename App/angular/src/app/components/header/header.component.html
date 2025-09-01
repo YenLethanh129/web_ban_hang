@@ -1,7 +1,10 @@
 <header class="user-header">
   <nav class="navbar navbar-expand-lg">
     <div class="container">
-      <a class="navbar-brand" routerLink="/">LOGO</a>
+      <a class="navbar-brand" routerLink="/">
+        <span class="brand-text">FUNNY BOY</span>
+        <span class="brand-subtitle">Coffee & Tea</span>
+      </a>
       <div class="search-box">
         <input
           type="text"
@@ -30,6 +33,7 @@
               routerLinkActive="active"
               [routerLinkActiveOptions]="{ exact: true }"
             >
+              <i class="fas fa-home"></i>
               Trang chủ
             </a>
           </li>
@@ -39,25 +43,72 @@
               routerLink="/info-order"
               routerLinkActive="active"
             >
-              Thông tin đơn hàng
+              <i class="fas fa-receipt"></i>
+              Đơn hàng
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" routerLink="/cart"> Giỏ hàng </a>
+            <a class="nav-link" routerLink="/cart">
+              <i class="fas fa-shopping-cart"></i>
+              Giỏ hàng
+            </a>
           </li>
           <ng-container *ngIf="isLoggedIn">
-            <li class="nav-item">
-              <a class="nav-link">{{ username ? username : "User" }}</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="javascript:void(0)" (click)="logout()"
-                >Đăng xuất</a
+            <li class="nav-item dropdown" [class.show]="isDropdownOpen">
+              <a
+                class="nav-link dropdown-toggle"
+                href="javascript:void(0)"
+                role="button"
+                (click)="toggleDropdown()"
+                [attr.aria-expanded]="isDropdownOpen"
               >
+                <i class="fas fa-user-circle"></i>
+                {{ username ? username : "User" }}
+              </a>
+              <ul
+                class="dropdown-menu dropdown-menu-end"
+                [class.show]="isDropdownOpen"
+              >
+                <li>
+                  <a
+                    class="dropdown-item"
+                    routerLink="/profile"
+                    (click)="closeDropdown()"
+                  >
+                    <i class="fas fa-user"></i>
+                    Thông tin người dùng
+                  </a>
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item"
+                    routerLink="/info-order"
+                    (click)="closeDropdown()"
+                  >
+                    <i class="fas fa-history"></i>
+                    Lịch sử đơn hàng
+                  </a>
+                </li>
+                <li><hr class="dropdown-divider" /></li>
+                <li>
+                  <a
+                    class="dropdown-item logout-item"
+                    href="javascript:void(0)"
+                    (click)="logout()"
+                  >
+                    <i class="fas fa-sign-out-alt"></i>
+                    Đăng xuất
+                  </a>
+                </li>
+              </ul>
             </li>
           </ng-container>
           <ng-container *ngIf="!isLoggedIn">
             <li class="nav-item">
-              <a routerLink="/login" class="nav-link">Đăng nhập</a>
+              <a routerLink="/login" class="nav-link btn-login">
+                <i class="fas fa-sign-in-alt"></i>
+                Đăng nhập
+              </a>
             </li>
           </ng-container>
         </ul>
@@ -65,15 +116,15 @@
     </div>
   </nav>
 </header>
-<nav class="menu-top open">
-  <ul>
-    <li *ngFor="let category of categories">
-      <div class="menu">
-        <a [routerLink]="['/category', category.id]" class="layer-1">
-          <i class="" style="margin-right: 5px"></i>
-          <span>{{ category.name }}</span>
+<nav class="menu-top">
+  <div class="container">
+    <ul class="category-menu">
+      <li *ngFor="let category of categories" class="category-item">
+        <a [routerLink]="['/category', category.id]" class="category-link">
+          <i class="fas fa-coffee category-icon"></i>
+          <span class="category-name">{{ category.name }}</span>
         </a>
-      </div>
-    </li>
-  </ul>
+      </li>
+    </ul>
+  </div>
 </nav>

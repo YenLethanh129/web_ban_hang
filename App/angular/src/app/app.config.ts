@@ -8,6 +8,7 @@ import {
 import { provideHttpClient, withFetch } from '@angular/common/http';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { StorageService } from './services/storage.service';
+import { NotificationService } from './services/notification.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -16,9 +17,10 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withFetch()),
     provideAnimations(),
     StorageService,
-    {
-      provide: PLATFORM_ID,
-      useValue: typeof window === 'undefined' ? 'server' : 'browser',
-    },
+    NotificationService,
+    // {
+    //   provide: PLATFORM_ID,
+    //   useValue: typeof window === 'undefined' ? 'server' : 'browser',
+    // },
   ],
 };

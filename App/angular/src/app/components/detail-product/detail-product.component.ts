@@ -3,8 +3,9 @@ import { RouterModule, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ProductService } from '../../services/product.service';
 import { ProductDTO } from '../../models/product.dto';
-import { CartService } from '../../services/cart.service'
+import { CartService } from '../../services/cart.service';
 import { Router } from '@angular/router';
+import { NotificationService } from '../../services/notification.service';
 
 @Component({
   selector: 'app-detail-product',
@@ -31,7 +32,8 @@ export class DetailProductComponent implements OnInit {
     private route: ActivatedRoute,
     private productService: ProductService,
     private cartService: CartService,
-    private router: Router
+    private router: Router,
+    private notificationService: NotificationService
   ) {}
 
   ngOnInit() {
@@ -81,7 +83,9 @@ export class DetailProductComponent implements OnInit {
   addToCart(): void {
     if (this.product) {
       this.cartService.addToCart(this.product.id, this.quantity);
-      alert(`Đã thêm ${this.quantity} ${this.product.name} vào giỏ hàng`);
+      this.notificationService.showSuccess(
+        `Đã thêm ${this.quantity} ${this.product.name} vào giỏ hàng`
+      );
     }
   }
 

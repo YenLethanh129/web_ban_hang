@@ -10,6 +10,7 @@ import { GuestGuard } from './guards/guest.guard';
 import { CartComponent } from './components/cart/cart.component';
 import { CategoryComponent } from './components/category/category.component';
 import { InfoOrderComponent } from './info-order/info-order.component';
+import { NotificationTestComponent } from './components/notification-test/notification-test.component';
 
 export const routes: Routes = [
   {
@@ -35,6 +36,14 @@ export const routes: Routes = [
   { path: 'product/:id', component: DetailProductComponent },
   { path: 'cart', component: CartComponent },
   { path: 'category/:id', component: CategoryComponent },
-  { path: 'info-order', component: InfoOrderComponent, canActivate: [AuthGuard] },
+  {
+    path: 'info-order',
+    component: InfoOrderComponent,
+    canActivate: [AuthGuard],
+  },
+  {
+    path: 'notification-test',
+    component: NotificationTestComponent,
+  },
   { path: '**', redirectTo: 'home' },
 ];

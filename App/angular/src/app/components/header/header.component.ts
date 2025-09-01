@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { RouterModule, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { TokenService } from '../../services/token.service';
@@ -19,6 +19,7 @@ export class HeaderComponent implements OnInit {
   searchTerm: string = '';
   selectedCategory: string = '';
   categories: CategoryDTO[] = [];
+  isDropdownOpen: boolean = false;
 
   constructor(
     private tokenService: TokenService,
@@ -65,6 +66,7 @@ export class HeaderComponent implements OnInit {
   logout(): void {
     this.tokenService.removeToken();
     this.username = '';
+    this.isDropdownOpen = false;
     this.router.navigate(['/login']);
   }
 
@@ -74,5 +76,22 @@ export class HeaderComponent implements OnInit {
       term: this.searchTerm,
       category: this.selectedCategory,
     });
+  }
+
+  toggleDropdown(): void {
+    this.isDropdownOpen = !this.isDropdownOpen;
+  }
+
+  closeDropdown(): void {
+    this.isDropdownOpen = false;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: Event): void {
+    const target = event.target as HTMLElement;
+    const dropdown = target.closest('.dropdown');
+    if (!dropdown) {
+      this.isDropdownOpen = false;
+    }
   }
 }

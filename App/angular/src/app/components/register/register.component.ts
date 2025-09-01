@@ -10,6 +10,7 @@ import {
 } from '@angular/common/http';
 import { UserService } from '../../services/user.service';
 import { RegisterDTO } from '../../dtos/register.dto';
+import { NotificationService } from '../../services/notification.service';
 
 @Component({
   selector: 'app-register',
@@ -42,7 +43,11 @@ export class RegisterComponent {
 
   isLoading = false;
 
-  constructor(private router: Router, private userService: UserService) {}
+  constructor(
+    private router: Router,
+    private userService: UserService,
+    private notificationService: NotificationService
+  ) {}
 
   togglePasswordVisibility(field: 'password' | 'confirmPassword') {
     if (field === 'password') {
@@ -86,7 +91,9 @@ export class RegisterComponent {
 
   onSubmit() {
     if (!this.agreeToTerms) {
-      alert('Vui lòng đồng ý với điều khoản và điều kiện');
+      this.notificationService.showWarning(
+        '⚠️ Vui lòng đồng ý với điều khoản và điều kiện!'
+      );
       return;
     }
 
@@ -97,6 +104,7 @@ export class RegisterComponent {
       this.validateAge()
     ) {
       this.isLoading = true;
+      this.notificationService.showInfo('⏳ Đang xử lý đăng ký...');
 
       const registerDTO: RegisterDTO = {
         full_name: this.registerData.fullName,
@@ -114,20 +122,46 @@ export class RegisterComponent {
         next: (response) => {
           console.log('Đăng ký thành công:', response);
           this.isLoading = false;
-          alert('Đăng ký thành công! Vui lòng đăng nhập để tiếp tục.');
+          this.notificationService.showSuccess(
+            'Đăng ký thành công! Vui lòng đăng nhập để tiếp tục.'
+          );
           setTimeout(() => {
             this.router.navigate(['/login']);
-          }, 100);
+          }, 1500);
         },
         error: (error) => {
           this.isLoading = false;
-          let message = 'Đăng ký thất bại: ' + error;
-          alert(message);
+          let message = 'Đăng ký thất bại';
+          if (error?.error?.message) {
+            message = error.error.message;
+          } else if (typeof error === 'string') {
+            message = error;
+          }
+          this.notificationService.showError(message);
         },
         complete: () => {
           this.isLoading = false;
         },
       });
+    }
+  }
+
+  // TEST METHOD FOR NOTIFICATION
+  testNotification(type: string) {
+    console.log('Testing notification:', type);
+    switch (type) {
+      case 'success':
+        this.notificationService.showSuccess('🎉 Đây là thông báo thành công!');
+        break;
+      case 'error':
+        this.notificationService.showError('❌ Đây là thông báo lỗi!');
+        break;
+      case 'info':
+        this.notificationService.showInfo('ℹ️ Đây là thông báo thông tin!');
+        break;
+      case 'warning':
+        this.notificationService.showWarning('⚠️ Đây là thông báo cảnh báo!');
+        break;
     }
   }
 }

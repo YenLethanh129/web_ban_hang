@@ -1,55 +1,91 @@
-<div class="page-background">
-  <div class="container">
-    <div class="row justify-content-center">
-      <div class="col-md-8">
-        <div class="intro-section row">
-          <h1>CHÚ BÉ VUI COFFEE!</h1>
-          <p>Đảm bảo chất lượng, an toàn!</p>
-        </div>
-        <div class="row g-0">
-          <div
-            class="col-lg-3 col-md-6 col-sm-6 col-6"
-            *ngFor="let product of products"
-          >
-            <div class="product-item">
-              <a
+<div class="category-page">
+  <!-- Category Header -->
+  <!-- <section class="category-header"> -->
+  <!-- <div class="category-overlay"></div> -->
+  <!-- <div class="category-content"> -->
+  <!-- <h1 class="category-title">{{ categoryName || "DANH MỤC SẢN PHẨM" }}</h1> -->
+  <!-- <p class="category-subtitle"> -->
+  <!-- Khám phá những hương vị đặc biệt từ Funny Boy -->
+  <!-- </p> -->
+  <!-- </div> -->
+  <!-- </section> -->
+
+  <!-- Products Section -->
+  <section class="products-section">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">{{ categoryName }}</h2>
+        <!-- <p class="section-subtitle">Tìm thấy {{ products.length }} sản phẩm</p> -->
+      </div>
+
+      <div class="products-grid">
+        <div class="product-card" *ngFor="let product of products">
+          <div class="product-image-wrapper">
+            <img
+              [src]="product.thumbnail"
+              [alt]="product.name"
+              class="product-image"
+            />
+            <div class="product-overlay">
+              <button
+                class="btn btn-quick-view"
                 [routerLink]="['/detail-product', product.id]"
-                class="product-link"
               >
-                <img
-                  [src]="product.thumbnail"
-                  [alt]="product.name"
-                  class="product-image"
-                />
-                <h3 class="product-name">{{ product.name }}</h3>
-                <p class="product-description">{{ product.description }}</p>
-                <p class="product-price">
-                  Giá: {{ product.price | number : "1.0-0" }}đ
-                </p>
-              </a>
-              <div class="product-actions">
-                <button class="btn btn-primary" (click)="addToCart(product)">
-                  <i class="fas fa-cart-plus"></i>
-                </button>
-                <button
-                  class="btn btn-success"
-                  [routerLink]="['/cart']"
-                  (click)="addToCart(product)"
-                >
-                  Mua ngay
-                </button>
-              </div>
+                <i class="fas fa-eye"></i>
+                Xem chi tiết
+              </button>
+            </div>
+          </div>
+
+          <div class="product-info">
+            <h3 class="product-name">{{ product.name }}</h3>
+            <p class="product-description">{{ product.description }}</p>
+            <div class="product-price-section">
+              <span class="product-price"
+                >{{ product.price | number : "1.0-0" }}đ</span
+              >
+            </div>
+
+            <div class="product-actions">
+              <button
+                class="btn btn-outline-primary btn-add-cart"
+                (click)="addToCart(product)"
+              >
+                <i class="fas fa-cart-plus"></i>
+                Thêm vào giỏ
+              </button>
+              <button
+                class="btn btn-primary btn-buy-now"
+                (click)="buyNow(product)"
+              >
+                <i class="fas fa-shopping-bag"></i>
+                Mua ngay
+              </button>
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- Loading Indicator -->
-        <div class="loading-container" *ngIf="isLoading">
-          <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Đang tải...</span>
-          </div>
+      <!-- Empty State -->
+      <div class="empty-state" *ngIf="!isLoading && products.length === 0">
+        <div class="empty-icon">
+          <i class="fas fa-coffee"></i>
+        </div>
+        <h3>Không có sản phẩm</h3>
+        <p>Danh mục này hiện tại chưa có sản phẩm nào.</p>
+        <a [routerLink]="['/']" class="btn btn-primary">
+          <i class="fas fa-home"></i>
+          Về trang chủ
+        </a>
+      </div>
+
+      <!-- Loading Indicator -->
+      <div class="loading-container" *ngIf="isLoading">
+        <div class="loading-spinner">
+          <div class="spinner"></div>
+          <p class="loading-text">Đang tải sản phẩm...</p>
         </div>
       </div>
     </div>
-  </div>
+  </section>
 </div>

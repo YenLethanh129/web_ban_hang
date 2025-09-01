@@ -1,6 +1,6 @@
 <div class="container">
   <div class="cart-container">
-    <h2>Giỏ hàng của bạn</h2>
+    <h2>Giỏ hàng</h2>
 
     <div class="loading-spinner" *ngIf="isLoading">
       <div class="spinner-border text-primary" role="status">
@@ -10,7 +10,9 @@
 
     <div class="empty-cart" *ngIf="!isLoading && cartItems.length === 0">
       <p>Giỏ hàng của bạn đang trống</p>
-      <button class="btn btn-primary" routerLink="/">Tiếp tục mua sắm</button>
+      <button class="btn btn-primary" routerLink="/">
+        Khám phá menu FUNNY BOY
+      </button>
     </div>
 
     <div class="cart-content" *ngIf="!isLoading && cartItems.length > 0">
