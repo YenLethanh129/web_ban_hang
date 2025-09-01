@@ -4,13 +4,13 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Dashboard.DataAccess.Data;
 
-public interface IUnitOfWork : IDisposable
+public interface IUnitOfWork : IAsyncDisposable
 {
     IRepository<T> Repository<T>() where T : class;
     Task SaveChangesAsync();
-    void BeginTransaction();
-    void Commit();
-    void Rollback();
+    Task BeginTransactionAsync();
+    Task CommitAsync();
+    Task RollbackAsync();
 }
 
 public class UnitOfWork : IUnitOfWork
@@ -39,40 +39,51 @@ public class UnitOfWork : IUnitOfWork
         await _context.SaveChangesAsync();
     }
 
-    public void BeginTransaction()
+    public async Task BeginTransactionAsync()
     {
-        _transaction = _context.Database.BeginTransaction();
+        _transaction = await _context.Database.BeginTransactionAsync();
     }
 
-    public void Commit()
+    public async Task CommitAsync()
     {
+        if (_transaction == null)
+        {
+            throw new InvalidOperationException("No transaction started.");
+        }
         try
         {
-            _context.SaveChanges();
-            _transaction?.Commit();
+            await _context.SaveChangesAsync();
+            await _transaction.CommitAsync();
         }
         catch
         {
-            _transaction?.Rollback();
+            await _transaction.RollbackAsync();
             throw;
         }
         finally
         {
-            _transaction?.Dispose();
+            await _transaction.DisposeAsync();
             _transaction = null;
         }
     }
 
-    public void Rollback()
+    public async Task RollbackAsync()
     {
-        _transaction?.Rollback();
-        _transaction?.Dispose();
-        _transaction = null;
+        if (_transaction != null)
+        {
+            await _transaction.RollbackAsync();
+            await _transaction.DisposeAsync();
+            _transaction = null;
+        }
     }
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
-        _transaction?.Dispose();
-        _context.Dispose();
+        if (_transaction != null)
+        {
+            await _transaction.DisposeAsync();
+            _transaction = null;
+        }
+        await _context.DisposeAsync();
     }
 }
