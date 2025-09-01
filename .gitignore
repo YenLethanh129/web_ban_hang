@@ -2,6 +2,8 @@
 .env
 credentials.ini
 config.json
+.github/instructions
+.gitignore
 
 # OS and temp files 
 .DS_Store # macOS
