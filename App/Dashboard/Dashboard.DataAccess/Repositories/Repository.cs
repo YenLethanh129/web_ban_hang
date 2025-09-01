@@ -20,11 +20,11 @@ public interface IRepository<T> where T : class
     void Remove(T entity);
     void RemoveRange(IEnumerable<T> entities);
 
-    Task<IEnumerable<T>> GetAllWithSpecAsync(ISpecification<T> spec, bool asNoTracking = false);
+    Task<IEnumerable<T>> GetAllWithSpecAsync(ISpecification<T> spec, bool asNoTracking = false, int? skip = null, int? take = null);
     Task<T?> GetWithSpecAsync(ISpecification<T> spec, bool asNoTracking = false);
 }
 
-public abstract class Repository<T> where T : class
+public class Repository<T> : IRepository<T> where T : class
 {
     protected readonly WebbanhangDbContext _context;
 
@@ -106,14 +106,22 @@ public abstract class Repository<T> where T : class
     }
 
     // specs
-    public async Task<IEnumerable<T>> GetAllWithSpecAsync(ISpecification<T> spec, bool asNoTracking = false)
+    public async Task<IEnumerable<T>> GetAllWithSpecAsync(ISpecification<T> spec, bool asNoTracking = false, int? skip = null, int? take = null)
     {
+        IQueryable<T> query = ApplySpec(spec);
         if (asNoTracking)
         {
-            return await ApplySpec(spec).AsNoTracking().ToListAsync();
+            query = query.AsNoTracking();
         }
-
-        return await ApplySpec(spec).ToListAsync();
+        if (skip.HasValue)
+        {
+            query = query.Skip(skip.Value);
+        }
+        if (take.HasValue)
+        {
+            query = query.Take(take.Value);
+        }
+        return await query.ToListAsync();
     }
 
     public async Task<T?> GetWithSpecAsync(ISpecification<T> spec, bool asNoTracking = false)

@@ -1,5 +1,6 @@
 ﻿using Ardalis.GuardClauses;
 using Dashboard.DataAccess.Context;
+using Dashboard.DataAccess.Data;
 using Dashboard.DataAccess.Data.Interceptors;
 using Dashboard.DataAccess.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -23,6 +24,8 @@ public static class DependencyInjection
         builder.Services.AddScoped<IOrderRepository, OrderRepository>();
         builder.Services.AddScoped<IBranchRepository, BranchRepository>();
         builder.Services.AddScoped<IIngredientRepository, IngredientRepository>();
+        builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+        builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         builder.Services.AddDbContext<WebbanhangDbContext>((sp, options) =>
         {

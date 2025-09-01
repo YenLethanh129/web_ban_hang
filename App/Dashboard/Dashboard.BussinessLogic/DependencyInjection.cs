@@ -15,6 +15,7 @@ public static class DependencyInjection
     {
         builder.Services.AddAutoMapper(typeof(ProductMappingProfile));
         builder.Services.AddAutoMapper(typeof(CustomerMappingProfile));
+        builder.Services.AddAutoMapper(typeof(BranchMappingProfile));
 
         builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
         builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
