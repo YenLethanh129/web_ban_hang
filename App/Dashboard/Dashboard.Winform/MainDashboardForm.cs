@@ -1,15 +1,16 @@
 ﻿using Dashboard.BussinessLogic.Services;
 using Dashboard.Winform.Presenters;
 using Dashboard.Winform.ViewModels;
+using Microsoft.Extensions.Logging;
 
 namespace Dashboard.Winform
 {
-    public partial class MainDashboardForm : Form
+    public partial class MainDashboardForm : BaseForm
     {
         private readonly IDashboardPresenter _presenter;
         private MainDashboardModel _model;
 
-        public MainDashboardForm(IDashboardPresenter presenter)
+        public MainDashboardForm(ILogger<MainDashboardForm> logger, IDashboardPresenter presenter) : base(logger)
         {
             InitializeComponent();
             _presenter = presenter;
@@ -106,20 +107,27 @@ namespace Dashboard.Winform
 
         private async Task LoadDataAsync()
         {
-            try
-            {
-                ShowLoading(true);
-                await _presenter.LoadDashboardDataAsync();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"An error occur while fetch data from database: {ex.Message}", "Error",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            finally
-            {
-                ShowLoading(false);
-            }
+            //try
+            //{
+            //    ShowLoading(true);
+            //    await _presenter.LoadDashboardDataAsync();
+            //}
+            //catch (Exception ex)
+            //{
+            //    MessageBox.Show($"An error occur while fetch data from database: {ex.Message}", "Error",
+            //        MessageBoxButtons.OK, MessageBoxIcon.Error);
+            //}
+            //finally
+            //{
+            //    ShowLoading(false);
+            //}
+            await ExecuteWithHandlingAsync(async () =>
+                {
+                    ShowLoading(true);
+                    await _presenter.LoadDashboardDataAsync();
+                },
+                () => ShowLoading(false)
+            );
         }
 
         private async Task LoadDataForPeriod(DateTime startDate, DateTime endDate)
