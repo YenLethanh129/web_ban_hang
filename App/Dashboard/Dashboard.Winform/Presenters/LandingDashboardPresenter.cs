@@ -3,30 +3,30 @@ using Dashboard.Winform.ViewModels;
 
 namespace Dashboard.Winform.Presenters
 {
-    public interface IDashboardPresenter
+    public interface ILandingDashboardPresenter
     {
-        MainDashboardModel Model { get; }
+        LandingDashboardModel Model { get; }
         event EventHandler? OnDataLoaded;
         Task LoadDashboardDataAsync();
         Task LoadDashboardDataAsync(DateTime startDate, DateTime endDate);
     }
 
-    public class DashboardPresenter : IDashboardPresenter
+    public class LandingDashboardPresenter : ILandingDashboardPresenter
     {
         private readonly IOrderService _orderService;
         private readonly IReportingService _reportingService;
 
-        public MainDashboardModel Model { get; }
+        public LandingDashboardModel Model { get; }
 
         public event EventHandler? OnDataLoaded;
 
-        public DashboardPresenter(
+        public LandingDashboardPresenter(
             IOrderService orderService,
             IReportingService reportingService)
         {
             _orderService = orderService;
             _reportingService = reportingService;
-            Model = new MainDashboardModel();
+            Model = new LandingDashboardModel();
         }
 
         public async Task LoadDashboardDataAsync()
@@ -55,10 +55,8 @@ namespace Dashboard.Winform.Presenters
                     ProductCode = $"ING-{ingredient.Id:D6}",
                     Category = ingredient.CategoryName,
                     CurrentStock = ingredient.InStockQuantity,
-                    SafetyStock = 20, // Default - could be improved to get from InventoryThreshold
-                    MaximumStock = 200, // Default - could be improved to get from InventoryThreshold
-                    UnitPrice = ingredient.CostPerUnit,
-                    Supplier = "Chưa xác định",
+                    SafetyStock = ingredient.SafetyStock,
+                    MaximumStock = ingredient.MaximumStock, 
                     LastRestockDate = ingredient.UpdatedAt ?? ingredient.CreatedAt,
                     Location = "Kho chính"
                 }).ToList();
@@ -103,9 +101,8 @@ namespace Dashboard.Winform.Presenters
                     ProductCode = $"ING-{ingredient.Id:D6}",
                     Category = ingredient.CategoryName,
                     CurrentStock = ingredient.InStockQuantity,
-                    SafetyStock = 20, // Default - could be improved to get from InventoryThreshold
-                    MaximumStock = 200, // Default - could be improved to get from InventoryThreshold
-                    UnitPrice = ingredient.CostPerUnit,
+                    SafetyStock = ingredient.SafetyStock,
+                    MaximumStock = ingredient.MaximumStock, 
                     Supplier = "Chưa xác định",
                     LastRestockDate = ingredient.UpdatedAt ?? ingredient.CreatedAt,
                     Location = "Kho chính"

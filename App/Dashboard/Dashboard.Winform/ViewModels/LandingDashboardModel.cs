@@ -2,7 +2,7 @@
 
 namespace Dashboard.Winform.ViewModels
 {
-    public class MainDashboardModel : INotifyPropertyChanged
+    public class LandingDashboardModel : INotifyPropertyChanged
     {
         // Main financial data
         private decimal _totalRevenue;
@@ -288,8 +288,6 @@ public class UnderstockProductViewModel
     public int CurrentStock { get; set; }
     public int SafetyStock { get; set; }
     public int MaximumStock { get; set; }
-    public decimal UnitPrice { get; set; }
-    public string Supplier { get; set; } = string.Empty;
     public DateTime LastRestockDate { get; set; }
     public string Location { get; set; } = string.Empty;
 
@@ -299,14 +297,10 @@ public class UnderstockProductViewModel
     public bool IsCritical => CurrentStock <= (SafetyStock * 0.5);
     public bool IsLowStock => CurrentStock <= SafetyStock && !IsCritical;
     public int RecommendedOrderQuantity => Math.Max(0, MaximumStock - CurrentStock);
-    public decimal EstimatedRestockCost => RecommendedOrderQuantity * UnitPrice;
-
     // Formatted properties
     public string CurrentStockFormatted => CurrentStock.ToString("N0");
     public string SafetyStockFormatted => SafetyStock.ToString("N0");
     public string MaximumStockFormatted => MaximumStock.ToString("N0");
-    public string UnitPriceFormatted => UnitPrice.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("vi-VN"));
-    public string EstimatedRestockCostFormatted => EstimatedRestockCost.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("vi-VN"));
     public string StockPercentageFormatted => StockPercentage.ToString("F1") + "%";
     public string LastRestockDateFormatted => LastRestockDate.ToString("dd/MM/yyyy");
 

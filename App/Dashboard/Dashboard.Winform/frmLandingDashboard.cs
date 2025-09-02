@@ -4,12 +4,12 @@ using Dashboard.Winform.ViewModels;
 
 namespace Dashboard.Winform
 {
-    public partial class MainDashboardForm : Form
+    public partial class frmLandingDashboard : Form
     {
-        private readonly IDashboardPresenter _presenter;
-        private MainDashboardModel _model;
+        private readonly ILandingDashboardPresenter _presenter;
+        private LandingDashboardModel _model;
 
-        public MainDashboardForm(IDashboardPresenter presenter)
+        public frmLandingDashboard(ILandingDashboardPresenter presenter)
         {
             InitializeComponent();
             _presenter = presenter;

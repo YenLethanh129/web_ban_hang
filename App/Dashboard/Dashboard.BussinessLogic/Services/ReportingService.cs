@@ -301,7 +301,7 @@ public class ReportingService : IReportingService
             })
             .ToList();
 
-        return orderGroups.Select(g =>
+        return [.. orderGroups.Select(g =>
         {
             var yearStart = new DateTime(g.Key.Year, 1, 1);
             var yearEnd = new DateTime(g.Key.Year, 12, 31);
@@ -311,8 +311,7 @@ public class ReportingService : IReportingService
 
             return CreateRevenueReportDto(totalRevenue, yearlyExpense, yearStart, g.Key.BranchId, g.Key.BranchName);
         })
-        .OrderByDescending(r => r.ReportDate)
-        .ToList();
+        .OrderByDescending(r => r.ReportDate)];
     }
 
     private static int GetWeekOfYear(DateTime date)

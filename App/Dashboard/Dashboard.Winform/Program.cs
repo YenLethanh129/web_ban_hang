@@ -22,14 +22,14 @@ namespace Dashboard.Winform
 
             builder.Services.AddAutoMapper(typeof(ReportMappingProfile));
 
-            builder.Services.AddScoped<IDashboardPresenter, DashboardPresenter>();
-            builder.Services.AddTransient<MainDashboardForm>();
+            builder.Services.AddScoped<ILandingDashboardPresenter, LandingDashboardPresenter>();
+            builder.Services.AddTransient<frmLandingDashboard>();
 
             using var host = builder.Build();
 
             ApplicationConfiguration.Initialize();
 
-            var mainForm = host.Services.GetRequiredService<MainDashboardForm>();
+            var mainForm = host.Services.GetRequiredService<frmLandingDashboard>();
             Application.Run(mainForm);
         }
     }

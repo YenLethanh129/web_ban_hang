@@ -1,5 +1,6 @@
 ﻿using Ardalis.GuardClauses;
 using Dashboard.DataAccess.Context;
+using Dashboard.DataAccess.Data;
 using Dashboard.DataAccess.Data.Interceptors;
 using Dashboard.DataAccess.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -27,6 +28,8 @@ public static class DependencyInjection
         builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
         builder.Services.AddScoped<IIngredientTransferRepository, IngredientTransferRepository>();
         builder.Services.AddScoped<IIngredientTransferRequestRepository, IngredientTransferRequestRepository>();
+        builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+        builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         builder.Services.AddDbContext<WebbanhangDbContext>((sp, options) =>
         {

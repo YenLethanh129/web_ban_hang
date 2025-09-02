@@ -1,8 +1,9 @@
-﻿using Dashboard.BussinessLogic.Dtos;
+﻿using AutoMapper;
+using Dashboard.BussinessLogic.Dtos;
 using Dashboard.BussinessLogic.Dtos.BranchDtos;
-using Dashboard.DataAccess.Context;
+using Dashboard.DataAccess.Data;
 using Dashboard.DataAccess.Models.Entities;
-using Microsoft.EntityFrameworkCore;
+using Dashboard.DataAccess.Specification;
 
 namespace Dashboard.BussinessLogic.Services;
 
@@ -13,56 +14,37 @@ public interface IBranchService
 
 public class BranchService : IBranchService
 {
-    private readonly WebbanhangDbContext _context;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly IMapper _mapper;
 
-    public BranchService(WebbanhangDbContext context)
+    public BranchService(IUnitOfWork unitOfWork, IMapper mapper)
     {
-        _context = context;
+        _unitOfWork = unitOfWork;
+        _mapper = mapper;
     }
 
     public async Task<PagedList<BranchDto>> GetBranchesAsync(GetBranchesInput input)
     {
-        IQueryable<Branch> query = _context.Branches.AsQueryable();
+        var spec = new Specification<Branch>(b => 
+            (string.IsNullOrEmpty(input.Name) || b.Name.Contains(input.Name)) &&
+            (string.IsNullOrEmpty(input.Address) || (b.Address != null && b.Address.Contains(input.Address))) &&
+            (string.IsNullOrEmpty(input.Phone) || (b.Phone != null && b.Phone.Contains(input.Phone))) &&
+            (string.IsNullOrEmpty(input.Manager) || (b.Manager != null && b.Manager.Contains(input.Manager)))
+        );
 
-        if (!string.IsNullOrEmpty(input.Name))
-        {
-            query = query.Where(x => x.Name.Contains(input.Name, StringComparison.CurrentCultureIgnoreCase));
-        }
+        int skip = (input.PageNumber - 1) * input.PageSize;
+        int take = input.PageSize;
+        IEnumerable<Branch> branches = await _unitOfWork.Repository<Branch>().GetAllWithSpecAsync(spec, true, skip, take);
+        int count = await _unitOfWork.Repository<Branch>().GetCountAsync();
 
-        if (!string.IsNullOrEmpty(input.Address))
-        {
-            query = query.Where(x => x.Address != null && x.Address.Contains(input.Address, StringComparison.CurrentCultureIgnoreCase));
-        }
-
-        if (!string.IsNullOrEmpty(input.Phone))
-        {
-            query = query.Where(x => x.Phone != null && x.Phone.Contains(input.Phone, StringComparison.CurrentCultureIgnoreCase));
-        }
-
-        if (!string.IsNullOrEmpty(input.Manager))
-        {
-            query = query.Where(x => x.Manager != null && x.Manager.Contains(input.Manager, StringComparison.CurrentCultureIgnoreCase));
-        }
-
-        int totalRecords = await query.CountAsync();
-        List<BranchDto> branchDtos = await query
-            .Select(x => new BranchDto
-            {
-                Name = x.Name,
-                Address = x.Address,
-                Manager = x.Manager,
-                Phone = x.Phone
-            })
-            .Skip((input.PageNumber - 1) * input.PageSize)
-            .Take(input.PageSize)
-            .ToListAsync();
+        List<BranchDto> branchDtos = _mapper.Map<List<BranchDto>>(branches);
 
         return new PagedList<BranchDto>
         {
+            Items = branchDtos,
+            TotalRecords = count,
             PageNumber = input.PageNumber,
-            PageSize = input.PageSize,
-            TotalRecords = totalRecords,
-            Items = branchDtos
+            PageSize = input.PageSize
         };
     }
 }

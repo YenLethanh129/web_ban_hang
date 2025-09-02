@@ -2,6 +2,7 @@ using Dashboard.DataAccess;
 using Dashboard.DataAccess.Context;
 using Dashboard.BussinessLogic; 
 using Microsoft.EntityFrameworkCore;
+using Dashboard.API.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,6 +37,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseMiddleware<ExceptionHandlerMiddleware>();
 
 app.UseAuthorization();
 

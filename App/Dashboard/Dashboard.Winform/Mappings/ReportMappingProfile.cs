@@ -9,7 +9,7 @@ public class ReportMappingProfile : Profile
 {
     public ReportMappingProfile()
     {
-        CreateMap<DashboardSummaryDto, MainDashboardModel>()
+        CreateMap<DashboardSummaryDto, LandingDashboardModel>()
             .ForMember(dest => dest.TotalRevenue, opt => opt.MapFrom(src => src.TodayRevenue + src.MonthlyRevenue + src.YearlyRevenue))
             .ForMember(dest => dest.TotalProfit, opt => opt.MapFrom(src => src.TodayProfit + src.MonthlyProfit + src.YearlyProfit))
             .ForMember(dest => dest.TotalExpenses, opt => opt.MapFrom(src => src.TodayExpenses + src.MonthlyExpenses + src.YearlyExpenses))

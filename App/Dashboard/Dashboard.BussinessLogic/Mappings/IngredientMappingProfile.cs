@@ -10,7 +10,12 @@ public class IngredientMappingProfile : Profile
     {
         CreateMap<Ingredient, LowStockIngredientDto>()
             .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.Name))
-            .ForMember(dest => dest.InStockQuantity, opt => opt.MapFrom(src => src.IngredientWarehouse != null ? src.IngredientWarehouse.Quantity : 0));
+            .ForMember(dest => dest.InStockQuantity, opt => opt.MapFrom(src => src.IngredientWarehouse != null ? src.IngredientWarehouse.Quantity : 0))
+            .ForMember(dest => dest.SafetyStock, opt => opt.MapFrom(src => src.IngredientWarehouse != null ? src.IngredientWarehouse.SafetyStock : 0))
+            .ForMember(dest => dest.MaximumStock, opt => opt.MapFrom(src => src.IngredientWarehouse != null ? src.IngredientWarehouse.MaximumStock : 0));
+
+
+
 
         CreateMap<BranchIngredientInventory, BranchIngredientInventoryDto>()
             .ForMember(dest => dest.BranchName, opt => opt.MapFrom(src => src.Branch.Name));
