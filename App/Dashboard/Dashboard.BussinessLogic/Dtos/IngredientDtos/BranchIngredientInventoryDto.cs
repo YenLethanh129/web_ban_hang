@@ -8,7 +8,7 @@ public class BranchIngredientInventoryDto
     public long IngredientId { get; set; }
     public LowStockIngredientDto Ingredient { get; set; } = new();
     public decimal CurrentStock { get; set; }
-    public decimal MinimumThreshold { get; set; }
+    public decimal SafetyStock { get; set; }
     public decimal MaximumThreshold { get; set; }
     public DateTime LastUpdated { get; set; }
 }

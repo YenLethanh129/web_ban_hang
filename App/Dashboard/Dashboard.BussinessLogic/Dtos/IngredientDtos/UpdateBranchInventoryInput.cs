@@ -5,6 +5,6 @@ public class UpdateBranchInventoryInput
     public int BranchId { get; set; }
     public int IngredientId { get; set; }
     public decimal CurrentStock { get; set; }
-    public decimal MinimumThreshold { get; set; }
+    public decimal SafetyStock { get; set; }
     public decimal MaximumThreshold { get; set; }
 }

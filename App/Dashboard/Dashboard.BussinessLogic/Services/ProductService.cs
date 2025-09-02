@@ -42,203 +42,149 @@ public class ProductService : IProductService
 
     public async Task<PagedList<ProductDto>> GetProductsAsync(GetProductsInput input)
     {
-        try
+
+        var specification = new Specification<Product>(p =>
+            (string.IsNullOrEmpty(input.Name) || p.Name.Contains(input.Name)) &&
+            (!input.CategoryId.HasValue || p.CategoryId == input.CategoryId.Value) &&
+            (!input.IsActive.HasValue || p.IsActive == input.IsActive.Value) &&
+            (!input.MinPrice.HasValue || p.Price >= input.MinPrice.Value) &&
+            (!input.MaxPrice.HasValue || p.Price <= input.MaxPrice.Value) && 
+            (!input.StartDate.HasValue || p.CreatedAt.Date == input.StartDate.Value) &&
+            (!input.EndDate.HasValue || p.CreatedAt.Date <= input.EndDate.Value)
+        );
+
+        specification.Includes.Add(p => p.Category!);
+        specification.Includes.Add(p => p.ProductImages);
+
+        var allProducts = await _productRepository.GetAllWithSpecAsync(specification, true);
+
+        IEnumerable<Product> sortedProducts = allProducts;
+        if (input.SortBy.HasValue)
         {
-            var specification = new Specification<Product>(p =>
-                (string.IsNullOrEmpty(input.Name) || p.Name.Contains(input.Name)) &&
-                (!input.CategoryId.HasValue || p.CategoryId == input.CategoryId.Value) &&
-                (!input.IsActive.HasValue || p.IsActive == input.IsActive.Value) &&
-                (!input.MinPrice.HasValue || p.Price >= input.MinPrice.Value) &&
-                (!input.MaxPrice.HasValue || p.Price <= input.MaxPrice.Value) && 
-                (!input.StartDate.HasValue || p.CreatedAt.Date == input.StartDate.Value) &&
-                (!input.EndDate.HasValue || p.CreatedAt.Date <= input.EndDate.Value)
-            );
-
-            specification.Includes.Add(p => p.Category!);
-            specification.Includes.Add(p => p.ProductImages);
-
-            var allProducts = await _productRepository.GetAllWithSpecAsync(specification, true);
-
-            IEnumerable<Product> sortedProducts = allProducts;
-            if (input.SortBy.HasValue)
+            sortedProducts = input.SortBy switch
             {
-                sortedProducts = input.SortBy switch
-                {
-                    SortByEnum.Name => input.IsDescending
-                                                ? allProducts.OrderByDescending(p => p.Name)
-                                                : allProducts.OrderBy(p => p.Name),
-                    SortByEnum.Price => input.IsDescending
-                                                ? allProducts.OrderByDescending(p => p.Price)
-                                                : allProducts.OrderBy(p => p.Price),
-                    SortByEnum.CreatedDate => input.IsDescending
-                                                ? allProducts.OrderByDescending(p => p.CreatedAt)
-                                                : allProducts.OrderBy(p => p.CreatedAt),
-                    _ => allProducts.OrderByDescending(p => p.CreatedAt),
-                };
-            }
-            else
-            {
-                sortedProducts = allProducts.OrderByDescending(p => p.CreatedAt);
-            }
-
-            var totalRecords = sortedProducts.Count();
-
-            var pagedProducts = sortedProducts
-                .Skip((input.PageNumber - 1) * input.PageSize)
-                .Take(input.PageSize)
-                .ToList();
-
-            var productDtos = _mapper.Map<IEnumerable<ProductDto>>(pagedProducts);
-
-            return new PagedList<ProductDto>
-            {
-                PageNumber = input.PageNumber,
-                PageSize = input.PageSize,
-                TotalRecords = totalRecords,
-                Items = [.. productDtos]
+                SortByEnum.Name => input.IsDescending
+                                            ? allProducts.OrderByDescending(p => p.Name)
+                                            : allProducts.OrderBy(p => p.Name),
+                SortByEnum.Price => input.IsDescending
+                                            ? allProducts.OrderByDescending(p => p.Price)
+                                            : allProducts.OrderBy(p => p.Price),
+                SortByEnum.CreatedDate => input.IsDescending
+                                            ? allProducts.OrderByDescending(p => p.CreatedAt)
+                                            : allProducts.OrderBy(p => p.CreatedAt),
+                _ => allProducts.OrderByDescending(p => p.CreatedAt),
             };
-
         }
-        catch (Exception ex)
+        else
         {
-            _logger.LogError(ex, "Error occurred while getting products");
-            throw;
+            sortedProducts = allProducts.OrderByDescending(p => p.CreatedAt);
         }
+
+        var totalRecords = sortedProducts.Count();
+
+        var pagedProducts = sortedProducts
+            .Skip((input.PageNumber - 1) * input.PageSize)
+            .Take(input.PageSize)
+            .ToList();
+
+        var productDtos = _mapper.Map<IEnumerable<ProductDto>>(pagedProducts);
+
+        return new PagedList<ProductDto>
+        {
+            PageNumber = input.PageNumber,
+            PageSize = input.PageSize,
+            TotalRecords = totalRecords,
+            Items = [.. productDtos]
+        };
     }
 
     public async Task<ProductDto?> GetProductByIdAsync(int id)
     {
-        try
-        {
-            var product = await _productRepository.GetProductWithDetailsAsync(id);
-            return product != null ? _mapper.Map<ProductDto>(product) : null;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error occurred while getting product by id: {Id}", id);
-            throw;
-        }
+        var product = await _productRepository.GetProductWithDetailsAsync(id);
+        return product != null ? _mapper.Map<ProductDto>(product) : null;
     }
 
     public async Task<ProductDto> CreateProductAsync(CreateProductInput input)
     {
-        try
-        {
-            var product = _mapper.Map<Product>(input);
-            product.CreatedAt = DateTime.UtcNow;
+        var product = _mapper.Map<Product>(input);
+        product.CreatedAt = DateTime.UtcNow;
 
-            // Add product images
-            if (input.ImageUrls.Any())
+        // Add product images
+        if (input.ImageUrls.Any())
+        {
+            product.ProductImages = [.. input.ImageUrls.Select((url) => new ProductImage
             {
-                product.ProductImages = [.. input.ImageUrls.Select((url) => new ProductImage
-                {
-                    ImageUrl = url,
-                })];
-            }
-             
-            await _productRepository.AddAsync(product);
-            await _unitOfWork.SaveChangesAsync();
+                ImageUrl = url,
+            })];
+        }
+            
+        await _productRepository.AddAsync(product);
+        await _unitOfWork.SaveChangesAsync();
 
-            return _mapper.Map<ProductDto>(product);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error occurred while creating product");
-            throw;
-        }
+        return _mapper.Map<ProductDto>(product);
     }
 
     public async Task<ProductDto> UpdateProductAsync(UpdateProductInput input)
     {
-        try
+
+        var product = await _productRepository.GetProductWithDetailsAsync(input.Id);
+        if (product == null)
         {
-            var product = await _productRepository.GetProductWithDetailsAsync(input.Id);
-            if (product == null)
-            {
-                throw new ArgumentException($"Product with id {input.Id} not found");
-            }
-
-            _mapper.Map(input, product);
-            product.LastModified = DateTime.UtcNow;
-
-            product.ProductImages.Clear();
-            if (input.ImageUrls.Any())
-            {
-                product.ProductImages = [.. input.ImageUrls.Select((url) => new ProductImage
-                {
-                    ProductId = product.Id,
-                    ImageUrl = url,
-                })];
-            }
-
-            _productRepository.Update(product);
-            await _unitOfWork.SaveChangesAsync();
-
-            return _mapper.Map<ProductDto>(product);
+            throw new ArgumentException($"Product with id {input.Id} not found");
         }
-        catch (Exception ex)
+
+        _mapper.Map(input, product);
+        product.LastModified = DateTime.UtcNow;
+
+        product.ProductImages.Clear();
+        if (input.ImageUrls.Any())
         {
-            _logger.LogError(ex, "Error occurred while updating product");
-            throw;
+            product.ProductImages = [.. input.ImageUrls.Select((url) => new ProductImage
+            {
+                ProductId = product.Id,
+                ImageUrl = url,
+            })];
         }
+
+        _productRepository.Update(product);
+        await _unitOfWork.SaveChangesAsync();
+
+        return _mapper.Map<ProductDto>(product);
     }
 
     public async Task<bool> DeleteProductAsync(int id)
     {
-        try
+        var product = await _productRepository.GetAsync(id);
+        if (product == null)
         {
-            var product = await _productRepository.GetAsync(id);
-            if (product == null)
-            {
-                return false;
-            }
+            return false;
+        }
 
-            _productRepository.Remove(product);
-            await _unitOfWork.SaveChangesAsync();
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error occurred while deleting product");
-            throw;
-        }
+        _productRepository.Remove(product);
+        await _unitOfWork.SaveChangesAsync();
+        return true;
+
     }
 
     public async Task<bool> IsProductNameExistsAsync(string name, int? excludeId = null)
     {
-        try
-        {
-            return await _productRepository.IsProductNameExistsAsync(name, excludeId);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error occurred while checking product name exists");
-            throw;
-        }
+        return await _productRepository.IsProductNameExistsAsync(name, excludeId);
     }
 
     public async Task<int> GetAmount(GetProductsInput input)
     {
-        try
-        {
-            var specification = new Specification<Product>(p =>
-                            (string.IsNullOrEmpty(input.Name) || p.Name.Contains(input.Name)) &&
-                            (!input.CategoryId.HasValue || p.CategoryId == input.CategoryId.Value) &&
-                            (!input.IsActive.HasValue || p.IsActive == input.IsActive.Value) &&
-                            (!input.MinPrice.HasValue || p.Price >= input.MinPrice.Value) &&
-                            (!input.MaxPrice.HasValue || p.Price <= input.MaxPrice.Value) &&
-                            (!input.StartDate.HasValue || p.CreatedAt.Date == input.StartDate.Value) &&
-                            (!input.EndDate.HasValue || p.CreatedAt.Date <= input.EndDate.Value)
-                        );
-            var allProducts = await _productRepository.GetAllWithSpecAsync(specification, true);
+        var specification = new Specification<Product>(p =>
+                        (string.IsNullOrEmpty(input.Name) || p.Name.Contains(input.Name)) &&
+                        (!input.CategoryId.HasValue || p.CategoryId == input.CategoryId.Value) &&
+                        (!input.IsActive.HasValue || p.IsActive == input.IsActive.Value) &&
+                        (!input.MinPrice.HasValue || p.Price >= input.MinPrice.Value) &&
+                        (!input.MaxPrice.HasValue || p.Price <= input.MaxPrice.Value) &&
+                        (!input.StartDate.HasValue || p.CreatedAt.Date == input.StartDate.Value) &&
+                        (!input.EndDate.HasValue || p.CreatedAt.Date <= input.EndDate.Value)
+                    );
+        var allProducts = await _productRepository.GetAllWithSpecAsync(specification, true);
 
-            return allProducts.Count();
+        return allProducts.Count();
 
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error occurred while getting product amount");
-            throw;
-        }
     }
 }

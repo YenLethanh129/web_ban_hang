@@ -16,8 +16,8 @@ public partial class IngredientWarehouse : BaseAuditableEntity
     [Column("quantity", TypeName = "decimal(18, 2)")]
     public decimal Quantity { get; set; }
 
-    [Column("minimum_stock", TypeName = "decimal(18, 2)")]
-    public decimal MinimumStock { get; set; }
+    [Column("safety_stock", TypeName = "decimal(18, 2)")]
+    public decimal SafetyStock { get; set; }
 
     [Column("maximum_stock", TypeName = "decimal(18, 2)")]
     public decimal? MaximumStock { get; set; }

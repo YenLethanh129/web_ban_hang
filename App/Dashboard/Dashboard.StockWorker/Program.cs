@@ -16,7 +16,6 @@ if (args.Length > 0 && args[0].ToLower() == "demo")
     await DemoRunner.RunDemoAsync();
     return;
 }
-
 var builder = Host.CreateApplicationBuilder(args);
 
 // Add configuration
@@ -58,36 +57,21 @@ using (var scope = host.Services.CreateScope())
     var dataSeeder = scope.ServiceProvider.GetRequiredService<DataSeedService>();
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
     
-    try
+    logger.LogInformation("Checking database connection...");
+    var canConnect = await context.Database.CanConnectAsync();
+    
+    if (canConnect)
     {
-        logger.LogInformation("Checking database connection...");
-        var canConnect = await context.Database.CanConnectAsync();
+        await context.Database.EnsureCreatedAsync();
+        logger.LogInformation("Database connection verified successfully");
         
-        if (canConnect)
-        {
-            await context.Database.EnsureCreatedAsync();
-            logger.LogInformation("Database connection verified successfully");
-            
-            //try
-            //{
-            //    await dataSeeder.SeedDataAsync();
-            //    logger.LogInformation("Initial data seeding completed");
-            //}
-            //catch (Exception ex)
-            //{
-            //    logger.LogWarning(ex, "Data seeding completed with warnings (data may already exist)");
-            //}
-        }
-        else
-        {
-            logger.LogError("Cannot connect to database. Please check connection string.");
-            throw new InvalidOperationException("Database connection failed");
-        }
+        await dataSeeder.SeedDataAsync();
+        logger.LogInformation("Initial data seeding completed");
     }
-    catch (Exception ex)
+    else
     {
-        logger.LogError(ex, "Database setup failed: {Message}", ex.Message);
-        throw;
+        logger.LogError("Cannot connect to database. Please check connection string.");
+        throw new InvalidOperationException("Database connection failed");
     }
 }
 Console.WriteLine("Stock Worker Service is starting...");

@@ -14,7 +14,7 @@ namespace Dashboard.StockWorker.Models
         public string Unit { get; set; } = string.Empty;
         public decimal CurrentStock { get; set; }
         public decimal ReorderPoint { get; set; }
-        public decimal MinimumStock { get; set; }
+        public decimal SafetyStock { get; set; }
         public decimal MaximumStock { get; set; }
         public StockAlertLevel AlertLevel { get; set; }
         public long BranchId { get; set; }

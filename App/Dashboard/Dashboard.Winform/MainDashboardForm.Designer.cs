@@ -30,17 +30,17 @@ namespace Dashboard.Winform
         /// </summary>
         private void InitializeComponent()
         {
-            ChartArea chartArea1 = new ChartArea();
-            Legend legend1 = new Legend();
-            Series series1 = new Series();
-            Title title1 = new Title();
-            ChartArea chartArea2 = new ChartArea();
-            Legend legend2 = new Legend();
-            Series series2 = new Series();
-            Title title2 = new Title();
-            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
+            ChartArea chartArea3 = new ChartArea();
+            Legend legend3 = new Legend();
+            Series series3 = new Series();
+            Title title3 = new Title();
+            ChartArea chartArea4 = new ChartArea();
+            Legend legend4 = new Legend();
+            Series series4 = new Series();
+            Title title4 = new Title();
+            DataGridViewCellStyle dataGridViewCellStyle4 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle5 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle6 = new DataGridViewCellStyle();
             label1 = new Label();
             dtpStart = new DateTimePicker();
             dtpEnd = new DateTimePicker();
@@ -72,6 +72,7 @@ namespace Dashboard.Winform
             panel5 = new Panel();
             dgvUnderstock = new DataGridView();
             label13 = new Label();
+            label4 = new Label();
             panel1.SuspendLayout();
             panel2.SuspendLayout();
             panel3.SuspendLayout();
@@ -97,7 +98,7 @@ namespace Dashboard.Winform
             // 
             dtpStart.CustomFormat = "dd/MM/yyyy";
             dtpStart.Format = DateTimePickerFormat.Short;
-            dtpStart.Location = new Point(187, 23);
+            dtpStart.Location = new Point(174, 25);
             dtpStart.Margin = new Padding(3, 4, 3, 4);
             dtpStart.Name = "dtpStart";
             dtpStart.Size = new Size(99, 27);
@@ -107,7 +108,7 @@ namespace Dashboard.Winform
             // 
             dtpEnd.CustomFormat = "dd/MM/yyyy";
             dtpEnd.Format = DateTimePickerFormat.Short;
-            dtpEnd.Location = new Point(307, 23);
+            dtpEnd.Location = new Point(321, 24);
             dtpEnd.Margin = new Padding(3, 4, 3, 4);
             dtpEnd.Name = "dtpEnd";
             dtpEnd.Size = new Size(99, 27);
@@ -266,56 +267,56 @@ namespace Dashboard.Winform
             // chart1
             // 
             chart1.BackColor = Color.FromArgb(42, 45, 86);
-            chartArea1.Name = "ChartArea1";
-            chart1.ChartAreas.Add(chartArea1);
-            legend1.Docking = Docking.Top;
-            legend1.Name = "Legend1";
-            chart1.Legends.Add(legend1);
+            chartArea3.Name = "ChartArea1";
+            chart1.ChartAreas.Add(chartArea3);
+            legend3.Docking = Docking.Top;
+            legend3.Name = "Legend1";
+            chart1.Legends.Add(legend3);
             chart1.Location = new Point(14, 151);
             chart1.Margin = new Padding(3, 4, 3, 4);
             chart1.Name = "chart1";
-            series1.ChartArea = "ChartArea1";
-            series1.Legend = "Legend1";
-            series1.Name = "Series1";
-            chart1.Series.Add(series1);
+            series3.ChartArea = "ChartArea1";
+            series3.Legend = "Legend1";
+            series3.Name = "Series1";
+            chart1.Series.Add(series3);
             chart1.Size = new Size(682, 336);
             chart1.TabIndex = 12;
             chart1.Text = "chart1";
-            title1.Alignment = ContentAlignment.TopLeft;
-            title1.Font = new Font("Microsoft Sans Serif", 12F);
-            title1.ForeColor = Color.WhiteSmoke;
-            title1.Name = "Title1";
-            title1.Text = "Tổng Doanh Thu";
-            chart1.Titles.Add(title1);
+            title3.Alignment = ContentAlignment.TopLeft;
+            title3.Font = new Font("Microsoft Sans Serif", 12F);
+            title3.ForeColor = Color.WhiteSmoke;
+            title3.Name = "Title1";
+            title3.Text = "Tổng Doanh Thu";
+            chart1.Titles.Add(title3);
             // 
             // chart2
             // 
             chart2.BackColor = Color.FromArgb(42, 45, 86);
-            chartArea2.Name = "ChartArea1";
-            chart2.ChartAreas.Add(chartArea2);
-            legend2.Docking = Docking.Bottom;
-            legend2.Name = "Legend1";
-            chart2.Legends.Add(legend2);
+            chartArea4.Name = "ChartArea1";
+            chart2.ChartAreas.Add(chartArea4);
+            legend4.Docking = Docking.Bottom;
+            legend4.Name = "Legend1";
+            chart2.Legends.Add(legend4);
             chart2.Location = new Point(703, 151);
             chart2.Margin = new Padding(3, 4, 3, 4);
             chart2.Name = "chart2";
-            series2.ChartArea = "ChartArea1";
-            series2.ChartType = SeriesChartType.Doughnut;
-            series2.Font = new Font("Microsoft Sans Serif", 12F);
-            series2.IsValueShownAsLabel = true;
-            series2.LabelForeColor = Color.White;
-            series2.Legend = "Legend1";
-            series2.Name = "Series1";
-            chart2.Series.Add(series2);
+            series4.ChartArea = "ChartArea1";
+            series4.ChartType = SeriesChartType.Doughnut;
+            series4.Font = new Font("Microsoft Sans Serif", 12F);
+            series4.IsValueShownAsLabel = true;
+            series4.LabelForeColor = Color.White;
+            series4.Legend = "Legend1";
+            series4.Name = "Series1";
+            chart2.Series.Add(series4);
             chart2.Size = new Size(393, 581);
             chart2.TabIndex = 13;
             chart2.Text = "chart2";
-            title2.Alignment = ContentAlignment.TopLeft;
-            title2.Font = new Font("Microsoft Sans Serif", 12F);
-            title2.ForeColor = Color.WhiteSmoke;
-            title2.Name = "Title1";
-            title2.Text = "Top 5 Sản Phẩm Bán Chạy";
-            chart2.Titles.Add(title2);
+            title4.Alignment = ContentAlignment.TopLeft;
+            title4.Font = new Font("Microsoft Sans Serif", 12F);
+            title4.ForeColor = Color.WhiteSmoke;
+            title4.Name = "Title1";
+            title4.Text = "Top 5 Sản Phẩm Bán Chạy";
+            chart2.Titles.Add(title4);
             // 
             // panel4
             // 
@@ -422,34 +423,34 @@ namespace Dashboard.Winform
             // dgvUnderstock
             // 
             dgvUnderstock.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle1.BackColor = SystemColors.Control;
-            dataGridViewCellStyle1.Font = new Font("Segoe UI", 9F);
-            dataGridViewCellStyle1.ForeColor = SystemColors.WindowText;
-            dataGridViewCellStyle1.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle1.WrapMode = DataGridViewTriState.True;
-            dgvUnderstock.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle4.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle4.BackColor = SystemColors.Control;
+            dataGridViewCellStyle4.Font = new Font("Segoe UI", 9F);
+            dataGridViewCellStyle4.ForeColor = SystemColors.WindowText;
+            dataGridViewCellStyle4.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle4.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle4.WrapMode = DataGridViewTriState.True;
+            dgvUnderstock.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle4;
             dgvUnderstock.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle2.BackColor = SystemColors.Window;
-            dataGridViewCellStyle2.Font = new Font("Segoe UI", 9F);
-            dataGridViewCellStyle2.ForeColor = SystemColors.ControlText;
-            dataGridViewCellStyle2.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle2.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
-            dgvUnderstock.DefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle5.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle5.BackColor = SystemColors.Window;
+            dataGridViewCellStyle5.Font = new Font("Segoe UI", 9F);
+            dataGridViewCellStyle5.ForeColor = SystemColors.ControlText;
+            dataGridViewCellStyle5.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle5.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle5.WrapMode = DataGridViewTriState.False;
+            dgvUnderstock.DefaultCellStyle = dataGridViewCellStyle5;
             dgvUnderstock.Location = new Point(10, 33);
             dgvUnderstock.Margin = new Padding(3, 4, 3, 4);
             dgvUnderstock.Name = "dgvUnderstock";
-            dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle3.BackColor = SystemColors.Control;
-            dataGridViewCellStyle3.Font = new Font("Segoe UI", 9F);
-            dataGridViewCellStyle3.ForeColor = SystemColors.WindowText;
-            dataGridViewCellStyle3.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle3.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle3.WrapMode = DataGridViewTriState.True;
-            dgvUnderstock.RowHeadersDefaultCellStyle = dataGridViewCellStyle3;
+            dataGridViewCellStyle6.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle6.BackColor = SystemColors.Control;
+            dataGridViewCellStyle6.Font = new Font("Segoe UI", 9F);
+            dataGridViewCellStyle6.ForeColor = SystemColors.WindowText;
+            dataGridViewCellStyle6.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle6.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle6.WrapMode = DataGridViewTriState.True;
+            dgvUnderstock.RowHeadersDefaultCellStyle = dataGridViewCellStyle6;
             dgvUnderstock.RowHeadersWidth = 51;
             dgvUnderstock.Size = new Size(457, 200);
             dgvUnderstock.TabIndex = 3;
@@ -465,12 +466,23 @@ namespace Dashboard.Winform
             label13.TabIndex = 2;
             label13.Text = "Tồn Kho";
             // 
+            // label4
+            // 
+            label4.AutoSize = true;
+            label4.ForeColor = Color.White;
+            label4.Location = new Point(279, 28);
+            label4.Name = "label4";
+            label4.Size = new Size(34, 20);
+            label4.TabIndex = 17;
+            label4.Text = "đến";
+            // 
             // MainDashboardForm
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(24, 28, 63);
             ClientSize = new Size(1111, 744);
+            Controls.Add(label4);
             Controls.Add(panel5);
             Controls.Add(panel4);
             Controls.Add(chart2);
@@ -542,5 +554,6 @@ namespace Dashboard.Winform
         private Panel panel5;
         private DataGridView dgvUnderstock;
         private Label label13;
+        private Label label4;
     }
 }

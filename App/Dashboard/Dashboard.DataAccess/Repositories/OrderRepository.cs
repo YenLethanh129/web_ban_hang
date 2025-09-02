@@ -3,7 +3,6 @@ using Dashboard.DataAccess.Context;
 using Dashboard.DataAccess.Models.Entities;
 using Dashboard.DataAccess.Specification;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Migrations.Operations;
 
 namespace Dashboard.DataAccess.Repositories;
 
@@ -22,7 +21,7 @@ public class OrderRepository(WebbanhangDbContext context) : Repository<Order>(co
     public new void Add(Order entity)
     {
         entity.OrderCode = GenerateOrderCodeAsync().Result;
-        entity.OrderUuid = new Guid().ToString();
+        entity.OrderUuid = Guid.NewGuid().ToString();
         base.Add(entity);
     }
     public void Update(Order order)

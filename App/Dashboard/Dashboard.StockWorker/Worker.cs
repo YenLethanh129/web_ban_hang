@@ -24,14 +24,7 @@ public class Worker : BackgroundService
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            try
-            {
-                await ProcessStockMonitoringAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred during stock monitoring process");
-            }
+            await ProcessStockMonitoringAsync();
 
             _logger.LogInformation("Next stock monitoring check in {Minutes} minutes", intervalMinutes);
             await Task.Delay(checkInterval, stoppingToken);
@@ -46,47 +39,40 @@ public class Worker : BackgroundService
 
         _logger.LogInformation("Starting stock monitoring process at {Time}", DateTime.UtcNow);
 
-        try
-        {
-            // 1. Cập nhật tất cả threshold và tồn kho
-            _logger.LogInformation("Updating all thresholds and current stock levels");
-            await stockCalculationService.CalculateAndUpdateReorderPointsAsync();
+        // 1. Cập nhật tất cả threshold và tồn kho
+        _logger.LogInformation("Updating all thresholds and current stock levels");
+        await stockCalculationService.CalculateAndUpdateReorderPointsAsync();
 
-            // 2. Kiểm tra các cảnh báo tồn kho
-            _logger.LogInformation("Checking for stock alerts");
-            var lowStockAlerts = await stockCalculationService.GetLowStockAlertsAsync();
-            var outOfStockAlerts = await stockCalculationService.GetOutOfStockAlertsAsync();
+        // 2. Kiểm tra các cảnh báo tồn kho
+        _logger.LogInformation("Checking for stock alerts");
+        var lowStockAlerts = await stockCalculationService.GetLowStockAlertsAsync();
+        var outOfStockAlerts = await stockCalculationService.GetOutOfStockAlertsAsync();
+        
+        var allAlerts = new List<Dashboard.DataAccess.Models.Entities.InventoryThreshold>();
+        allAlerts.AddRange(lowStockAlerts);
+        allAlerts.AddRange(outOfStockAlerts);
+
+        if (allAlerts.Any())
+        {
+            _logger.LogWarning("Found {Count} stock alerts", allAlerts.Count);
             
-            var allAlerts = new List<Dashboard.DataAccess.Models.Entities.InventoryThreshold>();
-            allAlerts.AddRange(lowStockAlerts);
-            allAlerts.AddRange(outOfStockAlerts);
-
-            if (allAlerts.Any())
+            foreach (var alert in allAlerts)
             {
-                _logger.LogWarning("Found {Count} stock alerts", allAlerts.Count);
-                
-                foreach (var alert in allAlerts)
-                {
-                    _logger.LogWarning("Stock Alert - {IngredientName} in Branch {BranchId} - Current Stock vs ROP: {ROP}", 
-                        alert.Ingredient?.Name ?? "Unknown", alert.BranchId, alert.ReorderPoint);
-                }
-
-                // 3. Gửi thông báo nếu có alerts (tạm thời comment để tránh lỗi)
-                _logger.LogInformation("Stock alerts found but email notifications temporarily disabled");
-                // TODO: Convert InventoryThreshold to StockAlert for email notifications
-                // await notificationService.SendStockAlertsAsync(alerts);
-            }
-            else
-            {
-                _logger.LogInformation("No stock alerts found - all inventory levels are healthy");
+                _logger.LogWarning("Stock Alert - {IngredientName} in Branch {BranchId} - Current Stock vs ROP: {ROP}", 
+                    alert.Ingredient?.Name ?? "Unknown", alert.BranchId, alert.ReorderPoint);
             }
 
-            _logger.LogInformation("Stock monitoring process completed successfully");
+            // 3. Gửi thông báo nếu có alerts (tạm thời comment để tránh lỗi)
+            _logger.LogInformation("Stock alerts found but email notifications temporarily disabled");
+            // TODO: Convert InventoryThreshold to StockAlert for email notifications
+            // await notificationService.SendStockAlertsAsync(alerts);
         }
-        catch (Exception ex)
+        else
         {
-            _logger.LogError(ex, "Error during stock monitoring process");
+            _logger.LogInformation("No stock alerts found - all inventory levels are healthy");
         }
+
+        _logger.LogInformation("Stock monitoring process completed successfully");
     }
 
     public override async Task StartAsync(CancellationToken cancellationToken)

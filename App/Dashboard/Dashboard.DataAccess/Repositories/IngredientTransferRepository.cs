@@ -97,7 +97,7 @@ public class IngredientTransferRepository : Repository<IngredientTransfer>, IIng
                     IngredientId = transfer.IngredientId,
                     Quantity = transfer.Quantity,
                     ReservedQuantity = 0,
-                    MinimumStock = 0,
+                    SafetyStock = 0,
                     LastTransferDate = DateTime.UtcNow
                 };
                 await _context.BranchIngredientInventories.AddAsync(branchInventory);

@@ -22,7 +22,6 @@ namespace Dashboard.Winform
 
         private void InitializeEvents()
         {
-            _presenter.OnError += OnPresenterError;
             _presenter.OnDataLoaded += OnDataLoaded;
 
             // Wire up button events
@@ -37,7 +36,7 @@ namespace Dashboard.Winform
         private void SetupDataBinding()
         {
             lblTotalOfRevenue.DataBindings.Clear();
-            lblTotalOfRevenue.DataBindings.Add("Text", _model, nameof(_model.MonthlyRevenueFormatted));
+            lblTotalOfRevenue.DataBindings.Add("Text", _model, nameof(_model.TotalRevenueFormatted));
 
             lblNumberOfOrders.DataBindings.Clear();
             lblNumberOfOrders.DataBindings.Add("Text", _model, nameof(_model.TotalOrders));
@@ -51,7 +50,6 @@ namespace Dashboard.Winform
             lblNumberOfProducts.DataBindings.Clear();
             lblNumberOfProducts.DataBindings.Add("Text", _model, "ProductCount");
 
-            // Setup understock grid
             if (dgvUnderstock != null)
             {
                 SetupUnderstockGrid();
@@ -66,9 +64,17 @@ namespace Dashboard.Winform
             dgvUnderstock.Columns.Add(new DataGridViewTextBoxColumn
             {
                 DataPropertyName = "ProductName",
-                HeaderText = "Tên sản phẩm",
+                HeaderText = "Tên nguyên liệu",
                 Name = "ProductName",
-                Width = 200
+                Width = 180
+            });
+
+            dgvUnderstock.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                DataPropertyName = "Category",
+                HeaderText = "Loại",
+                Name = "Category",
+                Width = 120
             });
 
             dgvUnderstock.Columns.Add(new DataGridViewTextBoxColumn
@@ -76,16 +82,64 @@ namespace Dashboard.Winform
                 DataPropertyName = "CurrentStock",
                 HeaderText = "Tồn kho",
                 Name = "CurrentStock",
-                Width = 100
+                Width = 80
             });
 
             dgvUnderstock.Columns.Add(new DataGridViewTextBoxColumn
             {
-                DataPropertyName = "MinimumStock",
-                HeaderText = "Tồn kho tối thiểu",
-                Name = "MinimumStock",
-                Width = 120
+                DataPropertyName = "SafetyStock",
+                HeaderText = "Tồn tối thiểu",
+                Name = "SafetyStock",
+                Width = 90
             });
+
+            dgvUnderstock.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                DataPropertyName = "StockStatus",
+                HeaderText = "Trạng thái",
+                Name = "StockStatus",
+                Width = 90
+            });
+
+            dgvUnderstock.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                DataPropertyName = "UnitPriceFormatted",
+                HeaderText = "Đơn giá",
+                Name = "UnitPrice",
+                Width = 100
+            });
+
+            // Style the grid
+            dgvUnderstock.AllowUserToAddRows = false;
+            dgvUnderstock.AllowUserToDeleteRows = false;
+            dgvUnderstock.ReadOnly = true;
+            dgvUnderstock.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgvUnderstock.MultiSelect = false;
+            dgvUnderstock.AlternatingRowsDefaultCellStyle.BackColor = Color.LightGray;
+
+            // Add event for row formatting
+            dgvUnderstock.CellFormatting += DgvUnderstock_CellFormatting;
+        }
+
+        private void DgvUnderstock_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
+        {
+            if (sender is DataGridView grid && e.RowIndex >= 0)
+            {
+                var item = grid.Rows[e.RowIndex].DataBoundItem as UnderstockProductViewModel;
+                if (item != null)
+                {
+                    if (item.IsCritical)
+                    {
+                        grid.Rows[e.RowIndex].DefaultCellStyle.BackColor = Color.LightCoral;
+                        grid.Rows[e.RowIndex].DefaultCellStyle.ForeColor = Color.DarkRed;
+                    }
+                    else if (item.IsLowStock)
+                    {
+                        grid.Rows[e.RowIndex].DefaultCellStyle.BackColor = Color.LightYellow;
+                        grid.Rows[e.RowIndex].DefaultCellStyle.ForeColor = Color.DarkOrange;
+                    }
+                }
+            }
         }
 
         private async void MainDashboardForm_Load(object sender, EventArgs e)
@@ -106,39 +160,16 @@ namespace Dashboard.Winform
 
         private async Task LoadDataAsync()
         {
-            try
-            {
-                ShowLoading(true);
-                await _presenter.LoadDashboardDataAsync();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"An error occur while fetch data from database: {ex.Message}", "Error",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            finally
-            {
-                ShowLoading(false);
-            }
+            ShowLoading(true);
+            await _presenter.LoadDashboardDataAsync();
         }
 
         private async Task LoadDataForPeriod(DateTime startDate, DateTime endDate)
         {
-            try
-            {
-                ShowLoading(true);
-                await _presenter.LoadDashboardDataAsync(startDate, endDate);
-                UpdateCharts();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Đã xảy ra lỗi khi tải dữ liệu: {ex.Message}", "Lỗi",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            finally
-            {
-                ShowLoading(false);
-            }
+            ShowLoading(true);
+            await _presenter.LoadDashboardDataAsync(startDate, endDate);
+            UpdateCharts();
+            ShowLoading(false);
         }
 
         private void OnCustomDateClick(object? sender, EventArgs e)
@@ -158,7 +189,6 @@ namespace Dashboard.Winform
                 // This is just an example - you'll need to implement based on your data structure
             }
 
-            // Update top products chart
             if (chart2.Series.Count > 0 && _model.TopProducts != null)
             {
                 chart2.Series["TopProducts"].Points.Clear();
@@ -177,10 +207,8 @@ namespace Dashboard.Winform
                 return;
             }
 
-            // Refresh the form
             Refresh();
 
-            // Update understock grid
             if (dgvUnderstock != null && _model.UnderstockProducts != null)
             {
                 dgvUnderstock.DataSource = null;
@@ -203,15 +231,16 @@ namespace Dashboard.Winform
 
         private void ShowLoading(bool show)
         {
-            this.UseWaitCursor = show;
+            // TODO: Add a loading indicator 
+            //UseWaitCursor = show;
 
-            foreach (Control control in this.Controls)
-            {
-                if (control != label1) // Keep the title always enabled
-                {
-                    control.Enabled = !show;
-                }
-            }
+            //foreach (Control control in Controls)
+            //{
+            //    if (control != label1)
+            //    {
+            //        control.Enabled = !show;
+            //    }
+            //}
         }
 
         protected override void Dispose(bool disposing)
@@ -220,11 +249,14 @@ namespace Dashboard.Winform
             {
                 components?.Dispose();
 
-                // Unsubscribe from events
                 if (_presenter != null)
                 {
-                    _presenter.OnError -= OnPresenterError;
                     _presenter.OnDataLoaded -= OnDataLoaded;
+                }
+
+                if (dgvUnderstock != null)
+                {
+                    dgvUnderstock.CellFormatting -= DgvUnderstock_CellFormatting;
                 }
             }
             base.Dispose(disposing);

@@ -7,7 +7,6 @@ namespace Dashboard.Winform.Presenters
     {
         MainDashboardModel Model { get; }
         event EventHandler? OnDataLoaded;
-        event EventHandler<string>? OnError;
         Task LoadDashboardDataAsync();
         Task LoadDashboardDataAsync(DateTime startDate, DateTime endDate);
     }
@@ -20,7 +19,6 @@ namespace Dashboard.Winform.Presenters
         public MainDashboardModel Model { get; }
 
         public event EventHandler? OnDataLoaded;
-        public event EventHandler<string>? OnError;
 
         public DashboardPresenter(
             IOrderService orderService,
@@ -33,40 +31,91 @@ namespace Dashboard.Winform.Presenters
 
         public async Task LoadDashboardDataAsync()
         {
-            try
+            var today = DateTime.Now;
+            var startOfMonth = new DateTime(today.Year, today.Month, 1);
+            var startOfYear = new DateTime(today.Year, 1, 1);
+
+            var orderSummary = await _orderService.GetOrderSummaryAsync(startOfMonth, today);
+            var dashboardSummary = await _reportingService.GetDashboardSummaryAsync();
+
+            Model.TotalOrders = orderSummary.TotalOrders;
+            Model.PendingOrders = orderSummary.PendingOrders;
+            Model.TotalRevenue = orderSummary.TotalRevenue;
+            Model.StartDate = startOfMonth;
+            Model.EndDate = today;
+            Model.PeriodDescription = "Tháng này";
+
+            // Map understock ingredients to understock products
+            if (dashboardSummary.UnderstockIngredients != null)
             {
-                var today = DateTime.Now;
-                var startOfMonth = new DateTime(today.Year, today.Month, 1);
-                var startOfYear = new DateTime(today.Year, 1, 1);
+                var understockProducts = dashboardSummary.UnderstockIngredients.Select(ingredient => new UnderstockProductViewModel
+                {
+                    ProductId = ingredient.Id,
+                    ProductName = ingredient.Name,
+                    ProductCode = $"ING-{ingredient.Id:D6}",
+                    Category = ingredient.CategoryName,
+                    CurrentStock = ingredient.InStockQuantity,
+                    SafetyStock = 20, // Default - could be improved to get from InventoryThreshold
+                    MaximumStock = 200, // Default - could be improved to get from InventoryThreshold
+                    UnitPrice = ingredient.CostPerUnit,
+                    Supplier = "Chưa xác định",
+                    LastRestockDate = ingredient.UpdatedAt ?? ingredient.CreatedAt,
+                    Location = "Kho chính"
+                }).ToList();
 
-                var orderSummary = await _orderService.GetOrderSummaryAsync(startOfMonth, today);
-
-                Model.TotalOrders = orderSummary.TotalOrders;
-                Model.PendingOrders = orderSummary.PendingOrders;
-                Model.MonthlyRevenue = orderSummary.TotalRevenue;
-
-                OnDataLoaded?.Invoke(this, EventArgs.Empty);
+                Model.UnderstockProducts = understockProducts;
             }
-            catch (Exception ex)
-            {
-                OnError?.Invoke(this, $"Error loading dashboard data: {ex.Message}");
-            }
+
+            OnDataLoaded?.Invoke(this, EventArgs.Empty);
+
         }
         
         public async Task LoadDashboardDataAsync(DateTime startDate, DateTime endDate)
         {
-            try
+
+            var orderSummary = await _orderService.GetOrderSummaryAsync(startDate, endDate);
+            var dashboardSummary = await _reportingService.GetDashboardSummaryAsync();
+            
+            Model.TotalOrders = orderSummary.TotalOrders;
+            Model.PendingOrders = orderSummary.PendingOrders;
+            Model.TotalRevenue = orderSummary.TotalRevenue;
+            Model.StartDate = startDate;
+            Model.EndDate = endDate;
+            
+            // Set period description based on date range
+            var daysDiff = (endDate - startDate).Days;
+            if (daysDiff == 0)
+                Model.PeriodDescription = "Hôm nay";
+            else if (daysDiff <= 7)
+                Model.PeriodDescription = "7 ngày qua";
+            else if (daysDiff <= 30)
+                Model.PeriodDescription = "30 ngày qua";
+            else
+                Model.PeriodDescription = "Khoảng thời gian tùy chọn";
+
+            // Map understock ingredients to understock products
+            if (dashboardSummary.UnderstockIngredients != null)
             {
-                var orderSummary = await _orderService.GetOrderSummaryAsync(startDate, endDate);
-                Model.TotalOrders = orderSummary.TotalOrders;
-                Model.PendingOrders = orderSummary.PendingOrders;
-                Model.MonthlyRevenue = orderSummary.TotalRevenue;
-                OnDataLoaded?.Invoke(this, EventArgs.Empty);
+                var understockProducts = dashboardSummary.UnderstockIngredients.Select(ingredient => new UnderstockProductViewModel
+                {
+                    ProductId = ingredient.Id,
+                    ProductName = ingredient.Name,
+                    ProductCode = $"ING-{ingredient.Id:D6}",
+                    Category = ingredient.CategoryName,
+                    CurrentStock = ingredient.InStockQuantity,
+                    SafetyStock = 20, // Default - could be improved to get from InventoryThreshold
+                    MaximumStock = 200, // Default - could be improved to get from InventoryThreshold
+                    UnitPrice = ingredient.CostPerUnit,
+                    Supplier = "Chưa xác định",
+                    LastRestockDate = ingredient.UpdatedAt ?? ingredient.CreatedAt,
+                    Location = "Kho chính"
+                }).ToList();
+
+                Model.UnderstockProducts = understockProducts;
             }
-            catch (Exception ex)
-            {
-                OnError?.Invoke(this, $"Error loading dashboard data: {ex.Message}");
-            }
+            
+            OnDataLoaded?.Invoke(this, EventArgs.Empty);
+
         }
     }
 }

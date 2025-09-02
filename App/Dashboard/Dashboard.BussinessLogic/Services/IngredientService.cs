@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Dashboard.BussinessLogic.Dtos;
 using Dashboard.BussinessLogic.Dtos.IngredientDtos;
 using Dashboard.DataAccess.Data;
@@ -205,250 +205,187 @@ public class IngredientService : IIngredientService
 
     public async Task<IngredientDto> CreateIngredientAsync(CreateIngredientInput input)
     {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(input.Name))
-                throw new ArgumentException("Ingredient name is required");
+        if (string.IsNullOrWhiteSpace(input.Name))
+            throw new ArgumentException("Ingredient name is required");
 
-            if (input.CostPerUnit < 0)
-                throw new ArgumentException("Cost per unit must be greater than or equal to 0");
+        if (input.CostPerUnit < 0)
+            throw new ArgumentException("Cost per unit must be greater than or equal to 0");
 
-            var nameExists = await _ingredientRepository.IngredientNameExistsAsync(input.Name);
+        var nameExists = await _ingredientRepository.IngredientNameExistsAsync(input.Name);
 
-            if (nameExists)
-                throw new InvalidOperationException($"Ingredient with name '{input.Name}' already exists");
+        if (nameExists)
+            throw new InvalidOperationException($"Ingredient with name '{input.Name}' already exists");
 
-            var ingredient = _mapper.Map<Ingredient>(input);
-            var createdIngredient = await _ingredientRepository
-                .CreateIngredientAsync(ingredient);
+        var ingredient = _mapper.Map<Ingredient>(input);
+        var createdIngredient = await _ingredientRepository
+            .CreateIngredientAsync(ingredient);
 
-            return _mapper.Map<IngredientDto>(createdIngredient);
-        }
-        catch (Exception ex)
-        {
-            throw new Exception($"Error creating ingredient: {ex.Message}", ex);
-        }
+        return _mapper.Map<IngredientDto>(createdIngredient);
     }
 
     public async Task<IngredientDto> UpdateIngredientAsync(UpdateIngredientInput input)
     {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(input.Name))
-                throw new ArgumentException("Ingredient name is required");
+        if (string.IsNullOrWhiteSpace(input.Name))
+            throw new ArgumentException("Ingredient name is required");
 
-            if (input.CostPerUnit < 0)
-                throw new ArgumentException("Cost per unit must be greater than or equal to 0");
+        if (input.CostPerUnit < 0)
+            throw new ArgumentException("Cost per unit must be greater than or equal to 0");
 
-            var existingIngredient = await _ingredientRepository.GetAsync(input.Id);
+        var existingIngredient = await _ingredientRepository.GetAsync(input.Id);
 
-            if (existingIngredient == null)
-                throw new InvalidOperationException($"Ingredient with ID {input.Id} not found");
+        if (existingIngredient == null)
+            throw new InvalidOperationException($"Ingredient with ID {input.Id} not found");
 
-            var nameExists = await _ingredientRepository
-                .IngredientNameExistsAsync(input.Name, input.Id);
+        var nameExists = await _ingredientRepository
+            .IngredientNameExistsAsync(input.Name, input.Id);
 
-            if (nameExists)
-                throw new InvalidOperationException($"Another ingredient with name '{input.Name}' already exists");
+        if (nameExists)
+            throw new InvalidOperationException($"Another ingredient with name '{input.Name}' already exists");
 
-            _mapper.Map(input, existingIngredient);
-            var updatedIngredient = await _ingredientRepository
-                .UpdateIngredientAsync(existingIngredient);
+        _mapper.Map(input, existingIngredient);
+        var updatedIngredient = await _ingredientRepository
+            .UpdateIngredientAsync(existingIngredient);
 
-            return _mapper.Map<IngredientDto>(updatedIngredient);
-        }
-        catch (Exception ex)
-        {
-            throw new Exception($"Error updating ingredient: {ex.Message}", ex);
-        }
+        return _mapper.Map<IngredientDto>(updatedIngredient);
     }
 
     public async Task<bool> DeleteIngredientAsync(long id)
     {
-        try
-        {
-            var exists = await _ingredientRepository
-                .IngredientExistsAsync(id);
+        var exists = await _ingredientRepository
+            .IngredientExistsAsync(id);
 
-            if (!exists)
-                throw new InvalidOperationException($"Ingredient with ID {id} not found");
+        if (!exists)
+            throw new InvalidOperationException($"Ingredient with ID {id} not found");
 
-            // TODO: Add business logic to check if ingredient is being used in recipes, orders, etc.
-            // For now, I'll just delete it
+        // TODO: Add business logic to check if ingredient is being used in recipes, orders, etc.
+        // For now, I'll just delete it
 
-            return await _ingredientRepository
-                .DeleteIngredientAsync(id);
-        }
-        catch (Exception ex)
-        {
-            throw new Exception($"Error deleting ingredient: {ex.Message}", ex);
-        }
+        return await _ingredientRepository
+            .DeleteIngredientAsync(id);
     }
 
     public async Task<BranchIngredientInventoryDto> CreateBranchInventoryAsync(CreateBranchInventoryInput input)
     {
-        try
-        {
-            if (input.CurrentStock < 0)
-                throw new ArgumentException("Current stock cannot be negative");
+        if (input.CurrentStock < 0)
+            throw new ArgumentException("Current stock cannot be negative");
 
-            if (input.MinimumThreshold < 0)
-                throw new ArgumentException("Minimum threshold cannot be negative");
+        if (input.SafetyStock < 0)
+            throw new ArgumentException("Minimum threshold cannot be negative");
 
-            if (input.MaximumThreshold < input.MinimumThreshold)
-                throw new ArgumentException("Maximum threshold must be greater than or equal to minimum threshold");
+        if (input.MaximumThreshold < input.SafetyStock)
+            throw new ArgumentException("Maximum threshold must be greater than or equal to minimum threshold");
 
-            var existingInventory = await _ingredientRepository
-                .GetBranchInventoryByIngredientAsync(input.BranchId, input.IngredientId);
+        var existingInventory = await _ingredientRepository
+            .GetBranchInventoryByIngredientAsync(input.BranchId, input.IngredientId);
 
-            if (existingInventory != null)
-                throw new InvalidOperationException($"Branch inventory for ingredient ID {input.IngredientId} and branch ID {input.BranchId} already exists");
+        if (existingInventory != null)
+            throw new InvalidOperationException($"Branch inventory for ingredient ID {input.IngredientId} and branch ID {input.BranchId} already exists");
 
-            await ValidateIngredientAsync(input.IngredientId);
-            await ValidateBranchAsync(input.BranchId);
+        await ValidateIngredientAsync(input.IngredientId);
+        await ValidateBranchAsync(input.BranchId);
 
-            var inventory = _mapper.Map<BranchIngredientInventory>(input);
-            var createdInventory = await _ingredientRepository
-                .CreateBranchInventoryAsync(inventory);
+        var inventory = _mapper.Map<BranchIngredientInventory>(input);
+        var createdInventory = await _ingredientRepository
+            .CreateBranchInventoryAsync(inventory);
 
-            return _mapper.Map<BranchIngredientInventoryDto>(createdInventory);
-        }
-        catch (Exception ex)
-        {
-            throw new Exception($"Error creating branch inventory: {ex.Message}", ex);
-        }
+        return _mapper.Map<BranchIngredientInventoryDto>(createdInventory);
     }
 
     public async Task<BranchIngredientInventoryDto> UpdateBranchInventoryAsync(UpdateBranchInventoryInput input)
     {
-        try
-        {
-            if (input.CurrentStock < 0)
-                throw new ArgumentException("Current stock cannot be negative");
+        if (input.CurrentStock < 0)
+            throw new ArgumentException("Current stock cannot be negative");
 
-            if (input.MinimumThreshold < 0)
-                throw new ArgumentException("Minimum threshold cannot be negative");
+        if (input.SafetyStock < 0)
+            throw new ArgumentException("Minimum threshold cannot be negative");
 
-            if (input.MaximumThreshold < input.MinimumThreshold)
-                throw new ArgumentException("Maximum threshold must be greater than or equal to minimum threshold");
+        if (input.MaximumThreshold < input.SafetyStock)
+            throw new ArgumentException("Maximum threshold must be greater than or equal to minimum threshold");
 
-            var existingInventory = await _ingredientRepository
-                .GetBranchInventoryByIngredientAsync(input.BranchId, input.IngredientId);
+        var existingInventory = await _ingredientRepository
+            .GetBranchInventoryByIngredientAsync(input.BranchId, input.IngredientId);
 
-            if (existingInventory == null)
-                throw new InvalidOperationException($"Branch inventory for ingredient ID {input.IngredientId} and branch ID {input.BranchId} not found");
+        if (existingInventory == null)
+            throw new InvalidOperationException($"Branch inventory for ingredient ID {input.IngredientId} and branch ID {input.BranchId} not found");
 
-            _mapper.Map(input, existingInventory);
-            var updatedInventory = await _ingredientRepository
-                .UpdateBranchInventoryAsync(existingInventory);
+        _mapper.Map(input, existingInventory);
+        var updatedInventory = await _ingredientRepository
+            .UpdateBranchInventoryAsync(existingInventory);
 
-            return _mapper.Map<BranchIngredientInventoryDto>(updatedInventory);
-        }
-        catch (Exception ex)
-        {
-            throw new Exception($"Error updating branch inventory: {ex.Message}", ex);
-        }
+        return _mapper.Map<BranchIngredientInventoryDto>(updatedInventory);
     }
 
     public async Task<bool> DeleteBranchInventoryAsync(long branchId, long ingredientId)
     {
-        try
-        {
-            var existingInventory = await _ingredientRepository
-                .GetBranchInventoryByIngredientAsync(branchId, ingredientId);
+        var existingInventory = await _ingredientRepository
+            .GetBranchInventoryByIngredientAsync(branchId, ingredientId);
 
-            if (existingInventory == null)
-                throw new InvalidOperationException($"Branch inventory for ingredient ID {ingredientId} and branch ID {branchId} not found");
+        if (existingInventory == null)
+            throw new InvalidOperationException($"Branch inventory for ingredient ID {ingredientId} and branch ID {branchId} not found");
 
-            return await _ingredientRepository
-                .DeleteBranchInventoryAsync(branchId, ingredientId);
-        }
-        catch (Exception ex)
-        {
-            throw new Exception($"Error deleting branch inventory: {ex.Message}", ex);
-        }
+        return await _ingredientRepository
+            .DeleteBranchInventoryAsync(branchId, ingredientId);
     }
     public async Task<WarehouseIngredientInventoryDto> CreateWarehouseInventoryAsync(CreateWarehouseInventoryInput input)
     {
-        try
-        {
-            if (input.CurrentStock < 0)
-                throw new ArgumentException("Current stock cannot be negative");
+        if (input.CurrentStock < 0)
+            throw new ArgumentException("Current stock cannot be negative");
 
-            if (input.MinimumThreshold < 0)
-                throw new ArgumentException("Minimum threshold cannot be negative");
+        if (input.SafetyStock < 0)
+            throw new ArgumentException("Minimum threshold cannot be negative");
 
-            if (input.MaximumThreshold < input.MinimumThreshold)
-                throw new ArgumentException("Maximum threshold must be greater than or equal to minimum threshold");
+        if (input.MaximumThreshold < input.SafetyStock)
+            throw new ArgumentException("Maximum threshold must be greater than or equal to minimum threshold");
 
-            var existingInventory = await _ingredientRepository
-                .GetWarehouseInventoryByIngredientAsync(input.IngredientId);
+        var existingInventory = await _ingredientRepository
+            .GetWarehouseInventoryByIngredientAsync(input.IngredientId);
 
-            if (existingInventory != null)
-                throw new InvalidOperationException($"Warehouse inventory for ingredient ID {input.IngredientId} already exists");
+        if (existingInventory != null)
+            throw new InvalidOperationException($"Warehouse inventory for ingredient ID {input.IngredientId} already exists");
 
-            await ValidateIngredientAsync(input.IngredientId);
+        await ValidateIngredientAsync(input.IngredientId);
 
-            var inventory = _mapper.Map<IngredientWarehouse>(input);
-            var createdInventory = await _ingredientRepository
-                .CreateWarehouseInventoryAsync(inventory);
+        var inventory = _mapper.Map<IngredientWarehouse>(input);
+        var createdInventory = await _ingredientRepository
+            .CreateWarehouseInventoryAsync(inventory);
 
-            return _mapper.Map<WarehouseIngredientInventoryDto>(createdInventory);
-        }
-        catch (Exception ex)
-        {
-            throw new Exception($"Error creating warehouse inventory: {ex.Message}", ex);
-        }
+        return _mapper.Map<WarehouseIngredientInventoryDto>(createdInventory);
     }
 
     public async Task<WarehouseIngredientInventoryDto> UpdateWarehouseInventoryAsync(UpdateWarehouseInventoryInput input)
     {
-        try
-        {
-            if (input.CurrentStock < 0)
-                throw new ArgumentException("Current stock cannot be negative");
+        if (input.CurrentStock < 0)
+            throw new ArgumentException("Current stock cannot be negative");
 
-            if (input.MinimumThreshold < 0)
-                throw new ArgumentException("Minimum threshold cannot be negative");
+        if (input.SafetyStock < 0)
+            throw new ArgumentException("Minimum threshold cannot be negative");
 
-            if (input.MaximumThreshold < input.MinimumThreshold)
-                throw new ArgumentException("Maximum threshold must be greater than or equal to minimum threshold");
+        if (input.MaximumThreshold < input.SafetyStock)
+            throw new ArgumentException("Maximum threshold must be greater than or equal to minimum threshold");
 
-            var existingInventory = await _ingredientRepository
-                .GetWarehouseInventoryByIngredientAsync(input.IngredientId);
+        var existingInventory = await _ingredientRepository
+            .GetWarehouseInventoryByIngredientAsync(input.IngredientId);
 
-            if (existingInventory == null)
-                throw new InvalidOperationException($"Warehouse inventory for ingredient ID {input.IngredientId} not found");
+        if (existingInventory == null)
+            throw new InvalidOperationException($"Warehouse inventory for ingredient ID {input.IngredientId} not found");
 
-            _mapper.Map(input, existingInventory);
-            var updatedInventory = await _ingredientRepository
-                .UpdateWarehouseInventoryAsync(existingInventory);
+        _mapper.Map(input, existingInventory);
+        var updatedInventory = await _ingredientRepository
+            .UpdateWarehouseInventoryAsync(existingInventory);
 
-            return _mapper.Map<WarehouseIngredientInventoryDto>(updatedInventory);
-        }
-        catch (Exception ex)
-        {
-            throw new Exception($"Error updating warehouse inventory: {ex.Message}", ex);
-        }
+        return _mapper.Map<WarehouseIngredientInventoryDto>(updatedInventory);
     }
 
     public async Task<bool> DeleteWarehouseInventoryAsync(long ingredientId)
     {
-        try
-        {
-            var existingInventory = await _ingredientRepository
-                .GetWarehouseInventoryByIngredientAsync(ingredientId);
+        var existingInventory = await _ingredientRepository
+            .GetWarehouseInventoryByIngredientAsync(ingredientId);
 
-            if (existingInventory == null)
-                throw new InvalidOperationException($"Warehouse inventory for ingredient ID {ingredientId} not found");
+        if (existingInventory == null)
+            throw new InvalidOperationException($"Warehouse inventory for ingredient ID {ingredientId} not found");
 
-            return await _ingredientRepository
-                .DeleteWarehouseInventoryAsync(ingredientId);
-        }
-        catch (Exception ex)
-        {
-            throw new Exception($"Error deleting warehouse inventory: {ex.Message}", ex);
-        }
+        return await _ingredientRepository
+            .DeleteWarehouseInventoryAsync(ingredientId);
     }
 
     public async Task<bool> ValidateIngredientAsync(long ingredientId)

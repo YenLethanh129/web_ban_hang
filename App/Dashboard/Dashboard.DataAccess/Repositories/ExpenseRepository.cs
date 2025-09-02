@@ -1,94 +1,107 @@
 ﻿using Dashboard.DataAccess.Context;
 using Dashboard.DataAccess.Models.Entities;
+using Dashboard.DataAccess.Specification;
 using Microsoft.EntityFrameworkCore;
-using Sprache;
 
 namespace Dashboard.DataAccess.Repositories;
 public interface IExpenseRepository : IRepository<BranchExpense>
 {
-    Task<IEnumerable<BranchExpense>> GetExpensesByBranchAsync(int branchId, DateOnly fromDate, DateOnly toDate);
+    Task<IEnumerable<BranchExpense>> GetExpensesByBranchAsync(long branchId, DateOnly fromDate, DateOnly toDate);
     Task<IEnumerable<BranchExpense>> GetExpensesByTypeAsync(string expenseType, DateOnly fromDate, DateOnly toDate);
-    Task<decimal> GetTotalExpensesAsync(int branchId, DateOnly fromDate, DateOnly toDate);
-    Task<IEnumerable<VExpensesSummary>> GetExpensesSummaryAsync(DateOnly fromDate, DateOnly toDate, int? branchId = null);
+    Task<decimal> GetTotalExpensesAsync(long branchId, DateOnly fromDate, DateOnly toDate);
+    Task<IEnumerable<VExpensesSummary>> GetExpensesSummaryAsync(DateOnly fromDate, DateOnly toDate, long? branchId = null);
     Task<IEnumerable<BranchExpense>> GetExpensesByPeriodAsync(DateTime fromDate, DateTime toDate, long branchId);
+    Task<IEnumerable<BranchExpense>> GetExpensesInPeriodAsync(DateTime fromDate, DateTime toDate, long? branchId = null);
+    
+    // New methods using advanced specifications
+    Task<IEnumerable<BranchExpense>> GetExpensesWithAdvancedFilterAsync(
+        DateTime? fromDate = null,
+        DateTime? toDate = null,
+        long? branchId = null,
+        string? expenseType = null,
+        decimal? minAmount = null,
+        decimal? maxAmount = null);
+        
+    Task<decimal> GetTotalExpensesWithFilterAsync(
+        DateTime? fromDate = null,
+        DateTime? toDate = null,
+        long? branchId = null,
+        string? expenseType = null);
 }
 public class ExpenseRepository(WebbanhangDbContext context) : Repository<BranchExpense>(context), IExpenseRepository
 {
-    public async Task<IEnumerable<BranchExpense>> GetExpensesByBranchAsync(int branchId, DateOnly fromDate, DateOnly toDate)
+    public async Task<IEnumerable<BranchExpense>> GetExpensesByBranchAsync(long branchId, DateOnly fromDate, DateOnly toDate)
     {
-        try
-        {
-            return await _context.BranchExpenses
-            .Where(e => e.BranchId == branchId &&
-                        e.StartDate >= fromDate &&
-                        e.EndDate <= toDate)
-            .OrderByDescending(e => e.StartDate)
-            .ToListAsync();
-        }
-        catch (Exception ex)
-        {
-            throw new Exception($"Error retrieving expenses for branch {branchId} from {fromDate} to {toDate}: {ex.Message}", ex);
-        }
-
+        var specification = new ExpensesByBranchSpecification(branchId, fromDate, toDate);
+        var expenses = await GetAllWithSpecAsync(specification, true);
+        return expenses.OrderByDescending(e => e.StartDate);
     }
+
     public async Task<IEnumerable<BranchExpense>> GetExpensesByTypeAsync(string expenseType, DateOnly fromDate, DateOnly toDate)
     {
-        return await _context.BranchExpenses
-            .Where(e => e.ExpenseType == expenseType &&
-                        e.StartDate >= fromDate &&
-                        e.EndDate <= toDate)
-            .OrderByDescending(e => e.StartDate)
-            .ToListAsync();
+        var specification = new ExpensesByTypeSpecification(expenseType, fromDate, toDate);
+        var expenses = await GetAllWithSpecAsync(specification, true);
+        return expenses.OrderByDescending(e => e.StartDate);
     }
-    public async Task<decimal> GetTotalExpensesAsync(int branchId, DateOnly fromDate, DateOnly toDate)
-    {
-        try
-        {
-            return await _context.BranchExpenses
-                .Where(e => e.BranchId == branchId &&
-                            e.StartDate >= fromDate &&
-                            e.EndDate <= toDate)
-                .SumAsync(e => e.Amount);
-        } 
-        catch (Exception ex)
-        {
-            throw new Exception($"Error calculating total expenses for branch {branchId} from {fromDate} to {toDate}: {ex.Message}", ex);
-        }
-    }
-    public async Task<IEnumerable<VExpensesSummary>> GetExpensesSummaryAsync(DateOnly fromDate, DateOnly toDate, int? branchId = null)
-    {
-        try
-        {
-            var query = _context.VExpensesSummaries
-                .Where(e => e.Month >= fromDate.Month && e.Year >= fromDate.Year &&
-                            e.Month <= toDate.Month && e.Year <= toDate.Year);
 
-            if (branchId.HasValue)
-            {
-                query = query.Where(e => e.BranchId == branchId.Value);
-            }
-
-            return await query.ToListAsync();
-        }
-        catch (Exception ex)
-        {
-            throw new Exception($"Error retrieving expenses summary from {fromDate} to {toDate} for branch {branchId}: {ex.Message}", ex);
-        }
+    public async Task<decimal> GetTotalExpensesAsync(long branchId, DateOnly fromDate, DateOnly toDate)
+    {
+        var specification = new ExpensesTotalSpecification(branchId, fromDate, toDate);
+        var expenses = await GetAllWithSpecAsync(specification, true);
+        return expenses.Sum(e => e.Amount);
     }
+    public async Task<IEnumerable<VExpensesSummary>> GetExpensesSummaryAsync(DateOnly fromDate, DateOnly toDate, long? branchId = null)
+    {
+        var query = _context.VExpensesSummaries
+            .Where(e => e.Month >= fromDate.Month && e.Year >= fromDate.Year &&
+                        e.Month <= toDate.Month && e.Year <= toDate.Year);
+
+        if (branchId.HasValue)
+        {
+            query = query.Where(e => e.BranchId == branchId.Value);
+        }
+
+        return await query.ToListAsync();
+    }
+
     public async Task<IEnumerable<BranchExpense>> GetExpensesByPeriodAsync(DateTime fromDate, DateTime toDate, long branchId)
     {
-        try
-        {
-            return await _context.BranchExpenses
-                .Where(e => e.BranchId == branchId &&
-                            e.StartDate >= DateOnly.FromDateTime(fromDate) &&
-                            e.EndDate <= DateOnly.FromDateTime(toDate))
-                .OrderByDescending(e => e.StartDate)
-                .ToListAsync();
-        }
-        catch (Exception ex)
-        {
-            throw new Exception($"Error retrieving expenses for branch {branchId} from {fromDate} to {toDate}: {ex.Message}", ex);
-        }
+        var specification = new ExpensesByPeriodSpecification(fromDate, toDate, branchId);
+        var expenses = await GetAllWithSpecAsync(specification, true);
+        return expenses.OrderByDescending(e => e.StartDate);
+    }
+
+    public async Task<IEnumerable<BranchExpense>> GetExpensesInPeriodAsync(DateTime fromDate, DateTime toDate, long? branchId = null)
+    {
+        var specification = new ExpensesInPeriodSpecification(fromDate, toDate, branchId);
+        var expenses = await GetAllWithSpecAsync(specification, true);
+        return expenses.OrderByDescending(e => e.StartDate);
+    }
+
+    // New advanced methods using specifications
+    public async Task<IEnumerable<BranchExpense>> GetExpensesWithAdvancedFilterAsync(
+        DateTime? fromDate = null,
+        DateTime? toDate = null,
+        long? branchId = null,
+        string? expenseType = null,
+        decimal? minAmount = null,
+        decimal? maxAmount = null)
+    {
+        var specification = new ExpensesAdvancedFilterSpecification(
+            fromDate, toDate, branchId, expenseType, minAmount, maxAmount);
+        var expenses = await GetAllWithSpecAsync(specification, true);
+        return expenses.OrderByDescending(e => e.StartDate);
+    }
+
+    public async Task<decimal> GetTotalExpensesWithFilterAsync(
+        DateTime? fromDate = null,
+        DateTime? toDate = null,
+        long? branchId = null,
+        string? expenseType = null)
+    {
+        var specification = new ExpensesAdvancedFilterSpecification(
+            fromDate, toDate, branchId, expenseType);
+        var expenses = await GetAllWithSpecAsync(specification, true);
+        return expenses.Sum(e => e.Amount);
     }
 }

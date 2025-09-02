@@ -1,1763 +1,1014 @@
-USE [${DB_NAME}];
+USE [webbanhang]
+GO
+
+-- Enable Unicode support with proper collation
+-- Use Vietnamese collation for better Unicode support
+-- ALTER DATABASE [webbanhang] COLLATE Vietnamese_CI_AS;
+
+-- Drop views first (views depend on tables)
+IF OBJECT_ID('dbo.v_expenses_summary', 'V') IS NOT NULL DROP VIEW [dbo].[v_expenses_summary];
+IF OBJECT_ID('dbo.v_profit_summary', 'V') IS NOT NULL DROP VIEW [dbo].[v_profit_summary];
+IF OBJECT_ID('dbo.v_inventory_status', 'V') IS NOT NULL DROP VIEW [dbo].[v_inventory_status];
+IF OBJECT_ID('dbo.v_employee_payroll', 'V') IS NOT NULL DROP VIEW [dbo].[v_employee_payroll];
+IF OBJECT_ID('dbo.v_sales_summary', 'V') IS NOT NULL DROP VIEW [dbo].[v_sales_summary];
+
+-- Drop tables in reverse order of dependencies
+IF OBJECT_ID('dbo.supplier_performance', 'U') IS NOT NULL DROP TABLE [dbo].[supplier_performance];
+IF OBJECT_ID('dbo.purchase_return_details', 'U') IS NOT NULL DROP TABLE [dbo].[purchase_return_details];
+IF OBJECT_ID('dbo.purchase_returns', 'U') IS NOT NULL DROP TABLE [dbo].[purchase_returns];
+IF OBJECT_ID('dbo.goods_received_details', 'U') IS NOT NULL DROP TABLE [dbo].[goods_received_details];
+IF OBJECT_ID('dbo.goods_received_notes', 'U') IS NOT NULL DROP TABLE [dbo].[goods_received_notes];
+IF OBJECT_ID('dbo.purchase_invoice_details', 'U') IS NOT NULL DROP TABLE [dbo].[purchase_invoice_details];
+IF OBJECT_ID('dbo.purchase_invoices', 'U') IS NOT NULL DROP TABLE [dbo].[purchase_invoices];
+IF OBJECT_ID('dbo.profit_summary', 'U') IS NOT NULL DROP TABLE [dbo].[profit_summary];
+IF OBJECT_ID('dbo.expenses_summary', 'U') IS NOT NULL DROP TABLE [dbo].[expenses_summary];
+IF OBJECT_ID('dbo.sales_summary', 'U') IS NOT NULL DROP TABLE [dbo].[sales_summary];
+IF OBJECT_ID('dbo.order_delivery_tracking', 'U') IS NOT NULL DROP TABLE [dbo].[order_delivery_tracking];
+IF OBJECT_ID('dbo.order_shipments', 'U') IS NOT NULL DROP TABLE [dbo].[order_shipments];
+IF OBJECT_ID('dbo.order_payments', 'U') IS NOT NULL DROP TABLE [dbo].[order_payments];
+IF OBJECT_ID('dbo.order_details', 'U') IS NOT NULL DROP TABLE [dbo].[order_details];
+IF OBJECT_ID('dbo.orders', 'U') IS NOT NULL DROP TABLE [dbo].[orders];
+IF OBJECT_ID('dbo.customers', 'U') IS NOT NULL DROP TABLE [dbo].[customers];
+IF OBJECT_ID('dbo.branch_expenses', 'U') IS NOT NULL DROP TABLE [dbo].[branch_expenses];
+IF OBJECT_ID('dbo.supplier_ingredient_prices', 'U') IS NOT NULL DROP TABLE [dbo].[supplier_ingredient_prices];
+IF OBJECT_ID('dbo.ingredient_transfers', 'U') IS NOT NULL DROP TABLE [dbo].[ingredient_transfers];
+IF OBJECT_ID('dbo.inventory_thresholds', 'U') IS NOT NULL DROP TABLE [dbo].[inventory_thresholds];
+IF OBJECT_ID('dbo.ingredient_warehouse', 'U') IS NOT NULL DROP TABLE [dbo].[ingredient_warehouse];
+IF OBJECT_ID('dbo.branch_ingredient_inventory', 'U') IS NOT NULL DROP TABLE [dbo].[branch_ingredient_inventory];
+IF OBJECT_ID('dbo.employee_shifts', 'U') IS NOT NULL DROP TABLE [dbo].[employee_shifts];
+IF OBJECT_ID('dbo.employee_salaries', 'U') IS NOT NULL DROP TABLE [dbo].[employee_salaries];
+IF OBJECT_ID('dbo.payrolls', 'U') IS NOT NULL DROP TABLE [dbo].[payrolls];
+IF OBJECT_ID('dbo.ingredient_purchase_order_details', 'U') IS NOT NULL DROP TABLE [dbo].[ingredient_purchase_order_details];
+IF OBJECT_ID('dbo.product_recipes', 'U') IS NOT NULL DROP TABLE [dbo].[product_recipes];
+IF OBJECT_ID('dbo.product_images', 'U') IS NOT NULL DROP TABLE [dbo].[product_images];
+IF OBJECT_ID('dbo.social_accounts', 'U') IS NOT NULL DROP TABLE [dbo].[social_accounts];
+IF OBJECT_ID('dbo.tokens', 'U') IS NOT NULL DROP TABLE [dbo].[tokens];
+IF OBJECT_ID('dbo.users', 'U') IS NOT NULL DROP TABLE [dbo].[users];
+IF OBJECT_ID('dbo.ingredient_purchase_orders', 'U') IS NOT NULL DROP TABLE [dbo].[ingredient_purchase_orders];
+IF OBJECT_ID('dbo.ingredients', 'U') IS NOT NULL DROP TABLE [dbo].[ingredients];
+IF OBJECT_ID('dbo.products', 'U') IS NOT NULL DROP TABLE [dbo].[products];
+IF OBJECT_ID('dbo.employees', 'U') IS NOT NULL DROP TABLE [dbo].[employees];
+IF OBJECT_ID('dbo.branches', 'U') IS NOT NULL DROP TABLE [dbo].[branches];
+IF OBJECT_ID('dbo.suppliers', 'U') IS NOT NULL DROP TABLE [dbo].[suppliers];
+IF OBJECT_ID('dbo.shipping_providers', 'U') IS NOT NULL DROP TABLE [dbo].[shipping_providers];
+IF OBJECT_ID('dbo.delivery_statuses', 'U') IS NOT NULL DROP TABLE [dbo].[delivery_statuses];
+IF OBJECT_ID('dbo.payment_statuses', 'U') IS NOT NULL DROP TABLE [dbo].[payment_statuses];
+IF OBJECT_ID('dbo.payment_methods', 'U') IS NOT NULL DROP TABLE [dbo].[payment_methods];
+IF OBJECT_ID('dbo.order_statuses', 'U') IS NOT NULL DROP TABLE [dbo].[order_statuses];
+IF OBJECT_ID('dbo.goods_received_statuses', 'U') IS NOT NULL DROP TABLE [dbo].[goods_received_statuses];
+IF OBJECT_ID('dbo.invoice_statuses', 'U') IS NOT NULL DROP TABLE [dbo].[invoice_statuses];
+IF OBJECT_ID('dbo.purchase_order_statuses', 'U') IS NOT NULL DROP TABLE [dbo].[purchase_order_statuses];
+IF OBJECT_ID('dbo.ingredient_categories', 'U') IS NOT NULL DROP TABLE [dbo].[ingredient_categories];
+IF OBJECT_ID('dbo.categories', 'U') IS NOT NULL DROP TABLE [dbo].[categories];
+IF OBJECT_ID('dbo.taxes', 'U') IS NOT NULL DROP TABLE [dbo].[taxes];
+IF OBJECT_ID('dbo.roles', 'U') IS NOT NULL DROP TABLE [dbo].[roles];
 GO
 
 -- ====================================================================
--- LEVEL 1: TABLES WITHOUT DEPENDENCIES
+-- CREATE TABLES - LEVEL 1: BASE TABLES WITHOUT DEPENDENCIES
 -- ====================================================================
 
-CREATE TABLE [dbo].[__EFMigrationsHistory] (
-[MigrationId] nvarchar(150) NOT NULL,
-[ProductVersion] nvarchar(32) NOT NULL,
-PRIMARY KEY ([MigrationId])
-);
-GO
-
-CREATE TABLE [dbo].[categories] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[name] nvarchar(255) NOT NULL UNIQUE,
-PRIMARY KEY ([id])
-);
-GO
-
-CREATE TABLE [dbo].[ingredient_categories] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[name] nvarchar(50) NOT NULL,
-[description] nvarchar(255),
-[created_at] datetime2(6) NOT NULL,
-[last_modified] datetime2(6) NOT NULL,
-PRIMARY KEY ([id])
-);
-GO
-
-CREATE TABLE [dbo].[taxes] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[name] varchar(100) NOT NULL,
-[tax_rate] decimal(5,2) NOT NULL,
-[description] varchar(255),
-[created_at] datetime2(6) NOT NULL,
-[last_modified] datetime2(6) NOT NULL,
-PRIMARY KEY ([id])
-);
-GO
-
+-- Roles table
 CREATE TABLE [dbo].[roles] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[name] varchar(100) UNIQUE NOT NULL,
-[created_at] datetime2(6) NOT NULL,
-[last_modified] datetime2(6) NOT NULL,
-PRIMARY KEY ([id])
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [name] nvarchar(100) COLLATE Vietnamese_CI_AS NOT NULL UNIQUE,
+    [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT [PK_roles] PRIMARY KEY ([id])
 );
 GO
 
-CREATE TABLE [dbo].[branches] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[name] nvarchar(255) NOT NULL,
-[address] nvarchar(255),
-[phone] varchar(20),
-[manager] nvarchar(100),
-[created_at] datetime2(6) NOT NULL,
-[last_modified] datetime2(6) NOT NULL,
-PRIMARY KEY ([id])
+-- Taxes table
+CREATE TABLE [dbo].[taxes] (
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [name] nvarchar(100) COLLATE Vietnamese_CI_AS NOT NULL,
+    [tax_rate] decimal(5,2) NOT NULL,
+    [description] nvarchar(255) COLLATE Vietnamese_CI_AS,
+    [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT [PK_taxes] PRIMARY KEY ([id])
 );
 GO
 
-CREATE TABLE [dbo].[suppliers] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[name] nvarchar(255) NOT NULL,
-[phone] varchar(20),
-[email] varchar(100),
-[address] nvarchar(255),
-[note] nvarchar(255),
-[created_at] datetime2(6) NOT NULL,
-[last_modified] datetime2(6) NOT NULL,
-PRIMARY KEY ([id])
+-- Categories table
+CREATE TABLE [dbo].[categories] (
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [name] nvarchar(255) COLLATE Vietnamese_CI_AS NOT NULL UNIQUE,
+    CONSTRAINT [PK_categories] PRIMARY KEY ([id])
 );
 GO
 
-CREATE TABLE [dbo].[shipping_providers] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[name] varchar(100) NOT NULL UNIQUE,
-[contact_info] varchar(200),
-[api_endpoint] varchar(200),
-[created_at] datetime2(6) DEFAULT (sysdatetime()) NOT NULL,
-[last_modified] datetime2(6) NOT NULL,
-PRIMARY KEY ([id])
+-- Ingredient Categories table
+CREATE TABLE [dbo].[ingredient_categories] (
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [name] nvarchar(50) COLLATE Vietnamese_CI_AS NOT NULL,
+    [description] nvarchar(255) COLLATE Vietnamese_CI_AS,
+    [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT [PK_ingredient_categories] PRIMARY KEY ([id])
 );
 GO
 
-CREATE TABLE [dbo].[payment_methods] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[name] varchar(50) NOT NULL UNIQUE,
-PRIMARY KEY ([id])
-);
-GO
-
-CREATE TABLE [dbo].[payment_statuses] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[name] varchar(50) NOT NULL UNIQUE,
-PRIMARY KEY ([id])
-);
-GO
-
-CREATE TABLE [dbo].[order_statuses] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[name] varchar(50) NOT NULL UNIQUE,
-PRIMARY KEY ([id])
-);
-GO
-
-CREATE TABLE [dbo].[delivery_statuses] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[name] varchar(50) NOT NULL UNIQUE,
-PRIMARY KEY ([id])
-);
-GO
-
+-- Purchase Order Statuses table
 CREATE TABLE [dbo].[purchase_order_statuses] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[name] varchar(50) NOT NULL UNIQUE,
-[description] varchar(255),
-PRIMARY KEY ([id])
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [name] nvarchar(50) COLLATE Vietnamese_CI_AS NOT NULL,
+    [description] nvarchar(255) COLLATE Vietnamese_CI_AS,
+    CONSTRAINT [PK_purchase_order_statuses] PRIMARY KEY ([id])
 );
 GO
 
+-- Invoice Statuses table
 CREATE TABLE [dbo].[invoice_statuses] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[name] varchar(50) NOT NULL UNIQUE,
-[description] varchar(255),
-PRIMARY KEY ([id])
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [name] nvarchar(50) COLLATE Vietnamese_CI_AS NOT NULL,
+    [description] nvarchar(255) COLLATE Vietnamese_CI_AS,
+    CONSTRAINT [PK_invoice_statuses] PRIMARY KEY ([id])
 );
 GO
 
+-- Goods Received Statuses table
 CREATE TABLE [dbo].[goods_received_statuses] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[name] varchar(50) NOT NULL UNIQUE,
-[description] varchar(255),
-PRIMARY KEY ([id])
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [name] nvarchar(50) COLLATE Vietnamese_CI_AS NOT NULL,
+    [description] nvarchar(255) COLLATE Vietnamese_CI_AS,
+    CONSTRAINT [PK_goods_received_statuses] PRIMARY KEY ([id])
+);
+GO
+
+-- Order Statuses table
+CREATE TABLE [dbo].[order_statuses] (
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [name] nvarchar(50) COLLATE Vietnamese_CI_AS NOT NULL,
+    CONSTRAINT [PK_order_statuses] PRIMARY KEY ([id])
+);
+GO
+
+-- Payment Methods table
+CREATE TABLE [dbo].[payment_methods] (
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [name] nvarchar(50) COLLATE Vietnamese_CI_AS NOT NULL,
+    CONSTRAINT [PK_payment_methods] PRIMARY KEY ([id])
+);
+GO
+
+-- Payment Statuses table
+CREATE TABLE [dbo].[payment_statuses] (
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [name] nvarchar(50) COLLATE Vietnamese_CI_AS NOT NULL,
+    CONSTRAINT [PK_payment_statuses] PRIMARY KEY ([id])
+);
+GO
+
+-- Delivery Statuses table
+CREATE TABLE [dbo].[delivery_statuses] (
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [name] nvarchar(50) COLLATE Vietnamese_CI_AS NOT NULL,
+    CONSTRAINT [PK_delivery_statuses] PRIMARY KEY ([id])
+);
+GO
+
+-- Shipping Providers table
+CREATE TABLE [dbo].[shipping_providers] (
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [name] nvarchar(100) COLLATE Vietnamese_CI_AS NOT NULL,
+    [contact_info] nvarchar(255) COLLATE Vietnamese_CI_AS,
+    [api_endpoint] nvarchar(500),
+    [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT [PK_shipping_providers] PRIMARY KEY ([id])
+);
+GO
+
+-- Suppliers table
+CREATE TABLE [dbo].[suppliers] (
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [name] nvarchar(255) COLLATE Vietnamese_CI_AS NOT NULL,
+    [phone] varchar(20),
+    [email] varchar(255),
+    [address] nvarchar(500) COLLATE Vietnamese_CI_AS,
+    [note] nvarchar(1000) COLLATE Vietnamese_CI_AS,
+    [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT [PK_suppliers] PRIMARY KEY ([id])
+);
+GO
+
+-- Branches table
+CREATE TABLE [dbo].[branches] (
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [name] nvarchar(255) COLLATE Vietnamese_CI_AS NOT NULL,
+    [address] nvarchar(500) COLLATE Vietnamese_CI_AS NOT NULL,
+    [phone] varchar(20),
+    [manager] nvarchar(255) COLLATE Vietnamese_CI_AS,
+    [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT [PK_branches] PRIMARY KEY ([id])
 );
 GO
 
 -- ====================================================================
--- LEVEL 2: TABLES WITH LEVEL 1 DEPENDENCIES
+-- CREATE TABLES - LEVEL 2: TABLES WITH SINGLE DEPENDENCIES
 -- ====================================================================
 
+-- Employees table
 CREATE TABLE [dbo].[employees] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[branch_id] bigint NOT NULL,
-[full_name] nvarchar(100) NOT NULL,
-[phone] varchar(20),
-[email] varchar(100),
-[position] nvarchar(50),
-[hire_date] date NOT NULL,
-[resign_date] date,
-[status] varchar(20) DEFAULT ('ACTIVE'),
-[created_at] datetime2(6) DEFAULT (sysdatetime()) NOT NULL,
-[last_modified] datetime2(6) NOT NULL,
-PRIMARY KEY ([id])
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [branch_id] bigint NOT NULL,
+    [full_name] nvarchar(255) COLLATE Vietnamese_CI_AS NOT NULL,
+    [phone] varchar(20),
+    [email] varchar(255),
+    [position] nvarchar(100) COLLATE Vietnamese_CI_AS,
+    [hire_date] date,
+    [status] varchar(20) DEFAULT 'ACTIVE',
+    [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT [PK_employees] PRIMARY KEY ([id]),
+    CONSTRAINT [FK_employees_branches] FOREIGN KEY ([branch_id]) REFERENCES [dbo].[branches]([id])
 );
 GO
 
+-- Products table
 CREATE TABLE [dbo].[products] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[price] decimal(18,2) NOT NULL,
-[category_id] bigint,
-[is_active] BIT DEFAULT (CONVERT([bit],(1))) NOT NULL,
-[tax_id] bigint,
-[description] nvarchar(255) NOT NULL,
-[name] nvarchar(255) NOT NULL,
-[thumbnail] varchar(255),
-[created_at] datetime2(6) NOT NULL,
-[last_modified] datetime2(6) NOT NULL,
-PRIMARY KEY ([id])
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [price] decimal(10,0) NOT NULL,
+    [category_id] bigint NOT NULL,
+    [tax_id] bigint NOT NULL,
+    [description] nvarchar(1000) COLLATE Vietnamese_CI_AS,
+    [name] nvarchar(255) COLLATE Vietnamese_CI_AS NOT NULL,
+    [thumbnail] nvarchar(500),
+    [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT [PK_products] PRIMARY KEY ([id]),
+    CONSTRAINT [FK_products_categories] FOREIGN KEY ([category_id]) REFERENCES [dbo].[categories]([id]),
+    CONSTRAINT [FK_products_taxes] FOREIGN KEY ([tax_id]) REFERENCES [dbo].[taxes]([id])
 );
 GO
 
+-- Ingredients table
 CREATE TABLE [dbo].[ingredients] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[category_id] bigint NOT NULL,
-[name] nvarchar(255) NOT NULL,
-[unit] nvarchar(50) NOT NULL,
-[is_active] BIT DEFAULT (CONVERT([bit],(1))) NOT NULL,
-[description] nvarchar(255),
-[tax_id] bigint,
-[created_at] datetime2(6) DEFAULT (getdate()) NOT NULL,
-[last_modified] datetime2(6) DEFAULT (getdate()) NOT NULL,
-PRIMARY KEY ([id])
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [category_id] bigint NOT NULL,
+    [name] nvarchar(255) COLLATE Vietnamese_CI_AS NOT NULL,
+    [unit] nvarchar(20) COLLATE Vietnamese_CI_AS NOT NULL,
+    [description] nvarchar(1000) COLLATE Vietnamese_CI_AS,
+    [tax_id] bigint NOT NULL,
+    [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT [PK_ingredients] PRIMARY KEY ([id]),
+    CONSTRAINT [FK_ingredients_categories] FOREIGN KEY ([category_id]) REFERENCES [dbo].[ingredient_categories]([id]),
+    CONSTRAINT [FK_ingredients_taxes] FOREIGN KEY ([tax_id]) REFERENCES [dbo].[taxes]([id])
 );
 GO
 
+-- Ingredient Purchase Orders table
 CREATE TABLE [dbo].[ingredient_purchase_orders] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[purchase_order_code] VARCHAR(50) NOT NULL UNIQUE,
-[supplier_id] bigint,
-[branch_id] bigint,
-[employee_id] bigint,
-[order_date] datetime2(6) DEFAULT (getdate()),
-[expected_delivery_date] datetime2(6),
-[status_id] bigint DEFAULT (1),
-[total_amount_before_tax] decimal(18,2) DEFAULT (0),
-[total_tax_amount] decimal(18,2) DEFAULT (0),
-[total_amount_after_tax] decimal(18,2) DEFAULT (0),
-[discount_amount] decimal(18,2) DEFAULT (0),
-[final_amount] decimal(18,2) DEFAULT (0),
-[note] varchar(500),
-[created_at] datetime2(6) DEFAULT (getdate()) NOT NULL,
-[last_modified] datetime2(6) NOT NULL,
-PRIMARY KEY ([id])
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [purchase_order_code] nvarchar(100) COLLATE Vietnamese_CI_AS NOT NULL UNIQUE,
+    [supplier_id] bigint NOT NULL,
+    [branch_id] bigint,
+    [employee_id] bigint,
+    [order_date] datetime2(6) NOT NULL,
+    [expected_delivery_date] datetime2(6),
+    [status_id] bigint NOT NULL,
+    [total_amount_before_tax] decimal(18,2),
+    [total_tax_amount] decimal(18,2),
+    [total_amount_after_tax] decimal(18,2),
+    [discount_amount] decimal(18,2) DEFAULT 0,
+    [final_amount] decimal(18,2),
+    [note] nvarchar(1000) COLLATE Vietnamese_CI_AS,
+    [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT [PK_ingredient_purchase_orders] PRIMARY KEY ([id]),
+    CONSTRAINT [FK_ingredient_purchase_orders_suppliers] FOREIGN KEY ([supplier_id]) REFERENCES [dbo].[suppliers]([id]),
+    CONSTRAINT [FK_ingredient_purchase_orders_branches] FOREIGN KEY ([branch_id]) REFERENCES [dbo].[branches]([id]),
+    CONSTRAINT [FK_ingredient_purchase_orders_employees] FOREIGN KEY ([employee_id]) REFERENCES [dbo].[employees]([id]),
+    CONSTRAINT [FK_ingredient_purchase_orders_statuses] FOREIGN KEY ([status_id]) REFERENCES [dbo].[purchase_order_statuses]([id])
 );
 GO
 
--- ====================================================================
--- LEVEL 3: TABLES WITH LEVEL 2 DEPENDENCIES
--- ====================================================================
-
+-- Users table
 CREATE TABLE [dbo].[users] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[employee_id] bigint,
-[date_of_birth] date,
-[facebook_account_id] bigint,
-[google_account_id] bigint,
-[is_active] BIT DEFAULT (CONVERT([bit],(1))) NOT NULL,
-[role_id] bigint NOT NULL,
-[phone_number] varchar(20) NOT NULL,
-[fullname] nvarchar(100),
-[address] nvarchar(200),
-[password] varchar(200) NOT NULL,
-[created_at] datetime2(6) DEFAULT (sysdatetime()) NOT NULL,
-[last_modified] datetime2(6) NOT NULL,
-PRIMARY KEY ([id])
-);
-GO
-
-CREATE TABLE [dbo].[product_images] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[product_id] bigint,
-[image_url] varchar(300),
-PRIMARY KEY ([id])
-);
-GO
-
-CREATE TABLE [dbo].[product_recipes] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[product_id] bigint NOT NULL,
-[ingredient_id] bigint NOT NULL,
-[quantity] decimal(18,2) NOT NULL,
-[created_at] datetime2(6) NOT NULL,
-[last_modified] datetime2(6) NOT NULL,
-PRIMARY KEY ([id])
-);
-GO
-
-CREATE TABLE [dbo].[ingredient_purchase_order_details] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[purchase_order_id] bigint NOT NULL,
-[ingredient_id] bigint NOT NULL,
-[quantity] decimal(18,2) NOT NULL,
-[unit_price] decimal(18,2) NOT NULL,
-[tax_price] decimal(18,2) NOT NULL,
-[total_price] decimal(18,2) NOT NULL,
-[created_at] datetime2(6) NOT NULL,
-[last_modified] datetime2(6) NOT NULL,
-PRIMARY KEY ([id])
-);
-GO
-
-CREATE TABLE [dbo].[payrolls] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[employee_id] bigint NOT NULL,
-[month] int NOT NULL,
-[year] int NOT NULL,
-[total_working_hours] decimal(18,2),
-[base_salary] decimal(18,2),
-[allowance] decimal(18,2),
-[bonus] decimal(18,2),
-[penalty] decimal(18,2),
-[gross_salary] decimal(18,2),
-[tax_amount] decimal(18,2),
-[net_salary] decimal(18,2),
-[created_at] datetime2(6) DEFAULT (getdate()) NOT NULL,
-[last_modified] datetime2(6) NOT NULL,
-PRIMARY KEY ([id])
-);
-GO
-
-CREATE TABLE [dbo].[employee_salaries] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[employee_id] bigint NOT NULL,
-[base_salary] decimal(18,2) NOT NULL,
-[salary_type] varchar(20) DEFAULT ('MONTHLY'),
-[allowance] decimal(18,2) DEFAULT ((0.0)),
-[bonus] decimal(18,2) DEFAULT ((0.0)),
-[penalty] decimal(18,2) DEFAULT ((0.0)),
-[tax_rate] decimal(18,2) DEFAULT ((0.1)),
-[effective_date] date NOT NULL,
-[created_at] datetime2(6) DEFAULT (getdate()) NOT NULL,
-[last_modified] datetime2(6) NOT NULL,
-PRIMARY KEY ([id])
-);
-GO
-
-CREATE TABLE [dbo].[employee_shifts] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[employee_id] bigint NOT NULL,
-[shift_date] date NOT NULL,
-[start_time] time(7) NOT NULL,
-[end_time] time(7) NOT NULL,
-[status] varchar(20) DEFAULT ('PRESENT'),
-[created_at] datetime2(6) DEFAULT (getdate()) NOT NULL,
-[last_modified] datetime2(6) NOT NULL,
-PRIMARY KEY ([id])
-);
-GO
-
-CREATE TABLE [dbo].[branch_ingredient_inventory] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[branch_id] bigint NOT NULL,
-[ingredient_id] bigint NOT NULL,
-[quantity] decimal(18,2) NOT NULL,
-[created_at] datetime2(6) NOT NULL,
-[last_modified] datetime2(6) DEFAULT (getdate()) NOT NULL,
-[last_transfer_date] datetime2(7),
-[location] nvarchar(100),
-[minimum_stock] decimal(18,2) DEFAULT (0.0) NOT NULL,
-[reserved_quantity] decimal(18,2) DEFAULT (0.0) NOT NULL,
-PRIMARY KEY ([id])
-);
-GO
-
-CREATE TABLE [dbo].[ingredient_warehouse] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[ingredient_id] bigint NOT NULL,
-[quantity] decimal(18,2) NOT NULL,
-[created_at] datetime2(6) NOT NULL,
-[last_modified] datetime2(6) DEFAULT (getdate()) NOT NULL,
-[location] nvarchar(100),
-[maximum_stock] decimal(18,2),
-[minimum_stock] decimal(18,2) DEFAULT (0.0) NOT NULL,
-PRIMARY KEY ([id])
-);
-GO
-
-CREATE TABLE [dbo].[ingredient_transfers] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[ingredient_id] bigint NOT NULL,
-[branch_id] bigint NOT NULL,
-[quantity] decimal(18,2) NOT NULL,
-[note] nvarchar(500),
-[created_at] datetime2(6) DEFAULT (getdate()) NOT NULL,
-[last_modified] datetime2(6) NOT NULL,
-[approved_by] nvarchar(100),
-[completed_date] datetime2(7),
-[requested_by] nvarchar(100),
-[status] varchar(20) DEFAULT ('') NOT NULL,
-[transfer_date] datetime2(7) DEFAULT ('0001-01-01T00:00:00.0000000') NOT NULL,
-[transfer_type] varchar(20) DEFAULT ('') NOT NULL,
-PRIMARY KEY ([id])
-);
-GO
-
-CREATE TABLE [dbo].[supplier_ingredient_prices] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[supplier_id] bigint NOT NULL,
-[ingredient_id] bigint NOT NULL,
-[price] decimal(18,2) NOT NULL,
-[unit] varchar(50) NOT NULL,
-[effective_date] datetime2(6) DEFAULT (getdate()),
-[expired_date] datetime2(6),
-[created_at] datetime2(6) NOT NULL,
-[last_modified] datetime2(6) NOT NULL,
-PRIMARY KEY ([id])
-);
-GO
-
-CREATE TABLE [dbo].[branch_expenses] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[branch_id] bigint NOT NULL,
-[expense_type] nvarchar(100) NOT NULL,
-[amount] decimal(18,2) NOT NULL,
-[start_date] date NOT NULL,
-[end_date] date,
-[payment_cycle] varchar(50) DEFAULT ('MONTHLY'),
-[note] nvarchar(255),
-[created_at] datetime2(6) DEFAULT (getdate()) NOT NULL,
-[last_modified] datetime2(6) NOT NULL,
-PRIMARY KEY ([id])
-);
-GO
-
--- Purchase Invoices from Suppliers
-CREATE TABLE [dbo].[purchase_invoices] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[invoice_code] VARCHAR(50) NOT NULL UNIQUE,
-[purchase_order_id] bigint,
-[supplier_id] bigint NOT NULL,
-[branch_id] bigint,
-[invoice_date] datetime2(6) NOT NULL,
-[due_date] datetime2(6),
-[payment_date] datetime2(6),
-[status_id] bigint DEFAULT (1),
-[total_amount_before_tax] decimal(18,2) DEFAULT (0),
-[total_tax_amount] decimal(18,2) DEFAULT (0),
-[total_amount_after_tax] decimal(18,2) DEFAULT (0),
-[paid_amount] decimal(18,2) DEFAULT (0),
-[remaining_amount] decimal(18,2) DEFAULT (0),
-[discount_amount] decimal(18,2) DEFAULT (0),
-[payment_method] varchar(50),
-[payment_reference] varchar(100),
-[note] varchar(500),
-[created_at] datetime2(6) DEFAULT (getdate()) NOT NULL,
-[last_modified] datetime2(6) NOT NULL,
-PRIMARY KEY ([id])
-);
-GO
-
--- Purchase Invoice Details
-CREATE TABLE [dbo].[purchase_invoice_details] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[invoice_id] bigint NOT NULL,
-[ingredient_id] bigint NOT NULL,
-[quantity] decimal(18,2) NOT NULL,
-[unit_price] decimal(18,2) NOT NULL,
-[amount_before_tax] decimal(18,2) NOT NULL,
-[tax_rate] decimal(5,2) DEFAULT (0),
-[tax_amount] decimal(18,2) DEFAULT (0),
-[amount_after_tax] decimal(18,2) NOT NULL,
-[discount_rate] decimal(5,2) DEFAULT (0),
-[discount_amount] decimal(18,2) DEFAULT (0),
-[final_amount] decimal(18,2) NOT NULL,
-[expiry_date] date,
-[batch_number] varchar(50),
-[note] varchar(255),
-[created_at] datetime2(6) DEFAULT (getdate()) NOT NULL,
-[last_modified] datetime2(6) NOT NULL,
-PRIMARY KEY ([id])
-);
-GO
-
--- Goods Received Notes (Phiếu nhập kho)
-CREATE TABLE [dbo].[goods_received_notes] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[grn_code] VARCHAR(50) NOT NULL UNIQUE,
-[purchase_order_id] bigint,
-[invoice_id] bigint,
-[supplier_id] bigint NOT NULL,
-[branch_id] bigint NOT NULL,
-[warehouse_staff_id] bigint,
-[received_date] datetime2(6) DEFAULT (getdate()),
-[status_id] bigint DEFAULT (1),
-[total_quantity_ordered] decimal(18,2) DEFAULT (0),
-[total_quantity_received] decimal(18,2) DEFAULT (0),
-[total_quantity_rejected] decimal(18,2) DEFAULT (0),
-[delivery_note_number] varchar(100),
-[vehicle_number] varchar(20),
-[driver_name] varchar(100),
-[note] varchar(500),
-[created_at] datetime2(6) DEFAULT (getdate()) NOT NULL,
-[last_modified] datetime2(6) NOT NULL,
-PRIMARY KEY ([id])
-);
-GO
-
--- Goods Received Details
-CREATE TABLE [dbo].[goods_received_details] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[grn_id] bigint NOT NULL,
-[ingredient_id] bigint NOT NULL,
-[ordered_quantity] decimal(18,2) NOT NULL,
-[received_quantity] decimal(18,2) NOT NULL,
-[rejected_quantity] decimal(18,2) DEFAULT (0),
-[quality_status] varchar(20) DEFAULT ('ACCEPTED'),
-[rejection_reason] varchar(255),
-[unit_price] decimal(18,2),
-[expiry_date] date,
-[batch_number] varchar(50),
-[storage_location] varchar(100),
-[note] varchar(255),
-[created_at] datetime2(6) DEFAULT (getdate()) NOT NULL,
-[last_modified] datetime2(6) NOT NULL,
-PRIMARY KEY ([id])
-);
-GO
-
--- Purchase Returns (Phiếu trả hàng)
-CREATE TABLE [dbo].[purchase_returns] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[return_code] VARCHAR(50) NOT NULL UNIQUE,
-[grn_id] bigint,
-[invoice_id] bigint,
-[supplier_id] bigint NOT NULL,
-[branch_id] bigint NOT NULL,
-[return_date] datetime2(6) DEFAULT (getdate()),
-[return_reason] varchar(255),
-[status_id] bigint DEFAULT (1),
-[total_return_amount] decimal(18,2) DEFAULT (0),
-[refund_amount] decimal(18,2) DEFAULT (0),
-[credit_note_number] varchar(100),
-[approved_by] bigint,
-[approval_date] datetime2(6),
-[note] varchar(500),
-[created_at] datetime2(6) DEFAULT (getdate()) NOT NULL,
-[last_modified] datetime2(6) NOT NULL,
-PRIMARY KEY ([id])
-);
-GO
-
--- Purchase Return Details
-CREATE TABLE [dbo].[purchase_return_details] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[return_id] bigint NOT NULL,
-[ingredient_id] bigint NOT NULL,
-[return_quantity] decimal(18,2) NOT NULL,
-[unit_price] decimal(18,2),
-[return_amount] decimal(18,2),
-[return_reason] varchar(255),
-[batch_number] varchar(50),
-[expiry_date] date,
-[quality_issue] varchar(255),
-[note] varchar(255),
-[created_at] datetime2(6) DEFAULT (getdate()) NOT NULL,
-[last_modified] datetime2(6) NOT NULL,
-PRIMARY KEY ([id])
-);
-GO
-
--- Supplier Performance Tracking
-CREATE TABLE [dbo].[supplier_performance] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[supplier_id] bigint NOT NULL,
-[evaluation_period] varchar(20) NOT NULL, -- MONTHLY, QUARTERLY, YEARLY
-[period_value] varchar(20) NOT NULL, -- 2024-01, 2024-Q1, 2024
-[total_orders] int DEFAULT (0),
-[total_amount] decimal(18,2) DEFAULT (0),
-[on_time_deliveries] int DEFAULT (0),
-[late_deliveries] int DEFAULT (0),
-[quality_score] decimal(3,2) DEFAULT (0), -- 0.00 to 5.00
-[service_score] decimal(3,2) DEFAULT (0), -- 0.00 to 5.00
-[overall_rating] decimal(3,2) DEFAULT (0), -- 0.00 to 5.00
-[total_returns] int DEFAULT (0),
-[return_value] decimal(18,2) DEFAULT (0),
-[comments] varchar(500),
-[created_at] datetime2(6) DEFAULT (getdate()) NOT NULL,
-[last_modified] datetime2(6) NOT NULL,
-PRIMARY KEY ([id])
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [employee_id] bigint,
+    [is_active] bit NOT NULL DEFAULT 1,
+    [date_of_birth] date,
+    [role_id] bigint NOT NULL,
+    [phone_number] varchar(20),
+    [fullname] nvarchar(255) COLLATE Vietnamese_CI_AS NOT NULL,
+    [address] nvarchar(500) COLLATE Vietnamese_CI_AS,
+    [password] varchar(255) NOT NULL,
+    [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT [PK_users] PRIMARY KEY ([id]),
+    CONSTRAINT [FK_users_employees] FOREIGN KEY ([employee_id]) REFERENCES [dbo].[employees]([id]),
+    CONSTRAINT [FK_users_roles] FOREIGN KEY ([role_id]) REFERENCES [dbo].[roles]([id])
 );
 GO
 
 -- ====================================================================
--- LEVEL 4: TABLES WITH LEVEL 3 DEPENDENCIES
+-- CREATE TABLES - LEVEL 3: TABLES WITH MULTIPLE DEPENDENCIES
 -- ====================================================================
 
-CREATE TABLE [dbo].[customers] (
-[id] bigint NOT NULL,
-[user_id] bigint,
-[fullname] nvarchar(100) NOT NULL,
-[phone_number] varchar(20),
-[email] varchar(100),
-[address] nvarchar(200),
-[created_at] datetime2(6) DEFAULT (sysdatetime()) NOT NULL,
-[last_modified] datetime2(6) NOT NULL,
-PRIMARY KEY ([id])
-);
-GO
-
+-- Tokens table
 CREATE TABLE [dbo].[tokens] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[expired] bit NOT NULL,
-[revoked] bit NOT NULL,
-[expiration_date] datetime2(6),
-[user_id] bigint,
-[token_type] varchar(50),
-[token] varchar(255),
-PRIMARY KEY ([id])
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [expired] bit NOT NULL DEFAULT 0,
+    [revoked] bit NOT NULL DEFAULT 0,
+    [expiration_date] datetime2(6),
+    [user_id] bigint NOT NULL,
+    [token_type] varchar(50) NOT NULL,
+    [token] nvarchar(MAX) NOT NULL,
+    CONSTRAINT [PK_tokens] PRIMARY KEY ([id]),
+    CONSTRAINT [FK_tokens_users] FOREIGN KEY ([user_id]) REFERENCES [dbo].[users]([id])
 );
 GO
 
+-- Social Accounts table
 CREATE TABLE [dbo].[social_accounts] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[provider_id] bigint NOT NULL,
-[user_id] bigint,
-[provider] varchar(20) NOT NULL,
-[name] varchar(100),
-[email] varchar(150),
-[created_at] datetime2(6) NOT NULL,
-[last_modified] datetime2(6) NOT NULL,
-PRIMARY KEY ([id])
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [provider_id] bigint NOT NULL,
+    [user_id] bigint NOT NULL,
+    [provider] varchar(50) NOT NULL,
+    [name] nvarchar(255) COLLATE Vietnamese_CI_AS,
+    [email] varchar(255),
+    [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT [PK_social_accounts] PRIMARY KEY ([id]),
+    CONSTRAINT [FK_social_accounts_users] FOREIGN KEY ([user_id]) REFERENCES [dbo].[users]([id])
 );
 GO
 
--- ====================================================================
--- LEVEL 5: TABLES WITH LEVEL 4 DEPENDENCIES
--- ====================================================================
-
-CREATE TABLE [dbo].[orders] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[order_uuid] CHAR(36) NOT NULL UNIQUE,   
-[order_code] VARCHAR(20) NOT NULL UNIQUE,
-[customer_id] bigint NOT NULL,
-[branch_id] bigint,
-[total_money] decimal(18,2),
-[status_id] bigint,
-[created_at] datetime2(6) DEFAULT (sysdatetime()) NOT NULL,
-[last_modified] datetime2(6) NOT NULL,
-[notes] nvarchar(500),
-PRIMARY KEY ([id])
+-- Product Images table
+CREATE TABLE [dbo].[product_images] (
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [product_id] bigint NOT NULL,
+    [image_url] nvarchar(500) NOT NULL,
+    CONSTRAINT [PK_product_images] PRIMARY KEY ([id]),
+    CONSTRAINT [FK_product_images_products] FOREIGN KEY ([product_id]) REFERENCES [dbo].[products]([id])
 );
 GO
 
--- ====================================================================
--- LEVEL 6: TABLES WITH LEVEL 5 DEPENDENCIES
--- ====================================================================
-
-CREATE TABLE [dbo].[order_details] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[quantity] int NOT NULL,
-[order_id] bigint DEFAULT (CONVERT([bigint],(0))) NOT NULL,
-[product_id] bigint DEFAULT (CONVERT([bigint],(0))) NOT NULL,
-[color] varchar(255),
-[created_at] datetime2(6) NOT NULL,
-[last_modified] datetime2(6) NOT NULL,
-[note] varchar(255),
-[total_amount] decimal(18,2) DEFAULT ((0.0)) NOT NULL,
-[unit_price] decimal(18,2) DEFAULT ((0.0)) NOT NULL,
-PRIMARY KEY ([id])
+-- Product Recipes table
+CREATE TABLE [dbo].[product_recipes] (
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [product_id] bigint NOT NULL,
+    [ingredient_id] bigint NOT NULL,
+    [quantity] decimal(10,3) NOT NULL,
+    [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT [PK_product_recipes] PRIMARY KEY ([id]),
+    CONSTRAINT [FK_product_recipes_products] FOREIGN KEY ([product_id]) REFERENCES [dbo].[products]([id]),
+    CONSTRAINT [FK_product_recipes_ingredients] FOREIGN KEY ([ingredient_id]) REFERENCES [dbo].[ingredients]([id])
 );
 GO
 
-CREATE TABLE [dbo].[order_payments] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[order_id] bigint NOT NULL,
-[payment_method_id] bigint NOT NULL,
-[payment_status_id] bigint NOT NULL,
-[amount] decimal(18,2) NOT NULL,
-[payment_date] datetime2(6),
-[transaction_id] varchar(100),
-[notes] varchar(255),
-[created_at] datetime2(6) DEFAULT (sysdatetime()) NOT NULL,
-[last_modified] datetime2(6) NOT NULL,
-PRIMARY KEY ([id])
+-- Ingredient Purchase Order Details table
+CREATE TABLE [dbo].[ingredient_purchase_order_details] (
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [purchase_order_id] bigint NOT NULL,
+    [ingredient_id] bigint NOT NULL,
+    [quantity] decimal(10,3) NOT NULL,
+    [unit_price] decimal(18,2) NOT NULL,
+    [tax_price] decimal(18,2),
+    [total_price] decimal(18,2) NOT NULL,
+    [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT [PK_ingredient_purchase_order_details] PRIMARY KEY ([id]),
+    CONSTRAINT [FK_ingredient_purchase_order_details_orders] FOREIGN KEY ([purchase_order_id]) REFERENCES [dbo].[ingredient_purchase_orders]([id]),
+    CONSTRAINT [FK_ingredient_purchase_order_details_ingredients] FOREIGN KEY ([ingredient_id]) REFERENCES [dbo].[ingredients]([id])
 );
 GO
 
-CREATE TABLE [dbo].[order_shipments] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[order_id] bigint NOT NULL,
-[shipping_provider_id] bigint,
-[shipping_address] nvarchar(500) NOT NULL,
-[shipping_cost] decimal(18,2),
-[shipping_method] varchar(50),
-[estimated_delivery_date] datetime2(6),
-[notes] varchar(255),
-[created_at] datetime2(6) DEFAULT (sysdatetime()) NOT NULL,
-[last_modified] datetime2(6) NOT NULL,
-PRIMARY KEY ([id])
+-- Payrolls table
+CREATE TABLE [dbo].[payrolls] (
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [employee_id] bigint NOT NULL,
+    [month] int NOT NULL,
+    [year] int NOT NULL,
+    [total_working_hours] decimal(8,2),
+    [base_salary] decimal(18,2) NOT NULL,
+    [allowance] decimal(18,2) DEFAULT 0,
+    [bonus] decimal(18,2) DEFAULT 0,
+    [penalty] decimal(18,2) DEFAULT 0,
+    [gross_salary] decimal(18,2) NOT NULL,
+    [tax_amount] decimal(18,2) DEFAULT 0,
+    [net_salary] decimal(18,2) NOT NULL,
+    [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT [PK_payrolls] PRIMARY KEY ([id]),
+    CONSTRAINT [FK_payrolls_employees] FOREIGN KEY ([employee_id]) REFERENCES [dbo].[employees]([id])
 );
 GO
 
-CREATE TABLE [dbo].[order_delivery_tracking] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[order_id] bigint NOT NULL,
-[tracking_number] varchar(100) NOT NULL,
-[status_id] bigint NOT NULL,
-[location] varchar(255),
-[estimated_delivery] datetime2(6),
-[delivery_person_id] bigint,
-[shipping_provider_id] bigint,
-[created_at] datetime2(6) NOT NULL,
-[last_modified] datetime2(6) DEFAULT (sysdatetime()) NOT NULL,
-PRIMARY KEY ([id])
+-- Employee Salaries table
+CREATE TABLE [dbo].[employee_salaries] (
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [employee_id] bigint NOT NULL,
+    [base_salary] decimal(18,2) NOT NULL,
+    [salary_type] varchar(20) NOT NULL DEFAULT 'MONTHLY',
+    [allowance] decimal(18,2) DEFAULT 0,
+    [bonus] decimal(18,2) DEFAULT 0,
+    [penalty] decimal(18,2) DEFAULT 0,
+    [tax_rate] decimal(5,2) DEFAULT 0,
+    [effective_date] date NOT NULL,
+    [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT [PK_employee_salaries] PRIMARY KEY ([id]),
+    CONSTRAINT [FK_employee_salaries_employees] FOREIGN KEY ([employee_id]) REFERENCES [dbo].[employees]([id])
 );
 GO
 
--- ====================================================================
--- SUMMARY TABLES (Views as Tables)
--- ====================================================================
-
-CREATE TABLE [dbo].[sales_summary] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[branch_id] bigint,
-[period_type] varchar(20) NOT NULL,
-[period_value] varchar(20) NOT NULL,
-[total_orders] int NOT NULL,
-[total_products] int NOT NULL,
-[revenue_before_tax] decimal(18,2) NOT NULL,
-[revenue_after_tax] decimal(18,2) NOT NULL,
-[tax_amount] decimal(18,2) NOT NULL,
-[created_at] datetime2(6) DEFAULT (getdate()) NOT NULL,
-[last_modified] datetime2(6) NOT NULL,
-PRIMARY KEY ([id])
+-- Employee Shifts table
+CREATE TABLE [dbo].[employee_shifts] (
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [employee_id] bigint NOT NULL,
+    [shift_date] date NOT NULL,
+    [start_time] time NOT NULL,
+    [end_time] time NOT NULL,
+    [status] varchar(20) DEFAULT 'SCHEDULED',
+    [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT [PK_employee_shifts] PRIMARY KEY ([id]),
+    CONSTRAINT [FK_employee_shifts_employees] FOREIGN KEY ([employee_id]) REFERENCES [dbo].[employees]([id])
 );
 GO
 
-CREATE TABLE [dbo].[expenses_summary] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[branch_id] bigint,
-[period_type] varchar(20) NOT NULL,
-[period_value] varchar(20) NOT NULL,
-[total_purchase_orders] int NOT NULL,
-[total_ingredients] int NOT NULL,
-[expense_before_tax] decimal(18,2) NOT NULL,
-[expense_after_tax] decimal(18,2) NOT NULL,
-[tax_amount] decimal(18,2) NOT NULL,
-[created_at] datetime2(6) DEFAULT (getdate()) NOT NULL,
-[last_modified] datetime2(6) NOT NULL,
-PRIMARY KEY ([id])
+-- Branch Ingredient Inventory table
+CREATE TABLE [dbo].[branch_ingredient_inventory] (
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [branch_id] bigint NOT NULL,
+    [ingredient_id] bigint NOT NULL,
+    [quantity] decimal(10,3) NOT NULL DEFAULT 0,
+    [reserved_quantity] decimal(10,3) NOT NULL DEFAULT 0,
+    [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT [PK_branch_ingredient_inventory] PRIMARY KEY ([id]),
+    CONSTRAINT [FK_branch_ingredient_inventory_branches] FOREIGN KEY ([branch_id]) REFERENCES [dbo].[branches]([id]),
+    CONSTRAINT [FK_branch_ingredient_inventory_ingredients] FOREIGN KEY ([ingredient_id]) REFERENCES [dbo].[ingredients]([id]),
+    CONSTRAINT [UQ_branch_ingredient_inventory] UNIQUE ([branch_id], [ingredient_id])
 );
 GO
 
-CREATE TABLE [dbo].[profit_summary] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[branch_id] bigint,
-[period_type] varchar(20) NOT NULL,
-[period_value] varchar(20) NOT NULL,
-[revenue_before_tax] decimal(18,2) NOT NULL,
-[revenue_after_tax] decimal(18,2) NOT NULL,
-[expense_before_tax] decimal(18,2) NOT NULL,
-[expense_after_tax] decimal(18,2) NOT NULL,
-[output_tax] decimal(18,2) NOT NULL,
-[input_tax] decimal(18,2) NOT NULL,
-[vat_to_pay] decimal(18,2) NOT NULL,
-[profit_before_tax] decimal(18,2) NOT NULL,
-[profit_after_tax] decimal(18,2) NOT NULL,
-[created_at] datetime2(6) DEFAULT (getdate()) NOT NULL,
-[last_modified] datetime2(6) NOT NULL,
-PRIMARY KEY ([id])
+-- Ingredient Warehouse table
+CREATE TABLE [dbo].[ingredient_warehouse] (
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [ingredient_id] bigint NOT NULL,
+    [quantity] decimal(10,3) NOT NULL DEFAULT 0,
+    [safety_stock] decimal(10,3) NOT NULL DEFAULT 0,
+    [maximum_stock] decimal(10,3) NOT NULL DEFAULT 0,
+    [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT [PK_ingredient_warehouse] PRIMARY KEY ([id]),
+    CONSTRAINT [FK_ingredient_warehouse_ingredients] FOREIGN KEY ([ingredient_id]) REFERENCES [dbo].[ingredients]([id]),
+    CONSTRAINT [UQ_ingredient_warehouse] UNIQUE ([ingredient_id])
 );
 GO
 
--- ====================================================================
--- VIEW TABLES (These were originally views but defined as tables)
--- ====================================================================
-
-CREATE TABLE [dbo].[v_sales_summary] (
-[branch_id] bigint,
-[year] int NOT NULL,
-[month] int NOT NULL,
-[period] varchar(7) NOT NULL,
-[total_orders] int NOT NULL,
-[total_products] int NOT NULL,
-[revenue_before_tax] decimal(18,2) NOT NULL,
-[revenue_after_tax] decimal(18,2) NOT NULL,
-[tax_amount] decimal(18,2) NOT NULL
-);
-GO
-
-CREATE TABLE [dbo].[v_employee_payroll] (
-[employee_id] bigint NOT NULL,
-[full_name] nvarchar(100) NOT NULL,
-[branch_name] varchar(255) NOT NULL,
-[position_name] varchar(100),
-[base_salary] decimal(18,2),
-[salary_type] varchar(20),
-[total_allowances] decimal(18,2) NOT NULL,
-[total_bonus] decimal(18,2) NOT NULL,
-[total_deductions] decimal(18,2) NOT NULL,
-[gross_salary] decimal(18,2) NOT NULL,
-[effective_date] date,
-[end_date] date
-);
-GO
-
-CREATE TABLE [dbo].[v_inventory_status] (
-[ingredient_id] bigint NOT NULL,
-[ingredient_name] varchar(255) NOT NULL,
-[location_id] bigint NOT NULL,
-[location_name] varchar(100) NOT NULL,
-[branch_id] bigint NOT NULL,
-[branch_name] varchar(255) NOT NULL,
-[quantity_on_hand] decimal(18,2) NOT NULL,
-[quantity_reserved] decimal(18,2) NOT NULL,
-[available_quantity] decimal(18,2) NOT NULL,
-[minimum_stock] decimal(18,2),
-[stock_status] varchar(20) NOT NULL,
-[unit_of_measure] varchar(50) NOT NULL,
-[last_updated] datetime2(6) NOT NULL
-);
-GO
-
-CREATE TABLE [dbo].[v_profit_summary] (
-[branch_id] bigint,
-[year] int NOT NULL,
-[month] int NOT NULL,
-[period] varchar(7) NOT NULL,
-[revenue_before_tax] decimal(18,2) NOT NULL,
-[revenue_after_tax] decimal(18,2) NOT NULL,
-[expense_before_tax] decimal(18,2) NOT NULL,
-[expense_after_tax] decimal(18,2) NOT NULL,
-[output_tax] decimal(18,2) NOT NULL,
-[input_tax] decimal(18,2) NOT NULL,
-[vat_to_pay] decimal(18,2) NOT NULL,
-[profit_before_tax] decimal(18,2) NOT NULL,
-[profit_after_tax] decimal(18,2) NOT NULL
-);
-GO
-
-CREATE TABLE [dbo].[v_expenses_summary] (
-[branch_id] bigint,
-[year] int NOT NULL,
-[month] int NOT NULL,
-[period] varchar(7) NOT NULL,
-[total_purchase_orders] int NOT NULL,
-[total_ingredients] decimal(18,2) NOT NULL,
-[expense_before_tax] decimal(18,2) NOT NULL,
-[expense_after_tax] decimal(18,2) NOT NULL,
-[tax_amount] decimal(18,2) NOT NULL
-);
-GO
-
-
-CREATE TABLE [dbo].[recipes] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[Name] nvarchar(255) NOT NULL,
-[Description] nvarchar(500),
-[ProductId] bigint NOT NULL,
-[ServingSize] decimal(18,2) NOT NULL,
-[Unit] nvarchar(50) NOT NULL,
-[IsActive] bit NOT NULL,
-[Notes] nvarchar(500),
-[created_at] datetime2(6) NOT NULL,
-[last_modified] datetime2(6) NOT NULL,
-PRIMARY KEY ([id])
-);
-GO
-
-CREATE TABLE [dbo].[recipe_ingredients] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[RecipeId] bigint NOT NULL,
-[IngredientId] bigint NOT NULL,
-[Quantity] decimal(18,4) NOT NULL,
-[Unit] nvarchar(50) NOT NULL,
-[WastePercentage] decimal(18,4),
-[Notes] nvarchar(500),
-[IsOptional] bit NOT NULL,
-[SortOrder] int NOT NULL,
-[created_at] datetime2(6) NOT NULL,
-[last_modified] datetime2(6) NOT NULL,
-PRIMARY KEY ([id])
-);
-GO
-
-CREATE TABLE [dbo].[inventory_movements] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[BranchId] bigint NOT NULL,
-[IngredientId] bigint NOT NULL,
-[MovementType] nvarchar(20) NOT NULL,
-[Quantity] decimal(18,2) NOT NULL,
-[Unit] nvarchar(50) NOT NULL,
-[QuantityBefore] decimal(18,2) NOT NULL,
-[QuantityAfter] decimal(18,2) NOT NULL,
-[ReferenceType] nvarchar(100),
-[ReferenceId] bigint,
-[ReferenceCode] nvarchar(100),
-[Notes] nvarchar(500),
-[EmployeeId] bigint,
-[MovementDate] datetime2(7) NOT NULL,
-[created_at] datetime2(6) NOT NULL,
-[last_modified] datetime2(6) NOT NULL,
-PRIMARY KEY ([id])
-);
-GO
-
+-- Inventory Thresholds table
 CREATE TABLE [dbo].[inventory_thresholds] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[BranchId] bigint NOT NULL,
-[IngredientId] bigint NOT NULL,
-[MinimumStock] decimal(18,2) NOT NULL,
-[ReorderPoint] decimal(18,2) NOT NULL,
-[MaximumStock] decimal(18,2) NOT NULL,
-[SafetyStock] decimal(18,2) NOT NULL,
-[LeadTimeDays] int NOT NULL,
-[AverageDailyConsumption] decimal(18,2) NOT NULL,
-[LastCalculatedDate] datetime2(7),
-[IsActive] bit NOT NULL,
-[created_at] datetime2(6) NOT NULL,
-[last_modified] datetime2(6) NOT NULL,
-PRIMARY KEY ([id])
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [ingredient_id] bigint NOT NULL,
+    [branch_id] bigint,
+    [safety_stock] decimal(10,3) NOT NULL,
+    [reorder_point] decimal(10,3),
+    [maximum_stock] decimal(10,3),
+    [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT [PK_inventory_thresholds] PRIMARY KEY ([id]),
+    CONSTRAINT [FK_inventory_thresholds_ingredients] FOREIGN KEY ([ingredient_id]) REFERENCES [dbo].[ingredients]([id]),
+    CONSTRAINT [FK_inventory_thresholds_branches] FOREIGN KEY ([branch_id]) REFERENCES [dbo].[branches]([id])
+);
+GO
+
+-- Ingredient Transfers table
+CREATE TABLE [dbo].[ingredient_transfers] (
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [ingredient_id] bigint NOT NULL,
+    [branch_id] bigint NOT NULL,
+    [quantity] decimal(10,3) NOT NULL,
+    [transfer_type] varchar(50) NOT NULL DEFAULT 'IN',
+    [note] nvarchar(1000) COLLATE Vietnamese_CI_AS,
+    [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT [PK_ingredient_transfers] PRIMARY KEY ([id]),
+    CONSTRAINT [FK_ingredient_transfers_ingredients] FOREIGN KEY ([ingredient_id]) REFERENCES [dbo].[ingredients]([id]),
+    CONSTRAINT [FK_ingredient_transfers_branches] FOREIGN KEY ([branch_id]) REFERENCES [dbo].[branches]([id])
+);
+GO
+
+-- Supplier Ingredient Prices table
+CREATE TABLE [dbo].[supplier_ingredient_prices] (
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [supplier_id] bigint NOT NULL,
+    [ingredient_id] bigint NOT NULL,
+    [price] decimal(18,2) NOT NULL,
+    [unit] nvarchar(20) COLLATE Vietnamese_CI_AS NOT NULL,
+    [effective_date] date NOT NULL,
+    [expired_date] date,
+    [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT [PK_supplier_ingredient_prices] PRIMARY KEY ([id]),
+    CONSTRAINT [FK_supplier_ingredient_prices_suppliers] FOREIGN KEY ([supplier_id]) REFERENCES [dbo].[suppliers]([id]),
+    CONSTRAINT [FK_supplier_ingredient_prices_ingredients] FOREIGN KEY ([ingredient_id]) REFERENCES [dbo].[ingredients]([id])
+);
+GO
+
+-- Branch Expenses table
+CREATE TABLE [dbo].[branch_expenses] (
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [branch_id] bigint NOT NULL,
+    [expense_type] nvarchar(100) COLLATE Vietnamese_CI_AS NOT NULL,
+    [amount] decimal(18,2) NOT NULL,
+    [start_date] date NOT NULL,
+    [end_date] date,
+    [payment_cycle] varchar(20) DEFAULT 'MONTHLY',
+    [note] nvarchar(1000) COLLATE Vietnamese_CI_AS,
+    [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT [PK_branch_expenses] PRIMARY KEY ([id]),
+    CONSTRAINT [FK_branch_expenses_branches] FOREIGN KEY ([branch_id]) REFERENCES [dbo].[branches]([id])
+);
+GO
+
+-- Customers table
+CREATE TABLE [dbo].[customers] (
+    [id] bigint NOT NULL,
+    [user_id] bigint NOT NULL,
+    [fullname] nvarchar(255) COLLATE Vietnamese_CI_AS NOT NULL,
+    [phone_number] varchar(20),
+    [email] varchar(255),
+    [address] nvarchar(500) COLLATE Vietnamese_CI_AS,
+    [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT [PK_customers] PRIMARY KEY ([id]),
+    CONSTRAINT [FK_customers_users] FOREIGN KEY ([user_id]) REFERENCES [dbo].[users]([id])
+);
+GO
+
+-- Orders table
+CREATE TABLE [dbo].[orders] (
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [order_uuid] varchar(36) NOT NULL,
+    [order_code] varchar(20) NOT NULL,
+    [customer_id] bigint NOT NULL,
+    [branch_id] bigint,
+    [total_money] decimal(18,2),
+    [status_id] bigint,
+    [notes] nvarchar(500) COLLATE Vietnamese_CI_AS,
+    [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT [PK_orders] PRIMARY KEY ([id]),
+    CONSTRAINT [UQ_orders_uuid] UNIQUE ([order_uuid]),
+    CONSTRAINT [UQ_orders_code] UNIQUE ([order_code]),
+    CONSTRAINT [FK_orders_customers] FOREIGN KEY ([customer_id]) REFERENCES [dbo].[customers]([id]),
+    CONSTRAINT [FK_orders_branches] FOREIGN KEY ([branch_id]) REFERENCES [dbo].[branches]([id]),
+    CONSTRAINT [FK_orders_statuses] FOREIGN KEY ([status_id]) REFERENCES [dbo].[order_statuses]([id])
+);
+GO
+
+-- Order Details table
+CREATE TABLE [dbo].[order_details] (
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [quantity] int NOT NULL,
+    [order_id] bigint NOT NULL,
+    [product_id] bigint NOT NULL,
+    [color] nvarchar(50) COLLATE Vietnamese_CI_AS,
+    [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [note] nvarchar(1000) COLLATE Vietnamese_CI_AS,
+    [total_amount] decimal(18,2) NOT NULL,
+    [unit_price] decimal(18,2) NOT NULL,
+    CONSTRAINT [PK_order_details] PRIMARY KEY ([id]),
+    CONSTRAINT [FK_order_details_orders] FOREIGN KEY ([order_id]) REFERENCES [dbo].[orders]([id]),
+    CONSTRAINT [FK_order_details_products] FOREIGN KEY ([product_id]) REFERENCES [dbo].[products]([id])
+);
+GO
+
+-- Order Payments table
+CREATE TABLE [dbo].[order_payments] (
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [order_id] bigint NOT NULL,
+    [payment_method_id] bigint NOT NULL,
+    [payment_status_id] bigint NOT NULL,
+    [amount] decimal(18,2) NOT NULL,
+    [payment_date] datetime2(6),
+    [transaction_id] nvarchar(255),
+    [notes] nvarchar(1000) COLLATE Vietnamese_CI_AS,
+    [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT [PK_order_payments] PRIMARY KEY ([id]),
+    CONSTRAINT [FK_order_payments_orders] FOREIGN KEY ([order_id]) REFERENCES [dbo].[orders]([id]),
+    CONSTRAINT [FK_order_payments_methods] FOREIGN KEY ([payment_method_id]) REFERENCES [dbo].[payment_methods]([id]),
+    CONSTRAINT [FK_order_payments_statuses] FOREIGN KEY ([payment_status_id]) REFERENCES [dbo].[payment_statuses]([id])
+);
+GO
+
+-- Order Shipments table
+CREATE TABLE [dbo].[order_shipments] (
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [order_id] bigint NOT NULL,
+    [shipping_provider_id] bigint NOT NULL,
+    [shipping_address] nvarchar(500) COLLATE Vietnamese_CI_AS NOT NULL,
+    [shipping_cost] decimal(18,2),
+    [shipping_method] nvarchar(100) COLLATE Vietnamese_CI_AS,
+    [estimated_delivery_date] datetime2(6),
+    [notes] nvarchar(1000) COLLATE Vietnamese_CI_AS,
+    [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT [PK_order_shipments] PRIMARY KEY ([id]),
+    CONSTRAINT [FK_order_shipments_orders] FOREIGN KEY ([order_id]) REFERENCES [dbo].[orders]([id]),
+    CONSTRAINT [FK_order_shipments_providers] FOREIGN KEY ([shipping_provider_id]) REFERENCES [dbo].[shipping_providers]([id])
+);
+GO
+
+-- Order Delivery Tracking table
+CREATE TABLE [dbo].[order_delivery_tracking] (
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [order_id] bigint NOT NULL,
+    [tracking_number] nvarchar(100),
+    [status_id] bigint NOT NULL,
+    [location] nvarchar(255) COLLATE Vietnamese_CI_AS,
+    [estimated_delivery] datetime2(6),
+    [delivery_person_id] bigint,
+    [shipping_provider_id] bigint NOT NULL,
+    [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT [PK_order_delivery_tracking] PRIMARY KEY ([id]),
+    CONSTRAINT [FK_order_delivery_tracking_orders] FOREIGN KEY ([order_id]) REFERENCES [dbo].[orders]([id]),
+    CONSTRAINT [FK_order_delivery_tracking_statuses] FOREIGN KEY ([status_id]) REFERENCES [dbo].[delivery_statuses]([id]),
+    CONSTRAINT [FK_order_delivery_tracking_employees] FOREIGN KEY ([delivery_person_id]) REFERENCES [dbo].[employees]([id]),
+    CONSTRAINT [FK_order_delivery_tracking_providers] FOREIGN KEY ([shipping_provider_id]) REFERENCES [dbo].[shipping_providers]([id])
 );
 GO
 
 -- ====================================================================
--- FOREIGN KEY CONSTRAINTS
+-- CREATE TABLES - ADVANCED BUSINESS LOGIC TABLES
 -- ====================================================================
 
--- Level 2 table constraints
-ALTER TABLE [dbo].[employees]
-ADD CONSTRAINT [FK_employees_branch]
-FOREIGN KEY ([branch_id]) 
-REFERENCES [dbo].[branches]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[products]
-ADD CONSTRAINT [FK_products_categories]
-FOREIGN KEY ([category_id]) 
-REFERENCES [dbo].[categories]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[products]
-ADD CONSTRAINT [FK_products_taxes]
-FOREIGN KEY ([tax_id]) 
-REFERENCES [dbo].[taxes]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[ingredients]
-ADD CONSTRAINT [FK_ingredients_ingredient_categories]
-FOREIGN KEY ([category_id]) 
-REFERENCES [dbo].[ingredient_categories]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[ingredients]
-ADD CONSTRAINT [FK_ingredients_taxes]
-FOREIGN KEY ([tax_id]) 
-REFERENCES [dbo].[taxes]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[ingredient_purchase_orders]
-ADD CONSTRAINT [FK_purchase_order_supplier]
-FOREIGN KEY ([supplier_id]) 
-REFERENCES [dbo].[suppliers]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[ingredient_purchase_orders]
-ADD CONSTRAINT [FK_purchase_order_branch]
-FOREIGN KEY ([branch_id]) 
-REFERENCES [dbo].[branches]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[ingredient_purchase_orders]
-ADD CONSTRAINT [FK_purchase_order_employee]
-FOREIGN KEY ([employee_id]) 
-REFERENCES [dbo].[employees]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[ingredient_purchase_orders]
-ADD CONSTRAINT [FK_purchase_order_status]
-FOREIGN KEY ([status_id]) 
-REFERENCES [dbo].[purchase_order_statuses]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
--- Level 3 table constraints
-ALTER TABLE [dbo].[users]
-ADD CONSTRAINT [FK_users_employees]
-FOREIGN KEY ([employee_id]) 
-REFERENCES [dbo].[employees]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[users]
-ADD CONSTRAINT [FK_users_roles]
-FOREIGN KEY ([role_id]) 
-REFERENCES [dbo].[roles]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[product_images]
-ADD CONSTRAINT [FKqnq71xsohugpqwf3c9gxmsuy]
-FOREIGN KEY ([product_id]) 
-REFERENCES [dbo].[products]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[product_recipes]
-ADD CONSTRAINT [FK_recipe_product]
-FOREIGN KEY ([product_id]) 
-REFERENCES [dbo].[products]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[product_recipes]
-ADD CONSTRAINT [FK_recipe_ingredient]
-FOREIGN KEY ([ingredient_id]) 
-REFERENCES [dbo].[ingredients]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[ingredient_purchase_order_details]
-ADD CONSTRAINT [FK_ipod_purchase_orders]
-FOREIGN KEY ([purchase_order_id]) 
-REFERENCES [dbo].[ingredient_purchase_orders]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[ingredient_purchase_order_details]
-ADD CONSTRAINT [FK_ipod_ingredients]
-FOREIGN KEY ([ingredient_id]) 
-REFERENCES [dbo].[ingredients]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[payrolls]
-ADD CONSTRAINT [FK_payroll_employee]
-FOREIGN KEY ([employee_id]) 
-REFERENCES [dbo].[employees]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[employee_salaries]
-ADD CONSTRAINT [FK_salaries_employee]
-FOREIGN KEY ([employee_id]) 
-REFERENCES [dbo].[employees]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[employee_shifts]
-ADD CONSTRAINT [FK_shifts_employee]
-FOREIGN KEY ([employee_id]) 
-REFERENCES [dbo].[employees]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[branch_ingredient_inventory]
-ADD CONSTRAINT [FK_bii_branch]
-FOREIGN KEY ([branch_id]) 
-REFERENCES [dbo].[branches]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[branch_ingredient_inventory]
-ADD CONSTRAINT [FK_bii_ingredient]
-FOREIGN KEY ([ingredient_id]) 
-REFERENCES [dbo].[ingredients]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[ingredient_warehouse]
-ADD CONSTRAINT [FK_ingredient_warehouse]
-FOREIGN KEY ([ingredient_id]) 
-REFERENCES [dbo].[ingredients]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[ingredient_transfers]
-ADD CONSTRAINT [FK_transfer_branch]
-FOREIGN KEY ([branch_id]) 
-REFERENCES [dbo].[branches]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[ingredient_transfers]
-ADD CONSTRAINT [FK_transfer_ingredient]
-FOREIGN KEY ([ingredient_id]) 
-REFERENCES [dbo].[ingredients]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[supplier_ingredient_prices]
-ADD CONSTRAINT [FK_sip_supplier]
-FOREIGN KEY ([supplier_id]) 
-REFERENCES [dbo].[suppliers]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[supplier_ingredient_prices]
-ADD CONSTRAINT [FK_sip_ingredient]
-FOREIGN KEY ([ingredient_id]) 
-REFERENCES [dbo].[ingredients]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[branch_expenses]
-ADD CONSTRAINT [FK_branch_expenses_branches]
-FOREIGN KEY ([branch_id]) 
-REFERENCES [dbo].[branches]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
--- Purchase Invoice constraints
-ALTER TABLE [dbo].[purchase_invoices]
-ADD CONSTRAINT [FK_invoice_purchase_order]
-FOREIGN KEY ([purchase_order_id]) 
-REFERENCES [dbo].[ingredient_purchase_orders]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[purchase_invoices]
-ADD CONSTRAINT [FK_invoice_supplier]
-FOREIGN KEY ([supplier_id]) 
-REFERENCES [dbo].[suppliers]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[purchase_invoices]
-ADD CONSTRAINT [FK_invoice_branch]
-FOREIGN KEY ([branch_id]) 
-REFERENCES [dbo].[branches]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[purchase_invoices]
-ADD CONSTRAINT [FK_invoice_status]
-FOREIGN KEY ([status_id]) 
-REFERENCES [dbo].[invoice_statuses]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
--- Purchase Invoice Details constraints
-ALTER TABLE [dbo].[purchase_invoice_details]
-ADD CONSTRAINT [FK_invoice_detail_invoice]
-FOREIGN KEY ([invoice_id]) 
-REFERENCES [dbo].[purchase_invoices]([id])
-ON DELETE CASCADE
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[purchase_invoice_details]
-ADD CONSTRAINT [FK_invoice_detail_ingredient]
-FOREIGN KEY ([ingredient_id]) 
-REFERENCES [dbo].[ingredients]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
--- Goods Received Notes constraints
-ALTER TABLE [dbo].[goods_received_notes]
-ADD CONSTRAINT [FK_grn_purchase_order]
-FOREIGN KEY ([purchase_order_id]) 
-REFERENCES [dbo].[ingredient_purchase_orders]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[goods_received_notes]
-ADD CONSTRAINT [FK_grn_invoice]
-FOREIGN KEY ([invoice_id]) 
-REFERENCES [dbo].[purchase_invoices]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[goods_received_notes]
-ADD CONSTRAINT [FK_grn_supplier]
-FOREIGN KEY ([supplier_id]) 
-REFERENCES [dbo].[suppliers]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[goods_received_notes]
-ADD CONSTRAINT [FK_grn_branch]
-FOREIGN KEY ([branch_id]) 
-REFERENCES [dbo].[branches]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[goods_received_notes]
-ADD CONSTRAINT [FK_grn_warehouse_staff]
-FOREIGN KEY ([warehouse_staff_id]) 
-REFERENCES [dbo].[employees]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[goods_received_notes]
-ADD CONSTRAINT [FK_grn_status]
-FOREIGN KEY ([status_id]) 
-REFERENCES [dbo].[goods_received_statuses]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
--- Goods Received Details constraints
-ALTER TABLE [dbo].[goods_received_details]
-ADD CONSTRAINT [FK_grn_detail_grn]
-FOREIGN KEY ([grn_id]) 
-REFERENCES [dbo].[goods_received_notes]([id])
-ON DELETE CASCADE
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[goods_received_details]
-ADD CONSTRAINT [FK_grn_detail_ingredient]
-FOREIGN KEY ([ingredient_id]) 
-REFERENCES [dbo].[ingredients]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
--- Purchase Returns constraints
-ALTER TABLE [dbo].[purchase_returns]
-ADD CONSTRAINT [FK_return_grn]
-FOREIGN KEY ([grn_id]) 
-REFERENCES [dbo].[goods_received_notes]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[purchase_returns]
-ADD CONSTRAINT [FK_return_invoice]
-FOREIGN KEY ([invoice_id]) 
-REFERENCES [dbo].[purchase_invoices]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[purchase_returns]
-ADD CONSTRAINT [FK_return_supplier]
-FOREIGN KEY ([supplier_id]) 
-REFERENCES [dbo].[suppliers]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[purchase_returns]
-ADD CONSTRAINT [FK_return_branch]
-FOREIGN KEY ([branch_id]) 
-REFERENCES [dbo].[branches]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[purchase_returns]
-ADD CONSTRAINT [FK_return_approved_by]
-FOREIGN KEY ([approved_by]) 
-REFERENCES [dbo].[employees]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
--- Purchase Return Details constraints
-ALTER TABLE [dbo].[purchase_return_details]
-ADD CONSTRAINT [FK_return_detail_return]
-FOREIGN KEY ([return_id]) 
-REFERENCES [dbo].[purchase_returns]([id])
-ON DELETE CASCADE
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[purchase_return_details]
-ADD CONSTRAINT [FK_return_detail_ingredient]
-FOREIGN KEY ([ingredient_id]) 
-REFERENCES [dbo].[ingredients]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
--- Supplier Performance constraints
-ALTER TABLE [dbo].[supplier_performance]
-ADD CONSTRAINT [FK_performance_supplier]
-FOREIGN KEY ([supplier_id]) 
-REFERENCES [dbo].[suppliers]([id])
-ON DELETE CASCADE
-ON UPDATE NO ACTION;
-GO
-
--- Level 4 table constraints
-ALTER TABLE [dbo].[customers]
-ADD CONSTRAINT [FK_customers_users]
-FOREIGN KEY ([id]) 
-REFERENCES [dbo].[users]([id])
-ON DELETE CASCADE
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[tokens]
-ADD CONSTRAINT [FK2dylsfo39lgjyqml2tbe0b0ss]
-FOREIGN KEY ([user_id]) 
-REFERENCES [dbo].[users]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[social_accounts]
-ADD CONSTRAINT [FK6rmxxiton5yuvu7ph2hcq2xn7]
-FOREIGN KEY ([user_id]) 
-REFERENCES [dbo].[users]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
--- Level 5 table constraints
-ALTER TABLE [dbo].[orders]
-ADD CONSTRAINT [FK_orders_customers]
-FOREIGN KEY ([customer_id]) 
-REFERENCES [dbo].[customers]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[orders]
-ADD CONSTRAINT [FK_orders_branches]
-FOREIGN KEY ([branch_id]) 
-REFERENCES [dbo].[branches]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[orders]
-ADD CONSTRAINT [FK_orders_order_status]
-FOREIGN KEY ([status_id]) 
-REFERENCES [dbo].[order_statuses]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
--- Level 6 table constraints
-ALTER TABLE [dbo].[order_details]
-ADD CONSTRAINT [FKjyu2qbqt8gnvno9oe9j2s2ldk]
-FOREIGN KEY ([order_id]) 
-REFERENCES [dbo].[orders]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[order_details]
-ADD CONSTRAINT [FK4q98utpd73imf4yhttm3w0eax]
-FOREIGN KEY ([product_id]) 
-REFERENCES [dbo].[products]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[order_payments]
-ADD CONSTRAINT [FK_order_payments_orders]
-FOREIGN KEY ([order_id]) 
-REFERENCES [dbo].[orders]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[order_payments]
-ADD CONSTRAINT [FK_order_payments_payment_methods]
-FOREIGN KEY ([payment_method_id]) 
-REFERENCES [dbo].[payment_methods]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[order_payments]
-ADD CONSTRAINT [FK_order_payments_payment_statuses]
-FOREIGN KEY ([payment_status_id]) 
-REFERENCES [dbo].[payment_statuses]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[order_shipments]
-ADD CONSTRAINT [FK_order_shipments_orders]
-FOREIGN KEY ([order_id]) 
-REFERENCES [dbo].[orders]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[order_shipments]
-ADD CONSTRAINT [FK_order_shipments_shipping_providers]
-FOREIGN KEY ([shipping_provider_id]) 
-REFERENCES [dbo].[shipping_providers]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[order_delivery_tracking]
-ADD CONSTRAINT [FK_tracking_orders]
-FOREIGN KEY ([order_id]) 
-REFERENCES [dbo].[orders]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[order_delivery_tracking]
-ADD CONSTRAINT [FK_tracking_status]
-FOREIGN KEY ([status_id]) 
-REFERENCES [dbo].[delivery_statuses]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[order_delivery_tracking]
-ADD CONSTRAINT [FK_tracking_employees]
-FOREIGN KEY ([delivery_person_id]) 
-REFERENCES [dbo].[employees]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[order_delivery_tracking]
-ADD CONSTRAINT [FK_tracking_providers]
-FOREIGN KEY ([shipping_provider_id]) 
-REFERENCES [dbo].[shipping_providers]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
--- Summary table constraints
-ALTER TABLE [dbo].[sales_summary]
-ADD CONSTRAINT [FK_sales_summary_branches]
-FOREIGN KEY ([branch_id]) 
-REFERENCES [dbo].[branches]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[expenses_summary]
-ADD CONSTRAINT [FK_expenses_summary_branches]
-FOREIGN KEY ([branch_id]) 
-REFERENCES [dbo].[branches]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[profit_summary]
-ADD CONSTRAINT [FK_profit_summary_branches]
-FOREIGN KEY ([branch_id]) 
-REFERENCES [dbo].[branches]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
--- View table constraints (these may be problematic as they reference tables, making them more like materialized views)
-ALTER TABLE [dbo].[v_sales_summary]
-ADD CONSTRAINT [FK_v_sales_summary_branches_branch_id]
-FOREIGN KEY ([branch_id]) 
-REFERENCES [dbo].[branches]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[v_employee_payroll]
-ADD CONSTRAINT [FK_v_employee_payroll_employees_employee_id]
-FOREIGN KEY ([employee_id]) 
-REFERENCES [dbo].[employees]([id])
-ON DELETE CASCADE
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[v_inventory_status]
-ADD CONSTRAINT [FK_v_inventory_status_ingredients_ingredient_id]
-FOREIGN KEY ([ingredient_id]) 
-REFERENCES [dbo].[ingredients]([id])
-ON DELETE CASCADE
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[v_inventory_status]
-ADD CONSTRAINT [FK_v_inventory_status_branches_branch_id]
-FOREIGN KEY ([branch_id]) 
-REFERENCES [dbo].[branches]([id])
-ON DELETE CASCADE
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[v_profit_summary]
-ADD CONSTRAINT [FK_v_profit_summary_branches_branch_id]
-FOREIGN KEY ([branch_id]) 
-REFERENCES [dbo].[branches]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[v_expenses_summary]
-ADD CONSTRAINT [FK_v_expenses_summary_branches_branch_id]
-FOREIGN KEY ([branch_id]) 
-REFERENCES [dbo].[branches]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-
-ALTER TABLE [dbo].[recipes]
-ADD CONSTRAINT [FK_recipes_products_ProductId]
-FOREIGN KEY ([ProductId]) 
-REFERENCES [dbo].[products]([id])
-ON DELETE CASCADE
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[recipe_ingredients]
-ADD CONSTRAINT [FK_recipe_ingredients_recipes_RecipeId]
-FOREIGN KEY ([RecipeId]) 
-REFERENCES [dbo].[recipes]([id])
-ON DELETE CASCADE
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[recipe_ingredients]
-ADD CONSTRAINT [FK_recipe_ingredients_ingredients_IngredientId]
-FOREIGN KEY ([IngredientId]) 
-REFERENCES [dbo].[ingredients]([id])
-ON DELETE NO ACTION
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[inventory_movements]
-ADD CONSTRAINT [FK_inventory_movements_branches_BranchId]
-FOREIGN KEY ([BranchId]) 
-REFERENCES [dbo].[branches]([id])
-ON DELETE CASCADE
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[inventory_movements]
-ADD CONSTRAINT [FK_inventory_movements_ingredients_IngredientId]
-FOREIGN KEY ([IngredientId]) 
-REFERENCES [dbo].[ingredients]([id])
-ON DELETE CASCADE
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[inventory_movements]
-ADD CONSTRAINT [FK_inventory_movements_employees_EmployeeId]
-FOREIGN KEY ([EmployeeId]) 
-REFERENCES [dbo].[employees]([id])
-ON DELETE SET NULL
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[inventory_thresholds]
-ADD CONSTRAINT [FK_inventory_thresholds_branches_BranchId]
-FOREIGN KEY ([BranchId]) 
-REFERENCES [dbo].[branches]([id])
-ON DELETE CASCADE
-ON UPDATE NO ACTION;
-GO
-
-ALTER TABLE [dbo].[inventory_thresholds]
-ADD CONSTRAINT [FK_inventory_thresholds_ingredients_IngredientId]
-FOREIGN KEY ([IngredientId]) 
-REFERENCES [dbo].[ingredients]([id])
-ON DELETE CASCADE
-ON UPDATE NO ACTION;
-GO
-
--- ====================================================================
--- ADDITIONAL TABLES FROM INIT_SCHEMA1
--- ====================================================================
-
-CREATE TABLE [dbo].[ingredient_transfer_requests] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[branch_id] bigint NOT NULL,
-[request_number] varchar(50) NOT NULL,
-[request_date] datetime2(7) NOT NULL,
-[required_date] datetime2(7) NOT NULL,
-[status] varchar(20) NOT NULL,
-[total_items] int NOT NULL,
-[approved_date] datetime2(7),
-[completed_date] datetime2(7),
-[note] nvarchar(500),
-[requested_by] nvarchar(100) NOT NULL,
-[approved_by] nvarchar(100),
-[created_at] datetime2(6) NOT NULL,
-[last_modified] datetime2(6) NOT NULL,
-PRIMARY KEY ([id])
+-- Sales Summary table
+CREATE TABLE [dbo].[sales_summary] (
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [branch_id] bigint NOT NULL,
+    [period_type] varchar(20) NOT NULL,
+    [period_value] nvarchar(50) COLLATE Vietnamese_CI_AS NOT NULL,
+    [total_orders] int DEFAULT 0,
+    [total_products] int DEFAULT 0,
+    [revenue_before_tax] decimal(18,2) DEFAULT 0,
+    [revenue_after_tax] decimal(18,2) DEFAULT 0,
+    [tax_amount] decimal(18,2) DEFAULT 0,
+    [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT [PK_sales_summary] PRIMARY KEY ([id]),
+    CONSTRAINT [FK_sales_summary_branches] FOREIGN KEY ([branch_id]) REFERENCES [dbo].[branches]([id])
 );
 GO
 
-CREATE TABLE [dbo].[ingredient_transfer_request_details] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[transfer_request_id] bigint NOT NULL,
-[ingredient_id] bigint NOT NULL,
-[requested_quantity] decimal(18,2) NOT NULL,
-[approved_quantity] decimal(18,2),
-[transferred_quantity] decimal(18,2) NOT NULL,
-[status] varchar(20) NOT NULL,
-[note] nvarchar(255),
-[created_at] datetime2(6) NOT NULL,
-[last_modified] datetime2(6) NOT NULL,
-PRIMARY KEY ([id])
+-- Expenses Summary table
+CREATE TABLE [dbo].[expenses_summary] (
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [branch_id] bigint NOT NULL,
+    [period_type] varchar(20) NOT NULL,
+    [period_value] nvarchar(50) COLLATE Vietnamese_CI_AS NOT NULL,
+    [total_purchase_orders] int DEFAULT 0,
+    [total_ingredients] int DEFAULT 0,
+    [expense_before_tax] decimal(18,2) DEFAULT 0,
+    [expense_after_tax] decimal(18,2) DEFAULT 0,
+    [tax_amount] decimal(18,2) DEFAULT 0,
+    [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT [PK_expenses_summary] PRIMARY KEY ([id]),
+    CONSTRAINT [FK_expenses_summary_branches] FOREIGN KEY ([branch_id]) REFERENCES [dbo].[branches]([id])
 );
 GO
 
-CREATE TABLE [dbo].[recipes] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[Name] nvarchar(255) NOT NULL,
-[Description] nvarchar(500),
-[ProductId] bigint NOT NULL,
-[ServingSize] decimal(18,2) NOT NULL,
-[Unit] nvarchar(50) NOT NULL,
-[IsActive] bit NOT NULL,
-[Notes] nvarchar(500),
-[created_at] datetime2(6) NOT NULL,
-[last_modified] datetime2(6) NOT NULL,
-PRIMARY KEY ([id])
-);
-GO
-
-CREATE TABLE [dbo].[recipe_ingredients] (
-[id] bigint NOT NULL IDENTITY(1,1),
-[RecipeId] bigint NOT NULL,
-[IngredientId] bigint NOT NULL,
-[Quantity] decimal(18,4) NOT NULL,
-[Unit] nvarchar(50) NOT NULL,
-[WastePercentage] decimal(18,4),
-[Notes] nvarchar(500),
-[IsOptional] bit NOT NULL,
-[SortOrder] int NOT NULL,
-[created_at] datetime2(6) NOT NULL,
-[last_modified] datetime2(6) NOT NULL,
-PRIMARY KEY ([id])
+-- Profit Summary table
+CREATE TABLE [dbo].[profit_summary] (
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [branch_id] bigint NOT NULL,
+    [period_type] varchar(20) NOT NULL,
+    [period_value] nvarchar(50) COLLATE Vietnamese_CI_AS NOT NULL,
+    [revenue_before_tax] decimal(18,2) DEFAULT 0,
+    [revenue_after_tax] decimal(18,2) DEFAULT 0,
+    [expense_before_tax] decimal(18,2) DEFAULT 0,
+    [expense_after_tax] decimal(18,2) DEFAULT 0,
+    [output_tax] decimal(18,2) DEFAULT 0,
+    [input_tax] decimal(18,2) DEFAULT 0,
+    [vat_to_pay] decimal(18,2) DEFAULT 0,
+    [profit_before_tax] decimal(18,2) DEFAULT 0,
+    [profit_after_tax] decimal(18,2) DEFAULT 0,
+    [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT [PK_profit_summary] PRIMARY KEY ([id]),
+    CONSTRAINT [FK_profit_summary_branches] FOREIGN KEY ([branch_id]) REFERENCES [dbo].[branches]([id])
 );
 GO
 
 -- ====================================================================
--- VIEWS FROM INIT_SCHEMA1
+-- CREATE TABLES - PURCHASE MANAGEMENT TABLES
 -- ====================================================================
 
-CREATE TABLE [dbo].[v_employee_payroll] (
-[employee_id] bigint NOT NULL,
-[full_name] nvarchar(100) NOT NULL,
-[branch_name] nvarchar(255) NOT NULL,
-[position_name] nvarchar(100),
-[base_salary] decimal(18,2),
-[salary_type] varchar(20),
-[total_allowances] decimal(18,2) NOT NULL,
-[total_bonus] decimal(18,2) NOT NULL,
-[total_deductions] decimal(18,2) NOT NULL,
-[gross_salary] decimal(18,2) NOT NULL,
-[effective_date] date,
-[end_date] date
+-- Purchase Invoices table
+CREATE TABLE [dbo].[purchase_invoices] (
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [invoice_code] nvarchar(100) COLLATE Vietnamese_CI_AS NOT NULL UNIQUE,
+    [purchase_order_id] bigint NOT NULL,
+    [supplier_id] bigint NOT NULL,
+    [branch_id] bigint,
+    [invoice_date] datetime2(6) NOT NULL,
+    [due_date] datetime2(6),
+    [status_id] bigint NOT NULL,
+    [total_amount_before_tax] decimal(18,2),
+    [total_tax_amount] decimal(18,2),
+    [total_amount_after_tax] decimal(18,2),
+    [paid_amount] decimal(18,2) DEFAULT 0,
+    [remaining_amount] decimal(18,2),
+    [discount_amount] decimal(18,2) DEFAULT 0,
+    [payment_method] nvarchar(50) COLLATE Vietnamese_CI_AS,
+    [note] nvarchar(1000) COLLATE Vietnamese_CI_AS,
+    [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT [PK_purchase_invoices] PRIMARY KEY ([id]),
+    CONSTRAINT [FK_purchase_invoices_orders] FOREIGN KEY ([purchase_order_id]) REFERENCES [dbo].[ingredient_purchase_orders]([id]),
+    CONSTRAINT [FK_purchase_invoices_suppliers] FOREIGN KEY ([supplier_id]) REFERENCES [dbo].[suppliers]([id]),
+    CONSTRAINT [FK_purchase_invoices_branches] FOREIGN KEY ([branch_id]) REFERENCES [dbo].[branches]([id]),
+    CONSTRAINT [FK_purchase_invoices_statuses] FOREIGN KEY ([status_id]) REFERENCES [dbo].[invoice_statuses]([id])
 );
 GO
 
-CREATE TABLE [dbo].[v_inventory_status] (
-[ingredient_id] bigint NOT NULL,
-[ingredient_name] nvarchar(255) NOT NULL,
-[location_id] bigint NOT NULL,
-[location_name] nvarchar(100) NOT NULL,
-[branch_id] bigint NOT NULL,
-[branch_name] nvarchar(255) NOT NULL,
-[quantity_on_hand] decimal(18,2) NOT NULL,
-[quantity_reserved] decimal(18,2) NOT NULL,
-[available_quantity] decimal(18,2) NOT NULL,
-[minimum_stock] decimal(18,2),
-[stock_status] varchar(20) NOT NULL,
-[unit_of_measure] nvarchar(50) NOT NULL,
-[last_updated] datetime2(6) NOT NULL
+-- Purchase Invoice Details table
+CREATE TABLE [dbo].[purchase_invoice_details] (
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [invoice_id] bigint NOT NULL,
+    [ingredient_id] bigint NOT NULL,
+    [quantity] decimal(10,3) NOT NULL,
+    [unit_price] decimal(18,2) NOT NULL,
+    [amount_before_tax] decimal(18,2) NOT NULL,
+    [tax_rate] decimal(5,2) DEFAULT 0,
+    [tax_amount] decimal(18,2) DEFAULT 0,
+    [amount_after_tax] decimal(18,2) NOT NULL,
+    [discount_rate] decimal(5,2) DEFAULT 0,
+    [discount_amount] decimal(18,2) DEFAULT 0,
+    [final_amount] decimal(18,2) NOT NULL,
+    [expiry_date] date,
+    [batch_number] nvarchar(100),
+    [note] nvarchar(1000) COLLATE Vietnamese_CI_AS,
+    [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT [PK_purchase_invoice_details] PRIMARY KEY ([id]),
+    CONSTRAINT [FK_purchase_invoice_details_invoices] FOREIGN KEY ([invoice_id]) REFERENCES [dbo].[purchase_invoices]([id]),
+    CONSTRAINT [FK_purchase_invoice_details_ingredients] FOREIGN KEY ([ingredient_id]) REFERENCES [dbo].[ingredients]([id])
 );
 GO
 
-CREATE TABLE [dbo].[v_expenses_summary] (
-[branch_id] bigint,
-[year] int NOT NULL,
-[month] int NOT NULL,
-[period] varchar(7) NOT NULL,
-[total_purchase_orders] int NOT NULL,
-[total_ingredients] decimal(18,2) NOT NULL,
-[expense_before_tax] decimal(18,2) NOT NULL,
-[expense_after_tax] decimal(18,2) NOT NULL,
-[tax_amount] decimal(18,2) NOT NULL
+-- Goods Received Notes table
+CREATE TABLE [dbo].[goods_received_notes] (
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [grn_code] nvarchar(100) COLLATE Vietnamese_CI_AS NOT NULL UNIQUE,
+    [purchase_order_id] bigint NOT NULL,
+    [invoice_id] bigint,
+    [supplier_id] bigint NOT NULL,
+    [branch_id] bigint,
+    [warehouse_staff_id] bigint,
+    [received_date] datetime2(6) NOT NULL,
+    [status_id] bigint NOT NULL,
+    [total_quantity_ordered] decimal(10,3),
+    [total_quantity_received] decimal(10,3),
+    [total_quantity_rejected] decimal(10,3) DEFAULT 0,
+    [delivery_note_number] nvarchar(100),
+    [vehicle_number] nvarchar(50),
+    [driver_name] nvarchar(255) COLLATE Vietnamese_CI_AS,
+    [note] nvarchar(1000) COLLATE Vietnamese_CI_AS,
+    [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT [PK_goods_received_notes] PRIMARY KEY ([id]),
+    CONSTRAINT [FK_goods_received_notes_orders] FOREIGN KEY ([purchase_order_id]) REFERENCES [dbo].[ingredient_purchase_orders]([id]),
+    CONSTRAINT [FK_goods_received_notes_invoices] FOREIGN KEY ([invoice_id]) REFERENCES [dbo].[purchase_invoices]([id]),
+    CONSTRAINT [FK_goods_received_notes_suppliers] FOREIGN KEY ([supplier_id]) REFERENCES [dbo].[suppliers]([id]),
+    CONSTRAINT [FK_goods_received_notes_branches] FOREIGN KEY ([branch_id]) REFERENCES [dbo].[branches]([id]),
+    CONSTRAINT [FK_goods_received_notes_employees] FOREIGN KEY ([warehouse_staff_id]) REFERENCES [dbo].[employees]([id]),
+    CONSTRAINT [FK_goods_received_notes_statuses] FOREIGN KEY ([status_id]) REFERENCES [dbo].[goods_received_statuses]([id])
 );
 GO
 
-CREATE TABLE [dbo].[v_profit_summary] (
-[branch_id] bigint,
-[year] int NOT NULL,
-[month] int NOT NULL,
-[period] varchar(7) NOT NULL,
-[revenue_before_tax] decimal(18,2) NOT NULL,
-[revenue_after_tax] decimal(18,2) NOT NULL,
-[expense_before_tax] decimal(18,2) NOT NULL,
-[expense_after_tax] decimal(18,2) NOT NULL,
-[output_tax] decimal(18,2) NOT NULL,
-[input_tax] decimal(18,2) NOT NULL,
-[vat_to_pay] decimal(18,2) NOT NULL,
-[profit_before_tax] decimal(18,2) NOT NULL,
-[profit_after_tax] decimal(18,2) NOT NULL
+-- Goods Received Details table
+CREATE TABLE [dbo].[goods_received_details] (
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [grn_id] bigint NOT NULL,
+    [ingredient_id] bigint NOT NULL,
+    [ordered_quantity] decimal(10,3) NOT NULL,
+    [received_quantity] decimal(10,3) NOT NULL,
+    [rejected_quantity] decimal(10,3) DEFAULT 0,
+    [quality_status] varchar(50) DEFAULT 'PENDING',
+    [rejection_reason] nvarchar(500) COLLATE Vietnamese_CI_AS,
+    [unit_price] decimal(18,2),
+    [expiry_date] date,
+    [batch_number] nvarchar(100),
+    [storage_location] nvarchar(100),
+    [note] nvarchar(1000) COLLATE Vietnamese_CI_AS,
+    [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT [PK_goods_received_details] PRIMARY KEY ([id]),
+    CONSTRAINT [FK_goods_received_details_grn] FOREIGN KEY ([grn_id]) REFERENCES [dbo].[goods_received_notes]([id]),
+    CONSTRAINT [FK_goods_received_details_ingredients] FOREIGN KEY ([ingredient_id]) REFERENCES [dbo].[ingredients]([id])
 );
 GO
 
-CREATE TABLE [dbo].[v_sales_summary] (
-[branch_id] bigint,
-[year] int NOT NULL,
-[month] int NOT NULL,
-[period] varchar(7) NOT NULL,
-[total_orders] int NOT NULL,
-[total_products] int NOT NULL,
-[revenue_before_tax] decimal(18,2) NOT NULL,
-[revenue_after_tax] decimal(18,2) NOT NULL,
-[tax_amount] decimal(18,2) NOT NULL
+-- Purchase Returns table
+CREATE TABLE [dbo].[purchase_returns] (
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [return_code] nvarchar(100) COLLATE Vietnamese_CI_AS NOT NULL UNIQUE,
+    [grn_id] bigint,
+    [invoice_id] bigint,
+    [supplier_id] bigint NOT NULL,
+    [branch_id] bigint,
+    [return_date] datetime2(6) NOT NULL,
+    [return_reason] nvarchar(500) COLLATE Vietnamese_CI_AS NOT NULL,
+    [status_id] bigint NOT NULL,
+    [total_return_amount] decimal(18,2),
+    [refund_amount] decimal(18,2) DEFAULT 0,
+    [credit_note_number] nvarchar(100),
+    [approved_by] bigint,
+    [approval_date] datetime2(6),
+    [note] nvarchar(1000) COLLATE Vietnamese_CI_AS,
+    [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT [PK_purchase_returns] PRIMARY KEY ([id]),
+    CONSTRAINT [FK_purchase_returns_grn] FOREIGN KEY ([grn_id]) REFERENCES [dbo].[goods_received_notes]([id]),
+    CONSTRAINT [FK_purchase_returns_invoices] FOREIGN KEY ([invoice_id]) REFERENCES [dbo].[purchase_invoices]([id]),
+    CONSTRAINT [FK_purchase_returns_suppliers] FOREIGN KEY ([supplier_id]) REFERENCES [dbo].[suppliers]([id]),
+    CONSTRAINT [FK_purchase_returns_branches] FOREIGN KEY ([branch_id]) REFERENCES [dbo].[branches]([id]),
+    CONSTRAINT [FK_purchase_returns_statuses] FOREIGN KEY ([status_id]) REFERENCES [dbo].[purchase_order_statuses]([id]),
+    CONSTRAINT [FK_purchase_returns_employees] FOREIGN KEY ([approved_by]) REFERENCES [dbo].[employees]([id])
+);
+GO
+
+-- Purchase Return Details table
+CREATE TABLE [dbo].[purchase_return_details] (
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [return_id] bigint NOT NULL,
+    [ingredient_id] bigint NOT NULL,
+    [return_quantity] decimal(10,3) NOT NULL,
+    [unit_price] decimal(18,2),
+    [return_amount] decimal(18,2),
+    [return_reason] nvarchar(500) COLLATE Vietnamese_CI_AS,
+    [batch_number] nvarchar(100),
+    [expiry_date] date,
+    [quality_issue] nvarchar(500) COLLATE Vietnamese_CI_AS,
+    [note] nvarchar(1000) COLLATE Vietnamese_CI_AS,
+    [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT [PK_purchase_return_details] PRIMARY KEY ([id]),
+    CONSTRAINT [FK_purchase_return_details_returns] FOREIGN KEY ([return_id]) REFERENCES [dbo].[purchase_returns]([id]),
+    CONSTRAINT [FK_purchase_return_details_ingredients] FOREIGN KEY ([ingredient_id]) REFERENCES [dbo].[ingredients]([id])
+);
+GO
+
+-- Supplier Performance table
+CREATE TABLE [dbo].[supplier_performance] (
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [supplier_id] bigint NOT NULL,
+    [evaluation_period] varchar(20) NOT NULL,
+    [period_value] nvarchar(50) COLLATE Vietnamese_CI_AS NOT NULL,
+    [total_orders] int DEFAULT 0,
+    [total_amount] decimal(18,2) DEFAULT 0,
+    [on_time_deliveries] int DEFAULT 0,
+    [late_deliveries] int DEFAULT 0,
+    [quality_score] decimal(3,1) DEFAULT 0,
+    [service_score] decimal(3,1) DEFAULT 0,
+    [overall_rating] decimal(3,1) DEFAULT 0,
+    [total_returns] int DEFAULT 0,
+    [return_value] decimal(18,2) DEFAULT 0,
+    [comments] nvarchar(1000) COLLATE Vietnamese_CI_AS,
+    [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT [PK_supplier_performance] PRIMARY KEY ([id]),
+    CONSTRAINT [FK_supplier_performance_suppliers] FOREIGN KEY ([supplier_id]) REFERENCES [dbo].[suppliers]([id])
 );
 GO
 
 -- ====================================================================
--- FOREIGN KEY CONSTRAINTS FOR NEW TABLES
+-- CREATE VIEWS
 -- ====================================================================
 
-ALTER TABLE [dbo].[ingredient_transfer_requests]
-ADD CONSTRAINT [FK_ingredient_transfer_requests_branches_BranchId]
-FOREIGN KEY ([branch_id]) 
-REFERENCES [dbo].[branches]([id])
-ON DELETE CASCADE
-ON UPDATE NO ACTION;
+-- Sales Summary View
+CREATE VIEW [dbo].[v_sales_summary] AS
+SELECT 
+    [branch_id],
+    YEAR([created_at]) as [year],
+    MONTH([created_at]) as [month],
+    [period_value] as [period],
+    [total_orders],
+    [total_products],
+    [revenue_before_tax],
+    [revenue_after_tax],
+    [tax_amount]
+FROM [dbo].[sales_summary]
+WHERE [period_type] = 'MONTH';
 GO
 
-ALTER TABLE [dbo].[ingredient_transfer_request_details]
-ADD CONSTRAINT [FK_ingredient_transfer_request_details_requests_TransferRequestId]
-FOREIGN KEY ([transfer_request_id]) 
-REFERENCES [dbo].[ingredient_transfer_requests]([id])
-ON DELETE CASCADE
-ON UPDATE NO ACTION;
+-- Employee Payroll View
+CREATE VIEW [dbo].[v_employee_payroll] AS
+SELECT 
+    e.[id] as [employee_id],
+    e.[full_name],
+    b.[name] as [branch_name],
+    e.[position] as [position_name],
+    s.[base_salary],
+    s.[salary_type],
+    s.[allowance] as [total_allowances],
+    s.[bonus] as [total_bonus],
+    s.[penalty] as [total_deductions],
+    (s.[base_salary] + s.[allowance] + s.[bonus] - s.[penalty]) as [gross_salary],
+    s.[effective_date],
+    NULL as [end_date]
+FROM [dbo].[employees] e
+INNER JOIN [dbo].[branches] b ON e.[branch_id] = b.[id]
+LEFT JOIN [dbo].[employee_salaries] s ON e.[id] = s.[employee_id];
 GO
 
-ALTER TABLE [dbo].[ingredient_transfer_request_details]
-ADD CONSTRAINT [FK_ingredient_transfer_request_details_ingredients_IngredientId]
-FOREIGN KEY ([ingredient_id]) 
-REFERENCES [dbo].[ingredients]([id])
-ON DELETE CASCADE
-ON UPDATE NO ACTION;
+-- Inventory Status View
+CREATE VIEW [dbo].[v_inventory_status] AS
+SELECT 
+    i.[id] as [ingredient_id],
+    i.[name] as [ingredient_name],
+    COALESCE(bi.[branch_id], wh.[id]) as [location_id],
+    CASE 
+        WHEN bi.[branch_id] IS NOT NULL THEN CONCAT('Chi nhánh ', b.[name])
+        ELSE 'Kho chính'
+    END as [location_name],
+    bi.[branch_id],
+    b.[name] as [branch_name],
+    COALESCE(bi.[quantity], wh.[quantity], 0) as [quantity_on_hand],
+    0 as [quantity_reserved],
+    COALESCE(bi.[quantity], wh.[quantity], 0) as [available_quantity],
+    COALESCE(t.[safety_stock], 0) as [safety_stock],
+    CASE 
+        WHEN COALESCE(bi.[quantity], wh.[quantity], 0) <= COALESCE(t.[safety_stock], 0) THEN 'LOW_STOCK'
+        WHEN COALESCE(bi.[quantity], wh.[quantity], 0) = 0 THEN 'OUT_OF_STOCK'
+        ELSE 'IN_STOCK'
+    END as [stock_status],
+    i.[unit] as [unit_of_measure],
+    COALESCE(bi.[last_modified], wh.[last_modified]) as [last_updated]
+FROM [dbo].[ingredients] i
+LEFT JOIN [dbo].[branch_ingredient_inventory] bi ON i.[id] = bi.[ingredient_id]
+LEFT JOIN [dbo].[ingredient_warehouse] wh ON i.[id] = wh.[ingredient_id] AND bi.[ingredient_id] IS NULL
+LEFT JOIN [dbo].[branches] b ON bi.[branch_id] = b.[id]
+LEFT JOIN [dbo].[inventory_thresholds] t ON i.[id] = t.[ingredient_id] AND (t.[branch_id] = bi.[branch_id] OR t.[branch_id] IS NULL);
 GO
 
-ALTER TABLE [dbo].[recipes]
-ADD CONSTRAINT [FK_recipes_products_ProductId]
-FOREIGN KEY ([ProductId]) 
-REFERENCES [dbo].[products]([id])
-ON DELETE CASCADE
-ON UPDATE NO ACTION;
+-- Profit Summary View
+CREATE VIEW [dbo].[v_profit_summary] AS
+SELECT 
+    [branch_id],
+    YEAR([created_at]) as [year],
+    MONTH([created_at]) as [month],
+    [period_value] as [period],
+    [revenue_before_tax],
+    [revenue_after_tax],
+    [expense_before_tax],
+    [expense_after_tax],
+    [output_tax],
+    [input_tax],
+    [vat_to_pay],
+    [profit_before_tax],
+    [profit_after_tax]
+FROM [dbo].[profit_summary]
+WHERE [period_type] = 'MONTH';
 GO
 
-ALTER TABLE [dbo].[recipe_ingredients]
-ADD CONSTRAINT [FK_recipe_ingredients_recipes_RecipeId]
-FOREIGN KEY ([RecipeId]) 
-REFERENCES [dbo].[recipes]([id])
-ON DELETE CASCADE
-ON UPDATE NO ACTION;
+-- Expenses Summary View
+CREATE VIEW [dbo].[v_expenses_summary] AS
+SELECT 
+    [branch_id],
+    YEAR([created_at]) as [year],
+    MONTH([created_at]) as [month],
+    [period_value] as [period],
+    [total_purchase_orders],
+    [total_ingredients],
+    [expense_before_tax],
+    [expense_after_tax],
+    [tax_amount]
+FROM [dbo].[expenses_summary]
+WHERE [period_type] = 'MONTH';
 GO
 
-ALTER TABLE [dbo].[recipe_ingredients]
-ADD CONSTRAINT [FK_recipe_ingredients_ingredients_IngredientId]
-FOREIGN KEY ([IngredientId]) 
-REFERENCES [dbo].[ingredients]([id])
-ON DELETE CASCADE
-ON UPDATE NO ACTION;
-GO
+-- ====================================================================
+-- CREATE INDEXES FOR PERFORMANCE
+-- ====================================================================
 
-PRINT 'Database schema created successfully.';
-PRINT 'Added missing tables and updated Unicode support.';
+-- Index for frequently queried columns
+CREATE INDEX IX_orders_branch_id ON [dbo].[orders]([branch_id]);
+CREATE INDEX IX_orders_customer_id ON [dbo].[orders]([customer_id]);
+CREATE INDEX IX_orders_created_at ON [dbo].[orders]([created_at]);
+CREATE INDEX IX_ingredient_purchase_orders_supplier_id ON [dbo].[ingredient_purchase_orders]([supplier_id]);
+CREATE INDEX IX_ingredient_purchase_orders_branch_id ON [dbo].[ingredient_purchase_orders]([branch_id]);
+CREATE INDEX IX_ingredient_purchase_orders_order_date ON [dbo].[ingredient_purchase_orders]([order_date]);
+CREATE INDEX IX_users_phone_number ON [dbo].[users]([phone_number]);
+CREATE INDEX IX_users_fullname ON [dbo].[users]([fullname]);
+CREATE INDEX IX_employees_branch_id ON [dbo].[employees]([branch_id]);
+CREATE INDEX IX_products_category_id ON [dbo].[products]([category_id]);
+CREATE INDEX IX_ingredients_category_id ON [dbo].[ingredients]([category_id]);
+
+PRINT N'Database schema created successfully with Unicode support!';
+GO

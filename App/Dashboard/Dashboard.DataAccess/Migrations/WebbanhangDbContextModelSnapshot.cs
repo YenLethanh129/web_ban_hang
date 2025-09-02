@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Dashboard.DataAccess.Data.Migrations
+namespace Dashboard.DataAccess.Migrations
 {
     [DbContext(typeof(WebbanhangDbContext))]
     partial class WebbanhangDbContextModelSnapshot : ModelSnapshot
@@ -171,10 +171,6 @@ namespace Dashboard.DataAccess.Data.Migrations
                         .HasColumnType("nvarchar(100)")
                         .HasColumnName("location");
 
-                    b.Property<decimal>("MinimumStock")
-                        .HasColumnType("decimal(18, 2)")
-                        .HasColumnName("minimum_stock");
-
                     b.Property<decimal>("Quantity")
                         .HasColumnType("decimal(18, 2)")
                         .HasColumnName("quantity");
@@ -182,6 +178,10 @@ namespace Dashboard.DataAccess.Data.Migrations
                     b.Property<decimal>("ReservedQuantity")
                         .HasColumnType("decimal(18, 2)")
                         .HasColumnName("reserved_quantity");
+
+                    b.Property<decimal>("SafetyStock")
+                        .HasColumnType("decimal(18, 2)")
+                        .HasColumnName("safety_stock");
 
                     b.HasKey("Id")
                         .HasName("PK__branch_i__3213E83FCC79BFE6");
@@ -1325,13 +1325,13 @@ namespace Dashboard.DataAccess.Data.Migrations
                         .HasColumnType("decimal(18, 2)")
                         .HasColumnName("maximum_stock");
 
-                    b.Property<decimal>("MinimumStock")
-                        .HasColumnType("decimal(18, 2)")
-                        .HasColumnName("minimum_stock");
-
                     b.Property<decimal>("Quantity")
                         .HasColumnType("decimal(18, 2)")
                         .HasColumnName("quantity");
+
+                    b.Property<decimal>("SafetyStock")
+                        .HasColumnType("decimal(18, 2)")
+                        .HasColumnName("safety_stock");
 
                     b.HasKey("Id")
                         .HasName("PK__ingredie__3213E83FA666C6E1");
@@ -1463,10 +1463,10 @@ namespace Dashboard.DataAccess.Data.Migrations
                     b.Property<decimal>("MinimumStock")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<decimal>("MinimumThreshold")
+                    b.Property<decimal>("ReorderPoint")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<decimal>("ReorderPoint")
+                    b.Property<decimal>("SafetyStock")
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
@@ -3525,10 +3525,6 @@ namespace Dashboard.DataAccess.Data.Migrations
                         .HasColumnType("varchar(100)")
                         .HasColumnName("location_name");
 
-                    b.Property<decimal?>("MinimumStock")
-                        .HasColumnType("decimal(18, 2)")
-                        .HasColumnName("minimum_stock");
-
                     b.Property<decimal>("QuantityOnHand")
                         .HasColumnType("decimal(18, 2)")
                         .HasColumnName("quantity_on_hand");
@@ -3536,6 +3532,10 @@ namespace Dashboard.DataAccess.Data.Migrations
                     b.Property<decimal>("QuantityReserved")
                         .HasColumnType("decimal(18, 2)")
                         .HasColumnName("quantity_reserved");
+
+                    b.Property<decimal?>("SafetyStock")
+                        .HasColumnType("decimal(18, 2)")
+                        .HasColumnName("safety_stock");
 
                     b.Property<string>("StockStatus")
                         .IsRequired()

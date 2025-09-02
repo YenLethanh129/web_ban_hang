@@ -33,25 +33,17 @@ namespace Dashboard.StockWorker.Services
             {
                 foreach (var alert in group)
                 {
-                    try
+                    switch (alert.AlertLevel)
                     {
-                        switch (alert.AlertLevel)
-                        {
-                            case StockAlertLevel.Low:
-                                await SendLowStockEmailAsync(alert);
-                                break;
-                            case StockAlertLevel.Critical:
-                                await SendCriticalStockEmailAsync(alert);
-                                break;
-                            case StockAlertLevel.OutOfStock:
-                                await SendOutOfStockEmailAsync(alert);
-                                break;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Failed to send alert for {IngredientName} in {BranchName}", 
-                            alert.IngredientName, alert.BranchName);
+                        case StockAlertLevel.Low:
+                            await SendLowStockEmailAsync(alert);
+                            break;
+                        case StockAlertLevel.Critical:
+                            await SendCriticalStockEmailAsync(alert);
+                            break;
+                        case StockAlertLevel.OutOfStock:
+                            await SendOutOfStockEmailAsync(alert);
+                            break;
                     }
                 }
             }
@@ -152,7 +144,7 @@ namespace Dashboard.StockWorker.Services
             </div>
             <div class='detail-row'>
                 <span class='label'>Tồn kho tối thiểu:</span>
-                <span class='value'>{alert.MinimumStock:N2} {alert.Unit}</span>
+                <span class='value'>{alert.SafetyStock:N2} {alert.Unit}</span>
             </div>
             <div class='detail-row'>
                 <span class='label'>Tiêu thụ trung bình/ngày:</span>
@@ -194,51 +186,43 @@ namespace Dashboard.StockWorker.Services
 
         private async Task SendEmailAsync(string subject, string htmlBody)
         {
-            try
+            var smtpHost = _configuration["Email:SmtpHost"];
+            var smtpPort = _configuration.GetValue<int>("Email:SmtpPort");
+            var username = _configuration["Email:Username"];
+            var password = _configuration["Email:Password"];
+            var fromEmail = _configuration["Email:FromEmail"];
+            var fromName = _configuration["Email:FromName"];
+            var toEmails = _configuration.GetSection("Email:AlertRecipients").Get<string[]>();
+
+            if (string.IsNullOrEmpty(smtpHost) || toEmails == null || !toEmails.Any())
             {
-                var smtpHost = _configuration["Email:SmtpHost"];
-                var smtpPort = _configuration.GetValue<int>("Email:SmtpPort");
-                var username = _configuration["Email:Username"];
-                var password = _configuration["Email:Password"];
-                var fromEmail = _configuration["Email:FromEmail"];
-                var fromName = _configuration["Email:FromName"];
-                var toEmails = _configuration.GetSection("Email:AlertRecipients").Get<string[]>();
-
-                if (string.IsNullOrEmpty(smtpHost) || toEmails == null || !toEmails.Any())
-                {
-                    _logger.LogWarning("Email configuration is missing or incomplete");
-                    return;
-                }
-
-                var message = new MimeMessage();
-                message.From.Add(new MailboxAddress(fromName ?? "Stock Alert System", fromEmail));
-                
-                foreach (var email in toEmails)
-                {
-                    message.To.Add(MailboxAddress.Parse(email));
-                }
-                
-                message.Subject = subject;
-                message.Body = new TextPart("html") { Text = htmlBody };
-
-                using var client = new SmtpClient();
-                await client.ConnectAsync(smtpHost, smtpPort, SecureSocketOptions.StartTls);
-                
-                if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
-                {
-                    await client.AuthenticateAsync(username, password);
-                }
-                
-                await client.SendAsync(message);
-                await client.DisconnectAsync(true);
-
-                _logger.LogInformation("Email sent successfully: {Subject}", subject);
+                _logger.LogWarning("Email configuration is missing or incomplete");
+                return;
             }
-            catch (Exception ex)
+
+            var message = new MimeMessage();
+            message.From.Add(new MailboxAddress(fromName ?? "Stock Alert System", fromEmail));
+            
+            foreach (var email in toEmails)
             {
-                _logger.LogError(ex, "Failed to send email: {Subject}", subject);
-                throw;
+                message.To.Add(MailboxAddress.Parse(email));
             }
+            
+            message.Subject = subject;
+            message.Body = new TextPart("html") { Text = htmlBody };
+
+            using var client = new SmtpClient();
+            await client.ConnectAsync(smtpHost, smtpPort, SecureSocketOptions.StartTls);
+            
+            if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
+            {
+                await client.AuthenticateAsync(username, password);
+            }
+            
+            await client.SendAsync(message);
+            await client.DisconnectAsync(true);
+
+            _logger.LogInformation("Email sent successfully: {Subject}", subject);
         }
     }
 }

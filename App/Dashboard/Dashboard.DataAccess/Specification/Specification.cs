@@ -6,6 +6,7 @@ public interface ISpecification<T>
 {
     Expression<Func<T, bool>>? Where { get; }
     List<Expression<Func<T, object>>> Includes { get; }
+    List<string> IncludeStrings { get; }
 }
 
 public class Specification<T> : ISpecification<T>
@@ -20,6 +21,7 @@ public class Specification<T> : ISpecification<T>
     }
 
     public Expression<Func<T, bool>>? Where { get; }
+    public List<string> IncludeStrings { get; } = [];
     public List<Expression<Func<T, object>>> Includes { get; } = [];
     protected void AddIncludes(Expression<Func<T, object>> include)
     {

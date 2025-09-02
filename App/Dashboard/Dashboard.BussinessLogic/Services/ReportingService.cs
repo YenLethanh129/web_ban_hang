@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Dashboard.BussinessLogic.Dtos;
 using Dashboard.BussinessLogic.Dtos.IngredientDtos;
+using Dashboard.BussinessLogic.Dtos.OrderDtos;
 using Dashboard.BussinessLogic.Dtos.ReportDtos;
 using Dashboard.Common.Enums;
 using Dashboard.DataAccess.Data;
@@ -23,252 +24,150 @@ public class ReportingService : IReportingService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IIngredientRepository _ingredientRepository;
+    private readonly IExpenseRepository _expenseRepository;
     private readonly IOrderService _orderService;
+    private readonly IOrderRepository _orderRepository;
     private readonly IMapper _mapper;
 
     public ReportingService(
         IUnitOfWork unitOfWork,
         IIngredientRepository ingredientRepository,
+        IExpenseRepository expenseRepository,
         IOrderService orderService,
+        IOrderRepository orderRepository,
         IMapper mapper)
     {
         _unitOfWork = unitOfWork;
         _ingredientRepository = ingredientRepository;
-        _orderService = orderService;
+        _expenseRepository = expenseRepository;
+        _orderService = orderService;   
+        _orderRepository = orderRepository;
         _mapper = mapper;
     }
 
     public async Task<DashboardSummaryDto> GetDashboardSummaryAsync()
     {
-        try
+        var reportPeriods = GetReportingPeriods();
+        
+        var summaryData = await GetDashboardDataAsync(reportPeriods);
+        var branchPerformance = await CalculateBranchPerformanceAsync(reportPeriods.StartOfMonth, reportPeriods.Today);
+
+        return new DashboardSummaryDto
         {
-            var today = DateTime.Today;
-            var startOfMonth = new DateTime(today.Year, today.Month, 1);
-            var startOfYear = new DateTime(today.Year, 1, 1);
-
-            var todayOrderSummary = await _orderService.GetOrderSummaryAsync(today, today);
-            var monthlyOrderSummary = await _orderService.GetOrderSummaryAsync(startOfMonth, today);
-            var yearlyOrderSummary = await _orderService.GetOrderSummaryAsync(startOfYear, today);
-            var understockIngredients = await _ingredientRepository.GetLowStockWarehouseIngredientsAsync();
-
-            var todayExpenses = await GetExpensesForPeriodAsync(today, today);
-            var monthlyExpenses = await GetExpensesForPeriodAsync(startOfMonth, today);
-            var yearlyExpenses = await GetExpensesForPeriodAsync(startOfYear, today);
-
-            var topProducts = await GetTopSellingProductsAsync(startOfMonth, today);
-
-            var branchPerformance = await _orderService.GetBranchOrderSummaryAsync(startOfMonth, today);
-
-            var understockIngredientsDto = _mapper.Map<List<LowStockIngredientDto>>(understockIngredients);
-
-            return new DashboardSummaryDto
-            {
-                TodayRevenue = todayOrderSummary.TotalRevenue,
-                MonthlyRevenue = monthlyOrderSummary.TotalRevenue,
-                YearlyRevenue = yearlyOrderSummary.TotalRevenue,
-                TodayProfit = todayOrderSummary.TotalRevenue - todayExpenses,
-                MonthlyProfit = monthlyOrderSummary.TotalRevenue - monthlyExpenses,
-                YearlyProfit = yearlyOrderSummary.TotalRevenue - yearlyExpenses,
-                TodayExpenses = todayExpenses,
-                MonthlyExpenses = monthlyExpenses,
-                YearlyExpenses = yearlyExpenses,
-                TotalOrders = yearlyOrderSummary.TotalOrders,
-                PendingOrders = yearlyOrderSummary.PendingOrders,
-                TopProducts = topProducts,
-                UnderstockIngredients = understockIngredientsDto,
-                BranchPerformance = [.. branchPerformance.Select(bp => new BranchPerformanceDto
-                {
-                    BranchId = bp.BranchId,
-                    BranchName = bp.BranchName,
-                    Revenue = bp.TotalRevenue,
-                    Profit = bp.TotalRevenue - GetExpensesForBranchInPeriodAsync(bp.BranchId, startOfMonth, today).Result,
-                    OrderCount = bp.TotalOrders
-                })]
-            };
-        }
-        catch (Exception ex)
-        {
-            throw new Exception("Error generating dashboard summary", ex);
-        }
+            TodayRevenue = summaryData.TodayOrderSummary.TotalRevenue,
+            MonthlyRevenue = summaryData.MonthlyOrderSummary.TotalRevenue,
+            YearlyRevenue = summaryData.YearlyOrderSummary.TotalRevenue,
+            TodayProfit = CalculateProfit(summaryData.TodayOrderSummary.TotalRevenue, summaryData.TodayExpenses),
+            MonthlyProfit = CalculateProfit(summaryData.MonthlyOrderSummary.TotalRevenue, summaryData.MonthlyExpenses),
+            YearlyProfit = CalculateProfit(summaryData.YearlyOrderSummary.TotalRevenue, summaryData.YearlyExpenses),
+            TodayExpenses = summaryData.TodayExpenses,  
+            MonthlyExpenses = summaryData.MonthlyExpenses,
+            YearlyExpenses = summaryData.YearlyExpenses,
+            TotalOrders = summaryData.YearlyOrderSummary.TotalOrders,
+            PendingOrders = summaryData.YearlyOrderSummary.PendingOrders,
+            TopProducts = summaryData.TopProducts,
+            UnderstockIngredients = summaryData.UnderstockIngredientsDto,
+            BranchPerformance = branchPerformance
+        };
     }
 
     public async Task<PagedList<RevenueReportDto>> GetRevenueReportAsync(GetRevenueReportInput input)
     {
-        try
-        {
-            var fromDate = input.FromDate ?? DateTime.Today.AddDays(-30);
-            var toDate = input.ToDate ?? DateTime.Today;
+        var (fromDate, toDate) = ValidateAndNormalizeDates(input.FromDate, input.ToDate);
+        
+        var orderSpecification = CreateOrderSpecification(fromDate, toDate, input.BranchId);
+        var orders = await _orderRepository.GetAllWithSpecAsync(orderSpecification, true);
+        
+        var expenses = await GetExpensesInPeriodAsync(fromDate, toDate, input.BranchId);
+        var revenueData = GroupOrdersByPeriodWithExpenses(orders, expenses, input.Period, fromDate, toDate);
 
-            var orderSpecification = new Specification<Order>(o =>
-                o.CreatedAt.Date >= fromDate.Date &&
-                o.CreatedAt.Date <= toDate.Date &&
-                o.Status!.Id == (long)OrderStatusEnum.Delivered &&
-                o.BranchId == input.BranchId
-            );
-            orderSpecification.Includes.Add(o => o.Branch!);
-
-            var orders = await _unitOfWork.Repository<Order>().GetAllWithSpecAsync(orderSpecification, true);
-
-            var expenses = await GetExpensesInPeriodAsync(fromDate, toDate, input.BranchId);
-
-            var revenueData = GroupOrdersByPeriodWithExpenses(orders, expenses, input.Period, fromDate, toDate);
-
-            var totalCount = revenueData.Count();
-            var pagedData = revenueData
-                .Skip((input.PageNumber - 1) * input.PageSize)
-                .Take(input.PageSize)
-                .ToList();
-
-            return new PagedList<RevenueReportDto>
-            {
-                Items = pagedData,
-                TotalRecords = totalCount,
-                PageNumber = input.PageNumber,
-                PageSize = input.PageSize
-            };
-        }
-        catch (Exception ex)
-        {
-            throw new Exception("Error generating revenue report", ex);
-        }
+        return CreatePagedResult(revenueData, input.PageNumber, input.PageSize);
     }
 
     public async Task<ProfitAnalysisDto> GetProfitAnalysisAsync(DateTime fromDate, DateTime toDate, long? branchId = null)
     {
-        try
-        {
-            var orderSummary = await _orderService.GetOrderSummaryAsync(fromDate, toDate, branchId);
-            var grossProfit = orderSummary.TotalRevenue;
+        var orderSummary = await _orderService.GetOrderSummaryAsync(fromDate, toDate, branchId);
+        var grossProfit = orderSummary.TotalRevenue;
 
-            var expenses = await GetExpensesInPeriodAsync(fromDate, toDate, branchId);
-            var operatingExpenses = expenses.Sum(e => e.Amount);
+        var expenses = await GetExpensesInPeriodAsync(fromDate, toDate, branchId);
+        var operatingExpenses = expenses.Sum(e => e.Amount);
 
-            var netProfit = grossProfit - operatingExpenses;
-            var profitMargin = grossProfit > 0 ? (netProfit / grossProfit) * 100 : 0;
+        var netProfit = grossProfit - operatingExpenses;
+        var profitMargin = grossProfit > 0 ? (netProfit / grossProfit) * 100 : 0;
 
-            var expenseBreakdown = expenses
-                .GroupBy(e => e.ExpenseType)
-                .Select(g => new ExpenseBredownDto
-                {
-                    Category = g.Key,
-                    Amount = g.Sum(e => e.Amount),
-                    Percentage = operatingExpenses > 0 ? (g.Sum(e => e.Amount) / operatingExpenses) * 100 : 0
-                })
-                .OrderByDescending(e => e.Amount)
-                .ToList();
-
-            return new ProfitAnalysisDto
+        var expenseBreakdown = expenses
+            .GroupBy(e => e.ExpenseType)
+            .Select(g => new ExpenseBredownDto
             {
-                GrossProfit = grossProfit,
-                OperatingExpenses = operatingExpenses,
-                NetProfit = netProfit,
-                ProfitMargin = profitMargin,
-                PeriodStart = fromDate,
-                PeriodEnd = toDate,
-                ExpenseBreakdown = expenseBreakdown
-            };
-        }
-        catch (Exception ex)
+                Category = g.Key,
+                Amount = g.Sum(e => e.Amount),
+                Percentage = operatingExpenses > 0 ? (g.Sum(e => e.Amount) / operatingExpenses) * 100 : 0
+            })
+            .OrderByDescending(e => e.Amount)
+            .ToList();
+
+        return new ProfitAnalysisDto
         {
-            throw new Exception("Error generating profit analysis", ex);
-        }
+            GrossProfit = grossProfit,
+            OperatingExpenses = operatingExpenses,
+            NetProfit = netProfit,
+            ProfitMargin = profitMargin,
+            PeriodStart = fromDate,
+            PeriodEnd = toDate,
+            ExpenseBreakdown = expenseBreakdown
+        };
     }
 
     public async Task<List<RevenueReportDto>> GetRevenueComparisonAsync(DateTime fromDate, DateTime toDate, ReportPeriodEnum period)
     {
-        try
+        var input = new GetRevenueReportInput
         {
-            var input = new GetRevenueReportInput
-            {
-                FromDate = fromDate,
-                ToDate = toDate,
-                Period = period,
-                PageSize = int.MaxValue,
-                PageNumber = 1
-            };
+            FromDate = fromDate,
+            ToDate = toDate,
+            Period = period,
+            PageSize = int.MaxValue,
+            PageNumber = 1
+        };
 
-            var result = await GetRevenueReportAsync(input);
-            return result.Items.ToList();
-        }
-        catch (Exception ex)
-        {
-            throw new Exception("Error generating revenue comparison", ex);
-        }
+        var result = await GetRevenueReportAsync(input);
+        return result.Items.ToList();
     }
 
     private async Task<decimal> GetExpensesForPeriodAsync(DateTime fromDate, DateTime toDate, long? branchId = null)
     {
-        try
-        {
-            var expenses = await GetExpensesInPeriodAsync(fromDate, toDate, branchId);
-            return expenses.Sum(e => e.Amount);
-        }
-        catch
-        {
-            return 0;
-        }
+        var expenses = await GetExpensesInPeriodAsync(fromDate, toDate, branchId);
+        return expenses.Sum(e => e.Amount);
     }
 
     private async Task<decimal> GetExpensesForBranchInPeriodAsync(long branchId, DateTime fromDate, DateTime toDate)
     {
-        try
-        {
-            var expenses = await GetExpensesInPeriodAsync(fromDate, toDate, branchId);
-            return expenses.Sum(e => e.Amount);
-        }
-        catch
-        {
-            return 0;
-        }
+        var expenses = await GetExpensesInPeriodAsync(fromDate, toDate, branchId);
+        return expenses.Sum(e => e.Amount);
     }
 
     private async Task<IEnumerable<BranchExpense>> GetExpensesInPeriodAsync(DateTime fromDate, DateTime toDate, long? branchId = null)
     {
-        var fromDateOnly = DateOnly.FromDateTime(fromDate);
-        var toDateOnly = DateOnly.FromDateTime(toDate);
-
-        var specification = new Specification<BranchExpense>(e =>
-            (e.StartDate <= toDateOnly && (e.EndDate ?? e.StartDate) >= fromDateOnly) &&
-            (!branchId.HasValue || e.BranchId == branchId.Value)
-        );
-
-        return await _unitOfWork.Repository<BranchExpense>().GetAllWithSpecAsync(specification, true);
+        return await _expenseRepository.GetExpensesInPeriodAsync(fromDate, toDate, branchId);
     }
 
     private async Task<List<TopSellingProductDto>> GetTopSellingProductsAsync(DateTime fromDate, DateTime toDate, int limit = 5)
     {
-        try
-        {
-            var orderSpecification = new Specification<Order>(o =>
-                o.CreatedAt >= fromDate &&
-                o.CreatedAt <= toDate &&
-                o.Status!.Id == (long)OrderStatusEnum.Delivered
-            );
-            orderSpecification.Includes.Add(o => o.OrderDetails!);
-            orderSpecification.Includes.Add(o => o.OrderDetails!.Select(od => od.Product!));
+        var orderSpecification = CreateTopProductsOrderSpecification(fromDate, toDate);
+        var orders = await _orderRepository.GetAllWithSpecAsync(orderSpecification, true);
 
-            var orders = await _unitOfWork.Repository<Order>().GetAllWithSpecAsync(orderSpecification, true);
-
-            var topProducts = orders
-                .SelectMany(o => o.OrderDetails!)
-                .GroupBy(od => new { od.ProductId, od.Product!.Name })
-                .Select(g => new TopSellingProductDto
-                {
-                    ProductId = g.Key.ProductId,
-                    ProductName = g.Key.Name,
-                    QuantitySold = g.Sum(od => od.Quantity),
-                    Revenue = g.Sum(od => (od.UnitPrice) * (od.Quantity))
-                })
-                .OrderByDescending(p => p.QuantitySold)
-                .Take(limit)
-                .ToList();
-
-            return topProducts;
-        }
-        catch
-        {
-            return new List<TopSellingProductDto>();
-        }
+        return orders
+            .SelectMany(o => o.OrderDetails!)
+            .GroupBy(od => new { od.ProductId, od.Product!.Name })
+            .Select(g => new TopSellingProductDto
+            {
+                ProductId = g.Key.ProductId,
+                ProductName = g.Key.Name,
+                QuantitySold = g.Sum(od => od.Quantity),
+                Revenue = g.Sum(od => (od.UnitPrice) * (od.Quantity))
+            })
+            .OrderByDescending(p => p.QuantitySold)
+            .Take(limit)
+            .ToList();
     }
 
     private static List<RevenueReportDto> GroupOrdersByPeriodWithExpenses(
@@ -294,38 +193,20 @@ public class ReportingService : IReportingService
         DateTime fromDate,
         DateTime toDate)
     {
-        var result = new List<RevenueReportDto>();
-
         var orderGroups = orders
             .Where(o => o.CreatedAt.Date >= fromDate.Date && o.CreatedAt.Date <= toDate.Date)
             .GroupBy(o => new { o.BranchId, BranchName = o.Branch!.Name });
 
-        foreach (var branchGroup in orderGroups)
+        return orderGroups.Select(branchGroup =>
         {
-            var startDateOnly = DateOnly.FromDateTime(fromDate);
-            var endDateOnly = DateOnly.FromDateTime(toDate);
-            var branchExpenses = expenses
-                .Where(e => e.BranchId == branchGroup.Key.BranchId
-                            && e.StartDate >= startDateOnly
-                            && e.EndDate <= endDateOnly);
-
-            var totalExpense = branchExpenses.Sum(e => e.Amount);
-
+            var branchExpenses = expenses.Where(e => e.BranchId == branchGroup.Key.BranchId);
+            var totalExpense = ExpenseCalculationHelper.CalculatePeriodExpenseAllocation(branchExpenses, fromDate, toDate);
             var totalRevenue = branchGroup.Sum(o => o.TotalMoney ?? 0);
 
-            result.Add(new RevenueReportDto
-            {
-                TotalRevenue = totalRevenue,
-                TotalExpenses = totalExpense,
-                TotalProfit = totalRevenue,
-                NetProfit = totalRevenue - totalExpense,
-                ReportDate = fromDate,
-                BranchId = branchGroup.Key.BranchId,
-                BranchName = branchGroup.Key.BranchName
-            });
-        }
-
-        return result.OrderByDescending(r => r.ReportDate).ToList();
+            return CreateRevenueReportDto(totalRevenue, totalExpense, fromDate, branchGroup.Key.BranchId, branchGroup.Key.BranchName);
+        })
+        .OrderByDescending(r => r.ReportDate)
+        .ToList();
     }
 
 
@@ -344,20 +225,10 @@ public class ReportingService : IReportingService
             foreach (var branchGroup in dailyOrders)
             {
                 var branchExpenses = expenses.Where(e => e.BranchId == branchGroup.Key.BranchId);
-                var dailyExpense = CalculateDailyExpenseAllocation(branchExpenses, date);
-
+                var dailyExpense = ExpenseCalculationHelper.CalculateDailyExpenseAllocation(branchExpenses, date);
                 var totalRevenue = branchGroup.Sum(o => o.TotalMoney ?? 0);
 
-                result.Add(new RevenueReportDto
-                {
-                    TotalRevenue = totalRevenue,
-                    TotalExpenses = dailyExpense,
-                    TotalProfit = totalRevenue,
-                    NetProfit = totalRevenue - dailyExpense,
-                    ReportDate = date,
-                    BranchId = branchGroup.Key.BranchId,
-                    BranchName = branchGroup.Key.BranchName
-                });
+                result.Add(CreateRevenueReportDto(totalRevenue, dailyExpense, date, branchGroup.Key.BranchId, branchGroup.Key.BranchName));
             }
         }
 
@@ -377,28 +248,18 @@ public class ReportingService : IReportingService
             })
             .ToList();
 
-        return [.. orderGroups.Select(g =>
+        return orderGroups.Select(g =>
         {
             var weekStart = GetDateFromWeek(g.Key.Year, g.Key.Week);
             var weekEnd = weekStart.AddDays(6);
-
             var branchExpenses = expenses.Where(e => e.BranchId == g.Key.BranchId);
-            var weeklyExpense = CalculateWeeklyExpenseAllocation(branchExpenses, weekStart, weekEnd);
-
+            var weeklyExpense = ExpenseCalculationHelper.CalculateWeeklyExpenseAllocation(branchExpenses, weekStart, weekEnd);
             var totalRevenue = g.Sum(o => o.TotalMoney ?? 0);
 
-            return new RevenueReportDto
-            {
-                TotalRevenue = totalRevenue,
-                TotalExpenses = weeklyExpense,
-                TotalProfit = totalRevenue,
-                NetProfit = totalRevenue - weeklyExpense,
-                ReportDate = weekStart,
-                BranchId = g.Key.BranchId,
-                BranchName = g.Key.BranchName
-            };
+            return CreateRevenueReportDto(totalRevenue, weeklyExpense, weekStart, g.Key.BranchId, g.Key.BranchName);
         })
-        .OrderByDescending(r => r.ReportDate)];
+        .OrderByDescending(r => r.ReportDate)
+        .ToList();
     }
 
     private static List<RevenueReportDto> GroupByMonthlyWithExpenses(
@@ -414,28 +275,18 @@ public class ReportingService : IReportingService
             })
             .ToList();
 
-        return [.. orderGroups.Select(g =>
+        return orderGroups.Select(g =>
         {
             var monthStart = new DateTime(g.Key.Year, g.Key.Month, 1);
             var monthEnd = monthStart.AddMonths(1).AddDays(-1);
-
             var branchExpenses = expenses.Where(e => e.BranchId == g.Key.BranchId);
-            var monthlyExpense = CalculateMonthlyExpenseAllocation(branchExpenses, monthStart, monthEnd);
-
+            var monthlyExpense = ExpenseCalculationHelper.CalculatePeriodExpenseAllocation(branchExpenses, monthStart, monthEnd);
             var totalRevenue = g.Sum(o => o.TotalMoney ?? 0);
 
-            return new RevenueReportDto
-            {
-                TotalRevenue = totalRevenue,
-                TotalExpenses = monthlyExpense,
-                TotalProfit = totalRevenue,
-                NetProfit = totalRevenue - monthlyExpense,
-                ReportDate = monthStart,
-                BranchId = g.Key.BranchId,
-                BranchName = g.Key.BranchName
-            };
+            return CreateRevenueReportDto(totalRevenue, monthlyExpense, monthStart, g.Key.BranchId, g.Key.BranchName);
         })
-        .OrderByDescending(r => r.ReportDate)];
+        .OrderByDescending(r => r.ReportDate)
+        .ToList();
     }
 
     private static List<RevenueReportDto> GroupByYearlyWithExpenses(
@@ -450,92 +301,18 @@ public class ReportingService : IReportingService
             })
             .ToList();
 
-        return [.. orderGroups.Select(g =>
+        return orderGroups.Select(g =>
         {
             var yearStart = new DateTime(g.Key.Year, 1, 1);
             var yearEnd = new DateTime(g.Key.Year, 12, 31);
-
             var branchExpenses = expenses.Where(e => e.BranchId == g.Key.BranchId);
-            var yearlyExpense = CalculateYearlyExpenseAllocation(branchExpenses, yearStart, yearEnd);
-
+            var yearlyExpense = ExpenseCalculationHelper.CalculatePeriodExpenseAllocation(branchExpenses, yearStart, yearEnd);
             var totalRevenue = g.Sum(o => o.TotalMoney ?? 0);
 
-            return new RevenueReportDto
-            {
-                TotalRevenue = totalRevenue,
-                TotalExpenses = yearlyExpense,
-                TotalProfit = totalRevenue,
-                NetProfit = totalRevenue - yearlyExpense,
-                ReportDate = yearStart,
-                BranchId = g.Key.BranchId,
-                BranchName = g.Key.BranchName
-            };
+            return CreateRevenueReportDto(totalRevenue, yearlyExpense, yearStart, g.Key.BranchId, g.Key.BranchName);
         })
-        .OrderByDescending(r => r.ReportDate)];
-    }
-
-    private static decimal CalculateDailyExpenseAllocation(IEnumerable<BranchExpense> expenses, DateTime targetDate)
-    {
-        var targetDateOnly = DateOnly.FromDateTime(targetDate);
-        return expenses
-            .Where(e =>
-                targetDateOnly >= e.StartDate &&
-                targetDateOnly <= (e.EndDate ?? e.StartDate)
-            )
-            .Sum(e =>
-            {
-                var endDate = e.EndDate ?? e.StartDate;
-                var totalDays = (endDate.DayNumber - e.StartDate.DayNumber) + 1;
-                return e.Amount / totalDays;
-            });
-    }
-
-    private static decimal CalculateWeeklyExpenseAllocation(IEnumerable<BranchExpense> expenses, DateTime weekStart, DateTime weekEnd)
-    {
-        decimal totalExpense = 0;
-
-        for (var date = weekStart; date <= weekEnd; date = date.AddDays(1))
-        {
-            totalExpense += CalculateDailyExpenseAllocation(expenses, date);
-        }
-
-        return totalExpense;
-    }
-
-    private static decimal CalculateMonthlyExpenseAllocation(IEnumerable<BranchExpense> expenses, DateTime monthStart, DateTime monthEnd)
-    {
-        var monthStartDateOnly = DateOnly.FromDateTime(monthStart);
-        var monthEndDateOnly = DateOnly.FromDateTime(monthEnd);
-
-        return expenses
-            .Where(e => !(e.EndDate < monthStartDateOnly || e.StartDate > monthEndDateOnly))
-            .Sum(e =>
-            {
-                var expenseStart = e.StartDate > monthStartDateOnly ? e.StartDate : monthStartDateOnly;
-                var expenseEnd = (e.EndDate.HasValue ? (e.EndDate.Value < monthEndDateOnly ? e.EndDate.Value : monthEndDateOnly) : monthEndDateOnly);
-                var overlapDays = (expenseEnd.DayNumber - expenseStart.DayNumber) + 1;
-                var totalExpenseDays = ((e.EndDate ?? e.StartDate).DayNumber - e.StartDate.DayNumber) + 1;
-
-                return (e.Amount * overlapDays) / totalExpenseDays;
-            });
-    }
-
-    private static decimal CalculateYearlyExpenseAllocation(IEnumerable<BranchExpense> expenses, DateTime yearStart, DateTime yearEnd)
-    {
-        var yearStartDateOnly = DateOnly.FromDateTime(yearStart);
-        var yearEndDateOnly = DateOnly.FromDateTime(yearEnd);
-
-        return expenses
-            .Where(e => !(e.EndDate < yearStartDateOnly || e.StartDate > yearEndDateOnly))
-            .Sum(e =>
-            {
-                var expenseStart = e.StartDate > yearStartDateOnly ? e.StartDate : yearStartDateOnly;
-                var expenseEnd = (e.EndDate.HasValue ? (e.EndDate.Value < yearEndDateOnly ? e.EndDate.Value : yearEndDateOnly) : yearEndDateOnly);
-                var overlapDays = (expenseEnd.DayNumber - expenseStart.DayNumber) + 1;
-                var totalExpenseDays = ((e.EndDate ?? e.StartDate).DayNumber - e.StartDate.DayNumber) + 1;
-
-                return (e.Amount * overlapDays) / totalExpenseDays;
-            });
+        .OrderByDescending(r => r.ReportDate)
+        .ToList();
     }
 
     private static int GetWeekOfYear(DateTime date)
@@ -546,5 +323,216 @@ public class ReportingService : IReportingService
     private static DateTime GetDateFromWeek(int year, int week)
     {
         return ISOWeek.ToDateTime(year, week, DayOfWeek.Monday);
+    }
+
+    private static ReportingPeriods GetReportingPeriods()
+    {
+        var today = DateTime.Today;
+        return new ReportingPeriods
+        {
+            Today = today,
+            StartOfMonth = new DateTime(today.Year, today.Month, 1),
+            StartOfYear = new DateTime(today.Year, 1, 1)
+        };
+    }
+
+    private async Task<DashboardSummaryData> GetDashboardDataAsync(ReportingPeriods periods)
+    {
+        //var todayOrderSummaryTask = _orderService.GetOrderSummaryAsync(periods.Today, periods.Today);
+        //var monthlyOrderSummaryTask = _orderService.GetOrderSummaryAsync(periods.StartOfMonth, periods.Today);
+        //var yearlyOrderSummaryTask = _orderService.GetOrderSummaryAsync(periods.StartOfYear, periods.Today);
+        //var understockIngredientsTask = _ingredientRepository.GetLowStockWarehouseIngredientsAsync();
+        //var todayExpensesTask = GetExpensesForPeriodAsync(periods.Today, periods.Today);
+        //var monthlyExpensesTask = GetExpensesForPeriodAsync(periods.StartOfMonth, periods.Today);
+        //var yearlyExpensesTask = GetExpensesForPeriodAsync(periods.StartOfYear, periods.Today);
+        //var topProductsTask = GetTopSellingProductsAsync(periods.StartOfMonth, periods.Today);
+
+        //await Task.WhenAll(
+        //    todayOrderSummaryTask, monthlyOrderSummaryTask, yearlyOrderSummaryTask,
+        //    understockIngredientsTask, todayExpensesTask, monthlyExpensesTask,
+        //    yearlyExpensesTask, topProductsTask);
+
+        var todayOrderSummaryTask = await _orderService.GetOrderSummaryAsync(periods.Today, periods.Today);
+        var monthlyOrderSummaryTask = await _orderService.GetOrderSummaryAsync(periods.StartOfMonth, periods.Today);
+        var yearlyOrderSummaryTask = await _orderService.GetOrderSummaryAsync(periods.StartOfYear, periods.Today);
+        var understockIngredientsTask = await _ingredientRepository.GetLowStockWarehouseIngredientsAsync();
+        var todayExpensesTask = await GetExpensesForPeriodAsync(periods.Today, periods.Today);
+        var monthlyExpensesTask = await GetExpensesForPeriodAsync(periods.StartOfMonth, periods.Today);
+        var yearlyExpensesTask = await GetExpensesForPeriodAsync(periods.StartOfYear, periods.Today);
+        var topProductsTask = await GetTopSellingProductsAsync(periods.StartOfMonth, periods.Today);
+
+        var understockIngredientsDto = _mapper.Map<List<LowStockIngredientDto>>(understockIngredientsTask);
+
+        return new DashboardSummaryData
+        {
+            TodayOrderSummary = todayOrderSummaryTask,
+            MonthlyOrderSummary = monthlyOrderSummaryTask,
+            YearlyOrderSummary = yearlyOrderSummaryTask,
+            TodayExpenses = todayExpensesTask,
+            MonthlyExpenses = monthlyExpensesTask,
+            YearlyExpenses = yearlyExpensesTask,
+            TopProducts = topProductsTask,
+            UnderstockIngredientsDto = understockIngredientsDto
+        };
+    }
+
+    private async Task<List<BranchPerformanceDto>> CalculateBranchPerformanceAsync(DateTime startOfMonth, DateTime today)
+    {
+        var branchPerformance = await _orderService.GetBranchOrderSummaryAsync(startOfMonth, today);
+        var result = new List<BranchPerformanceDto>();
+
+        foreach (var bp in branchPerformance)
+        {
+            var branchExpenses = await GetExpensesForBranchInPeriodAsync(bp.BranchId, startOfMonth, today);
+            result.Add(new BranchPerformanceDto
+            {
+                BranchId = bp.BranchId,
+                BranchName = bp.BranchName,
+                Revenue = bp.TotalRevenue,
+                Profit = bp.TotalRevenue - branchExpenses,
+                OrderCount = bp.TotalOrders
+            });
+        }
+
+        return result;
+    }
+
+    private static decimal CalculateProfit(decimal revenue, decimal expenses)
+    {
+        return revenue - expenses;
+    }
+
+    private static (DateTime fromDate, DateTime toDate) ValidateAndNormalizeDates(DateTime? fromDate, DateTime? toDate)
+    {
+        var normalizedFromDate = fromDate ?? DateTime.Today.AddDays(-30);
+        var normalizedToDate = toDate ?? DateTime.Today;
+        return (normalizedFromDate, normalizedToDate);
+    }
+
+    private static PagedList<RevenueReportDto> CreatePagedResult(List<RevenueReportDto> data, int pageNumber, int pageSize)
+    {
+        var totalCount = data.Count;
+        var pagedData = data
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+
+        return new PagedList<RevenueReportDto>
+        {
+            Items = pagedData,
+            TotalRecords = totalCount,
+            PageNumber = pageNumber,
+            PageSize = pageSize
+        };
+    }
+
+    private static RevenueReportDto CreateRevenueReportDto(decimal totalRevenue, decimal totalExpense, DateTime reportDate, long? branchId, string branchName)
+    {
+        return new RevenueReportDto
+        {
+            TotalRevenue = totalRevenue,
+            TotalExpenses = totalExpense,
+            TotalProfit = totalRevenue,
+            NetProfit = totalRevenue - totalExpense,
+            ReportDate = reportDate,
+            BranchId = branchId,
+            BranchName = branchName
+        };
+    }
+
+    private Specification<Order> CreateOrderSpecification(DateTime fromDate, DateTime toDate, long? branchId = null)
+    {
+        var spec = new Specification<Order>(o =>
+            o.CreatedAt.Date >= fromDate.Date &&
+            o.CreatedAt.Date <= toDate.Date &&
+            o.Status!.Id == (long)OrderStatusEnum.Delivered);
+
+        if (branchId.HasValue)
+        {
+            spec = new Specification<Order>(o =>
+                o.CreatedAt.Date >= fromDate.Date &&
+                o.CreatedAt.Date <= toDate.Date &&
+                o.Status!.Id == (long)OrderStatusEnum.Delivered &&
+                o.BranchId == branchId.Value);
+        }
+
+        spec.Includes.Add(o => o.Branch!);
+        return spec;
+    }
+
+    private Specification<Order> CreateTopProductsOrderSpecification(DateTime fromDate, DateTime toDate)
+    {
+        var spec = new Specification<Order>(o =>
+            o.CreatedAt >= fromDate &&
+            o.CreatedAt <= toDate &&
+            o.Status!.Id == (long)OrderStatusEnum.Delivered);
+
+        spec.Includes.Add(o => o.OrderDetails!);
+        spec.IncludeStrings.Add("OrderDetails.Product");
+        return spec;
+    }
+}
+
+// Helper classes for better organization
+internal class ReportingPeriods
+{
+    public DateTime Today { get; set; }
+    public DateTime StartOfMonth { get; set; }
+    public DateTime StartOfYear { get; set; }
+}
+
+internal class DashboardSummaryData
+{
+    public OrderSummaryDto TodayOrderSummary { get; set; } = null!;
+    public OrderSummaryDto MonthlyOrderSummary { get; set; } = null!;
+    public OrderSummaryDto YearlyOrderSummary { get; set; } = null!;
+    public decimal TodayExpenses { get; set; }
+    public decimal MonthlyExpenses { get; set; }
+    public decimal YearlyExpenses { get; set; }
+    public List<TopSellingProductDto> TopProducts { get; set; } = null!;
+    public List<LowStockIngredientDto> UnderstockIngredientsDto { get; set; } = null!;
+}
+
+internal static class ExpenseCalculationHelper
+{
+    public static decimal CalculateDailyExpenseAllocation(IEnumerable<BranchExpense> expenses, DateTime targetDate)
+    {
+        var targetDateOnly = DateOnly.FromDateTime(targetDate);
+        return expenses
+            .Where(e => targetDateOnly >= e.StartDate && targetDateOnly <= (e.EndDate ?? e.StartDate))
+            .Sum(e => CalculateProportionalExpense(e, 1));
+    }
+
+    public static decimal CalculateWeeklyExpenseAllocation(IEnumerable<BranchExpense> expenses, DateTime weekStart, DateTime weekEnd)
+    {
+        decimal totalExpense = 0;
+        for (var date = weekStart; date <= weekEnd; date = date.AddDays(1))
+        {
+            totalExpense += CalculateDailyExpenseAllocation(expenses, date);
+        }
+        return totalExpense;
+    }
+
+    public static decimal CalculatePeriodExpenseAllocation(IEnumerable<BranchExpense> expenses, DateTime periodStart, DateTime periodEnd)
+    {
+        var periodStartDateOnly = DateOnly.FromDateTime(periodStart);
+        var periodEndDateOnly = DateOnly.FromDateTime(periodEnd);
+
+        return expenses
+            .Where(e => !(e.EndDate < periodStartDateOnly || e.StartDate > periodEndDateOnly))
+            .Sum(e =>
+            {
+                var expenseStart = e.StartDate > periodStartDateOnly ? e.StartDate : periodStartDateOnly;
+                var expenseEnd = (e.EndDate.HasValue ? (e.EndDate.Value < periodEndDateOnly ? e.EndDate.Value : periodEndDateOnly) : periodEndDateOnly);
+                var overlapDays = (expenseEnd.DayNumber - expenseStart.DayNumber) + 1;
+                
+                return CalculateProportionalExpense(e, overlapDays);
+            });
+    }
+
+    private static decimal CalculateProportionalExpense(BranchExpense expense, int days)
+    {
+        var totalExpenseDays = ((expense.EndDate ?? expense.StartDate).DayNumber - expense.StartDate.DayNumber) + 1;
+        return (expense.Amount * days) / totalExpenseDays;
     }
 }

@@ -8,24 +8,30 @@ namespace Dashboard.DataAccess.Models.Entities
     {
         [Required]
         [StringLength(255)]
+        [Column("name")]
         public string Name { get; set; } = string.Empty;
 
         [StringLength(500)]
+        [Column("description")]
         public string? Description { get; set; }
 
         [Required]
+        [Column("product_id")]
         public long ProductId { get; set; }
 
         [Required]
-        [Column(TypeName = "decimal(18,2)")]
+        [Column("serving_size", TypeName = "decimal(18,2)")]
         public decimal ServingSize { get; set; } = 1;
 
         [StringLength(50)]
+        [Column("unit")]
         public string Unit { get; set; } = "portion";
 
+        [Column("is_active")]
         public bool IsActive { get; set; } = true;
 
         [StringLength(500)]
+        [Column("notes")]
         public string? Notes { get; set; }
 
         public virtual Product Product { get; set; } = null!;

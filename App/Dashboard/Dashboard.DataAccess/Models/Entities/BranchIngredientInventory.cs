@@ -22,8 +22,8 @@ public partial class BranchIngredientInventory : BaseAuditableEntity
     [Column("reserved_quantity", TypeName = "decimal(18, 2)")]
     public decimal ReservedQuantity { get; set; } = 0;
 
-    [Column("minimum_stock", TypeName = "decimal(18, 2)")]
-    public decimal MinimumStock { get; set; }
+    [Column("safety_stock", TypeName = "decimal(18, 2)")]
+    public decimal SafetyStock { get; set; }
 
     [Column("last_transfer_date")]
     public DateTime? LastTransferDate { get; set; }

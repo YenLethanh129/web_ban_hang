@@ -72,9 +72,9 @@ SELECT
     ii.quantity_on_hand,
     ii.quantity_reserved,
     (ii.quantity_on_hand - ii.quantity_reserved) as available_quantity,
-    i.minimum_stock,
+    i.safety_stock,
     CASE 
-        WHEN (ii.quantity_on_hand - ii.quantity_reserved) <= i.minimum_stock THEN 'LOW_STOCK'
+        WHEN (ii.quantity_on_hand - ii.quantity_reserved) <= i.safety_stock THEN 'LOW_STOCK'
         WHEN (ii.quantity_on_hand - ii.quantity_reserved) = 0 THEN 'OUT_OF_STOCK'
         ELSE 'IN_STOCK'
     END as stock_status,

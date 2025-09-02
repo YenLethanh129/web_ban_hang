@@ -38,16 +38,16 @@ services:
         condition: service_healthy
     command: >
       bash -c '
-      envsubst < /init-sql/init_db.sql > /tmp/init_db_parsed.sql &&
-      /opt/mssql-tools18/bin/sqlcmd -C -S webbanhang-db -U sa -P "$${SA_PASSWORD}" -d master -i /tmp/init_db_parsed.sql &&
-      envsubst < /init-sql/init_schema.sql > /tmp/init_schema_parsed.sql &&
-      /opt/mssql-tools18/bin/sqlcmd -C -S webbanhang-db -U sa -P "$${SA_PASSWORD}" -d ${DB_NAME} -i /tmp/init_schema_parsed.sql &&
       envsubst < /init-sql/init_seed_data.sql > /tmp/init_seed_data_parsed.sql &&
-      /opt/mssql-tools18/bin/sqlcmd -C -S webbanhang-db -U sa -P "$${SA_PASSWORD}" -d master -i /tmp/init_seed_data_parsed.sql &&
+      /opt/mssql-tools18/bin/sqlcmd -C -S webbanhang-db -U sa -P "$${SA_PASSWORD}" -d ${DB_NAME} -i /tmp/init_seed_data_parsed.sql &&
       rm -f /tmp/*_parsed.sql && echo "All done!"'
     networks:
       - app-network
+      # envsubst < /init-sql/init_db.sql > /tmp/init_db_parsed.sql &&
+      # /opt/mssql-tools18/bin/sqlcmd -C -S webbanhang-db -U sa -P "$${SA_PASSWORD}" -d master -i /tmp/init_db_parsed.sql &&
 
+      # envsubst < /init-sql/init_schema.sql > /tmp/init_schema_parsed.sql &&
+      # /opt/mssql-tools18/bin/sqlcmd -C -S webbanhang-db -U sa -P "$${SA_PASSWORD}" -d ${DB_NAME} -i /tmp/init_schema_parsed.sql &&
   backend:
     build:
       context: ./App/backend

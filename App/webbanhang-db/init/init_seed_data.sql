@@ -238,30 +238,30 @@ INSERT INTO [dbo].[employee_shifts] ([employee_id], [shift_date], [start_time], 
 GO
 
 -- Insert into branch_ingredient_inventory
-INSERT INTO [dbo].[branch_ingredient_inventory] ([branch_id], [ingredient_id], [quantity], [created_at], [last_modified]) VALUES
-(1, 1, 50, GETDATE(), GETDATE()),
-(1, 2, 30, GETDATE(), GETDATE()),
-(1, 3, 100, GETDATE(), GETDATE()),
-(2, 1, 40, GETDATE(), GETDATE()),
-(3, 4, 80, GETDATE(), GETDATE());
+INSERT INTO [dbo].[branch_ingredient_inventory] ([branch_id], [ingredient_id], [quantity], [reserved_quantity], [safety_stock], [created_at], [last_modified]) VALUES
+(1, 1, 50, 5, 20, GETDATE(), GETDATE()),
+(1, 2, 30, 3, 15, GETDATE(), GETDATE()),
+(1, 3, 100, 10, 50, GETDATE(), GETDATE()),
+(2, 1, 40, 4, 20, GETDATE(), GETDATE()),
+(3, 4, 80, 8, 30, GETDATE(), GETDATE());
 GO
 
 -- Insert into ingredient_warehouse
-INSERT INTO [dbo].[ingredient_warehouse] ([ingredient_id], [quantity], [created_at], [last_modified]) VALUES
-(1, 500, GETDATE(), GETDATE()),
-(2, 300, GETDATE(), GETDATE()),
-(3, 1000, GETDATE(), GETDATE()),
-(4, 800, GETDATE(), GETDATE()),
-(5, 200, GETDATE(), GETDATE());
+INSERT INTO [dbo].[ingredient_warehouse] ([ingredient_id], [quantity], [safety_stock], [maximum_stock], [created_at], [last_modified]) VALUES
+(1, 500, 50, 1000, GETDATE(), GETDATE()),
+(2, 300, 30, 600, GETDATE(), GETDATE()),
+(3, 1000, 100, 2000, GETDATE(), GETDATE()),
+(4, 800, 80, 1600, GETDATE(), GETDATE()),
+(5, 200, 20, 400, GETDATE(), GETDATE());
 GO
 
 -- Insert into ingredient_transfers
-INSERT INTO [dbo].[ingredient_transfers] ([ingredient_id], [branch_id], [quantity], [note], [created_at], [last_modified]) VALUES
-(1, 1, 20, N'Chuyển hạt cà phê cho chi nhánh Q1', GETDATE(), GETDATE()),
-(2, 2, 15, N'Chuyển hạt cà phê cho chi nhánh Q3', GETDATE(), GETDATE()),
-(3, 3, 50, N'Chuyển sữa tươi cho chi nhánh Q7', GETDATE(), GETDATE()),
-(4, 1, 30, N'Chuyển đường cho chi nhánh Q1', GETDATE(), GETDATE()),
-(5, 2, 10, N'Chuyển trà xanh cho chi nhánh Q3', GETDATE(), GETDATE());
+INSERT INTO [dbo].[ingredient_transfers] ([ingredient_id], [branch_id], [quantity], [transfer_type], [status], [transfer_date], [note], [created_at], [last_modified]) VALUES
+(1, 1, 20, 'IN', 'COMPLETED', GETDATE(), N'Chuyển hạt cà phê cho chi nhánh Q1', GETDATE(), GETDATE()),
+(2, 2, 15, 'IN', 'COMPLETED', GETDATE(), N'Chuyển hạt cà phê cho chi nhánh Q3', GETDATE(), GETDATE()),
+(3, 3, 50, 'IN', 'COMPLETED', GETDATE(), N'Chuyển sữa tươi cho chi nhánh Q7', GETDATE(), GETDATE()),
+(4, 1, 30, 'IN', 'COMPLETED', GETDATE(), N'Chuyển đường cho chi nhánh Q1', GETDATE(), GETDATE()),
+(5, 2, 10, 'IN', 'COMPLETED', GETDATE(), N'Chuyển trà xanh cho chi nhánh Q3', GETDATE(), GETDATE());
 GO
 
 -- Insert into supplier_ingredient_prices
@@ -391,52 +391,9 @@ INSERT INTO [dbo].[profit_summary] ([branch_id], [period_type], [period_value], 
 (2, 'MONTH', '2024-11', 11000000, 12100000, 6500000, 7150000, 1100000, 650000, 450000, 4500000, 4500000, DATEADD(month, -1, GETDATE()), DATEADD(month, -1, GETDATE()));
 GO
 
--- Insert into view tables (these are treated as regular tables for data insertion)
-
--- Insert into v_sales_summary
-INSERT INTO [dbo].[v_sales_summary] ([branch_id], [year], [month], [period], [total_orders], [total_products], [revenue_before_tax], [revenue_after_tax], [tax_amount]) VALUES
-(1, 2024, 12, '2024-12', 150, 300, 15000000, 16500000, 1500000),
-(2, 2024, 12, '2024-12', 120, 250, 12000000, 13200000, 1200000),
-(3, 2024, 12, '2024-12', 100, 200, 10000000, 11000000, 1000000),
-(1, 2024, 11, '2024-11', 140, 280, 14000000, 15400000, 1400000),
-(2, 2024, 11, '2024-11', 110, 220, 11000000, 12100000, 1100000);
-GO
-
--- Insert into v_employee_payroll
-INSERT INTO [dbo].[v_employee_payroll] ([employee_id], [full_name], [branch_name], [position_name], [base_salary], [salary_type], [total_allowances], [total_bonus], [total_deductions], [gross_salary], [effective_date], [end_date]) VALUES
-(1, N'Nguyễn Văn A', N'Chi nhánh Quận 1', N'Quản lý chi nhánh', 15000000, 'MONTHLY', 2000000, 1000000, 0, 18000000, '2024-01-01', NULL),
-(2, N'Trần Thị B', N'Chi nhánh Quận 1', N'Nhân viên pha chế', 8000000, 'MONTHLY', 500000, 300000, 0, 8800000, '2024-02-01', NULL),
-(3, N'Lê Văn C', N'Chi nhánh Quận 3', N'Nhân viên phục vụ', 6000000, 'MONTHLY', 300000, 200000, 100000, 6400000, '2024-03-01', NULL),
-(4, N'Phạm Thị D', N'Chi nhánh Quận 7', N'Thu ngân', 7000000, 'MONTHLY', 400000, 250000, 0, 7650000, '2024-04-01', NULL),
-(5, N'Hoàng Văn E', N'Chi nhánh Quận 3', N'Nhân viên kho', 6500000, 'MONTHLY', 350000, 150000, 50000, 6950000, '2024-05-01', NULL);
-GO
-
--- Insert into v_inventory_status
-INSERT INTO [dbo].[v_inventory_status] ([ingredient_id], [ingredient_name], [location_id], [location_name], [branch_id], [branch_name], [quantity_on_hand], [quantity_reserved], [available_quantity], [minimum_stock], [stock_status], [unit_of_measure], [last_updated]) VALUES
-(1, N'Hạt cà phê Arabica', 1, N'Kho chính', 1, N'Chi nhánh Quận 1', 50, 5, 45, 20, 'IN_STOCK', 'kg', GETDATE()),
-(2, N'Hạt cà phê Robusta', 1, N'Kho chính', 1, N'Chi nhánh Quận 1', 30, 3, 27, 15, 'IN_STOCK', 'kg', GETDATE()),
-(3, N'Sữa tươi', 2, N'Kho lạnh', 1, N'Chi nhánh Quận 1', 100, 10, 90, 50, 'IN_STOCK', N'lít', GETDATE()),
-(1, N'Hạt cà phê Arabica', 2, N'Kho chính', 2, N'Chi nhánh Quận 3', 40, 4, 36, 20, 'IN_STOCK', 'kg', GETDATE()),
-(4, N'Đường trắng', 3, N'Kho khô', 3, N'Chi nhánh Quận 7', 80, 8, 72, 30, 'IN_STOCK', 'kg', GETDATE());
-GO
-
--- Insert into v_profit_summary
-INSERT INTO [dbo].[v_profit_summary] ([branch_id], [year], [month], [period], [revenue_before_tax], [revenue_after_tax], [expense_before_tax], [expense_after_tax], [output_tax], [input_tax], [vat_to_pay], [profit_before_tax], [profit_after_tax]) VALUES
-(1, 2024, 12, '2024-12', 15000000, 16500000, 8000000, 8800000, 1500000, 800000, 700000, 7000000, 7000000),
-(2, 2024, 12, '2024-12', 12000000, 13200000, 6000000, 6600000, 1200000, 600000, 600000, 6000000, 6000000),
-(3, 2024, 12, '2024-12', 10000000, 11000000, 7000000, 7700000, 1000000, 700000, 300000, 3000000, 3000000),
-(1, 2024, 11, '2024-11', 14000000, 15400000, 7500000, 8250000, 1400000, 750000, 650000, 6500000, 6500000),
-(2, 2024, 11, '2024-11', 11000000, 12100000, 6500000, 7150000, 1100000, 650000, 450000, 4500000, 4500000);
-GO
-
--- Insert into v_expenses_summary
-INSERT INTO [dbo].[v_expenses_summary] ([branch_id], [year], [month], [period], [total_purchase_orders], [total_ingredients], [expense_before_tax], [expense_after_tax], [tax_amount]) VALUES
-(1, 2024, 12, '2024-12', 20, 50, 8000000, 8800000, 800000),
-(2, 2024, 12, '2024-12', 15, 40, 6000000, 6600000, 600000),
-(3, 2024, 12, '2024-12', 18, 45, 7000000, 7700000, 700000),
-(1, 2024, 11, '2024-11', 18, 48, 7500000, 8250000, 750000),
-(2, 2024, 11, '2024-11', 16, 42, 6500000, 7150000, 650000);
-GO
+-- Views are automatically populated from base tables - no manual INSERT needed
+-- v_sales_summary, v_employee_payroll, v_inventory_status, v_profit_summary, v_expenses_summary
+-- will display data based on underlying tables (orders, employees, inventory, financial_reports, etc.)
 
 -- Insert sample Purchase Orders
 INSERT INTO [dbo].[ingredient_purchase_orders] 
@@ -615,6 +572,32 @@ INSERT INTO [dbo].[orders] ([order_uuid], [order_code], [customer_id], [branch_i
 (NEWID(), 'ORD008', 10, 6, 110000, 1, GETDATE(), GETDATE(), N'Đơn hàng delivery'),
 (NEWID(), 'ORD009', 3, 7, 85000, 2, DATEADD(hour, -4, GETDATE()), DATEADD(hour, -4, GETDATE()), N'Đơn hàng pickup'),
 (NEWID(), 'ORD010', 4, 8, 125000, 3, DATEADD(hour, -2, GETDATE()), DATEADD(hour, -2, GETDATE()), N'Đơn hàng express');
+GO
+
+-- Additional order details for new orders
+INSERT INTO [dbo].[order_details] ([quantity], [order_id], [product_id], [color], [created_at], [last_modified], [note], [total_amount], [unit_price]) VALUES
+(1, 6, 6, NULL, GETDATE(), GETDATE(), N'Extra hot', 65000, 65000),
+(2, 6, 7, NULL, GETDATE(), GETDATE(), N'Less sugar', 100000, 50000),
+(1, 7, 8, NULL, DATEADD(hour, -3, GETDATE()), DATEADD(hour, -3, GETDATE()), N'Extra pearls', 45000, 45000),
+(1, 7, 9, NULL, DATEADD(hour, -3, GETDATE()), DATEADD(hour, -3, GETDATE()), N'No sugar', 60000, 60000),
+(2, 8, 10, NULL, GETDATE(), GETDATE(), N'Extra chocolate', 60000, 30000),
+(1, 8, 3, NULL, GETDATE(), GETDATE(), N'Hot tea', 35000, 35000),
+(3, 9, 1, NULL, DATEADD(hour, -4, GETDATE()), DATEADD(hour, -4, GETDATE()), N'To go', 135000, 45000),
+(2, 10, 2, NULL, DATEADD(hour, -2, GETDATE()), DATEADD(hour, -2, GETDATE()), N'Extra foam', 110000, 55000);
+GO
+
+-- Additional inventory thresholds
+INSERT INTO [dbo].[inventory_thresholds] ([ingredient_id], [branch_id], [safety_stock], [reorder_point], [maximum_stock], [created_at], [last_modified]) VALUES
+(1, 1, 20, 50, 200, GETDATE(), GETDATE()),
+(2, 1, 15, 40, 150, GETDATE(), GETDATE()),
+(3, 1, 50, 100, 500, GETDATE(), GETDATE()),
+(4, 2, 30, 80, 300, GETDATE(), GETDATE()),
+(5, 2, 10, 25, 100, GETDATE(), GETDATE()),
+(6, 3, 5, 15, 50, GETDATE(), GETDATE()),
+(7, 4, 20, 50, 200, GETDATE(), GETDATE()),
+(8, 5, 8, 20, 80, GETDATE(), GETDATE()),
+(9, 6, 12, 30, 120, GETDATE(), GETDATE()),
+(10, 7, 6, 18, 60, GETDATE(), GETDATE());
 GO
 
 PRINT N'Sample data insertion completed successfully!';

@@ -25,13 +25,12 @@ namespace Dashboard.StockWorker.Services
 
             foreach (var threshold in thresholds)
             {
-                try
-                {
+
                     var avgDailyConsumption = await CalculateAverageDailyConsumptionAsync(
                         threshold.BranchId, threshold.IngredientId);
 
                     var reorderPoint = await CalculateReorderPointAsync(
-                        avgDailyConsumption, threshold.LeadTimeDays, threshold.MinimumThreshold);
+                        avgDailyConsumption, threshold.LeadTimeDays, threshold.SafetyStock);
 
                     threshold.AverageDailyConsumption = avgDailyConsumption;
                     threshold.ReorderPoint = reorderPoint;
@@ -39,11 +38,6 @@ namespace Dashboard.StockWorker.Services
                     threshold.LastModified = DateTime.UtcNow;
 
                     Console.WriteLine($"Cập nhật ROP cho {threshold.Ingredient.Name}: {reorderPoint:F2}");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"An error occured while calculating {threshold.IngredientId}: {ex.Message}");
-                }
             }
 
             await _context.SaveChangesAsync();
@@ -103,7 +97,7 @@ namespace Dashboard.StockWorker.Services
                     threshold => new { threshold.BranchId, threshold.IngredientId },
                     inventory => new { inventory.BranchId, inventory.IngredientId },
                     (threshold, inventory) => new { threshold, inventory })
-                .Where(x => x.inventory.Quantity <= x.threshold.MinimumStock)
+                .Where(x => x.inventory.Quantity <= x.threshold.SafetyStock)
                 .Select(x => x.threshold)
                 .ToListAsync();
         }
@@ -114,7 +108,7 @@ namespace Dashboard.StockWorker.Services
             if (threshold != null)
             {
                 threshold.ReorderPoint = newReorderPoint;
-                threshold.MinimumThreshold = newSafetyStock;
+                threshold.SafetyStock = newSafetyStock;
                 threshold.LastModified = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
             }

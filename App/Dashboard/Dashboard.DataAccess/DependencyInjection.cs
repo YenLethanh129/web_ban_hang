@@ -23,6 +23,10 @@ public static class DependencyInjection
         builder.Services.AddScoped<IOrderRepository, OrderRepository>();
         builder.Services.AddScoped<IBranchRepository, BranchRepository>();
         builder.Services.AddScoped<IIngredientRepository, IngredientRepository>();
+        builder.Services.AddScoped<IExpenseRepository, ExpenseRepository>();
+        builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+        builder.Services.AddScoped<IIngredientTransferRepository, IngredientTransferRepository>();
+        builder.Services.AddScoped<IIngredientTransferRequestRepository, IngredientTransferRequestRepository>();
 
         builder.Services.AddDbContext<WebbanhangDbContext>((sp, options) =>
         {
