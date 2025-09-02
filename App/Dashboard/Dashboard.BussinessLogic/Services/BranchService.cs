@@ -34,7 +34,7 @@ public class BranchService : IBranchService
 
         int skip = (input.PageNumber - 1) * input.PageSize;
         int take = input.PageSize;
-        IEnumerable<Branch> branches = await _unitOfWork.Repository<Branch>().GetAllWithSpecAsync(spec, true, skip, take);
+        IEnumerable<Branch> branches = await _unitOfWork.Repository<Branch>().GetAllWithSpecAsync(spec, true, skip, take, input.SortByDefault, input.OrderByDefault);
         int count = await _unitOfWork.Repository<Branch>().GetCountAsync();
 
         List<BranchDto> branchDtos = _mapper.Map<List<BranchDto>>(branches);
