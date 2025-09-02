@@ -4,6 +4,7 @@ credentials.ini
 config.json
 .github/instructions
 .gitignore
+*.md
 
 # OS and temp files 
 .DS_Store # macOS

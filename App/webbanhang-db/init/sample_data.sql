@@ -1,15 +1,18 @@
 USE [${DB_NAME}];
 GO
 
-
--- Insert into categories
-INSERT INTO [dbo].[categories] ([name]) VALUES
-(N'Cà phê'),
-(N'Trà'),
-(N'Nước ép'),
-(N'Bánh ngọt'),
-(N'Món ăn nhẹ');
+-- Insert into categoriess
+SET IDENTITY_INSERT [dbo].[categories] ON
+INSERT INTO [dbo].[categories] ([id], [name]) VALUES
+(1, N'CÀ PHÊ'),
+(2, N'TRÀ'),
+(3, N'SINH TỐ'),
+(4, N'NƯỚC ÉP'),
+(5, N'NƯỚC NGỌT'),
+(6, N'YAOURT'),
+(7, N'SODA');
 GO
+SET IDENTITY_INSERT [dbo].[categories] OFF
 
 -- Insert into ingredient_categories
 INSERT INTO [dbo].[ingredient_categories] ([name], [description], [created_at], [last_modified]) VALUES
@@ -149,12 +152,67 @@ GO
 
 -- Insert into products
 INSERT INTO [dbo].[products] ([price], [category_id], [tax_id], [description], [name], [thumbnail], [created_at], [last_modified]) VALUES
-(45000, 1, 1, N'Cà phê espresso đậm đà, hương vị mạnh mẽ', N'Espresso', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(45000, 1, 1, N'Cà phê hạt đậm đà, hương vị mạnh mẽ', N'Cà phê đen', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(45000, 1, 1, N'Cà phê hạt đậm đà, hương vị mạnh mẽ', N'Cà phê sữa', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(45000, 1, 1, N'Cà phê hạt đậm đà, hương vị mạnh mẽ', N'Bạc xỉu', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(45000, 1, 1, N'Cà phê hạt đậm đà, hương vị mạnh mẽ', N'Cà phê trứng', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(45000, 1, 1, N'Cà phê hạt đậm đà, hương vị mạnh mẽ', N'Cà phê dừa', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(45000, 1, 1, N'Cà phê hạt đậm đà, hương vị mạnh mẽ', N'Latte', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(45000, 1, 1, N'Cà phê hạt đậm đà, hương vị mạnh mẽ', N'Capucchino', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(45000, 1, 1, N'Cà phê hạt đậm đà, hương vị mạnh mẽ', N'Cà phê Cacao', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(45000, 1, 1, N'Cà phê hạt đậm đà, hương vị mạnh mẽ', N'Espresso', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
 (55000, 1, 1, N'Cà phê cappuccino với lớp foam mịn màng', N'Cappuccino', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(25000, 2, 1, N'Trà đào tươi mát, vị ngọt dịu, hương thơm đặc trưng', N'Trà đào', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(25000, 2, 1, N'Trà vải thanh mát, vị ngọt tự nhiên, hương vải đặc trưng', N'Trà vải', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(25000, 2, 1, N'Trà dâu chua ngọt nhẹ nhàng, hương vị trái cây tươi mới', N'Trà dâu', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(25000, 2, 1, N'Trà đào kết hợp cam sả, hương thơm dễ chịu, vị chua ngọt hòa quyện', N'Trà đào cam sả', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(20000, 2, 1, N'Trà Lipton truyền thống, kết hợp hương chanh tươi mát', N'Lipton chanh', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(27000, 2, 1, N'Trà mãn cầu thơm ngon, vị chua ngọt tự nhiên, giải nhiệt tốt', N'Trà Mãn Cầu', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(20000, 2, 1, N'Trà gừng ấm nóng, vị cay nhẹ, tốt cho sức khỏe', N'Trà gừng', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(22000, 2, 1, N'Nước đá me chua ngọt đậm đà, hương vị đặc trưng miền Nam', N'Đá me', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(25000, 2, 1, N'Trà lạc me độc đáo, vị chua thanh xen chút ngọt nhẹ', N'Trà Lạc Me', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(25000, 2, 1, N'Trà ổi hồng tươi mát, hương thơm ngọt ngào, vị trái cây đặc biệt', N'Trà ổi hồng', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(25000, 2, 1, N'Trà Atiso thanh lọc cơ thể, vị thanh mát nhẹ nhàng', N'Trà Atiso', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
 (35000, 2, 1, N'Trà xanh thơm mát, tốt cho sức khỏe', N'Trà xanh', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
-(40000, 3, 1, N'Nước ép cam tươi nguyên chất', N'Nước ép cam', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
-(25000, 4, 1, N'Bánh croissant bơ thơm ngon', N'Croissant', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE());
-GO
+(25000, 3, 1, N'Sinh tố dâu tươi, vị chua ngọt tự nhiên, giải khát tuyệt vời', N'Sinh tố Dâu', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(35000, 3, 1, N'Sinh tố bơ béo ngậy, mịn màng, giàu dinh dưỡng', N'Sinh tố Bơ', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(35000, 3, 1, N'Sinh tố việt quất chua ngọt, giàu chất chống oxy hóa', N'Sinh tố Việt Quất', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(35000, 3, 1, N'Sinh tố phúc bồn tử thơm ngon, vị chua ngọt thanh mát', N'Sinh tố phúc bồn tử', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(25000, 3, 1, N'Sinh tố xoài thơm ngọt, hương vị nhiệt đới đặc trưng', N'Sinh tố Xoài', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(25000, 3, 1, N'Sinh tố dừa mát lạnh, vị béo nhẹ, hương dừa tự nhiên', N'Sinh tố Dừa', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(30000, 3, 1, N'Sinh tố mãng cầu chua ngọt hài hòa, thơm ngon bổ dưỡng', N'Sinh tố Mãng Cầu', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(25000, 4, 1, N'Nước ép cóc chua chua ngọt ngọt, giàu vitamin C', N'Ép Cóc', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(25000, 4, 1, N'Nước ép cà rốt tươi, giàu vitamin A, tốt cho mắt', N'Ép Cà rốt', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(25000, 4, 1, N'Nước ép dưa hấu ngọt mát, giải khát mùa hè', N'Ép Dưa hấu', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(25000, 4, 1, N'Nước cam ép nguyên chất, vị chua ngọt tự nhiên, giàu vitamin C', N'Ép Cam', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(25000, 4, 1, N'Nước ép thơm (dứa) ngọt thanh, hương vị nhiệt đới', N'Ép Thơm', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(25000, 4, 1, N'Nước ép táo giòn ngọt, giàu chất chống oxy hóa', N'Ép Táo', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(20000, 4, 1, N'Nước chanh tươi mát, vị chua dịu, giải nhiệt nhanh chóng', N'Chanh tươi', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(25000, 4, 1, N'Nước ép ổi thanh mát, vị ngọt nhẹ, giàu vitamin C', N'Ép Ổi', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(25000, 4, 1, N'Nước chanh dây chua ngọt hài hòa, giải khát tuyệt vời', N'Chanh dây', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(25000, 4, 1, N'Nước chanh dây xí muội độc đáo, vị chua mặn ngọt hòa quyện', N'Chanh dây Xí Muội', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(25000, 4, 1, N'Nước ép sơ ri chua ngọt đặc trưng, giàu vitamin C', N'Sơ ri', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(17000, 5, 1, N'Nước giải khát Pepsi có gas, vị ngọt đậm đà', N'Pepsi', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(20000, 5, 1, N'Nước tăng lực Redbull, bổ sung năng lượng nhanh chóng', N'Redbull', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(17000, 5, 1, N'Trà Olong đóng chai, vị trà thanh nhẹ, giải khát hiệu quả', N'Olong Tea', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(17000, 5, 1, N'Nước giải khát 7Up, có gas, vị chanh thanh mát', N'7Up', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(18000, 5, 1, N'Dừa tươi mát lạnh, hương vị tự nhiên, bổ sung khoáng chất', N'Dừa tươi', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(17000, 5, 1, N'Nước tăng lực Sting, vị dâu độc đáo, bổ sung năng lượng', N'Sting', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(12000, 5, 1, N'Nước suối tinh khiết, giải khát đơn giản và tốt cho sức khỏe', N'Nước suối', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(17000, 5, 1, N'Trà xanh 0 độ đóng chai, vị thanh mát, không đường', N'0 Độ', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(17000, 5, 1, N'Nước giải khát Coca Cola, có gas, vị ngọt đậm đà', N'Coca Cola', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(17000, 5, 1, N'Nước thể thao Revive, bổ sung khoáng chất và ion', N'Revive', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(22000, 6, 1, N'Yaourt đá mát lạnh, chua ngọt đặc trưng', N'Yaourt Đá', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(25000, 6, 1, N'Yaourt dâu chua ngọt, kết hợp hương dâu tươi', N'Yaourt Dâu', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(25000, 6, 1, N'Yaourt việt quất thơm ngon, vị chua ngọt tự nhiên', N'Yaourt Việt Quất', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(25000, 6, 1, N'Yaourt xoài chua ngọt, hương vị nhiệt đới', N'Yaourt Xoài', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(25000, 6, 1, N'Yaourt đào tươi, vị chua ngọt dịu nhẹ', N'Yaourt Đào', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(25000, 6, 1, N'Yaourt trái cây tổng hợp, nhiều hương vị tươi mát', N'Yaourt Trái Cây', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(6000, 6, 1, N'Yaourt truyền thống, vị chua nhẹ tự nhiên', N'Yaourt', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),  
+(22000, 7, 1, N'Soda truyền thống, tươi mát nhẹ tự nhiên', N'Soda Chanh', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),  
+(22000, 7, 1, N'Soda truyền thống, tươi mát nhẹ tự nhiên', N'Soda Đại Dương', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),  
+(22000, 7, 1, N'Soda truyền thống, tươi mát nhẹ tự nhiên', N'Soda Dâu', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),  
+(22000, 7, 1, N'Soda truyền thống, tươi mát nhẹ tự nhiên', N'Soda Bạc Hà', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE());  
 
 -- Insert into ingredients
 INSERT INTO [dbo].[ingredients] ([category_id], [name], [unit], [description], [tax_id], [created_at], [last_modified]) VALUES

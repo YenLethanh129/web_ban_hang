@@ -3,19 +3,26 @@
   <section class="hero-section">
     <div class="hero-overlay"></div>
     <div class="hero-content">
-      <h1 class="hero-title">FUNNY BOY COFFEE & TEA</h1>
+      <h1 class="hero-title">
+        FUNNY BOY<br />
+        COFFEE &amp; TEA
+      </h1>
       <p class="hero-subtitle">
         Đậm đà hương vị truyền thống - Tinh tế phong cách hiện đại
       </p>
       <div class="hero-buttons">
-        <button class="btn btn-primary btn-lg">Khám phá menu</button>
-        <button class="btn btn-outline-light btn-lg">Tìm cửa hàng</button>
+        <button class="btn btn-primary btn-lg" (click)="scrollToProducts()">
+          Khám phá menu
+        </button>
+        <button class="btn btn-outline-light btn-lg" (click)="scrollToStores()">
+          Tìm cửa hàng
+        </button>
       </div>
     </div>
   </section>
 
   <!-- Featured Products -->
-  <section class="featured-section">
+  <section class="featured-section" id="products-section">
     <div class="container">
       <div class="section-header">
         <h2 class="section-title">Sản phẩm nổi bật</h2>
@@ -78,6 +85,92 @@
         <div class="loading-spinner">
           <div class="spinner"></div>
           <p class="loading-text">Đang tải sản phẩm...</p>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <app-pagination
+        *ngIf="shouldShowPagination"
+        [currentPage]="currentPage"
+        [totalPages]="totalPages"
+        [totalItems]="totalItems"
+        [itemsPerPage]="itemsPerPage"
+        [isLoading]="isLoading"
+        (pageChange)="onPageChange($event)"
+      >
+      </app-pagination>
+      <!-- Pagination Placeholder (hiển thị khi đang load lần đầu) -->
+      <div
+        class="pagination-placeholder"
+        *ngIf="isLoading && !isPaginationDataReady"
+      >
+        <div class="placeholder-info">
+          <div class="skeleton-text"></div>
+        </div>
+        <div class="placeholder-controls">
+          <div class="skeleton-btn"></div>
+          <div class="skeleton-btn"></div>
+          <div class="skeleton-btn"></div>
+          <div class="skeleton-btn"></div>
+          <div class="skeleton-btn"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Store Locations Section -->
+  <section class="store-locations-section" id="store-locations">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Hệ thống cửa hàng</h2>
+        <p class="section-subtitle">
+          Funny Boy Coffee & Tea có mặt tại nhiều địa điểm thuận tiện
+        </p>
+      </div>
+
+      <div class="stores-grid">
+        <div class="store-card" *ngFor="let store of storeLocations">
+          <div class="store-image">
+            <img [src]="store.image" [alt]="store.name" />
+            <div class="store-overlay">
+              <div class="store-status" [class]="store.status">
+                {{ store.statusText }}
+              </div>
+            </div>
+          </div>
+
+          <div class="store-info">
+            <h3 class="store-name">{{ store.name }}</h3>
+            <div class="store-details">
+              <div class="store-detail-item">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>{{ store.address }}</span>
+              </div>
+              <div class="store-detail-item">
+                <i class="fas fa-phone"></i>
+                <span>{{ store.phone }}</span>
+              </div>
+              <div class="store-detail-item">
+                <i class="fas fa-clock"></i>
+                <span>{{ store.hours }}</span>
+              </div>
+            </div>
+
+            <div class="store-actions">
+              <a
+                [href]="store.mapUrl"
+                target="_blank"
+                class="btn btn-outline-primary btn-sm"
+              >
+                <i class="fas fa-map"></i>
+                Xem bản đồ
+              </a>
+              <a [href]="'tel:' + store.phone" class="btn btn-primary btn-sm">
+                <i class="fas fa-phone"></i>
+                Gọi ngay
+              </a>
+            </div>
+          </div>
         </div>
       </div>
     </div>

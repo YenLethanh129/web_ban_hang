@@ -1,6 +1,6 @@
-import { Injectable, PLATFORM_ID, Inject } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { isPlatformBrowser } from '@angular/common';
+import { StorageService } from './storage.service';
 
 interface CartItem {
   quantity: number;
@@ -8,43 +8,38 @@ interface CartItem {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class CartService {
   private readonly CART_STORAGE_KEY = 'shopping_cart';
   private cartMap: Map<number, CartItem> = new Map<number, CartItem>();
   private cartItemCount = new BehaviorSubject<number>(0);
-  private isBrowser: boolean;
 
-  constructor(@Inject(PLATFORM_ID) platformId: Object) {
-    this.isBrowser = isPlatformBrowser(platformId);
-    if (this.isBrowser) {
-      this.loadCartFromStorage();
-    }
+  constructor(private storageService: StorageService) {
+    this.loadCartFromStorage();
   }
 
   private loadCartFromStorage(): void {
-    if (this.isBrowser) {
-      const savedCart = localStorage.getItem(this.CART_STORAGE_KEY);
-      if (savedCart) {
-        this.cartMap = new Map(JSON.parse(savedCart));
-        this.updateCartCount();
-      }
-    }
-  }
-
-  private saveCartToStorage(): void {
-    if (this.isBrowser) {
-      localStorage.setItem(
-        this.CART_STORAGE_KEY,
-        JSON.stringify(Array.from(this.cartMap.entries()))
-      );
+    const savedCart = this.storageService.getItem(this.CART_STORAGE_KEY);
+    if (savedCart) {
+      this.cartMap = new Map(JSON.parse(savedCart));
       this.updateCartCount();
     }
   }
 
+  private saveCartToStorage(): void {
+    this.storageService.setItem(
+      this.CART_STORAGE_KEY,
+      JSON.stringify(Array.from(this.cartMap.entries()))
+    );
+    this.updateCartCount();
+  }
+
   private updateCartCount(): void {
-    const count = Array.from(this.cartMap.values()).reduce((a, b) => a + b.quantity, 0);
+    const count = Array.from(this.cartMap.values()).reduce(
+      (a, b) => a + b.quantity,
+      0
+    );
     this.cartItemCount.next(count);
   }
 

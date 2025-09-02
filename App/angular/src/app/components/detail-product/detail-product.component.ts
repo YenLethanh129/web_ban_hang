@@ -19,6 +19,7 @@ export class DetailProductComponent implements OnInit {
   isLoading: boolean = true;
   quantity: number = 1;
   selectedColor: string | null = null;
+  selectedSize: string = 'M'; // Default size
   colors = [
     { name: 'Đỏ', code: '#FF0000' },
     { name: 'Xanh lá', code: '#00FF00' },
@@ -68,6 +69,10 @@ export class DetailProductComponent implements OnInit {
     this.quantity++;
   }
 
+  selectSize(size: string): void {
+    this.selectedSize = size;
+  }
+
   getColorName(colorCode: string): string {
     return this.colors.find((c) => c.code === colorCode)?.name || '';
   }
@@ -84,7 +89,7 @@ export class DetailProductComponent implements OnInit {
     if (this.product) {
       this.cartService.addToCart(this.product.id, this.quantity);
       this.notificationService.showSuccess(
-        `Đã thêm ${this.quantity} ${this.product.name} vào giỏ hàng`
+        `Đã thêm ${this.quantity} ${this.product.name} (${this.selectedSize}) vào giỏ hàng`
       );
     }
   }

@@ -33,7 +33,7 @@ header.user-header {
 }
 
 .user-header .container {
-  max-width: 1200px;
+  max-width: 1400px; // Tăng từ 1200px để có chỗ cho thanh tìm kiếm rộng hơn
   padding: 0 20px;
 }
 
@@ -248,9 +248,15 @@ header.user-header {
     gap: 15px;
     margin: 0 30px;
     flex: 1;
-    max-width: 400px;
+    max-width: 800px;
     margin: 0 auto;
     position: relative;
+
+    // Đảm bảo app-search component có thể mở rộng đầy đủ
+    app-search {
+      width: 100%;
+      flex: 1;
+    }
 
     .search-input {
       background: rgba(255, 255, 255, 0.95);
@@ -340,7 +346,7 @@ header.user-header {
   z-index: 998;
 
   .container {
-    max-width: 1200px;
+    max-width: 1400px; // Tăng từ 1200px để đồng bộ với header container
     margin: 0 auto;
     padding: 0 20px;
   }
@@ -430,7 +436,12 @@ header.user-header {
 
   .navbar .search-box {
     margin: 0 15px;
-    max-width: 300px;
+    max-width: 600px;
+
+    app-search {
+      width: 100%;
+      flex: 1;
+    }
   }
 
   .menu-top ul {
@@ -465,8 +476,13 @@ header.user-header {
 
   .navbar .search-box {
     margin: 0 10px;
-    max-width: 200px;
+    max-width: 400px;
     order: 3;
+
+    app-search {
+      width: 100%;
+      flex: 1;
+    }
   }
 
   .navbar-nav {
@@ -515,7 +531,12 @@ header.user-header {
 
 @media (max-width: 575.98px) {
   .navbar .search-box {
-    max-width: 150px;
+    max-width: 300px;
+
+    app-search {
+      width: 100%;
+      flex: 1;
+    }
   }
 
   .search-input {

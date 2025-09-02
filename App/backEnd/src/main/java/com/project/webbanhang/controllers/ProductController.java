@@ -42,16 +42,12 @@ import java.util.UUID;
 public class ProductController {
 	
 	private final IProductService productService;
-	//private final IProductImageService productImageService;
-
-	// Done
     @GetMapping("")
     public ResponseEntity<?> getProducts(
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "limit", defaultValue = "10") int limit
     ) {
     	try {
-    		//PageRequest pageRequest = PageRequest.of(page, limit, Sort.by("createdAt").descending());
     		PageRequest pageRequest = PageRequest.of(page - 1, limit, Sort.by("categoryId"));
         	Page<ProductResponse> productPage = productService.getAllProducts(pageRequest);
         	List<ProductResponse> products = productPage.getContent();
@@ -61,6 +57,7 @@ public class ProductController {
         	ProductListResponse productListResponse = ProductListResponse.builder()
         			.products(products)
         			.totalPage(totalPages)
+                    .totalItem((int)productPage.getTotalElements())
         			.build();
         	
             return ResponseEntity.ok(productListResponse);

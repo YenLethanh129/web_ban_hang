@@ -15,5 +15,6 @@ import lombok.Setter;
 @NoArgsConstructor
 public class ProductListResponse {
 	private List<ProductResponse> products;
-	private int totalPage;	
+	private int totalPage;
+	private int totalItem;
 }

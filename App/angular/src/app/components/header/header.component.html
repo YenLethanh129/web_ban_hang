@@ -6,15 +6,12 @@
         <span class="brand-subtitle">Coffee & Tea</span>
       </a>
       <div class="search-box">
-        <input
-          type="text"
-          class="form-control search-input"
-          [(ngModel)]="searchTerm"
+        <app-search
           placeholder="Tìm kiếm sản phẩm..."
-        />
-        <button class="search-button" (click)="onSearch()">
-          <i class="fas fa-search"></i>
-        </button>
+          (productSelected)="onProductSelected($event)"
+          (searchPerformed)="onSearchPerformed($event)"
+        >
+        </app-search>
       </div>
       <button
         class="navbar-toggler"

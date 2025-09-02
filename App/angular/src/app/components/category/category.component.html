@@ -86,6 +86,18 @@
           <p class="loading-text">Đang tải sản phẩm...</p>
         </div>
       </div>
+
+      <!-- Pagination -->
+      <app-pagination
+        *ngIf="!isLoading && products.length > 0"
+        [currentPage]="currentPage"
+        [totalPages]="totalPages"
+        [totalItems]="totalItems"
+        [itemsPerPage]="itemsPerPage"
+        [isLoading]="isLoading"
+        (pageChange)="onPageChange($event)"
+      >
+      </app-pagination>
     </div>
   </section>
 </div>
