@@ -49,7 +49,6 @@
                 Địa chỉ
               </div>
               <div class="info-value">{{ profile.address }}</div>
-              <small class="info-note">Không thể thay đổi</small>
             </div>
           </div>
 
@@ -134,6 +133,34 @@
           </div>
 
           <div class="form-group">
+            <label for="address" class="form-label">
+              <i class="fas fa-map-marker-alt"></i>
+              Địa chỉ
+            </label>
+            <div class="input-wrapper">
+              <textarea
+                class="form-control"
+                id="address"
+                name="address"
+                [(ngModel)]="editData.address"
+                required
+                #address="ngModel"
+                (focus)="showAddressError = true"
+                placeholder="Nhập địa chỉ đầy đủ của bạn"
+                rows="3"
+              ></textarea>
+              <i class="fas fa-map-marker-alt input-icon"></i>
+            </div>
+            <div
+              *ngIf="showAddressError && address.touched && !editData.address"
+              class="error-message"
+            >
+              <i class="fas fa-exclamation-circle"></i>
+              Vui lòng nhập địa chỉ
+            </div>
+          </div>
+
+          <div class="form-group">
             <label for="password" class="form-label">
               <i class="fas fa-lock"></i>
               Mật khẩu mới (tùy chọn)
@@ -205,14 +232,7 @@
                 Số điện thoại
               </div>
               <div class="readonly-value">{{ profile.phone_number }}</div>
-            </div>
-
-            <div class="readonly-item">
-              <div class="readonly-label">
-                <i class="fas fa-map-marker-alt"></i>
-                Địa chỉ
-              </div>
-              <div class="readonly-value">{{ profile.address }}</div>
+              <small class="readonly-note">Không thể thay đổi</small>
             </div>
           </div>
 

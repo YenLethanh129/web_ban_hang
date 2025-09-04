@@ -114,7 +114,14 @@ export class UserService {
   logout(): void {
     this.currentUser = null;
     this.cacheService.clearUser();
+    this.cacheService.clearAll(); // Clear all cache data
     this.tokenService.removeToken();
+
+    // Also clear localStorage manually to ensure everything is cleared
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+
+    console.log('🚪 User logged out - all data cleared');
   }
 
   // Force refresh user from server
@@ -131,11 +138,6 @@ export class UserService {
       Authorization: `Bearer ${this.tokenService.getToken()}`,
     });
 
-    return this.http.put(`${this.apiUrl}/update`, updateDTO, { headers }).pipe(
-      tap((response) => {
-        // After successful update, refresh user data from server
-        this.refreshUser().subscribe();
-      })
-    );
+    return this.http.patch(`${this.apiUrl}/update`, updateDTO, { headers });
   }
 }

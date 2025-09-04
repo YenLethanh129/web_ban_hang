@@ -1,6 +1,7 @@
 package com.project.webbanhang.services;
 
 import com.project.webbanhang.dtos.UserDTO;
+import com.project.webbanhang.dtos.UserUpdateDTO;
 import com.project.webbanhang.exceptions.DataNotFoundException;
 import com.project.webbanhang.models.User;
 
@@ -11,4 +12,6 @@ public interface IUserService {
 	String login(String phoneNumber, String password) throws Exception;
 	
 	User getUserProfileFromToken(String extractedToken) throws Exception;
+
+	User updateUserFromToken(String extractedToken, UserUpdateDTO userUpdateDTO) throws DataNotFoundException, Exception;
 }

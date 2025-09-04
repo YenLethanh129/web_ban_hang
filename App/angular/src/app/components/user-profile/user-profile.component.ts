@@ -25,11 +25,13 @@ export class UserProfileComponent implements OnInit {
   showFullNameError = false;
   showDateOfBirthError = false;
   showPasswordError = false;
+  showAddressError = false;
 
   // Form data for editing
   editData = {
     fullname: '',
     dateOfBirth: '',
+    address: '',
     password: '',
     confirmPassword: '',
   };
@@ -53,6 +55,7 @@ export class UserProfileComponent implements OnInit {
         this.editData.dateOfBirth = this.formatDateForInput(
           profile.date_of_birth
         );
+        this.editData.address = profile.address;
       },
       error: (error) => {
         console.error('Error fetching user profile:', error);
@@ -72,6 +75,7 @@ export class UserProfileComponent implements OnInit {
         this.editData.dateOfBirth = this.formatDateForInput(
           this.profile.date_of_birth
         );
+        this.editData.address = this.profile.address;
         this.editData.password = '';
         this.editData.confirmPassword = '';
       }
@@ -150,7 +154,11 @@ export class UserProfileComponent implements OnInit {
       this.editData.dateOfBirth !==
       this.formatDateForInput(this.profile?.date_of_birth!)
     ) {
-      updateDTO.date_of_birth = this.editData.dateOfBirth;
+      updateDTO.date_of_birth = new Date(this.editData.dateOfBirth);
+    }
+
+    if (this.editData.address !== this.profile?.address) {
+      updateDTO.address = this.editData.address;
     }
 
     if (this.editData.password) {
@@ -165,13 +173,29 @@ export class UserProfileComponent implements OnInit {
       return;
     }
 
+    updateDTO.date_of_birth = new Date(this.editData.dateOfBirth);
+    updateDTO.address = this.editData.address;
+    updateDTO.fullname = this.editData.fullname;
+    if (this.editData.password) {
+      updateDTO.password = this.editData.password;
+    }
+
     this.userService.updateUser(updateDTO).subscribe({
       next: (response) => {
         this.isLoading = false;
         this.isEditing = false;
-        this.notificationService.showSuccess('Cập nhật thông tin thành công!');
-        // Reload profile to get updated data
-        this.loadUserProfile();
+        this.notificationService.showSuccess(
+          'Cập nhật thông tin thành công! Bạn sẽ được đăng xuất để đảm bảo bảo mật.'
+        );
+
+        // Auto logout after successful update
+        setTimeout(() => {
+          this.userService.logout();
+          this.router.navigate(['/login']);
+          this.notificationService.showInfo(
+            'Vui lòng đăng nhập lại với thông tin mới.'
+          );
+        }, 2000); // Wait 2 seconds to show success message
       },
       error: (error) => {
         this.isLoading = false;
@@ -192,6 +216,7 @@ export class UserProfileComponent implements OnInit {
       this.editData.dateOfBirth = this.formatDateForInput(
         this.profile.date_of_birth
       );
+      this.editData.address = this.profile.address;
       this.editData.password = '';
       this.editData.confirmPassword = '';
     }

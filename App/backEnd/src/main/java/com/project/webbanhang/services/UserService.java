@@ -3,6 +3,7 @@ package com.project.webbanhang.services;
 import java.util.Optional;
 
 import com.project.webbanhang.components.LocalizationUtil;
+import com.project.webbanhang.dtos.UserUpdateDTO;
 import com.project.webbanhang.repositories.CustomerRepository;
 import com.project.webbanhang.utils.MessageKey;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -110,6 +111,40 @@ public class UserService implements IUserService{
 			throw new Exception("User not found by phone number");
 		}
 		return optionalUser.get();
+	}
+
+	@Override
+	public User updateUserFromToken(String extractedToken, UserUpdateDTO userUpdateDTO) throws DataNotFoundException, Exception {
+		if (jwtTokenUtil.isTokenExpired(extractedToken)) {
+			throw new Exception("Token is expired");
+		}
+		String phoneNumber = jwtTokenUtil.extractPhoneNumber(extractedToken);
+		if (phoneNumber == null) {
+			throw new Exception("Invalid Token");
+		}
+
+		Optional<User> optionalUser = userRepository.findByPhoneNumber(phoneNumber);
+		if (optionalUser.isEmpty()) {
+			throw new DataNotFoundException(localizationUtil.getLocalizedMessage(MessageKey.USER_NOT_FOUND));
+		}
+
+		User existingUser = optionalUser.get();
+		existingUser.setFullName(userUpdateDTO.getFullName());
+		existingUser.setAddress(userUpdateDTO.getAddress());
+		existingUser.setDateOfBirth(userUpdateDTO.getDateOfBirth());
+		String password = userUpdateDTO.getPassword();
+		if (password != null && !password.isEmpty()) {
+			String encodePassword = passwordEncoder.encode(password);
+			existingUser.setPassword(encodePassword);
+		}
+
+		try {
+			return userRepository.save(existingUser);
+		} catch (DataIntegrityViolationException e) {
+			throw new Exception(localizationUtil.getLocalizedMessage(MessageKey.UPDATE_PROFILE_FAILED, "Phone number has existed"));
+		} catch (Exception e) {
+			throw new Exception(localizationUtil.getLocalizedMessage(MessageKey.UPDATE_PROFILE_FAILED, e.getMessage()));
+		}
 	}
 
 }
