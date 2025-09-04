@@ -7,5 +7,4 @@ export interface RegisterDTO {
   date_of_birth: string;
   facebook_account_id: number;
   google_account_id: number;
-  role_name: string;
 }

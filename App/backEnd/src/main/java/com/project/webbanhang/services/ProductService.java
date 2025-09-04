@@ -4,7 +4,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.project.webbanhang.response.CacheablePageResponse;
+import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.Null;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -33,6 +39,8 @@ public class ProductService implements IProductService{
 
 	// Done
 	@Override
+	@Transactional
+	@CacheEvict(value = { "products", "productsByCategory" }, allEntries = true)
 	public Product createProduct(ProductDTO productDTO) throws DataNotFoundException {
 		Category existingCategory = categoryRepository
 				.findById(productDTO.getCategoryId())
@@ -51,6 +59,7 @@ public class ProductService implements IProductService{
 
 	// Done
 	@Override
+	@Cacheable(value = "product", key = "#id")
 	public Product getProductById(Long id) throws DataNotFoundException {
 		return productRepository.findById(id)
 				.orElseThrow(() -> new DataNotFoundException("Can't found product with id " + id));
@@ -58,13 +67,30 @@ public class ProductService implements IProductService{
 
 	// Done
 	@Override
-	public Page<ProductResponse> getAllProducts(PageRequest pageRequest) {
-		return productRepository.findAll(pageRequest)
+	@Cacheable(value = "products", key = "'page:' + #pageRequest.pageNumber + ':limit:' + #pageRequest.pageSize")
+	public CacheablePageResponse<ProductResponse> getAllProducts(PageRequest pageRequest) {
+		Page<ProductResponse> page = productRepository.findAll(pageRequest)
 				.map(ProductResponse::fromEntity);
+		return new CacheablePageResponse<>(
+				page.getContent(),
+				page.getNumber(),
+				page.getSize(),
+				page.getTotalElements(),
+				page.getTotalPages(),
+				page.isLast()
+		);
 	}
 
 	// Done
 	@Override
+	@Transactional
+	@Caching(
+		put = @CachePut(value = "product", key = "#id"),
+		evict = {
+			@CacheEvict(value = "products", allEntries = true),
+			@CacheEvict(value = "productsByCategory", allEntries = true)
+		}
+	)
 	public Product updateProduct(Long id, ProductDTO productDTO) throws DataNotFoundException {
 		Product existingProduct = getProductById(id);
 		
@@ -82,6 +108,12 @@ public class ProductService implements IProductService{
 	}
 
 	@Override
+	@Transactional
+	@Caching(evict = {
+		@CacheEvict(value = "product", key = "#id"),
+		@CacheEvict(value = "products", allEntries = true),
+		@CacheEvict(value = "productsByCategory", allEntries = true)
+	})
 	public void deleteProduct(Long id) {
 		Optional<Product> optionalProduct = productRepository.findById(id);
 		optionalProduct.ifPresent(productRepository::delete);
@@ -93,6 +125,8 @@ public class ProductService implements IProductService{
 	}
 	
 	@Override
+	@Transactional
+	@CacheEvict(value = {"products", "productsByCategory"}, allEntries = true)
 	public ProductImage createProductImage(Long productId, ProductImageDTO productImageDTO) throws DataNotFoundException, InvalidParamException {
 		Product existingProduct = productRepository.findById(productId)
 				.orElseThrow(() -> new DataNotFoundException("Can't found product with id " + productId));
@@ -110,9 +144,18 @@ public class ProductService implements IProductService{
 	}
 
 	@Override
-	public Page<ProductResponse> getProductsByCategoryId(Long categoryId, PageRequest pageable) throws DataNotFoundException {
-		return productRepository.findByCategoryId(categoryId, pageable)
+	@Cacheable(value = "productsByCategory", key = "'categoryId:' + #categoryId + ':page:' + #pageable.pageNumber + ':limit:' + #pageable.pageSize")
+	public CacheablePageResponse<ProductResponse> getProductsByCategoryId(Long categoryId, PageRequest pageable) throws DataNotFoundException {
+		Page<ProductResponse> page = productRepository.findByCategoryId(categoryId, pageable)
 				.map(ProductResponse::fromEntity);
-	}
 
+		return new CacheablePageResponse<>(
+				page.getContent(),
+				page.getNumber(),
+				page.getSize(),
+				page.getTotalElements(),
+				page.getTotalPages(),
+				page.isLast()
+		);
+	}
 }

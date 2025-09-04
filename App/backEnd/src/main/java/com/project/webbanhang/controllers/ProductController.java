@@ -7,6 +7,7 @@ import com.project.webbanhang.exceptions.DataNotFoundException;
 import com.project.webbanhang.exceptions.InvalidParamException;
 import com.project.webbanhang.models.Product;
 import com.project.webbanhang.models.ProductImage;
+import com.project.webbanhang.response.CacheablePageResponse;
 import com.project.webbanhang.response.ProductListResponse;
 import com.project.webbanhang.response.ProductResponse;
 import com.project.webbanhang.services.IProductImageService;
@@ -49,13 +50,11 @@ public class ProductController {
     ) {
     	try {
     		PageRequest pageRequest = PageRequest.of(page - 1, limit, Sort.by("categoryId"));
-        	Page<ProductResponse> productPage = productService.getAllProducts(pageRequest);
-        	List<ProductResponse> products = productPage.getContent();
-        	
+        	CacheablePageResponse<ProductResponse> productPage = productService.getAllProducts(pageRequest);
         	int totalPages = productPage.getTotalPages();
         	
         	ProductListResponse productListResponse = ProductListResponse.builder()
-        			.products(products)
+        			.products(productPage.getContent())
         			.totalPage(totalPages)
                     .totalItem((int)productPage.getTotalElements())
         			.build();
@@ -74,18 +73,18 @@ public class ProductController {
     ) {
         try {
             // Lưu ý: Page index bắt đầu từ 0 trong Spring Data
-            PageRequest pageRequest = PageRequest.of(page - 1, limit); 
-            
-            Page<ProductResponse> productPage = productService.getProductsByCategoryId(categoryId, pageRequest);
-            List<ProductResponse> products = productPage.getContent();
-            int totalPages = productPage.getTotalPages();
-
+            PageRequest pageRequest = PageRequest.of(page - 1, limit);
+            CacheablePageResponse<ProductResponse> cachedPage = productService.getProductsByCategoryId(categoryId, pageRequest);
             ProductListResponse productListResponse = ProductListResponse.builder()
-                    .products(products)
-                    .totalPage(totalPages)
+                    .products(cachedPage.getContent())
+                    .totalPage(cachedPage.getTotalPages())
+                    .totalItem((int)cachedPage.getTotalElements())
                     .build();
 
             return ResponseEntity.ok(productListResponse);
+//            return ResponseEntity.ok(cachedPage);
+        } catch (DataNotFoundException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

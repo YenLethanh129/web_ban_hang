@@ -42,14 +42,9 @@ public class UserService implements IUserService{
 			throw new Exception(localizationUtil.getLocalizedMessage(MessageKey.PHONE_HAS_EXIST));
 		}
 
-		Optional<Role> existingRole = roleRepository.findByName(userDTO.getRoleName());
+		Optional<Role> existingRole = roleRepository.findByName(Role.CUSTOMER);
 		if (existingRole.isEmpty()) {
-//			throw new Exception("Server is under maintenance, please try again later!");
 			throw new Exception(localizationUtil.getLocalizedMessage(MessageKey.ROLE_NOT_EXIST));
-		}
-		if (!existingRole.get().getName().toUpperCase().equals(Role.CUSTOMER)) {
-//			throw new Exception("You can't register order role!");
-			throw new Exception(localizationUtil.getLocalizedMessage(MessageKey.ROLE_NOT_CUSTOMER));
 		}
 
 		User newUser = User.builder()
