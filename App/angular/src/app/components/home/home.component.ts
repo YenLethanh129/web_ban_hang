@@ -32,9 +32,11 @@ export class HomeComponent implements OnInit, OnDestroy {
   hasMoreProducts: boolean = true;
   isOfflineMode: boolean = false;
   isPaginationDataReady: boolean = false;
+  isInitialLoad: boolean = true; // Flag để theo dõi lần load đầu tiên
   storeLocations: StoreLocationDTO[] = MOCK_STORE_LOCATIONS;
 
   private readonly limit: number = 21;
+  private readonly maxCachedPages: number = 5; // Giới hạn tối đa 5 trang khi hiển thị từ cache
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -47,17 +49,23 @@ export class HomeComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    // Check cache size và clear nếu quá lớn
+    this.checkAndLimitCacheSize();
+
     // Load pagination cache first
     this.loadCachedPaginationData();
 
     // Set up subscriptions
-    this.subscribeToProductUpdates();
     this.subscribeToPaginationUpdates();
 
-    // Load products after a small delay to avoid race conditions
+    // Load products immediately - sẽ tự động fallback to cache nếu server fail
+    this.loadProducts();
+
+    // Thiết lập product updates subscription sau khi đã load xong
+    // để tránh việc hiển thị cache khi không cần thiết
     setTimeout(() => {
-      this.loadProducts();
-    }, 10);
+      this.subscribeToProductUpdates();
+    }, 100);
   }
 
   ngOnDestroy(): void {
@@ -65,13 +73,55 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  private checkAndLimitCacheSize(): void {
+    const cachedProducts = this.cacheService.getProducts();
+    const maxAllowedCacheProducts = this.limit * this.maxCachedPages; // 21 * 5 = 105 sản phẩm
+
+    if (cachedProducts.length > maxAllowedCacheProducts) {
+      console.log(
+        `⚠️ Cache has ${cachedProducts.length} products, limiting to ${maxAllowedCacheProducts} for home page performance`
+      );
+
+      // Chỉ giữ lại số lượng sản phẩm cần thiết cho home page
+      const limitedProducts = cachedProducts.slice(0, maxAllowedCacheProducts);
+      this.cacheService.setProducts(limitedProducts);
+
+      this.notificationService.showInfo(
+        `📦 Đã tối ưu cache: hiển thị ${maxAllowedCacheProducts} sản phẩm đầu tiên`
+      );
+    }
+  }
+
   private subscribeToProductUpdates(): void {
     this.productService
       .getProductsObservable()
       .pipe(takeUntil(this.destroy$))
       .subscribe((products) => {
-        if (products.length > 0) {
+        // QUAN TRỌNG: Chỉ hiển thị từ cache khi:
+        // 1. Đang ở chế độ offline
+        // 2. Chưa có sản phẩm nào được hiển thị
+        // 3. Không phải lần load đầu tiên
+        // 4. Cache có ít hơn hoặc bằng số sản phẩm cho phép hiển thị (21 * maxCachedPages)
+
+        const maxAllowedCacheProducts = this.limit * this.maxCachedPages;
+        const shouldDisplayFromCache =
+          products.length > 0 &&
+          !this.isInitialLoad &&
+          (this.isOfflineMode || this.products.length === 0) &&
+          products.length <= maxAllowedCacheProducts;
+
+        if (shouldDisplayFromCache) {
+          console.log(
+            `📱 Cache subscription: Displaying ${Math.min(
+              products.length,
+              this.limit
+            )} products from cache (total cached: ${products.length})`
+          );
           this.displayProductsFromCache(products);
+        } else if (products.length > maxAllowedCacheProducts) {
+          console.log(
+            `⚠️ Cache has ${products.length} products but only showing ${maxAllowedCacheProducts} for performance`
+          );
         }
       });
   }
@@ -149,10 +199,8 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   private loadProducts(): void {
-    const cachedProducts = this.cacheService.getProducts();
-    if (cachedProducts.length > 0) {
-      this.displayProductsFromCache(cachedProducts);
-    }
+    // Không lấy cache trước - để tránh trigger observable
+    // Chỉ fallback to cache khi server thật sự fail
 
     this.isLoading = true;
 
@@ -163,10 +211,26 @@ export class HomeComponent implements OnInit, OnDestroy {
           // Validate response to prevent undefined values
           if (!response || !Array.isArray(response.products)) {
             console.error('Invalid response format:', response);
+
+            // Fallback to cache only when server response is invalid
+            const cachedProducts = this.cacheService.getProducts();
+            if (cachedProducts.length > 0) {
+              console.log(
+                'Server response invalid, using cache:',
+                cachedProducts.length,
+                'products'
+              );
+              this.displayProductsFromCache(cachedProducts);
+              this.isOfflineMode = true;
+            }
             this.isLoading = false;
             return;
           }
 
+          // Server response is valid - use it instead of cache
+          console.log(
+            `🌐 Server response: ${response.products.length} products for page ${this.currentPage} (total: ${response.totalItem})`
+          );
           this.products = response.products;
           this.totalPages = Number(response.totalPage) || 1;
           this.totalItems =
@@ -178,18 +242,36 @@ export class HomeComponent implements OnInit, OnDestroy {
           this.isLoading = false;
           this.isOfflineMode = false;
           this.isPaginationDataReady = true;
+          this.isInitialLoad = false; // Đánh dấu đã hoàn thành initial load
 
           this.savePaginationToCache();
         },
         error: (error) => {
           console.error('Lỗi khi lấy danh sách sản phẩm:', error);
 
+          // Only use cache when server fails
+          const cachedProducts = this.cacheService.getProducts();
           if (cachedProducts.length > 0) {
+            console.log(
+              'Server error, using cache:',
+              cachedProducts.length,
+              'products'
+            );
+            this.displayProductsFromCache(cachedProducts);
             this.isOfflineMode = true;
             this.isPaginationDataReady = true;
-            this.notificationService.showWarning(
-              '📱 Đang hiển thị dữ liệu đã lưu - Kiểm tra kết nối mạng'
-            );
+
+            // Thông báo về giới hạn cache nếu có quá nhiều sản phẩm
+            const maxCachedItems = this.limit * this.maxCachedPages;
+            if (cachedProducts.length > maxCachedItems) {
+              this.notificationService.showWarning(
+                `📱 Đang hiển thị ${maxCachedItems} sản phẩm đầu tiên từ dữ liệu đã lưu - Kiểm tra kết nối mạng để xem đầy đủ`
+              );
+            } else {
+              this.notificationService.showWarning(
+                '📱 Đang hiển thị dữ liệu đã lưu - Kiểm tra kết nối mạng'
+              );
+            }
           } else {
             this.notificationService.showHttpError(
               error,
@@ -198,18 +280,54 @@ export class HomeComponent implements OnInit, OnDestroy {
             this.isPaginationDataReady = false;
           }
           this.isLoading = false;
+          this.isInitialLoad = false; // Đánh dấu đã hoàn thành initial load (dù thành công hay thất bại)
         },
       });
   }
 
   private displayProductsFromCache(allProducts: ProductDTO[]): void {
-    this.totalItems = allProducts.length;
-    this.totalPages = Math.ceil(this.totalItems / this.limit);
+    // Khi hiển thị từ cache, chỉ hiển thị số lượng phù hợp với trang hiện tại
+    // QUAN TRỌNG: Không hiển thị toàn bộ cache, chỉ hiển thị đúng số lượng theo phân trang
+
+    const cachedPagination = this.cacheService.getPaginationData();
+
+    if (cachedPagination && cachedPagination.totalItems > 0) {
+      // Sử dụng thông tin phân trang đã cache từ server
+      this.totalItems = cachedPagination.totalItems;
+      this.totalPages = cachedPagination.totalPages;
+    } else {
+      // Fallback: tính toán dựa trên cache hiện có
+      // Nhưng giới hạn theo maxCachedPages để không hiển thị quá nhiều
+      const maxItemsToShow = Math.min(
+        allProducts.length,
+        this.limit * this.maxCachedPages
+      );
+      this.totalItems = maxItemsToShow;
+      this.totalPages = Math.ceil(maxItemsToShow / this.limit);
+    }
+
     const startIndex = (this.currentPage - 1) * this.limit;
     const endIndex = startIndex + this.limit;
-    this.products = allProducts.slice(startIndex, endIndex);
-    this.hasMoreProducts = endIndex < allProducts.length;
+
+    // Chỉ lấy sản phẩm của trang hiện tại từ cache
+    // Đây là phần quan trọng nhất - chỉ slice đúng số lượng cho trang hiện tại
+    const maxAllowedIndex = Math.min(
+      endIndex,
+      this.limit * this.maxCachedPages
+    );
+    this.products = allProducts.slice(startIndex, maxAllowedIndex);
+
+    // Đảm bảo không hiển thị quá 21 sản phẩm trên một trang
+    if (this.products.length > this.limit) {
+      this.products = this.products.slice(0, this.limit);
+    }
+
+    this.hasMoreProducts = this.currentPage < this.totalPages;
     this.isPaginationDataReady = true;
+
+    console.log(
+      `📱 Cache mode: Showing ${this.products.length} products for page ${this.currentPage} (total: ${this.totalItems})`
+    );
 
     this.savePaginationToCache();
   }
@@ -251,10 +369,29 @@ export class HomeComponent implements OnInit, OnDestroy {
     const startIndex = this.products.length;
     const endIndex = startIndex + this.limit;
 
-    const moreProducts = allCachedProducts.slice(startIndex, endIndex);
+    // Kiểm tra xem có vượt quá số lượng cho phép hiển thị không
+    const maxItemsAllowed = Math.min(
+      this.totalItems || this.limit * this.maxCachedPages,
+      this.limit * this.maxCachedPages // Đảm bảo không bao giờ vượt quá giới hạn cache
+    );
+
+    if (startIndex >= maxItemsAllowed) {
+      this.hasMoreProducts = false;
+      console.log(`📱 Reached maximum cached items limit: ${maxItemsAllowed}`);
+      return;
+    }
+
+    const actualEndIndex = Math.min(endIndex, maxItemsAllowed);
+    const moreProducts = allCachedProducts.slice(startIndex, actualEndIndex);
+
     if (moreProducts.length > 0) {
       this.products = [...this.products, ...moreProducts];
-      this.hasMoreProducts = endIndex < allCachedProducts.length;
+      this.hasMoreProducts =
+        actualEndIndex < maxItemsAllowed &&
+        actualEndIndex < allCachedProducts.length;
+      console.log(
+        `📱 Loaded ${moreProducts.length} more products from cache. Total showing: ${this.products.length}`
+      );
     } else {
       this.hasMoreProducts = false;
     }
@@ -266,12 +403,16 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.hasMoreProducts = true;
     this.isOfflineMode = false;
     this.isPaginationDataReady = false;
+    this.isInitialLoad = true; // Reset initial load flag
 
     this.cacheService.clearPaginationData();
 
     this.dataLoadingService.forceReloadProducts().subscribe({
       next: (products) => {
+        // Kiểm tra và giới hạn cache sau khi reload
+        this.checkAndLimitCacheSize();
         this.displayProductsFromCache(products);
+        this.isInitialLoad = false;
         this.notificationService.showSuccess(
           '✅ Đã cập nhật danh sách sản phẩm'
         );
@@ -314,7 +455,16 @@ export class HomeComponent implements OnInit, OnDestroy {
   onPageChange(page: number): void {
     if (page === this.currentPage || this.isLoading) return;
 
+    // Kiểm tra nếu đang ở chế độ offline và page vượt quá giới hạn cache
+    if (this.isOfflineMode && page > this.maxCachedPages) {
+      this.notificationService.showWarning(
+        '⚠️ Không thể chuyển đến trang này khi offline. Vui lòng kiểm tra kết nối mạng.'
+      );
+      return;
+    }
+
     this.currentPage = page;
+    this.isInitialLoad = true; // Reset cho page mới
     this.savePaginationToCache();
     this.scrollToProducts();
     this.loadProducts();
@@ -345,5 +495,24 @@ export class HomeComponent implements OnInit, OnDestroy {
         behavior: 'smooth',
       });
     }
+  }
+
+  // Debug method để kiểm tra trạng thái cache
+  debugCacheStatus(): void {
+    const stats = this.cacheService.getCacheStats();
+    const cachedProducts = this.cacheService.getProducts();
+
+    console.log('🔍 Cache Debug Info:', {
+      totalCachedProducts: cachedProducts.length,
+      currentlyShowing: this.products.length,
+      currentPage: this.currentPage,
+      totalPages: this.totalPages,
+      totalItems: this.totalItems,
+      limit: this.limit,
+      maxCachedPages: this.maxCachedPages,
+      maxAllowedCacheProducts: this.limit * this.maxCachedPages,
+      isOfflineMode: this.isOfflineMode,
+      cacheStats: stats,
+    });
   }
 }

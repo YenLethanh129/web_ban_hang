@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { HomeComponent } from './components/home/home.component'; 
+import { HomeComponent } from './components/home/home.component';
 import { DetailProductComponent } from './components/detail-product/detail-product.component';
 import { OrderComponent } from './components/order/order.component';
 import { OrderConfirmComponent } from './components/order-confirm/order-confirm.component';
@@ -12,6 +12,7 @@ import { CategoryComponent } from './components/category/category.component';
 import { InfoOrderComponent } from './info-order/info-order.component';
 import { NotificationTestComponent } from './components/notification-test/notification-test.component';
 import { SearchResultsComponent } from './components/search-results/search-results.component';
+import { UserProfileComponent } from './components/user-profile/user-profile.component';
 
 export const routes: Routes = [
   {
@@ -42,6 +43,16 @@ export const routes: Routes = [
     path: 'info-order',
     component: InfoOrderComponent,
     canActivate: [AuthGuard],
+  },
+  {
+    path: 'user-profile',
+    component: UserProfileComponent,
+    canActivate: [AuthGuard],
+  },
+  {
+    path: 'profile',
+    redirectTo: 'user-profile',
+    pathMatch: 'full',
   },
   {
     path: 'notification-test',

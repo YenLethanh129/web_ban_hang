@@ -22,41 +22,17 @@ export class ProductService {
     limit: number = 20,
     useCache: boolean = true
   ): Observable<ProductResponse> {
-    // Check cache first if requested
-    if (useCache) {
-      const cachedProducts = this.cacheService.getProducts();
-      if (cachedProducts.length > 0) {
-        // Return cached products with pagination simulation
-        const startIndex = (page - 1) * limit;
-        const endIndex = startIndex + limit;
-        const paginatedProducts = cachedProducts.slice(startIndex, endIndex);
-        const totalPage = Math.ceil(cachedProducts.length / limit);
-
-        return of({
-          products: paginatedProducts,
-          totalPage: totalPage,
-          totalItem: cachedProducts.length,
-        });
-      }
-    }
-
-    // Fetch from server
+    // Fetch from server with correct pagination parameters
     const params = new HttpParams()
       .set('page', page.toString())
-      .set('limit', '1000');
+      .set('limit', limit.toString());
 
     return this.http.get<ProductResponse>(this.apiUrl, { params }).pipe(
       tap((response) => {
-        // If this is the first page and we haven't loaded all products yet,
-        // load all products in the background for complete caching
+        // If this is the first page, start loading all products in background for search capability
+        // but don't cache all products yet to avoid showing all products on pagination
         if (page === 1 && !this.allProductsLoaded) {
-          // Load all products in background for complete search capability
           this.loadAllProductsInBackground();
-        }
-
-        // For immediate display, cache the current page products
-        if (page === 1) {
-          this.cacheService.setProducts(response.products);
         }
       })
     );

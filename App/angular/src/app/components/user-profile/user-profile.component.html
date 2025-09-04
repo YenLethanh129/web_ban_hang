@@ -1,0 +1,251 @@
+<div class="profile-page">
+  <div class="profile-container">
+    <div class="profile-wrapper" *ngIf="profile">
+      <!-- Profile Header -->
+      <div class="profile-header">
+        <div class="brand-section">
+          <h1 class="brand-title">FUNNY BOY</h1>
+          <p class="brand-subtitle">Coffee & Tea</p>
+        </div>
+        <h2 class="profile-title">Thông tin cá nhân</h2>
+        <p class="profile-subtitle">Quản lý thông tin tài khoản của bạn</p>
+      </div>
+
+      <!-- Profile Content -->
+      <div class="profile-content">
+        <!-- View Mode -->
+        <div *ngIf="!isEditing" class="profile-view">
+          <div class="profile-info-grid">
+            <div class="info-item">
+              <div class="info-label">
+                <i class="fas fa-user"></i>
+                Họ và tên
+              </div>
+              <div class="info-value">{{ profile.fullname }}</div>
+            </div>
+
+            <div class="info-item">
+              <div class="info-label">
+                <i class="fas fa-phone"></i>
+                Số điện thoại
+              </div>
+              <div class="info-value">{{ profile.phone_number }}</div>
+              <small class="info-note">Không thể thay đổi</small>
+            </div>
+
+            <div class="info-item">
+              <div class="info-label">
+                <i class="fas fa-calendar-alt"></i>
+                Ngày sinh
+              </div>
+              <div class="info-value">
+                {{ formatDateForDisplay(profile.date_of_birth) }}
+              </div>
+            </div>
+
+            <div class="info-item">
+              <div class="info-label">
+                <i class="fas fa-map-marker-alt"></i>
+                Địa chỉ
+              </div>
+              <div class="info-value">{{ profile.address }}</div>
+              <small class="info-note">Không thể thay đổi</small>
+            </div>
+          </div>
+
+          <div class="profile-actions">
+            <button
+              type="button"
+              class="btn btn-primary"
+              (click)="toggleEdit()"
+            >
+              <i class="fas fa-edit"></i>
+              Chỉnh sửa thông tin
+            </button>
+          </div>
+        </div>
+
+        <!-- Edit Mode -->
+        <form
+          *ngIf="isEditing"
+          (ngSubmit)="onSubmit()"
+          #updateForm="ngForm"
+          class="profile-edit-form"
+        >
+          <div class="form-group">
+            <label for="fullname" class="form-label">
+              <i class="fas fa-user"></i>
+              Họ và tên
+            </label>
+            <div class="input-wrapper">
+              <input
+                type="text"
+                class="form-control"
+                id="fullname"
+                name="fullname"
+                [(ngModel)]="editData.fullname"
+                required
+                #fullname="ngModel"
+                (focus)="showFullNameError = true"
+                placeholder="Nhập họ và tên đầy đủ"
+              />
+              <i class="fas fa-user input-icon"></i>
+            </div>
+            <div
+              *ngIf="
+                showFullNameError && fullname.touched && !editData.fullname
+              "
+              class="error-message"
+            >
+              <i class="fas fa-exclamation-circle"></i>
+              Vui lòng nhập họ và tên
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="dateOfBirth" class="form-label">
+              <i class="fas fa-calendar-alt"></i>
+              Ngày sinh
+            </label>
+            <div class="input-wrapper">
+              <input
+                type="date"
+                class="form-control"
+                id="dateOfBirth"
+                name="dateOfBirth"
+                [(ngModel)]="editData.dateOfBirth"
+                #dateOfBirth="ngModel"
+                (focus)="showDateOfBirthError = true"
+              />
+              <i class="fas fa-calendar-alt input-icon"></i>
+            </div>
+            <div
+              *ngIf="
+                showDateOfBirthError &&
+                dateOfBirth.touched &&
+                editData.dateOfBirth &&
+                !validateAge()
+              "
+              class="error-message"
+            >
+              <i class="fas fa-exclamation-circle"></i>
+              Bạn phải trên 18 tuổi
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="password" class="form-label">
+              <i class="fas fa-lock"></i>
+              Mật khẩu mới (tùy chọn)
+            </label>
+            <div class="input-wrapper password-wrapper">
+              <input
+                [type]="showPassword ? 'text' : 'password'"
+                class="form-control"
+                id="password"
+                name="password"
+                [(ngModel)]="editData.password"
+                #password="ngModel"
+                (focus)="showPasswordError = true"
+                placeholder="Nhập mật khẩu mới (ít nhất 6 ký tự) hoặc để trống"
+              />
+              <i class="fas fa-lock input-icon"></i>
+              <i
+                class="fa-solid password-toggle"
+                [class.fa-eye]="!showPassword"
+                [class.fa-eye-slash]="showPassword"
+                (click)="togglePasswordVisibility()"
+              ></i>
+            </div>
+            <div
+              *ngIf="
+                showPasswordError &&
+                password.touched &&
+                editData.password &&
+                !validatePassword()
+              "
+              class="error-message"
+            >
+              <i class="fas fa-exclamation-circle"></i>
+              Mật khẩu phải có ít nhất 6 ký tự
+            </div>
+          </div>
+
+          <div class="form-group" *ngIf="editData.password">
+            <label for="confirmPassword" class="form-label">
+              <i class="fas fa-lock"></i>
+              Xác nhận mật khẩu mới
+            </label>
+            <div class="input-wrapper">
+              <input
+                type="password"
+                class="form-control"
+                id="confirmPassword"
+                name="confirmPassword"
+                [(ngModel)]="editData.confirmPassword"
+                #confirmPassword="ngModel"
+                placeholder="Nhập lại mật khẩu mới để xác nhận"
+              />
+              <i class="fas fa-lock input-icon"></i>
+            </div>
+            <div
+              *ngIf="confirmPassword.touched && !validateConfirmPassword()"
+              class="error-message"
+            >
+              <i class="fas fa-exclamation-circle"></i>
+              Mật khẩu xác nhận không khớp
+            </div>
+          </div>
+
+          <!-- Read-only fields display -->
+          <div class="readonly-fields">
+            <div class="readonly-item">
+              <div class="readonly-label">
+                <i class="fas fa-phone"></i>
+                Số điện thoại
+              </div>
+              <div class="readonly-value">{{ profile.phone_number }}</div>
+            </div>
+
+            <div class="readonly-item">
+              <div class="readonly-label">
+                <i class="fas fa-map-marker-alt"></i>
+                Địa chỉ
+              </div>
+              <div class="readonly-value">{{ profile.address }}</div>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              (click)="cancelEdit()"
+              [disabled]="isLoading"
+            >
+              <i class="fas fa-times"></i>
+              Hủy
+            </button>
+            <button
+              type="submit"
+              class="btn btn-primary"
+              [disabled]="isLoading || !updateForm.valid"
+            >
+              <i class="fas fa-save" *ngIf="!isLoading"></i>
+              <i class="fas fa-spinner fa-spin" *ngIf="isLoading"></i>
+              {{ isLoading ? "Đang lưu..." : "Lưu thay đổi" }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Loading state -->
+    <div *ngIf="!profile" class="loading-container">
+      <div class="loading-spinner">
+        <i class="fas fa-spinner fa-spin"></i>
+      </div>
+      <p>Đang tải thông tin...</p>
+    </div>
+  </div>
+</div>

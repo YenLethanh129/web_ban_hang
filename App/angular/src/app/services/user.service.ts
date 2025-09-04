@@ -8,6 +8,7 @@ import { TokenService } from './token.service';
 import { WebEnvironment } from '../environments/WebEnvironment';
 import { LoginResponse } from '../response/login.response';
 import { CacheService } from './cache.service';
+import { UpdateUserDTO } from '../dtos/update-user.dto';
 
 @Injectable({
   providedIn: 'root',
@@ -120,6 +121,21 @@ export class UserService {
   refreshUser(): Observable<UserDTO> {
     return this.getUserFromServer().pipe(
       tap((user) => this.setCurrentUser(user))
+    );
+  }
+
+  // Update user profile
+  updateUser(updateDTO: UpdateUserDTO): Observable<any> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${this.tokenService.getToken()}`,
+    });
+
+    return this.http.put(`${this.apiUrl}/update`, updateDTO, { headers }).pipe(
+      tap((response) => {
+        // After successful update, refresh user data from server
+        this.refreshUser().subscribe();
+      })
     );
   }
 }
