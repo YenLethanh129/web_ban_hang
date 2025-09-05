@@ -1,6 +1,8 @@
-﻿using Dashboard.DataAccess.Context;
+﻿using Dashboard.Common.Enums;
+using Dashboard.DataAccess.Context;
 using Dashboard.DataAccess.Specification;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace Dashboard.DataAccess.Repositories;
 
@@ -20,7 +22,7 @@ public interface IRepository<T> where T : class
     void Remove(T entity);
     void RemoveRange(IEnumerable<T> entities);
 
-    Task<IEnumerable<T>> GetAllWithSpecAsync(ISpecification<T> spec, bool asNoTracking = false, int? skip = null, int? take = null);
+    Task<IEnumerable<T>> GetAllWithSpecAsync(ISpecification<T> spec, bool asNoTracking = false, int? skip = null, int? take = null, string? sortBy = null, OrderByEnum? orderBy = null);
     Task<T?> GetWithSpecAsync(ISpecification<T> spec, bool asNoTracking = false);
 }
 
@@ -106,12 +108,17 @@ public class Repository<T> : IRepository<T> where T : class
     }
 
     // specs
-    public async Task<IEnumerable<T>> GetAllWithSpecAsync(ISpecification<T> spec, bool asNoTracking = false, int? skip = null, int? take = null)
+    public async Task<IEnumerable<T>> GetAllWithSpecAsync(ISpecification<T> spec, bool asNoTracking = false, int? skip = null, int? take = null, string? sortBy = null, OrderByEnum? orderBy = null)
     {
         IQueryable<T> query = ApplySpec(spec);
         if (asNoTracking)
         {
             query = query.AsNoTracking();
+        }
+        if (!string.IsNullOrEmpty(sortBy))
+        {
+            OrderByEnum direction = orderBy ?? OrderByEnum.Asc;
+            query = ApplyOrdering(query, sortBy, direction);
         }
         if (skip.HasValue)
         {
@@ -137,5 +144,21 @@ public class Repository<T> : IRepository<T> where T : class
     private IQueryable<T> ApplySpec(ISpecification<T> spec)
     {
         return SpecificationEvaluator<T>.GetQuery(_dbSet.AsQueryable(), spec);
+    }
+
+    private static IQueryable<T> ApplyOrdering(IQueryable<T> source, string sortBy, OrderByEnum orderBy)
+    {
+        var parameter = Expression.Parameter(typeof(T), "x");
+        var property = Expression.PropertyOrField(parameter, sortBy);
+        var lambda = Expression.Lambda(property, parameter);
+
+        string methodName = orderBy == OrderByEnum.Desc ? "OrderByDescending" : "OrderBy";
+
+        var result = typeof(Queryable).GetMethods()
+            .First(method => method.Name == methodName && method.GetParameters().Length == 2)
+            .MakeGenericMethod(typeof(T), property.Type)
+            .Invoke(null, [source, lambda]);
+
+        return (IQueryable<T>)result!;
     }
 }
