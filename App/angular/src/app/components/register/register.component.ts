@@ -11,11 +11,19 @@ import {
 import { UserService } from '../../services/user.service';
 import { RegisterDTO } from '../../dtos/register.dto';
 import { NotificationService } from '../../services/notification.service';
+import { AddressAutocompleteComponent } from '../shared/address-autocomplete/address-autocomplete.component';
+import { AddressPrediction } from '../../dtos/address.dto';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [RouterModule, FormsModule, CommonModule, HttpClientModule],
+  imports: [
+    RouterModule,
+    FormsModule,
+    CommonModule,
+    HttpClientModule,
+    AddressAutocompleteComponent,
+  ],
   templateUrl: './register.component.html',
   styleUrl: './register.component.scss',
 })
@@ -69,6 +77,10 @@ export class RegisterComponent {
 
   validateConfirmPassword(): boolean {
     return this.registerData.password === this.registerData.confirmPassword;
+  }
+
+  onAddressSelected(address: AddressPrediction): void {
+    this.registerData.address = address.description;
   }
 
   validateAge(): boolean {

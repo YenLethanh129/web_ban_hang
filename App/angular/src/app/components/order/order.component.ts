@@ -14,11 +14,18 @@ import { OrderDetailDTO } from '../../dtos/order.dto';
 import { OrderDetailService } from '../../services/order.detail.service';
 import { MomoService } from '../../services/momo.service';
 import { CreateMomoResponse } from '../../dtos/momo.dto';
+import { AddressAutocompleteComponent } from '../shared/address-autocomplete/address-autocomplete.component';
+import { AddressPrediction } from '../../dtos/address.dto';
 
 @Component({
   selector: 'app-order',
   standalone: true,
-  imports: [RouterModule, CommonModule, FormsModule],
+  imports: [
+    RouterModule,
+    CommonModule,
+    FormsModule,
+    AddressAutocompleteComponent,
+  ],
   templateUrl: './order.component.html',
   styleUrls: ['./order.component.scss'],
 })
@@ -121,6 +128,10 @@ export class OrderComponent implements OnInit {
       (total, item) => total + item.product.price * item.quantity,
       0
     );
+  }
+
+  onAddressSelected(address: AddressPrediction): void {
+    this.orderData.shippingAddress = address.description;
   }
 
   createOrder(): void {

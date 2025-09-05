@@ -6,11 +6,18 @@ import { UserService } from '../../services/user.service';
 import { UserDTO } from '../../dtos/user.dto';
 import { UpdateUserDTO } from '../../dtos/update-user.dto';
 import { NotificationService } from '../../services/notification.service';
+import { AddressAutocompleteComponent } from '../shared/address-autocomplete/address-autocomplete.component';
+import { AddressPrediction } from '../../dtos/address.dto';
 
 @Component({
   selector: 'app-user-profile',
   standalone: true,
-  imports: [RouterModule, FormsModule, CommonModule],
+  imports: [
+    RouterModule,
+    FormsModule,
+    CommonModule,
+    AddressAutocompleteComponent,
+  ],
   templateUrl: './user-profile.component.html',
   styleUrl: './user-profile.component.scss',
 })
@@ -127,6 +134,11 @@ export class UserProfileComponent implements OnInit {
   formatDateForDisplay(date: Date): string {
     if (!date) return 'Chưa cập nhật';
     return new Date(date).toLocaleDateString('vi-VN');
+  }
+
+  onAddressSelected(prediction: AddressPrediction): void {
+    this.editData.address = prediction.description;
+    console.log('Selected address:', prediction);
   }
 
   onSubmit(): void {

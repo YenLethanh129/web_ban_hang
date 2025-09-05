@@ -121,17 +121,15 @@
             Địa chỉ
           </label>
           <div class="input-wrapper">
-            <textarea
-              class="form-control"
-              id="address"
-              name="address"
+            <app-address-autocomplete
               [(ngModel)]="registerData.address"
-              required
+              name="address"
+              [required]="true"
               #address="ngModel"
-              (focus)="showAddressError = true"
+              (addressSelected)="onAddressSelected($event)"
               placeholder="Nhập địa chỉ đầy đủ của bạn"
-              rows="3"
-            ></textarea>
+              class="form-control"
+            ></app-address-autocomplete>
             <i class="fas fa-map-marker-alt input-icon"></i>
           </div>
           <div
