@@ -2,13 +2,14 @@ using Dashboard.DataAccess;
 using Dashboard.DataAccess.Context;
 using Dashboard.BussinessLogic; 
 using Microsoft.EntityFrameworkCore;
+using Dashboard.API.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 builder.AddDataAccess();
 
-builder.AddApplicationServices();
+builder.AddBussinessLogicServices();
 
 builder.Services.AddDbContext<WebbanhangDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("WebbanhangDB")));
@@ -36,6 +37,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseMiddleware<ExceptionHandlerMiddleware>();
 
 app.UseAuthorization();
 

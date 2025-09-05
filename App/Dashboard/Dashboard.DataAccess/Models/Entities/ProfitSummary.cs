@@ -9,6 +9,7 @@ namespace Dashboard.DataAccess.Models.Entities;
 [Table("profit_summary")]
 public partial class ProfitSummary : BaseAuditableEntity
 {
+
     [Column("branch_id")]
     public long? BranchId { get; set; }
 

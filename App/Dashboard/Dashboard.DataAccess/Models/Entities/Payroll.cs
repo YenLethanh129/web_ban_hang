@@ -9,7 +9,6 @@ namespace Dashboard.DataAccess.Models.Entities;
 [Table("payrolls")]
 public partial class Payroll : BaseAuditableEntity
 {
-
     [Column("employee_id")]
     public long EmployeeId { get; set; }
 
@@ -42,7 +41,7 @@ public partial class Payroll : BaseAuditableEntity
 
     [Column("net_salary", TypeName = "decimal(18, 2)")]
     public decimal? NetSalary { get; set; }
- 
+
     [ForeignKey("EmployeeId")]
     [InverseProperty("Payrolls")]
     public virtual Employee Employee { get; set; } = null!;

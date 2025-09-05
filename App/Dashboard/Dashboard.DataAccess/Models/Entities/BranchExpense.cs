@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,13 +9,11 @@ namespace Dashboard.DataAccess.Models.Entities;
 [Table("branch_expenses")]
 public partial class BranchExpense : BaseAuditableEntity
 {
-
     [Column("branch_id")]
     public long BranchId { get; set; }
 
     [Column("expense_type")]
     [StringLength(100)]
-    [Unicode(false)]
     public string ExpenseType { get; set; } = null!;
 
     [Column("amount", TypeName = "decimal(18, 2)")]
@@ -32,9 +32,7 @@ public partial class BranchExpense : BaseAuditableEntity
 
     [Column("note")]
     [StringLength(255)]
-    [Unicode(false)]
     public string? Note { get; set; }
-
 
     [ForeignKey("BranchId")]
     [InverseProperty("BranchExpenses")]

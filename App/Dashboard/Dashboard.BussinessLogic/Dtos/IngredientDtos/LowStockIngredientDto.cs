@@ -1,0 +1,18 @@
+﻿using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
+
+namespace Dashboard.BussinessLogic.Dtos.IngredientDtos;
+
+public class LowStockIngredientDto
+{
+    public long Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public string Unit { get; set; } = string.Empty;
+    public int InStockQuantity { get; set; }
+    public long IngredientCategoryId { get; set; }
+    public int SafetyStock { get; set; }
+    public int MaximumStock { get; set; }
+    public string CategoryName { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+}

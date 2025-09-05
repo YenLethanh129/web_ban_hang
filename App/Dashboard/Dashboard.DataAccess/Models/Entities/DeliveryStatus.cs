@@ -7,9 +7,9 @@ using Microsoft.EntityFrameworkCore;
 namespace Dashboard.DataAccess.Models.Entities;
 
 [Table("delivery_statuses")]
+[Index("Name", Name = "UQ__delivery__72E12F1BA335DE00", IsUnique = true)]
 public partial class DeliveryStatus : BaseEntity
 {
-
     [Column("name")]
     [StringLength(50)]
     [Unicode(false)]

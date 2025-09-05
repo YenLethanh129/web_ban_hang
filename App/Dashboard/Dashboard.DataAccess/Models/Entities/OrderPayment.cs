@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -9,6 +9,7 @@ namespace Dashboard.DataAccess.Models.Entities;
 [Table("order_payments")]
 public partial class OrderPayment : BaseAuditableEntity
 {
+
     [Column("order_id")]
     public long OrderId { get; set; }
 
