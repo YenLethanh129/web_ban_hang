@@ -72,9 +72,9 @@ SELECT
     ii.quantity_on_hand,
     ii.quantity_reserved,
     (ii.quantity_on_hand - ii.quantity_reserved) as available_quantity,
-    i.minimum_stock,
+    i.safety_stock,
     CASE 
-        WHEN (ii.quantity_on_hand - ii.quantity_reserved) <= i.minimum_stock THEN 'LOW_STOCK'
+        WHEN (ii.quantity_on_hand - ii.quantity_reserved) <= i.safety_stock THEN 'LOW_STOCK'
         WHEN (ii.quantity_on_hand - ii.quantity_reserved) = 0 THEN 'OUT_OF_STOCK'
         ELSE 'IN_STOCK'
     END as stock_status,
@@ -114,33 +114,3 @@ LEFT JOIN [dbo].[employee_salary_components] esc ON es.id = esc.employee_salary_
 LEFT JOIN [dbo].[salary_components] sc ON esc.component_id = sc.id
 WHERE e.status = 'ACTIVE'
 GROUP BY e.id, e.full_name, b.name, ep.name, es.base_salary, es.salary_type, es.effective_date, es.end_date;
-
--- Product with Current Price View
-GO
-CREATE VIEW [dbo].[v_products_with_prices] AS
-SELECT 
-    p.id,
-    p.name,
-    p.description,
-    p.sku,
-    c.name as category_name,
-    pp.price as current_price,
-    pp.price_type,
-    t.name as tax_name,
-    t.tax_rate,
-    uom.name as unit_of_measure,
-    p.weight,
-    p.dimensions,
-    p.is_active,
-    p.created_at,
-    p.updated_at
-FROM [dbo].[products] p
-LEFT JOIN [dbo].[categories] c ON p.category_id = c.id
-LEFT JOIN [dbo].[taxes] t ON p.tax_id = t.id
-LEFT JOIN [dbo].[units_of_measure] uom ON p.unit_of_measure_id = uom.id
-LEFT JOIN [dbo].[product_prices] pp ON p.id = pp.product_id 
-    AND pp.is_active = 1 
-    AND pp.effective_from <= GETDATE() 
-    AND (pp.effective_to IS NULL OR pp.effective_to >= GETDATE())
-    AND pp.price_type = 'BASE'
-WHERE p.is_active = 1;

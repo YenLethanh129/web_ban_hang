@@ -7,8 +7,20 @@ using Microsoft.EntityFrameworkCore;
 namespace Dashboard.DataAccess.Models.Entities;
 
 [Table("orders")]
+[Index("OrderUuid", Name = "UQ__orders__3DE398663640EAE7", IsUnique = true)]
+[Index("OrderCode", Name = "UQ__orders__99D12D3FB3E1E0BA", IsUnique = true)]
 public partial class Order : BaseAuditableEntity
 {
+    [Column("order_uuid")]
+    [StringLength(36)]
+    [Unicode(false)]
+    public string OrderUuid { get; set; } = null!;
+
+    [Column("order_code")]
+    [StringLength(20)]
+    [Unicode(false)]
+    public string OrderCode { get; set; } = null!;
+
     [Column("customer_id")]
     public long CustomerId { get; set; }
 
@@ -23,7 +35,6 @@ public partial class Order : BaseAuditableEntity
 
     [Column("notes")]
     [StringLength(500)]
-    [Unicode(true)]
     public string? Notes { get; set; }
 
     [ForeignKey("BranchId")]
@@ -34,19 +45,19 @@ public partial class Order : BaseAuditableEntity
     [InverseProperty("Orders")]
     public virtual Customer Customer { get; set; } = null!;
 
+    [InverseProperty("Order")]
+    public virtual ICollection<OrderDeliveryTracking> OrderDeliveryTrackings { get; set; } = [];
+
+    [InverseProperty("Order")]
+    public virtual ICollection<OrderDetail> OrderDetails { get; set; } = [];
+
+    [InverseProperty("Order")]
+    public virtual ICollection<OrderPayment> OrderPayments { get; set; } = [];
+
+    [InverseProperty("Order")]
+    public virtual ICollection<OrderShipment> OrderShipments { get; set; } = [];
+
     [ForeignKey("StatusId")]
     [InverseProperty("Orders")]
     public virtual OrderStatus? Status { get; set; }
-
-    [InverseProperty("Order")]
-    public virtual ICollection<OrderDeliveryTracking> OrderDeliveryTrackings { get; set; } = new List<OrderDeliveryTracking>();
-
-    [InverseProperty("Order")]
-    public virtual ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
-
-    [InverseProperty("Order")]
-    public virtual ICollection<OrderPayment> OrderPayments { get; set; } = new List<OrderPayment>();
-
-    [InverseProperty("Order")]
-    public virtual ICollection<OrderShipment> OrderShipments { get; set; } = new List<OrderShipment>();
 }

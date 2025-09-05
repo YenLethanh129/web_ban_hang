@@ -14,7 +14,6 @@ public partial class Customer : BaseAuditableEntity
 
     [Column("fullname")]
     [StringLength(100)]
-    [Unicode(false)]
     public string Fullname { get; set; } = null!;
 
     [Column("phone_number")]
@@ -29,14 +28,15 @@ public partial class Customer : BaseAuditableEntity
 
     [Column("address")]
     [StringLength(200)]
-    [Unicode(false)]
     public string? Address { get; set; }
 
+    [ForeignKey("Id")]
+    [InverseProperty("Customer")]
+    public virtual User IdNavigation { get; set; } = null!;
 
     [InverseProperty("Customer")]
-    public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
-
-    [ForeignKey("Id")]
-    [InverseProperty("Customers")]
-    public virtual User? User { get; set; }
+    public virtual ICollection<Order> Orders { get; set; } = [];
+    public string FullInfo => $"{Fullname} - {PhoneNumber} - {Email}";
+    public bool IsActive() => IdNavigation.IsActive;
+    public void InverseActiveStatus() => IdNavigation.IsActive = !IdNavigation.IsActive;
 }

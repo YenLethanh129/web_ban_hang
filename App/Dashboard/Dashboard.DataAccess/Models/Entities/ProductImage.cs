@@ -8,7 +8,7 @@ namespace Dashboard.DataAccess.Models.Entities;
 
 [Table("product_images")]
 public partial class ProductImage : BaseEntity
-{ 
+{
 
     [Column("product_id")]
     public long? ProductId { get; set; }

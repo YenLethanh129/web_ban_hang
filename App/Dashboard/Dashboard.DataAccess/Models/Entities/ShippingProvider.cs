@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Dashboard.DataAccess.Models.Entities;
 
 [Table("shipping_providers")]
+[Index("Name", Name = "UQ__shipping__72E12F1B8D36D97F", IsUnique = true)]
 public partial class ShippingProvider : BaseAuditableEntity
 {
     [Column("name")]

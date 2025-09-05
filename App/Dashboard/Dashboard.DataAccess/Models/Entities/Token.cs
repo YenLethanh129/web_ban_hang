@@ -7,8 +7,9 @@ using Microsoft.EntityFrameworkCore;
 namespace Dashboard.DataAccess.Models.Entities;
 
 [Table("tokens")]
-public partial class Token
+public partial class Token : BaseEntity
 {
+
     [Column("expired")]
     public bool Expired { get; set; }
 
@@ -18,10 +19,6 @@ public partial class Token
     [Column("expiration_date")]
     [Precision(6)]
     public DateTime? ExpirationDate { get; set; }
-
-    [Key]
-    [Column("id")]
-    public long Id { get; set; }
 
     [Column("user_id")]
     public long? UserId { get; set; }

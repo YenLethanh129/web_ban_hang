@@ -35,7 +35,7 @@ public partial class ExpensesSummary : BaseAuditableEntity
     public decimal ExpenseAfterTax { get; set; }
 
     [Column("tax_amount", TypeName = "decimal(18, 2)")]
-    public decimal TaxAmount { get; set; }
+    public decimal TaxAmount { get; set; } 
 
     [ForeignKey("BranchId")]
     [InverseProperty("ExpensesSummaries")]

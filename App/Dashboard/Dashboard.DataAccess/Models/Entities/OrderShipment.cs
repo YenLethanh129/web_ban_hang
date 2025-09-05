@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -17,7 +17,6 @@ public partial class OrderShipment : BaseAuditableEntity
 
     [Column("shipping_address")]
     [StringLength(500)]
-    [Unicode(true)]
     public string ShippingAddress { get; set; } = null!;
 
     [Column("shipping_cost", TypeName = "decimal(18, 2)")]

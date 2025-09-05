@@ -7,8 +7,10 @@ using Microsoft.EntityFrameworkCore;
 namespace Dashboard.DataAccess.Models.Entities;
 
 [Table("payment_methods")]
+[Index("Name", Name = "UQ__payment___72E12F1BEC94A5AC", IsUnique = true)]
 public partial class PaymentMethod : BaseEntity
-{ 
+{
+
     [Column("name")]
     [StringLength(50)]
     [Unicode(false)]
