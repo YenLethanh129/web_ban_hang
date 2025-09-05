@@ -1,4 +1,7 @@
-﻿using Dashboard.BussinessLogic.Services;
+﻿using AutoMapper;
+using Dashboard.BussinessLogic.Dtos.ReportDtos;
+using Dashboard.BussinessLogic.Dtos.SupplierDtos;
+using Dashboard.BussinessLogic.Services;
 using Dashboard.Winform.ViewModels;
 
 namespace Dashboard.Winform.Presenters
@@ -13,39 +16,51 @@ namespace Dashboard.Winform.Presenters
 
     public class LandingDashboardPresenter : ILandingDashboardPresenter
     {
-        private readonly IOrderService _orderService;
         private readonly IReportingService _reportingService;
-
+        private readonly ICustomerService _customerService;
+        private readonly IProductService _productService;
+        private readonly ISupplierManagementService _supplierManagementService;
+        private readonly IMapper _mapper;
         public LandingDashboardModel Model { get; }
 
         public event EventHandler? OnDataLoaded;
 
         public LandingDashboardPresenter(
-            IOrderService orderService,
-            IReportingService reportingService)
+            IReportingService reportingService,
+            IProductService productService,
+            ICustomerService customerService,
+            ISupplierManagementService supplierManagementService,
+            IMapper mapper
+            )
         {
-            _orderService = orderService;
             _reportingService = reportingService;
+            _customerService = customerService;
+            _productService = productService;
+            _supplierManagementService = supplierManagementService;
+            _mapper = mapper;
             Model = new LandingDashboardModel();
         }
 
         public async Task LoadDashboardDataAsync()
         {
             var today = DateTime.Now;
-            var startOfMonth = new DateTime(today.Year, today.Month, 1);
             var startOfYear = new DateTime(today.Year, 1, 1);
 
-            var orderSummary = await _orderService.GetOrderSummaryAsync(startOfMonth, today);
             var dashboardSummary = await _reportingService.GetDashboardSummaryAsync();
 
-            Model.TotalOrders = orderSummary.TotalOrders;
-            Model.PendingOrders = orderSummary.PendingOrders;
-            Model.TotalRevenue = orderSummary.TotalRevenue;
-            Model.StartDate = startOfMonth;
+            Model.TotalOrders = dashboardSummary.TotalOrders;
+            Model.PendingOrders = dashboardSummary.PendingOrders;
+            Model.TotalRevenue = dashboardSummary.TotalRevenue;
+            Model.TotalExpenses = dashboardSummary.TotalExpenses;
+            Model.SupplierCount = await _supplierManagementService.GetSuppliersAsync(new GetSuppliersInput()).ContinueWith(t => t.Result.TotalRecords);
+            Model.CustomerCount = await _customerService.GetCountAsync();
+            Model.ProductCount = await _productService.GetCountAsync();
+            Model.TopProducts = _mapper.Map<List<TopProductViewModel>>(dashboardSummary.TopProducts);
+            Model.GrossRevenueList = _mapper.Map<List<RevenueByDateViewModel>>(dashboardSummary.FinacialReports);
+            Model.StartDate = startOfYear;
             Model.EndDate = today;
-            Model.PeriodDescription = "Tháng này";
+            Model.PeriodDescription = "Tổng";
 
-            // Map understock ingredients to understock products
             if (dashboardSummary.UnderstockIngredients != null)
             {
                 var understockProducts = dashboardSummary.UnderstockIngredients.Select(ingredient => new UnderstockProductViewModel
@@ -70,17 +85,22 @@ namespace Dashboard.Winform.Presenters
         
         public async Task LoadDashboardDataAsync(DateTime startDate, DateTime endDate)
         {
-
-            var orderSummary = await _orderService.GetOrderSummaryAsync(startDate, endDate);
-            var dashboardSummary = await _reportingService.GetDashboardSummaryAsync();
-            
-            Model.TotalOrders = orderSummary.TotalOrders;
-            Model.PendingOrders = orderSummary.PendingOrders;
-            Model.TotalRevenue = orderSummary.TotalRevenue;
+            var dashboardSummary = await _reportingService.GetDashboardSummaryAsync(startDate, endDate);
+            if (startDate != endDate)
+            {
+                Model.TopProducts = _mapper.Map<List<TopProductViewModel>>(dashboardSummary.TopProducts);
+                Model.GrossRevenueList = _mapper.Map<List<RevenueByDateViewModel>>(dashboardSummary.FinacialReports);
+            }
+            Model.TotalOrders = dashboardSummary.TotalOrders;
+            Model.PendingOrders = dashboardSummary.PendingOrders;
+            Model.TotalRevenue = dashboardSummary.TotalRevenue;
+            Model.TotalExpenses = dashboardSummary.TotalExpenses;
+            Model.CustomerCount = await _customerService.GetCountAsync();
+            Model.ProductCount = await _productService.GetCountAsync();
             Model.StartDate = startDate;
             Model.EndDate = endDate;
             
-            // Set period description based on date range
+            
             var daysDiff = (endDate - startDate).Days;
             if (daysDiff == 0)
                 Model.PeriodDescription = "Hôm nay";
@@ -91,7 +111,6 @@ namespace Dashboard.Winform.Presenters
             else
                 Model.PeriodDescription = "Khoảng thời gian tùy chọn";
 
-            // Map understock ingredients to understock products
             if (dashboardSummary.UnderstockIngredients != null)
             {
                 var understockProducts = dashboardSummary.UnderstockIngredients.Select(ingredient => new UnderstockProductViewModel
@@ -103,7 +122,6 @@ namespace Dashboard.Winform.Presenters
                     CurrentStock = ingredient.InStockQuantity,
                     SafetyStock = ingredient.SafetyStock,
                     MaximumStock = ingredient.MaximumStock, 
-                    Supplier = "Chưa xác định",
                     LastRestockDate = ingredient.UpdatedAt ?? ingredient.CreatedAt,
                     Location = "Kho chính"
                 }).ToList();

@@ -9,7 +9,6 @@ public class LowStockIngredientDto
     public string Description { get; set; } = string.Empty;
     public string Unit { get; set; } = string.Empty;
     public int InStockQuantity { get; set; }
-    public decimal CostPerUnit { get; set; }
     public long IngredientCategoryId { get; set; }
     public int SafetyStock { get; set; }
     public int MaximumStock { get; set; }

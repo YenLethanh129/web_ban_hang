@@ -28,6 +28,9 @@ public static class DependencyInjection
         builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
         builder.Services.AddScoped<IIngredientTransferRepository, IngredientTransferRepository>();
         builder.Services.AddScoped<IIngredientTransferRequestRepository, IngredientTransferRequestRepository>();
+        builder.Services.AddScoped<IEmployeeShiftRepository, EmployeeShiftRepository>();
+        builder.Services.AddScoped<IPayrollRepository, PayrollRepository>();
+        builder.Services.AddScoped<IEmployeeSalaryRepository, EmployeeSalaryRepository>();
         builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 

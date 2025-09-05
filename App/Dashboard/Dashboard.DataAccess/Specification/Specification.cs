@@ -1,11 +1,12 @@
-﻿                   using System.Linq.Expressions;
+﻿using Microsoft.EntityFrameworkCore.Query;
+using System.Linq.Expressions;
 
 namespace Dashboard.DataAccess.Specification;
 
 public interface ISpecification<T>
 {
     Expression<Func<T, bool>>? Where { get; }
-    List<Expression<Func<T, object>>> Includes { get; }
+    List<Func<IQueryable<T>, IIncludableQueryable<T, object>>> Includes { get; }
     List<string> IncludeStrings { get; }
 }
 
@@ -21,10 +22,18 @@ public class Specification<T> : ISpecification<T>
     }
 
     public Expression<Func<T, bool>>? Where { get; }
-    public List<string> IncludeStrings { get; } = [];
-    public List<Expression<Func<T, object>>> Includes { get; } = [];
-    protected void AddIncludes(Expression<Func<T, object>> include)
+
+    public List<string> IncludeStrings { get; } = new();
+
+    public List<Func<IQueryable<T>, IIncludableQueryable<T, object>>> Includes { get; } = new();
+
+    protected void AddInclude(Func<IQueryable<T>, IIncludableQueryable<T, object>> includeExpression)
     {
-        Includes.Add(include);
+        Includes.Add(includeExpression);
+    }
+
+    protected void AddInclude(string includeString)
+    {
+        IncludeStrings.Add(includeString);
     }
 }

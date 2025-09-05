@@ -4,7 +4,7 @@ namespace Dashboard.BussinessLogic.Shared;
 
 public abstract class BaseTransactionalService
 {
-    private readonly IUnitOfWork _unitOfWork;
+    protected readonly IUnitOfWork _unitOfWork;
 
     protected BaseTransactionalService(IUnitOfWork unitOfWork)
     {

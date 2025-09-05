@@ -79,7 +79,7 @@ public partial class PurchaseReturn : BaseAuditableEntity
     public virtual PurchaseInvoice? Invoice { get; set; }
 
     [InverseProperty("Return")]
-    public virtual ICollection<PurchaseReturnDetail> PurchaseReturnDetails { get; set; } = new List<PurchaseReturnDetail>();
+    public virtual ICollection<PurchaseReturnDetail> PurchaseReturnDetails { get; set; } = [];
 
     [ForeignKey("SupplierId")]
     [InverseProperty("PurchaseReturns")]

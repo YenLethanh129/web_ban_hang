@@ -6,7 +6,6 @@ namespace Dashboard.Winform.ViewModels
     {
         // Main financial data
         private decimal _totalRevenue;
-        private decimal _totalProfit;
         private decimal _totalExpenses;
 
         // Order Properties
@@ -17,16 +16,17 @@ namespace Dashboard.Winform.ViewModels
         private int _customerCount;
         private int _supplierCount;
         private int _productCount;
-        
+
         // Current period info
         private DateTime _startDate;
         private DateTime _endDate;
         private string _periodDescription = "Tháng này";
 
         // Collections
-        private List<UnderstockProductViewModel> _understockProducts = [];
+        private List<UnderstockProductViewModel> _understockGoods = [];
         private List<TopProductViewModel> _topProducts = [];
         private List<BranchPerformanceViewModel> _branchPerformance = [];
+        private List<RevenueByDateViewModel> _grossRevenueList = [];
 
         // Main Properties with unified approach
         public decimal TotalRevenue
@@ -41,19 +41,6 @@ namespace Dashboard.Winform.ViewModels
             }
         }
 
-        public decimal TotalProfit
-        {
-            get => _totalProfit;
-            set
-            {
-                _totalProfit = value;
-                OnPropertyChanged(nameof(TotalProfit));
-                OnPropertyChanged(nameof(TotalProfitFormatted));
-                OnPropertyChanged(nameof(ProfitMargin));
-                OnPropertyChanged(nameof(NetProfit));
-            }
-        }
-
         public decimal TotalExpenses
         {
             get => _totalExpenses;
@@ -63,6 +50,7 @@ namespace Dashboard.Winform.ViewModels
                 OnPropertyChanged(nameof(TotalExpenses));
                 OnPropertyChanged(nameof(TotalExpensesFormatted));
                 OnPropertyChanged(nameof(NetProfit));
+                OnPropertyChanged(nameof(ProfitMargin));
             }
         }
 
@@ -117,6 +105,7 @@ namespace Dashboard.Winform.ViewModels
                 OnPropertyChanged(nameof(PendingOrders));
             }
         }
+
         public int CustomerCount
         {
             get => _customerCount;
@@ -149,13 +138,14 @@ namespace Dashboard.Winform.ViewModels
 
         public List<UnderstockProductViewModel> UnderstockProducts
         {
-            get => _understockProducts;
+            get => _understockGoods;
             set
             {
-                _understockProducts = value;
+                _understockGoods = value;
                 OnPropertyChanged(nameof(UnderstockProducts));
             }
         }
+
         public List<TopProductViewModel> TopProducts
         {
             get => _topProducts;
@@ -175,21 +165,35 @@ namespace Dashboard.Winform.ViewModels
                 OnPropertyChanged(nameof(BranchPerformance));
             }
         }
+        public List<RevenueByDateViewModel> GrossRevenueList
+        {
+            get => _grossRevenueList;
+            set
+            {
+                _grossRevenueList = value;
+                OnPropertyChanged(nameof(GrossRevenueList));
+            }
+        }
+
+        // Helper method for VND formatting
+        private static string FormatVND(decimal amount)
+        {
+            return amount.ToString("#,##0") + " đ";
+        }
 
         // Formatted Properties
-        public string TotalRevenueFormatted => _totalRevenue.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("vi-VN"));
-        public string TotalProfitFormatted => _totalProfit.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("vi-VN"));
-        public string TotalExpensesFormatted => _totalExpenses.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("vi-VN"));
-        
-        // Calculated Properties
-        public decimal ProfitMargin => TotalRevenue > 0 ? (TotalProfit / TotalRevenue) * 100 : 0;
-        public decimal NetProfit => TotalRevenue - TotalExpenses;
-        public string NetProfitFormatted => NetProfit.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("vi-VN"));
+        public string TotalRevenueFormatted => FormatVND(_totalRevenue);
+        public string TotalExpensesFormatted => FormatVND(_totalExpenses);
+        public string NetProfitFormatted => FormatVND(NetProfit);
         public string ProfitMarginFormatted => ProfitMargin.ToString("F2") + "%";
-        
+
+        // Calculated Properties
+        public decimal NetProfit => TotalRevenue - TotalExpenses;
+        public decimal ProfitMargin => TotalRevenue > 0 ? (NetProfit / TotalRevenue) * 100 : 0;
+
         // Period Display
-        public string PeriodDisplay => StartDate != default && EndDate != default 
-            ? $"{StartDate:dd/MM/yyyy} - {EndDate:dd/MM/yyyy}" 
+        public string PeriodDisplay => StartDate != default && EndDate != default
+            ? $"{StartDate:dd/MM/yyyy} - {EndDate:dd/MM/yyyy}"
             : PeriodDescription;
 
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -197,27 +201,6 @@ namespace Dashboard.Winform.ViewModels
         protected virtual void OnPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        // Helper methods for easy data updates
-        public void UpdateFinancialData(decimal revenue, decimal profit, decimal expenses)
-        {
-            TotalRevenue = revenue;
-            TotalProfit = profit;
-            TotalExpenses = expenses;
-        }
-
-        public void UpdateOrderData(int totalOrders, int pendingOrders)
-        {
-            TotalOrders = totalOrders;
-            PendingOrders = pendingOrders;
-        }
-
-        public void UpdateCountsData(int customers, int suppliers, int products)
-        {
-            CustomerCount = customers;
-            SupplierCount = suppliers;
-            ProductCount = products;
         }
 
         public void SetPeriod(DateTime start, DateTime end, string description = "")
@@ -228,31 +211,15 @@ namespace Dashboard.Winform.ViewModels
                 PeriodDescription = description;
         }
 
-        // Method to clear all data
-        public void ClearData()
-        {
-            TotalRevenue = 0;
-            TotalProfit = 0;
-            TotalExpenses = 0;
-            TotalOrders = 0;
-            PendingOrders = 0;
-            CustomerCount = 0;
-            SupplierCount = 0;
-            ProductCount = 0;
-            UnderstockProducts.Clear();
-            TopProducts.Clear();
-            BranchPerformance.Clear();
-        }
     }
 }
-
 public class TopProductViewModel
 {
     public long ProductId { get; set; }
     public string ProductName { get; set; } = string.Empty;
     public int QuantitySold { get; set; }
     public decimal Revenue { get; set; }
-    public string RevenueFormatted => Revenue.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("vi-VN"));
+    public string RevenueFormatted => Revenue.ToString("#,##0") + " đ";
 }
 
 public class BranchPerformanceViewModel
@@ -262,21 +229,30 @@ public class BranchPerformanceViewModel
     public decimal Revenue { get; set; }
     public decimal Profit { get; set; }
     public int OrderCount { get; set; }
-    public string RevenueFormatted => Revenue.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("vi-VN"));
-    public string ProfitFormatted => Profit.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("vi-VN"));
+    public string RevenueFormatted => Revenue.ToString("#,##0") + " đ";
+    public string ProfitFormatted => Profit.ToString("#,##0") + " đ";
 }
-
+public class RevenueByDateViewModel()
+{
+    public DateTime Date { get; set; }
+    public decimal Revenue { get; set; }
+    public decimal Expense { get; set; }
+    public decimal Profit => Revenue - Expense;
+    public string DateFormatted => Date.ToString("dd/MM/yyyy");
+    public string RevenueFormatted => Revenue.ToString("#,##0") + " đ";
+    public string ExpenseFormatted => Expense.ToString("#,##0") + " đ";
+    public string ProfitFormatted => Profit.ToString("#,##0") + " đ";
+}
 public class RevenueReportViewModel
 {
     public decimal TotalRevenue { get; set; }
-    public decimal TotalProfit { get; set; }
-    public decimal TotalExpenses { get; set; }
     public decimal NetProfit { get; set; }
+    public decimal TotalExpenses { get; set; }
     public DateTime ReportDate { get; set; }
     public long BranchId { get; set; }
     public string BranchName { get; set; } = string.Empty;
-    public string TotalRevenueFormatted => TotalRevenue.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("vi-VN"));
-    public string NetProfitFormatted => NetProfit.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("vi-VN"));
+    public string TotalRevenueFormatted => TotalRevenue.ToString("#,##0") + " đ";
+    public string NetProfitFormatted => NetProfit.ToString("#,##0") + " đ";
     public string ReportDateFormatted => ReportDate.ToString("dd/MM/yyyy");
 }
 public class UnderstockProductViewModel

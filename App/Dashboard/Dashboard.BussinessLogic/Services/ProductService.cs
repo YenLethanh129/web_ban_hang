@@ -12,6 +12,7 @@ namespace Dashboard.BussinessLogic.Services;
 
 public interface IProductService 
 {
+    Task<int> GetCountAsync();
     Task<PagedList<ProductDto>> GetProductsAsync(GetProductsInput input);
     Task<ProductDto?> GetProductByIdAsync(int id);
     Task<ProductDto> CreateProductAsync(CreateProductInput input);
@@ -40,6 +41,11 @@ public class ProductService : IProductService
         _logger = logger;
     }
 
+    public async Task<int> GetCountAsync()
+    {
+        return await _productRepository.GetCountAsync();
+    }
+
     public async Task<PagedList<ProductDto>> GetProductsAsync(GetProductsInput input)
     {
 
@@ -53,8 +59,8 @@ public class ProductService : IProductService
             (!input.EndDate.HasValue || p.CreatedAt.Date <= input.EndDate.Value)
         );
 
-        specification.Includes.Add(p => p.Category!);
-        specification.Includes.Add(p => p.ProductImages);
+        specification.IncludeStrings.Add("Category");
+        specification.IncludeStrings.Add("ProductImages");
 
         var allProducts = await _productRepository.GetAllWithSpecAsync(specification, true);
 

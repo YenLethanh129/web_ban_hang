@@ -32,15 +32,21 @@ IF OBJECT_ID('dbo.customers', 'U') IS NOT NULL DROP TABLE [dbo].[customers];
 IF OBJECT_ID('dbo.branch_expenses', 'U') IS NOT NULL DROP TABLE [dbo].[branch_expenses];
 IF OBJECT_ID('dbo.supplier_ingredient_prices', 'U') IS NOT NULL DROP TABLE [dbo].[supplier_ingredient_prices];
 IF OBJECT_ID('dbo.ingredient_transfers', 'U') IS NOT NULL DROP TABLE [dbo].[ingredient_transfers];
+IF OBJECT_ID('dbo.inventory_movements', 'U') IS NOT NULL DROP TABLE [dbo].[inventory_movements];
+IF OBJECT_ID('dbo.ingredient_transfer_request_details', 'U') IS NOT NULL DROP TABLE [dbo].[ingredient_transfer_request_details];
+IF OBJECT_ID('dbo.ingredient_transfer_requests', 'U') IS NOT NULL DROP TABLE [dbo].[ingredient_transfer_requests];
 IF OBJECT_ID('dbo.inventory_thresholds', 'U') IS NOT NULL DROP TABLE [dbo].[inventory_thresholds];
 IF OBJECT_ID('dbo.ingredient_warehouse', 'U') IS NOT NULL DROP TABLE [dbo].[ingredient_warehouse];
 IF OBJECT_ID('dbo.branch_ingredient_inventory', 'U') IS NOT NULL DROP TABLE [dbo].[branch_ingredient_inventory];
 IF OBJECT_ID('dbo.employee_shifts', 'U') IS NOT NULL DROP TABLE [dbo].[employee_shifts];
 IF OBJECT_ID('dbo.employee_salaries', 'U') IS NOT NULL DROP TABLE [dbo].[employee_salaries];
 IF OBJECT_ID('dbo.payrolls', 'U') IS NOT NULL DROP TABLE [dbo].[payrolls];
+IF OBJECT_ID('dbo.recipe_ingredients', 'U') IS NOT NULL DROP TABLE [dbo].[recipe_ingredients];
+IF OBJECT_ID('dbo.recipes', 'U') IS NOT NULL DROP TABLE [dbo].[recipes];
 IF OBJECT_ID('dbo.ingredient_purchase_order_details', 'U') IS NOT NULL DROP TABLE [dbo].[ingredient_purchase_order_details];
 IF OBJECT_ID('dbo.product_recipes', 'U') IS NOT NULL DROP TABLE [dbo].[product_recipes];
 IF OBJECT_ID('dbo.product_images', 'U') IS NOT NULL DROP TABLE [dbo].[product_images];
+IF OBJECT_ID('dbo.role_permissions', 'U') IS NOT NULL DROP TABLE [dbo].[role_permissions];
 IF OBJECT_ID('dbo.social_accounts', 'U') IS NOT NULL DROP TABLE [dbo].[social_accounts];
 IF OBJECT_ID('dbo.tokens', 'U') IS NOT NULL DROP TABLE [dbo].[tokens];
 IF OBJECT_ID('dbo.users', 'U') IS NOT NULL DROP TABLE [dbo].[users];
@@ -60,6 +66,7 @@ IF OBJECT_ID('dbo.invoice_statuses', 'U') IS NOT NULL DROP TABLE [dbo].[invoice_
 IF OBJECT_ID('dbo.purchase_order_statuses', 'U') IS NOT NULL DROP TABLE [dbo].[purchase_order_statuses];
 IF OBJECT_ID('dbo.ingredient_categories', 'U') IS NOT NULL DROP TABLE [dbo].[ingredient_categories];
 IF OBJECT_ID('dbo.categories', 'U') IS NOT NULL DROP TABLE [dbo].[categories];
+IF OBJECT_ID('dbo.permissions', 'U') IS NOT NULL DROP TABLE [dbo].[permissions];
 IF OBJECT_ID('dbo.taxes', 'U') IS NOT NULL DROP TABLE [dbo].[taxes];
 IF OBJECT_ID('dbo.roles', 'U') IS NOT NULL DROP TABLE [dbo].[roles];
 GO
@@ -72,9 +79,23 @@ GO
 CREATE TABLE [dbo].[roles] (
     [id] bigint IDENTITY(1,1) NOT NULL,
     [name] nvarchar(100) COLLATE Vietnamese_CI_AS NOT NULL UNIQUE,
+    [description] nvarchar(255) COLLATE Vietnamese_CI_AS,
     [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
     [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
     CONSTRAINT [PK_roles] PRIMARY KEY ([id])
+);
+GO
+
+-- Permissions table
+CREATE TABLE [dbo].[permissions] (
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [name] nvarchar(100) COLLATE Vietnamese_CI_AS NOT NULL UNIQUE,
+    [description] nvarchar(255) COLLATE Vietnamese_CI_AS,
+    [resource] nvarchar(50) COLLATE Vietnamese_CI_AS NOT NULL,
+    [action] nvarchar(50) COLLATE Vietnamese_CI_AS NOT NULL,
+    [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT [PK_permissions] PRIMARY KEY ([id])
 );
 GO
 
@@ -139,7 +160,7 @@ GO
 -- Order Statuses table
 CREATE TABLE [dbo].[order_statuses] (
     [id] bigint IDENTITY(1,1) NOT NULL,
-    [name] nvarchar(50) COLLATE Vietnamese_CI_AS NOT NULL,
+    [name] nvarchar(50) NOT NULL UNIQUE,
     CONSTRAINT [PK_order_statuses] PRIMARY KEY ([id])
 );
 GO
@@ -147,7 +168,7 @@ GO
 -- Payment Methods table
 CREATE TABLE [dbo].[payment_methods] (
     [id] bigint IDENTITY(1,1) NOT NULL,
-    [name] nvarchar(50) COLLATE Vietnamese_CI_AS NOT NULL,
+    [name] nvarchar(50) NOT NULL UNIQUE,
     CONSTRAINT [PK_payment_methods] PRIMARY KEY ([id])
 );
 GO
@@ -155,7 +176,7 @@ GO
 -- Payment Statuses table
 CREATE TABLE [dbo].[payment_statuses] (
     [id] bigint IDENTITY(1,1) NOT NULL,
-    [name] nvarchar(50) COLLATE Vietnamese_CI_AS NOT NULL,
+    [name] nvarchar(50) NOT NULL UNIQUE,
     CONSTRAINT [PK_payment_statuses] PRIMARY KEY ([id])
 );
 GO
@@ -185,9 +206,9 @@ CREATE TABLE [dbo].[suppliers] (
     [id] bigint IDENTITY(1,1) NOT NULL,
     [name] nvarchar(255) COLLATE Vietnamese_CI_AS NOT NULL,
     [phone] varchar(20),
-    [email] varchar(255),
-    [address] nvarchar(500) COLLATE Vietnamese_CI_AS,
-    [note] nvarchar(1000) COLLATE Vietnamese_CI_AS,
+    [email] varchar(100),
+    [address] nvarchar(255) COLLATE Vietnamese_CI_AS,
+    [note] nvarchar(255) COLLATE Vietnamese_CI_AS,
     [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
     [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
     CONSTRAINT [PK_suppliers] PRIMARY KEY ([id])
@@ -198,9 +219,9 @@ GO
 CREATE TABLE [dbo].[branches] (
     [id] bigint IDENTITY(1,1) NOT NULL,
     [name] nvarchar(255) COLLATE Vietnamese_CI_AS NOT NULL,
-    [address] nvarchar(500) COLLATE Vietnamese_CI_AS NOT NULL,
+    [address] nvarchar(255) COLLATE Vietnamese_CI_AS,
     [phone] varchar(20),
-    [manager] nvarchar(255) COLLATE Vietnamese_CI_AS,
+    [manager] nvarchar(100) COLLATE Vietnamese_CI_AS,
     [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
     [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
     CONSTRAINT [PK_branches] PRIMARY KEY ([id])
@@ -231,12 +252,13 @@ GO
 -- Products table
 CREATE TABLE [dbo].[products] (
     [id] bigint IDENTITY(1,1) NOT NULL,
-    [price] decimal(10,0) NOT NULL,
-    [category_id] bigint NOT NULL,
-    [tax_id] bigint NOT NULL,
-    [description] nvarchar(1000) COLLATE Vietnamese_CI_AS,
+    [price] decimal(18,2) NOT NULL,
+    [category_id] bigint NULL,
+    [is_active] bit NOT NULL DEFAULT 1,
+    [tax_id] bigint NULL,
+    [description] nvarchar(255) COLLATE Vietnamese_CI_AS NOT NULL,
     [name] nvarchar(255) COLLATE Vietnamese_CI_AS NOT NULL,
-    [thumbnail] nvarchar(500),
+    [thumbnail] nvarchar(255),
     [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
     [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
     CONSTRAINT [PK_products] PRIMARY KEY ([id]),
@@ -250,9 +272,10 @@ CREATE TABLE [dbo].[ingredients] (
     [id] bigint IDENTITY(1,1) NOT NULL,
     [category_id] bigint NOT NULL,
     [name] nvarchar(255) COLLATE Vietnamese_CI_AS NOT NULL,
-    [unit] nvarchar(20) COLLATE Vietnamese_CI_AS NOT NULL,
-    [description] nvarchar(1000) COLLATE Vietnamese_CI_AS,
-    [tax_id] bigint NOT NULL,
+    [unit] nvarchar(50) COLLATE Vietnamese_CI_AS NOT NULL,
+    [is_active] bit NOT NULL DEFAULT 1,
+    [description] nvarchar(255) COLLATE Vietnamese_CI_AS,
+    [tax_id] bigint NULL,
     [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
     [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
     CONSTRAINT [PK_ingredients] PRIMARY KEY ([id]),
@@ -291,13 +314,15 @@ GO
 CREATE TABLE [dbo].[users] (
     [id] bigint IDENTITY(1,1) NOT NULL,
     [employee_id] bigint,
-    [is_active] bit NOT NULL DEFAULT 1,
     [date_of_birth] date,
+    [facebook_account_id] bigint,
+    [google_account_id] bigint,
+    [is_active] bit NOT NULL DEFAULT 1,
     [role_id] bigint NOT NULL,
-    [phone_number] varchar(20),
-    [fullname] nvarchar(255) COLLATE Vietnamese_CI_AS NOT NULL,
-    [address] nvarchar(500) COLLATE Vietnamese_CI_AS,
-    [password] varchar(255) NOT NULL,
+    [phone_number] varchar(20) NOT NULL,
+    [fullname] nvarchar(100) COLLATE Vietnamese_CI_AS,
+    [address] nvarchar(200) COLLATE Vietnamese_CI_AS,
+    [password] varchar(200) NOT NULL,
     [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
     [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
     CONSTRAINT [PK_users] PRIMARY KEY ([id]),
@@ -339,6 +364,20 @@ CREATE TABLE [dbo].[social_accounts] (
 );
 GO
 
+-- Role Permissions table
+CREATE TABLE [dbo].[role_permissions] (
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [role_id] bigint NOT NULL,
+    [permission_id] bigint NOT NULL,
+    [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT [PK_role_permissions] PRIMARY KEY ([id]),
+    CONSTRAINT [FK_role_permissions_roles] FOREIGN KEY ([role_id]) REFERENCES [dbo].[roles]([id]),
+    CONSTRAINT [FK_role_permissions_permissions] FOREIGN KEY ([permission_id]) REFERENCES [dbo].[permissions]([id]),
+    CONSTRAINT [UQ_role_permissions] UNIQUE ([role_id], [permission_id])
+);
+GO
+
 -- Product Images table
 CREATE TABLE [dbo].[product_images] (
     [id] bigint IDENTITY(1,1) NOT NULL,
@@ -360,6 +399,42 @@ CREATE TABLE [dbo].[product_recipes] (
     CONSTRAINT [PK_product_recipes] PRIMARY KEY ([id]),
     CONSTRAINT [FK_product_recipes_products] FOREIGN KEY ([product_id]) REFERENCES [dbo].[products]([id]),
     CONSTRAINT [FK_product_recipes_ingredients] FOREIGN KEY ([ingredient_id]) REFERENCES [dbo].[ingredients]([id])
+);
+GO
+
+-- Recipes table
+CREATE TABLE [dbo].[recipes] (
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [name] nvarchar(255) COLLATE Vietnamese_CI_AS NOT NULL,
+    [description] nvarchar(500) COLLATE Vietnamese_CI_AS,
+    [product_id] bigint NOT NULL,
+    [serving_size] decimal(18,2) NOT NULL DEFAULT 1,
+    [unit] nvarchar(50) COLLATE Vietnamese_CI_AS DEFAULT 'portion',
+    [is_active] bit NOT NULL DEFAULT 1,
+    [notes] nvarchar(500) COLLATE Vietnamese_CI_AS,
+    [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT [PK_recipes] PRIMARY KEY ([id]),
+    CONSTRAINT [FK_recipes_products] FOREIGN KEY ([product_id]) REFERENCES [dbo].[products]([id])
+);
+GO
+
+-- Recipe Ingredients table
+CREATE TABLE [dbo].[recipe_ingredients] (
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [recipe_id] bigint NOT NULL,
+    [ingredient_id] bigint NOT NULL,
+    [quantity] decimal(18,4) NOT NULL,
+    [unit] nvarchar(50) COLLATE Vietnamese_CI_AS NOT NULL,
+    [waste_percentage] decimal(18,4) DEFAULT 0,
+    [notes] nvarchar(500) COLLATE Vietnamese_CI_AS,
+    [is_optional] bit NOT NULL DEFAULT 0,
+    [sort_order] int NOT NULL DEFAULT 0,
+    [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT [PK_recipe_ingredients] PRIMARY KEY ([id]),
+    CONSTRAINT [FK_recipe_ingredients_recipes] FOREIGN KEY ([recipe_id]) REFERENCES [dbo].[recipes]([id]),
+    CONSTRAINT [FK_recipe_ingredients_ingredients] FOREIGN KEY ([ingredient_id]) REFERENCES [dbo].[ingredients]([id])
 );
 GO
 
@@ -454,9 +529,10 @@ GO
 CREATE TABLE [dbo].[ingredient_warehouse] (
     [id] bigint IDENTITY(1,1) NOT NULL,
     [ingredient_id] bigint NOT NULL,
-    [quantity] decimal(10,3) NOT NULL DEFAULT 0,
-    [safety_stock] decimal(10,3) NOT NULL DEFAULT 0,
-    [maximum_stock] decimal(10,3) NOT NULL DEFAULT 0,
+    [quantity] decimal(18,2) NOT NULL DEFAULT 0,
+    [safety_stock] decimal(18,2) NOT NULL DEFAULT 0,
+    [maximum_stock] decimal(18,2) NULL,
+    [location] nvarchar(100) NULL,
     [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
     [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
     CONSTRAINT [PK_ingredient_warehouse] PRIMARY KEY ([id]),
@@ -481,6 +557,31 @@ CREATE TABLE [dbo].[inventory_thresholds] (
 );
 GO
 
+-- Inventory Movements table
+CREATE TABLE [dbo].[inventory_movements] (
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [branch_id] bigint NOT NULL,
+    [ingredient_id] bigint NOT NULL,
+    [movement_type] nvarchar(20) COLLATE Vietnamese_CI_AS NOT NULL,
+    [quantity] decimal(18,2) NOT NULL,
+    [unit] nvarchar(50) COLLATE Vietnamese_CI_AS NOT NULL,
+    [quantity_before] decimal(18,2) NOT NULL,
+    [quantity_after] decimal(18,2) NOT NULL,
+    [reference_type] nvarchar(100) COLLATE Vietnamese_CI_AS,
+    [reference_id] bigint,
+    [reference_code] nvarchar(100) COLLATE Vietnamese_CI_AS,
+    [notes] nvarchar(500) COLLATE Vietnamese_CI_AS,
+    [employee_id] bigint,
+    [movement_date] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT [PK_inventory_movements] PRIMARY KEY ([id]),
+    CONSTRAINT [FK_inventory_movements_branches] FOREIGN KEY ([branch_id]) REFERENCES [dbo].[branches]([id]),
+    CONSTRAINT [FK_inventory_movements_ingredients] FOREIGN KEY ([ingredient_id]) REFERENCES [dbo].[ingredients]([id]),
+    CONSTRAINT [FK_inventory_movements_employees] FOREIGN KEY ([employee_id]) REFERENCES [dbo].[employees]([id])
+);
+GO
+
 -- Ingredient Transfers table
 CREATE TABLE [dbo].[ingredient_transfers] (
     [id] bigint IDENTITY(1,1) NOT NULL,
@@ -494,6 +595,45 @@ CREATE TABLE [dbo].[ingredient_transfers] (
     CONSTRAINT [PK_ingredient_transfers] PRIMARY KEY ([id]),
     CONSTRAINT [FK_ingredient_transfers_ingredients] FOREIGN KEY ([ingredient_id]) REFERENCES [dbo].[ingredients]([id]),
     CONSTRAINT [FK_ingredient_transfers_branches] FOREIGN KEY ([branch_id]) REFERENCES [dbo].[branches]([id])
+);
+GO
+
+-- Ingredient Transfer Requests table
+CREATE TABLE [dbo].[ingredient_transfer_requests] (
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [branch_id] bigint NOT NULL,
+    [request_number] varchar(50) NOT NULL,
+    [request_date] datetime2(6) NOT NULL,
+    [required_date] datetime2(6) NOT NULL,
+    [status] varchar(20) NOT NULL DEFAULT 'PENDING',
+    [total_items] int NOT NULL,
+    [approved_date] datetime2(6),
+    [completed_date] datetime2(6),
+    [note] nvarchar(500) COLLATE Vietnamese_CI_AS,
+    [requested_by] nvarchar(100) COLLATE Vietnamese_CI_AS NOT NULL,
+    [approved_by] nvarchar(100) COLLATE Vietnamese_CI_AS,
+    [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT [PK_ingredient_transfer_requests] PRIMARY KEY ([id]),
+    CONSTRAINT [FK_ingredient_transfer_requests_branches] FOREIGN KEY ([branch_id]) REFERENCES [dbo].[branches]([id])
+);
+GO
+
+-- Ingredient Transfer Request Details table
+CREATE TABLE [dbo].[ingredient_transfer_request_details] (
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [transfer_request_id] bigint NOT NULL,
+    [ingredient_id] bigint NOT NULL,
+    [requested_quantity] decimal(18,2) NOT NULL,
+    [approved_quantity] decimal(18,2),
+    [transferred_quantity] decimal(18,2) NOT NULL DEFAULT 0,
+    [status] varchar(20) NOT NULL DEFAULT 'PENDING',
+    [note] nvarchar(255) COLLATE Vietnamese_CI_AS,
+    [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT [PK_ingredient_transfer_request_details] PRIMARY KEY ([id]),
+    CONSTRAINT [FK_ingredient_transfer_request_details_requests] FOREIGN KEY ([transfer_request_id]) REFERENCES [dbo].[ingredient_transfer_requests]([id]),
+    CONSTRAINT [FK_ingredient_transfer_request_details_ingredients] FOREIGN KEY ([ingredient_id]) REFERENCES [dbo].[ingredients]([id])
 );
 GO
 
@@ -1009,6 +1149,25 @@ CREATE INDEX IX_users_fullname ON [dbo].[users]([fullname]);
 CREATE INDEX IX_employees_branch_id ON [dbo].[employees]([branch_id]);
 CREATE INDEX IX_products_category_id ON [dbo].[products]([category_id]);
 CREATE INDEX IX_ingredients_category_id ON [dbo].[ingredients]([category_id]);
+
+-- Indexes for new tables
+CREATE INDEX IX_permissions_name ON [dbo].[permissions]([name]);
+CREATE INDEX IX_permissions_resource_action ON [dbo].[permissions]([resource], [action]);
+CREATE INDEX IX_role_permissions_role_id ON [dbo].[role_permissions]([role_id]);
+CREATE INDEX IX_role_permissions_permission_id ON [dbo].[role_permissions]([permission_id]);
+CREATE INDEX IX_recipes_product_id ON [dbo].[recipes]([product_id]);
+CREATE INDEX IX_recipes_is_active ON [dbo].[recipes]([is_active]);
+CREATE INDEX IX_recipe_ingredients_recipe_id ON [dbo].[recipe_ingredients]([recipe_id]);
+CREATE INDEX IX_recipe_ingredients_ingredient_id ON [dbo].[recipe_ingredients]([ingredient_id]);
+CREATE INDEX IX_inventory_movements_branch_id ON [dbo].[inventory_movements]([branch_id]);
+CREATE INDEX IX_inventory_movements_ingredient_id ON [dbo].[inventory_movements]([ingredient_id]);
+CREATE INDEX IX_inventory_movements_movement_date ON [dbo].[inventory_movements]([movement_date]);
+CREATE INDEX IX_inventory_movements_movement_type ON [dbo].[inventory_movements]([movement_type]);
+CREATE INDEX IX_ingredient_transfer_requests_branch_id ON [dbo].[ingredient_transfer_requests]([branch_id]);
+CREATE INDEX IX_ingredient_transfer_requests_status ON [dbo].[ingredient_transfer_requests]([status]);
+CREATE INDEX IX_ingredient_transfer_requests_request_date ON [dbo].[ingredient_transfer_requests]([request_date]);
+CREATE INDEX IX_ingredient_transfer_request_details_transfer_request_id ON [dbo].[ingredient_transfer_request_details]([transfer_request_id]);
+CREATE INDEX IX_ingredient_transfer_request_details_ingredient_id ON [dbo].[ingredient_transfer_request_details]([ingredient_id]);
 
 PRINT N'Database schema created successfully with Unicode support!';
 GO

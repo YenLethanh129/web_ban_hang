@@ -11,6 +11,7 @@ namespace Dashboard.BussinessLogic.Services;
 
 public interface ICustomerService
 {
+    Task<int> GetCountAsync();
     Task<PagedList<CustomerDto>> GetCustomersAsync(GetCustomersInput input);
     Task<CustomerDto?> GetCustomerByIdAsync(long id);
     Task<CustomerDto?> GetCustomerByEmailAsync(string findStr);
@@ -27,18 +28,20 @@ public class CustomerService : ICustomerService
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICustomerRepository _customerRepository;
     private readonly IMapper _mapper;
-    private readonly IOrderRepository _orderRepository;
 
     public CustomerService(
         IUnitOfWork unitOfWork,
         ICustomerRepository customerRepository,
-        IMapper mapper,
-        IOrderRepository orderRepository)
+        IMapper mapper)
     {
         _unitOfWork = unitOfWork;
         _customerRepository = customerRepository;
         _mapper = mapper;
-        _orderRepository = orderRepository;
+    }
+
+    public async Task<int> GetCountAsync()
+    {
+        return await _customerRepository.GetCountAsync();
     }
 
     public async Task<PagedList<CustomerDto>> GetCustomersAsync(GetCustomersInput input)
@@ -53,7 +56,7 @@ public class CustomerService : ICustomerService
             (!input.ToDate.HasValue || c.CreatedAt.Date <= input.ToDate.Value))
         );
 
-        specification.Includes.Add(c => c.Orders!);
+        specification.IncludeStrings.Add("Orders");
 
         var allCustomers = await _customerRepository.GetAllWithSpecAsync(specification, true);
 
@@ -110,7 +113,7 @@ public class CustomerService : ICustomerService
     public async Task<CustomerDto?> GetCustomerByIdAsync(long id)
     {
         var specification = new Specification<Customer>(c => c.Id == id);
-        specification.Includes.Add(c => c.Orders!);
+        specification.IncludeStrings.Add("Orders");
 
         var customer = await _customerRepository.GetWithSpecAsync(specification);
         return customer != null ? _mapper.Map<CustomerDto>(customer) : null;
@@ -119,7 +122,7 @@ public class CustomerService : ICustomerService
     public async Task<CustomerDto?> GetCustomerByEmailAsync(string findStr)
     {
         var specification = new Specification<Customer>(c => findStr == c.PhoneNumber || findStr == c.Email);
-        specification.Includes.Add(c => c.Orders!);
+        specification.IncludeStrings.Add("Orders");
 
         var customer = await _customerRepository.GetWithSpecAsync(specification);
         return customer != null ? _mapper.Map<CustomerDto>(customer) : null;
@@ -186,7 +189,7 @@ public class CustomerService : ICustomerService
     public async Task<IEnumerable<TopCustomerDto>> GetTopCustomersAsync(int count = 10, DateTime? fromDate = null, DateTime? toDate = null)
     {
         var specification = new Specification<Customer>(c => true);
-        specification.Includes.Add(c => c.Orders!);
+        specification.IncludeStrings.Add("Orders");
 
         var customersWithOrders = await _customerRepository.GetAllWithSpecAsync(specification);
 
@@ -228,7 +231,7 @@ public class CustomerService : ICustomerService
 
         // Get customers with orders for more detailed statistics
         var specification = new Specification<Customer>(c => true);
-        specification.Includes.Add(c => c.Orders!);
+        specification.IncludeStrings.Add("Orders");
         var customersWithOrders = await _customerRepository.GetAllWithSpecAsync(specification);
 
         var totalCustomerSpending = customersWithOrders

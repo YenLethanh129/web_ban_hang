@@ -1,33 +1,27 @@
 using AutoMapper;
 using Dashboard.BussinessLogic.Dtos;
 using Dashboard.BussinessLogic.Dtos.IngredientDtos;
+using Dashboard.BussinessLogic.Shared;
 using Dashboard.DataAccess.Data;
 using Dashboard.DataAccess.Models.Entities;
 using Dashboard.DataAccess.Repositories;
-using Microsoft.EntityFrameworkCore;
 
 namespace Dashboard.BussinessLogic.Services;
 
 public interface IIngredientService
 {
+    Task<int> GetCountAsync();
     Task<IngredientDto> CreateIngredientAsync(CreateIngredientInput input);
     Task<IngredientDto> UpdateIngredientAsync(UpdateIngredientInput input);
     Task<bool> DeleteIngredientAsync(long id);
-
-    // CRUD operations for Branch Inventory
     Task<BranchIngredientInventoryDto> CreateBranchInventoryAsync(CreateBranchInventoryInput input);
     Task<BranchIngredientInventoryDto> UpdateBranchInventoryAsync(UpdateBranchInventoryInput input);
     Task<bool> DeleteBranchInventoryAsync(long branchId, long ingredientId);
-
-    // CRUD operations for Warehouse Inventory
     Task<WarehouseIngredientInventoryDto> CreateWarehouseInventoryAsync(CreateWarehouseInventoryInput input);
     Task<WarehouseIngredientInventoryDto> UpdateWarehouseInventoryAsync(UpdateWarehouseInventoryInput input);
     Task<bool> DeleteWarehouseInventoryAsync(long ingredientId);
-
-    // Validation
     Task<bool> ValidateIngredientAsync(long ingredientId);
     Task<bool> ValidateBranchAsync(long branchId);
-
     Task<PagedList<IngredientDto>> GetIngredientsAsync(GetIngredientsInput input);
     Task<PagedList<BranchIngredientInventoryDto>> GetBranchInventoryAsync(GetBranchInventoryInput input);
     Task<PagedList<WarehouseIngredientInventoryDto>> GetWarehouseInventoryAsync(GetWarehouseInventoryInput input);
@@ -39,18 +33,22 @@ public interface IIngredientService
     Task<IngredientDto?> GetIngredientByIdAsync(long id);
 }
 
-public class IngredientService : IIngredientService
+public class IngredientService : BaseTransactionalService, IIngredientService
 {
     private readonly IIngredientRepository _ingredientRepository;
     private readonly IMapper _mapper;
-    private readonly IUnitOfWork _unitOfWork;
-    public IngredientService(IUnitOfWork unitOfWork, IIngredientRepository ingredientRepository, IMapper mapper)
+    public IngredientService(IUnitOfWork unitOfWork,
+                             IIngredientRepository ingredientRepository,
+                             IMapper mapper) : base(unitOfWork)
     {
         _ingredientRepository = ingredientRepository;
-        _unitOfWork = unitOfWork;
         _mapper = mapper;
     }
 
+    public async Task<int> GetCountAsync()
+    {
+        return await _ingredientRepository.GetCountAsync();
+    }
     public async Task<PagedList<IngredientDto>> GetIngredientsAsync(GetIngredientsInput input)
     {
         var ingredients = await _ingredientRepository.GetIngredientsWithCategoryAsync();

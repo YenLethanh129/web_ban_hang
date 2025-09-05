@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using Dashboard.BussinessLogic.Dtos;
 using Dashboard.BussinessLogic.Dtos.OrderDtos;
+using Dashboard.BussinessLogic.Shared;
+using Dashboard.BussinessLogic.Specifications;
 using Dashboard.Common.Enums;
 using Dashboard.DataAccess.Data;
 using Dashboard.DataAccess.Models.Entities;
@@ -11,6 +13,7 @@ namespace Dashboard.BussinessLogic.Services;
 
 public interface IOrderService
 {
+    Task<int> GetCountAsync();
     Task<PagedList<OrderDto>> GetOrdersAsync(GetOrdersInput input);
     Task<OrderDto?> GetOrderByIdAsync(long id);
     Task<OrderDto> CreateOrderAsync(CreateOrderInput input);
@@ -21,9 +24,8 @@ public interface IOrderService
     Task<IEnumerable<BranchOrderSummary>> GetBranchOrderSummaryAsync(DateTime fromDate, DateTime toDate);
 }
 
-public class OrderService : IOrderService
+public class OrderService : BaseTransactionalService, IOrderService
 {
-    private readonly IUnitOfWork _unitOfWork;
     private readonly IOrderRepository _orderRepository;
     private readonly IBranchRepository _branchRepository;
     private readonly IMapper _mapper;
@@ -32,49 +34,29 @@ public class OrderService : IOrderService
         IUnitOfWork unitOfWork,
         IOrderRepository orderRepository,
         IBranchRepository branchRepository,
-        IMapper mapper)
+        IMapper mapper) : base(unitOfWork)
     {
-        _unitOfWork = unitOfWork;
         _orderRepository = orderRepository;
         _branchRepository = branchRepository;
         _mapper = mapper;
     }
 
+    public async Task<int> GetCountAsync()
+    {
+        return await _unitOfWork.Repository<Order>().GetCountAsync();
+    }
+
     public async Task<PagedList<OrderDto>> GetOrdersAsync(GetOrdersInput input)
     {
-        var specification = new Specification<Order>(o =>
-            (string.IsNullOrEmpty(input.OrderCode) || o.OrderCode.Contains(input.OrderCode)) &&
-            (!input.CustomerId.HasValue || o.CustomerId == input.CustomerId.Value) &&
-            (!input.BranchId.HasValue || o.BranchId == input.BranchId.Value) &&
-            (!input.FromDate.HasValue || o.CreatedAt >= input.FromDate.Value) &&
-            (!input.ToDate.HasValue || o.CreatedAt.Date <= input.ToDate.Value) &&
-            (!input.MinAmount.HasValue || o.TotalMoney >= input.MinAmount.Value) &&
-            (!input.MaxAmount.HasValue || o.TotalMoney <= input.MaxAmount.Value)
-        );
-        specification.Includes.Add(o => o.Customer!);
-        specification.Includes.Add(o => o.Branch!);
-        specification.Includes.Add(o => o.Status!);
-        var allOrders = await _orderRepository.GetAllWithSpecAsync(specification, true);
-        var totalCount = allOrders.Count();
-
-        IEnumerable<Order> sortedProducts = allOrders;
-        if (input.SortBy.HasValue)
-        {
-            sortedProducts = input.SortBy switch
-            {
-                SortByEnum.CreatedDate => input.IsDescending
-                                            ? allOrders.OrderByDescending(p => p.CreatedAt)
-                                            : allOrders.OrderBy(p => p.CreatedAt),
-                _ => allOrders.OrderByDescending(p => p.CreatedAt),
-            };
-        }
-        else
-        {
-            sortedProducts = allOrders.OrderByDescending(p => p.CreatedAt);
-        }
-
-
-        var pagedOrders = allOrders
+        // Use Specification from BusinessLogic layer
+        var specification = OrderSpecifications.BySearchCriteria(input);
+        var allOrders = await _unitOfWork.Repository<Order>().GetAllWithSpecAsync(specification, true);
+        
+        // Apply sorting
+        var sortedOrders = ApplySorting(allOrders, input);
+        
+        // Apply pagination
+        var pagedOrders = sortedOrders
             .Skip((input.PageNumber - 1) * input.PageSize)
             .Take(input.PageSize)
             .ToList();
@@ -84,14 +66,31 @@ public class OrderService : IOrderService
         return new PagedList<OrderDto>
         {
             Items = orderDtos,
-            TotalRecords = totalCount,
+            TotalRecords = allOrders.Count(),
             PageNumber = input.PageNumber,
             PageSize = input.PageSize
         };
     }
+
+    private static IEnumerable<Order> ApplySorting(IEnumerable<Order> orders, GetOrdersInput input)
+    {
+        if (input.SortBy.HasValue)
+        {
+            return input.SortBy switch
+            {
+                SortByEnum.CreatedDate => input.IsDescending
+                    ? orders.OrderByDescending(o => o.CreatedAt)
+                    : orders.OrderBy(o => o.CreatedAt),
+                _ => orders.OrderByDescending(o => o.CreatedAt),
+            };
+        }
+        
+        return orders.OrderByDescending(o => o.CreatedAt);
+    }
     public async Task<OrderDto?> GetOrderByIdAsync(long id)
     {
-        var order = await _orderRepository.GetOrderWithDetailsAsync(id);
+        var specification = OrderSpecifications.WithFullDetails(id);
+        var order = await _unitOfWork.Repository<Order>().GetWithSpecAsync(specification);
         return order != null ? _mapper.Map<OrderDto>(order) : null;
     }
 
@@ -101,39 +100,39 @@ public class OrderService : IOrderService
         order.CreatedAt = DateTime.Now;
         order.StatusId = 1;
 
-        var createdOrder = await _orderRepository.AddAsync(order);
+        await _unitOfWork.Repository<Order>().AddAsync(order);
         await _unitOfWork.SaveChangesAsync();
 
-        return _mapper.Map<OrderDto>(createdOrder);
+        return await GetOrderByIdAsync(order.Id) ?? throw new InvalidOperationException("Failed to retrieve created order");
     }
 
     public async Task<OrderDto> UpdateOrderAsync(long id, UpdateOrderInput input)
     {
-        var order = await _orderRepository.GetAsync(id) ?? throw new ArgumentException($"Order with id {id} not found");
+        var order = await _unitOfWork.Repository<Order>().GetAsync(id) 
+            ?? throw new KeyNotFoundException($"Order with id {id} not found");
+        
         _mapper.Map(input, order);
-
-        _orderRepository.Update(order);
+        _unitOfWork.Repository<Order>().Remove(order);
+        _unitOfWork.Repository<Order>().Add(order);
         await _unitOfWork.SaveChangesAsync();
 
-        return _mapper.Map<OrderDto>(order);
+        return await GetOrderByIdAsync(id) ?? throw new InvalidOperationException("Failed to retrieve updated order");
     }
+
     public async Task DeleteOrderAsync(long id)
     {
-        var order = await _orderRepository.GetAsync(id) ?? throw new ArgumentException($"Order with id {id} not found");
-        _orderRepository.Remove(order);
+        var order = await _unitOfWork.Repository<Order>().GetAsync(id) 
+            ?? throw new KeyNotFoundException($"Order with id {id} not found");
+        
+        _unitOfWork.Repository<Order>().Remove(order);
         await _unitOfWork.SaveChangesAsync();
     }
 
-    public async Task<IEnumerable<DailyOrderSummary>> GetDailyOrderSummaryAsync(DateTime fromDate, long? branchId = null)
+    public async Task<IEnumerable<DailyOrderSummary>> GetDailyOrderSummaryAsync(DateTime date, long? branchId = null)
     {
-        var specification = new Specification<Order>(o =>
-            o.CreatedAt.Date == fromDate.Date &&
-            o.Status!.Id == (long)OrderStatusEnum.Delivered &&
-            (!branchId.HasValue || o.BranchId == branchId.Value)
-        );
-        specification.Includes.Add(o => o.Branch!);
+        var specification = OrderSpecifications.ForDailySummary(date, branchId);
+        var orders = await _unitOfWork.Repository<Order>().GetAllWithSpecAsync(specification, true);
         
-        var orders = await _orderRepository.GetAllWithSpecAsync(specification, true);
         var dailySummary = orders
             .GroupBy(o => o.CreatedAt.Date)
             .Select(g => new DailyOrderSummary(
@@ -150,51 +149,37 @@ public class OrderService : IOrderService
 
     public async Task<IEnumerable<BranchOrderSummary>> GetBranchOrderSummaryAsync(DateTime fromDate, DateTime toDate)
     {
-        var specification = new Specification<Order>(o =>
-            o.CreatedAt.Date >= fromDate.Date &&
-            o.CreatedAt.Date <= toDate.Date &&
-            o.Status!.Id == (int)OrderStatusEnum.Delivered);
+        var specification = OrderSpecifications.ForBranchSummary(fromDate, toDate);
+        var orders = await _unitOfWork.Repository<Order>().GetAllWithSpecAsync(specification, true);
+        
+        var branchSummary = orders
+            .GroupBy(o => new { o.BranchId, BranchName = o.Branch!.Name })
+            .Select(g => new BranchOrderSummary(
+                g.Key.BranchId ?? 0,
+                g.Count(),
+                g.Sum(o => o.TotalMoney ?? 0),
+                g.Average(o => o.TotalMoney ?? 0),
+                fromDate,
+                toDate
+            ))
+            .OrderByDescending(s => s.TotalRevenue)
+            .ToList();
 
-        var orders = await _orderRepository.GetAllWithSpecAsync(specification, true);
-        var branches = await _branchRepository.GetAllAsync();
-
-        var branchSummary = branches
-            .GroupJoin(orders,
-                b => b.Id,
-                o => o.BranchId,
-                (branch, branchOrders) => new BranchOrderSummary(
-                    branch.Id,
-                    branchOrders.Count(),
-                    branchOrders.Sum(o => o.TotalMoney ?? 0),
-                    branchOrders.Any() ? branchOrders.Average(o => o.TotalMoney ?? 0) : 0,
-                    fromDate,
-                    toDate
-                )
-                {
-                    BranchName = branch.Name
-                })
-            .OrderByDescending(b => b.TotalRevenue);
         return branchSummary;
     }
 
     public async Task<OrderSummaryDto> GetOrderSummaryAsync(DateTime fromDate, DateTime toDate, long? branchId = null)
     {
-        var specification = new Specification<Order>(o =>
-            o.CreatedAt.Date >= fromDate.Date &&
-            o.CreatedAt.Date <= toDate.Date &&
-            (!branchId.HasValue || o.BranchId == branchId.Value)
-        );
-        specification.Includes.Add(o => o.Branch!);
-        specification.Includes.Add(o => o.Status!);
-        var orders = await _orderRepository.GetAllWithSpecAsync(specification, true);
+        var specification = OrderSpecifications.ForRevenueSummary(fromDate, toDate, branchId);
+        var orders = await _unitOfWork.Repository<Order>().GetAllWithSpecAsync(specification, true);
 
         var totalOrders = orders.Count();
         var totalRevenue = orders.Sum(o => o.TotalMoney ?? 0);
         var averageOrderValue = totalOrders > 0 ? orders.Average(o => o.TotalMoney ?? 0) : 0;
 
-        var pendingOrders = orders.Count(o => o.Status != null && o.Status.Id == (int)OrderStatusEnum.Pending);
-        var completedOrders = orders.Count(o => o.Status!.Id == (int)OrderStatusEnum.Delivered);
-        var cancelledOrders = orders.Count(o => o.Status!.Id == (int)OrderStatusEnum.Cancelled);
+        var pendingOrders = orders.Count(o => o.Status != null && o.Status.Id == (long)OrderStatusEnum.Pending);
+        var completedOrders = orders.Count(o => o.Status!.Id == (long)OrderStatusEnum.Delivered);
+        var cancelledOrders = orders.Count(o => o.Status!.Id == (long)OrderStatusEnum.Cancelled);
 
         var dailySummary = orders
             .GroupBy(o => o.CreatedAt.Date)
@@ -216,12 +201,8 @@ public class OrderService : IOrderService
                 g.Average(o => o.TotalMoney ?? 0),
                 fromDate,
                 toDate
-            )
-            {
-                BranchName = g.Key.Name
-            })
+            ))
             .ToList();
-
 
         return new OrderSummaryDto(
             totalOrders,

@@ -4,18 +4,13 @@ namespace Dashboard.BussinessLogic.Dtos.ReportDtos;
 
 public class DashboardSummaryDto
 {
-    public decimal TodayRevenue { get; set; }
-    public decimal MonthlyRevenue { get; set; }
-    public decimal YearlyRevenue { get; set; }
-    public decimal TodayProfit { get; set; }
-    public decimal MonthlyProfit { get; set; }
-    public decimal YearlyProfit { get; set; }
-    public decimal TodayExpenses { get; set; }
-    public decimal MonthlyExpenses { get; set; }
-    public decimal YearlyExpenses { get; set; }
+    public decimal TotalRevenue { get; set; }
+    public decimal NetProfit { get; set; }
+    public decimal TotalExpenses { get; set; }
     public int TotalOrders { get; set; }
     public int PendingOrders { get; set; }
     public List<TopSellingProductDto> TopProducts { get; set; } = [];
+    public List<FinacialReportDto> FinacialReports { get; set; } = [];
     public List<LowStockIngredientDto> UnderstockIngredients { get; set; } = [];
     public List<BranchPerformanceDto> BranchPerformance { get; set; } = [];
 }
