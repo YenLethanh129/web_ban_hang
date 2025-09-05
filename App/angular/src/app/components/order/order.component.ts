@@ -1,6 +1,7 @@
-import { Component, OnInit, NgModule } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { Subject, takeUntil } from 'rxjs';
 import { ProductDTO } from '../../models/product.dto';
 import { CartService } from '../../services/cart.service';
 import { ProductService } from '../../services/product.service';
@@ -16,6 +17,8 @@ import { MomoService } from '../../services/momo.service';
 import { CreateMomoResponse } from '../../dtos/momo.dto';
 import { AddressAutocompleteComponent } from '../shared/address-autocomplete/address-autocomplete.component';
 import { AddressPrediction } from '../../dtos/address.dto';
+import { UserAddressService } from '../../services/user-address.service';
+import { NotificationService } from '../../services/notification.service';
 
 @Component({
   selector: 'app-order',
@@ -29,12 +32,17 @@ import { AddressPrediction } from '../../dtos/address.dto';
   templateUrl: './order.component.html',
   styleUrls: ['./order.component.scss'],
 })
-export class OrderComponent implements OnInit {
+export class OrderComponent implements OnInit, OnDestroy {
   cartItems: { product: ProductDTO; quantity: number; size: string }[] = [];
   isLoading: boolean = false;
   user: UserDTO | null = null;
   momoInfoOrderDTO: MomoInfoOrderDTO | null = null;
   orderId: number = 0;
+  showAutofillButton: boolean = false;
+  showAddressError: boolean = false;
+
+  private destroy$ = new Subject<void>();
+
   orderData = {
     userId: 0, // This should be set to the actual user ID
     fullName: '',
@@ -48,6 +56,7 @@ export class OrderComponent implements OnInit {
     paymentMethod: '',
     paymentStatus: '',
   };
+
   constructor(
     private cartService: CartService,
     private productService: ProductService,
@@ -56,7 +65,9 @@ export class OrderComponent implements OnInit {
     private orderService: OrderService,
     private orderDetailService: OrderDetailService,
     private momoService: MomoService,
-    private router: Router
+    private router: Router,
+    private userAddressService: UserAddressService,
+    private notificationService: NotificationService
   ) {}
 
   ngOnInit(): void {
@@ -68,6 +79,39 @@ export class OrderComponent implements OnInit {
     this.orderData.paymentMethod = 'MOMO'; // Default payment method
     this.orderData.paymentStatus = 'PENDING';
     this.isLoading = false;
+
+    // Kiểm tra xem có thể tự động điền địa chỉ không
+    this.userAddressService.userAddress$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((addressInfo) => {
+        this.showAutofillButton = !!addressInfo;
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  /**
+   * Tự động điền thông tin từ profile user
+   */
+  autofillFromProfile(): void {
+    const addressInfo = this.userAddressService.getCurrentAddress();
+    if (addressInfo) {
+      this.orderData.fullName = addressInfo.fullname;
+      this.orderData.phoneNumber = addressInfo.phoneNumber;
+      this.orderData.address = addressInfo.address;
+      this.orderData.shippingAddress = addressInfo.address;
+
+      this.notificationService.showSuccess(
+        'Đã tự động điền thông tin giao hàng từ hồ sơ của bạn!'
+      );
+    } else {
+      this.notificationService.showWarning(
+        'Không tìm thấy thông tin hồ sơ để tự động điền'
+      );
+    }
   }
 
   onSubmit() {
@@ -132,6 +176,10 @@ export class OrderComponent implements OnInit {
 
   onAddressSelected(address: AddressPrediction): void {
     this.orderData.shippingAddress = address.description;
+  }
+
+  onAddressFocus(): void {
+    this.showAddressError = true;
   }
 
   createOrder(): void {

@@ -10,6 +10,19 @@
         <p class="register-subtitle">
           Tham gia cộng đồng yêu thích trà & cà phê
         </p>
+
+        <!-- Auto-fill button -->
+        <div *ngIf="showAutofillButton" class="autofill-section">
+          <button
+            type="button"
+            class="btn btn-outline-primary autofill-btn"
+            (click)="autofillFromProfile()"
+          >
+            <i class="fas fa-magic"></i>
+            Tự động điền từ hồ sơ
+          </button>
+          <p class="autofill-note">Điền thông tin từ tài khoản đã đăng nhập</p>
+        </div>
       </div>
 
       <form
@@ -116,22 +129,17 @@
         </div>
 
         <div class="form-group">
-          <label for="address" class="form-label">
-            <i class="fas fa-map-marker-alt"></i>
-            Địa chỉ
-          </label>
-          <div class="input-wrapper">
-            <app-address-autocomplete
-              [(ngModel)]="registerData.address"
-              name="address"
-              [required]="true"
-              #address="ngModel"
-              (addressSelected)="onAddressSelected($event)"
-              placeholder="Nhập địa chỉ đầy đủ của bạn"
-              class="form-control"
-            ></app-address-autocomplete>
-            <i class="fas fa-map-marker-alt input-icon"></i>
-          </div>
+          <app-address-autocomplete
+            [(ngModel)]="registerData.address"
+            name="address"
+            #address="ngModel"
+            [required]="true"
+            [useCurrentLocation]="true"
+            placeholder="Nhập địa chỉ đầy đủ của bạn"
+            label="Địa chỉ"
+            (addressSelected)="onAddressSelected($event)"
+            (inputFocus)="onAddressFocus()"
+          ></app-address-autocomplete>
           <div
             *ngIf="showAddressError && address.touched && !registerData.address"
             class="error-message"

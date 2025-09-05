@@ -1,5 +1,5 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import { Observable, tap, of } from 'rxjs';
 import { RegisterDTO } from '../dtos/register.dto';
 import { LoginDTO } from '../dtos/login.dto';
@@ -20,7 +20,8 @@ export class UserService {
   constructor(
     private http: HttpClient,
     private tokenService: TokenService,
-    private cacheService: CacheService
+    private cacheService: CacheService,
+    private injector: Injector
   ) {
     // Load user from cache on service initialization
     this.loadUserFromCache();
@@ -116,6 +117,22 @@ export class UserService {
     this.cacheService.clearUser();
     this.cacheService.clearAll(); // Clear all cache data
     this.tokenService.removeToken();
+
+    // Clear user address cache as well - using injector to avoid circular dependency
+    try {
+      import('./user-address.service')
+        .then((module) => {
+          const userAddressService = this.injector.get(
+            module.UserAddressService
+          );
+          userAddressService.clearUserAddress();
+        })
+        .catch((error) => {
+          console.warn('Could not clear user address cache:', error);
+        });
+    } catch (error) {
+      console.warn('Could not import user address service:', error);
+    }
 
     // Also clear localStorage manually to ensure everything is cleared
     localStorage.removeItem('user');

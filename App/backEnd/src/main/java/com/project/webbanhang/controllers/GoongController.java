@@ -16,7 +16,7 @@ public class GoongController {
 
     private final IGoongService goongService;
 
-    @GetMapping("/location/search")
+    @GetMapping("/search")
     public ResponseEntity<?> searchPlaces(
             @RequestParam String input,
             @RequestParam(required = false) String location,

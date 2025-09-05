@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule, NgForm } from '@angular/forms';
@@ -8,11 +8,13 @@ import {
   HttpClientModule,
   HttpHeaders,
 } from '@angular/common/http';
+import { Subject, takeUntil } from 'rxjs';
 import { UserService } from '../../services/user.service';
 import { RegisterDTO } from '../../dtos/register.dto';
 import { NotificationService } from '../../services/notification.service';
 import { AddressAutocompleteComponent } from '../shared/address-autocomplete/address-autocomplete.component';
 import { AddressPrediction } from '../../dtos/address.dto';
+import { UserAddressService } from '../../services/user-address.service';
 
 @Component({
   selector: 'app-register',
@@ -27,8 +29,11 @@ import { AddressPrediction } from '../../dtos/address.dto';
   templateUrl: './register.component.html',
   styleUrl: './register.component.scss',
 })
-export class RegisterComponent {
+export class RegisterComponent implements OnInit, OnDestroy {
   @ViewChild('registerForm') registerForm!: NgForm;
+
+  private destroy$ = new Subject<void>();
+
   registerData = {
     fullName: '',
     phoneNumber: '',
@@ -48,14 +53,53 @@ export class RegisterComponent {
   showPasswordError = false;
   showConfirmPasswordError = false;
   showAddressError = false;
+  showAutofillButton = false;
 
   isLoading = false;
 
   constructor(
     private router: Router,
     private userService: UserService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private userAddressService: UserAddressService
   ) {}
+
+  ngOnInit(): void {
+    // Kiểm tra xem user đã đăng nhập và có thông tin địa chỉ chưa
+    this.userAddressService.userAddress$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((addressInfo) => {
+        this.showAutofillButton = !!addressInfo;
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  /**
+   * Tự động điền thông tin từ profile user đã đăng nhập
+   */
+  autofillFromProfile(): void {
+    const addressInfo = this.userAddressService.getCurrentAddress();
+    if (addressInfo) {
+      this.registerData.fullName = addressInfo.fullname;
+      this.registerData.phoneNumber = addressInfo.phoneNumber;
+      this.registerData.address = addressInfo.address;
+      if (addressInfo.dateOfBirth) {
+        this.registerData.dateOfBirth = addressInfo.dateOfBirth;
+      }
+
+      this.notificationService.showSuccess(
+        'Đã tự động điền thông tin từ hồ sơ của bạn!'
+      );
+    } else {
+      this.notificationService.showWarning(
+        'Không tìm thấy thông tin hồ sơ để tự động điền'
+      );
+    }
+  }
 
   togglePasswordVisibility(field: 'password' | 'confirmPassword') {
     if (field === 'password') {
@@ -81,6 +125,10 @@ export class RegisterComponent {
 
   onAddressSelected(address: AddressPrediction): void {
     this.registerData.address = address.description;
+  }
+
+  onAddressFocus(): void {
+    this.showAddressError = true;
   }
 
   validateAge(): boolean {
