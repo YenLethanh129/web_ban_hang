@@ -1,6 +1,8 @@
 ﻿using Dashboard.BussinessLogic.Services;
+using Dashboard.DataAccess.Models.Entities;
 using Dashboard.Winform.Presenters;
 using Dashboard.Winform.ViewModels;
+using Microsoft.Extensions.Logging;
 
 namespace Dashboard.Winform
 {
@@ -8,24 +10,37 @@ namespace Dashboard.Winform
     {
         private readonly ILandingDashboardPresenter _presenter;
         private readonly LandingDashboardModel _model;
+        private Button currentlySelectedButton = null!;
 
+        public frmLandingDashboard() : this(null!, null!) { }
+
+        private async void MainDashboardForm_Load(object sender, EventArgs e)
+        {
+            await LoadDataAsync();
+        }
+
+        #region Setup dashboard components
         public frmLandingDashboard(ILogger<frmLandingDashboard> logger, ILandingDashboardPresenter presenter) : base(logger)
         {
             InitializeComponent();
             _presenter = presenter;
+
             dtpStart.Enabled = false;
             dtpEnd.Enabled = false;
             btnOkeCustomDate.Enabled = false;
+
             dtpStart.Value = DateTime.Today.AddDays(-30);
             dtpEnd.Value = DateTime.Today;
-            InitializeConstraint();
-            btnCustomDate.Select();
+
+            btnLast7Days.Select();
+            SetDateMenuButtonUI(btnLast7Days);
 
             _model = _presenter.Model;
 
-
+            InitializeConstraint();
             InitializeEvents();
             SetupCharts();
+            SetupUnderstockGrid();
             SetupDataBinding();
         }
 
@@ -36,21 +51,24 @@ namespace Dashboard.Winform
             dtpEnd.MinDate = dtpStart.Value;
             dtpEnd.MaxDate = DateTime.Today;
 
-            dtpStart.ValueChanged += dtpStart_ValueChanged;
-            dtpEnd.ValueChanged += dtpEnd_ValueChanged;
+            dtpStart.ValueChanged += DtpStart_ValueChanged;
+            dtpEnd.ValueChanged += DtpEnd_ValueChanged;
         }
         private void InitializeEvents()
         {
             _presenter.OnDataLoaded += OnDataLoaded;
-
             btnToday.Click += async (s, e) => await LoadDataForPeriod(DateTime.Today, DateTime.Today);
             btnLast7Days.Click += async (s, e) => await LoadDataForPeriod(DateTime.Today.AddDays(-7), DateTime.Today);
             btnLast30Days.Click += async (s, e) => await LoadDataForPeriod(DateTime.Today.AddDays(-30), DateTime.Today);
-            btnThisMonth.Click += async (s, e) => await LoadDataForPeriod(new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1), DateTime.Today);
-            btnCustomDate.Click += OnCustomDateClick;
+            btnOneYear.Click += async (s, e) => await LoadDataForPeriod(DateTime.Today.AddYears(-1), DateTime.Today);
             btnOkeCustomDate.Click += async (s, e) => await LoadDataForPeriod(dtpStart.Value, dtpEnd.Value);
-        }
+            btnToday.Click += (s, e) => SetDateMenuButtonUI(s!);
+            btnLast7Days.Click += (s, e) => SetDateMenuButtonUI(s!);
+            btnLast30Days.Click += (s, e) => SetDateMenuButtonUI(s!);
+            btnOneYear.Click += (s, e) => SetDateMenuButtonUI(s!);
+            btnCustomDate.Click += (s, e) => SetDateMenuButtonUI(s!);
 
+        }
         private void SetupDataBinding()
         {
             lblTotalOfRevenue.DataBindings.Clear();
@@ -71,23 +89,27 @@ namespace Dashboard.Winform
             lblNumberOfProducts.DataBindings.Clear();
             lblNumberOfProducts.DataBindings.Add("Text", _model, nameof(_model.ProductCount));
 
+            lblEndDate.DataBindings.Clear();
+            lblEndDate.DataBindings.Add("Text", _model, nameof(_model.EndDateFormatted));
+
+            lblPerOrdersIncre.DataBindings.Add("Text", _model, nameof(_model.OrdersGrowthFormatted));
+            lblPerProfitIncre.DataBindings.Add("Text", _model, nameof(_model.ProfitGrowthFormatted));
+            lblPerRevenueIncre.DataBindings.Add("Text", _model, nameof(_model.RevenueGrowthFormatted));
+
             chartGrossFinacial.DataSource = _model.GrossRevenueList;
-            
-            // Configure Revenue series
+
             chartGrossFinacial.Series["Revenue"].XValueMember = "Date";
             chartGrossFinacial.Series["Revenue"].YValueMembers = "Revenue";
             chartGrossFinacial.Series["Revenue"].XValueType = System.Windows.Forms.DataVisualization.Charting.ChartValueType.DateTime;
-            
-            // Configure Expense series
+
             chartGrossFinacial.Series["Expense"].XValueMember = "Date";
             chartGrossFinacial.Series["Expense"].YValueMembers = "Expense";
             chartGrossFinacial.Series["Expense"].XValueType = System.Windows.Forms.DataVisualization.Charting.ChartValueType.DateTime;
-            
-            // Configure Profit series
+
             chartGrossFinacial.Series["Profit"].XValueMember = "Date";
             chartGrossFinacial.Series["Profit"].YValueMembers = "Profit";
             chartGrossFinacial.Series["Profit"].XValueType = System.Windows.Forms.DataVisualization.Charting.ChartValueType.DateTime;
-            
+
             chartGrossFinacial.DataBind();
 
             chartTopProduct.DataSource = _model.TopProducts;
@@ -95,23 +117,18 @@ namespace Dashboard.Winform
             chartTopProduct.Series["TopProducts"].YValueMembers = "QuantitySold";
             chartTopProduct.DataBind();
 
-
-            if (dgvUnderstock != null)
-            {
-                SetupUnderstockGrid();
-            }
+            dgvUnderstock.DataSource = _model.UnderstockProducts;
         }
-
         private void SetupUnderstockGrid()
         {
             dgvUnderstock.AutoGenerateColumns = false;
             dgvUnderstock.Columns.Clear();
-            dgvUnderstock.DataSource = _model.UnderstockProducts;
+
             dgvUnderstock.Columns.Add(new DataGridViewTextBoxColumn
             {
                 DataPropertyName = "ProductId",
                 HeaderText = "Mã nguyên liệu",
-                Name = "ProductCode",
+                Name = "ProductId",
             });
 
             dgvUnderstock.Columns.Add(new DataGridViewTextBoxColumn
@@ -142,17 +159,37 @@ namespace Dashboard.Winform
                 Name = "StockStatus",
             });
 
-            dgvUnderstock.Refresh();
-
             // Style the grid
             dgvUnderstock.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgvUnderstock.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgvUnderstock.ReadOnly = true;
+            dgvUnderstock.MultiSelect = false;
+            dgvUnderstock.RowHeadersVisible = false;
             dgvUnderstock.AllowUserToAddRows = false;
             dgvUnderstock.AllowUserToDeleteRows = false;
-            dgvUnderstock.ReadOnly = true;
-            dgvUnderstock.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dgvUnderstock.MultiSelect = false;
-            dgvUnderstock.AlternatingRowsDefaultCellStyle.BackColor = Color.LightGray;
+            dgvUnderstock.AllowUserToResizeRows = false;
+            dgvUnderstock.EnableHeadersVisualStyles = false;
 
+            // Remove left row headers
+
+            // Theme
+            Color backColor = Color.FromArgb(42, 45, 86);
+            dgvUnderstock.BackgroundColor = backColor;
+            dgvUnderstock.DefaultCellStyle.BackColor = backColor;
+            dgvUnderstock.DefaultCellStyle.ForeColor = Color.White;
+            dgvUnderstock.AlternatingRowsDefaultCellStyle.BackColor = backColor;
+
+            dgvUnderstock.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(42, 45, 86);
+            dgvUnderstock.ColumnHeadersDefaultCellStyle.ForeColor = Color.FromArgb(124, 141, 181);
+            dgvUnderstock.ColumnHeadersDefaultCellStyle.SelectionBackColor = dgvUnderstock.ColumnHeadersDefaultCellStyle.BackColor;
+            dgvUnderstock.ColumnHeadersDefaultCellStyle.SelectionForeColor = dgvUnderstock.ColumnHeadersDefaultCellStyle.ForeColor;
+
+            dgvUnderstock.GridColor = Color.FromArgb(73, 75, 111);
+            dgvUnderstock.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
+            dgvUnderstock.BorderStyle = BorderStyle.None;
+            dgvUnderstock.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgvUnderstock.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
+            dgvUnderstock.RowPrePaint += DgvUnderstock_RowPrePaint;
             dgvUnderstock.CellFormatting += DgvUnderstock_CellFormatting;
         }
 
@@ -160,150 +197,190 @@ namespace Dashboard.Winform
         {
             if (sender is DataGridView grid && e.RowIndex >= 0)
             {
-                UnderstockProductViewModel? item = grid.Rows[e.RowIndex].DataBoundItem as UnderstockProductViewModel;
-                if (item != null)
+                if (grid.Rows[e.RowIndex].DataBoundItem is UnderstockProductViewModel item)
                 {
                     if (item.IsCritical)
                     {
-                        grid.Rows[e.RowIndex].DefaultCellStyle.BackColor = Color.LightCoral;
-                        grid.Rows[e.RowIndex].DefaultCellStyle.ForeColor = Color.DarkRed;
+                        grid.Rows[e.RowIndex].DefaultCellStyle.ForeColor = Color.Red;
                     }
                     else if (item.IsLowStock)
                     {
-                        grid.Rows[e.RowIndex].DefaultCellStyle.BackColor = Color.LightYellow;
                         grid.Rows[e.RowIndex].DefaultCellStyle.ForeColor = Color.DarkOrange;
+                    }
+                    else
+                    {
+                        grid.Rows[e.RowIndex].DefaultCellStyle.ForeColor = Color.LightGray;
                     }
                 }
             }
         }
-
-        private async void MainDashboardForm_Load(object sender, EventArgs e)
+        private void DgvUnderstock_RowPrePaint(object? sender, DataGridViewRowPrePaintEventArgs e)
         {
-            await LoadDataAsync();
+            var grid = sender as DataGridView;
+            if (grid == null || e.RowIndex < 0) return;
+
+            var row = grid.Rows[e.RowIndex];
+
+            if (row.Selected)
+            {
+                row.DefaultCellStyle.SelectionForeColor = row.DefaultCellStyle.ForeColor;
+                row.DefaultCellStyle.SelectionBackColor = Color.FromArgb(73, 75, 111);
+            }
         }
+
 
         private void SetupCharts()
         {
-            // Setup Financial Chart with 3 series
             chartGrossFinacial.Series.Clear();
-            
-            // Revenue Series (Blue)
+
             chartGrossFinacial.Series.Add("Revenue");
-            chartGrossFinacial.Series["Revenue"].ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            chartGrossFinacial.Series["Revenue"].Color = Color.Blue;
+            chartGrossFinacial.Series["Revenue"].ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
+            chartGrossFinacial.Series["Revenue"].Color = Color.Tomato;
             chartGrossFinacial.Series["Revenue"].BorderWidth = 2;
             chartGrossFinacial.Series["Revenue"].LegendText = "Doanh thu";
-            
-            // Expense Series (Red)
+            chartGrossFinacial.Series["Revenue"].MarkerSize = 10;
+            chartGrossFinacial.Series["Revenue"].MarkerSize = 7;
+            chartGrossFinacial.Series["Revenue"].MarkerStep = 1;
+            chartGrossFinacial.Series["Revenue"].MarkerStyle = System.Windows.Forms.DataVisualization.Charting.MarkerStyle.Circle;
+
             chartGrossFinacial.Series.Add("Expense");
-            chartGrossFinacial.Series["Expense"].ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            chartGrossFinacial.Series["Expense"].Color = Color.Red;
+            chartGrossFinacial.Series["Expense"].ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
+            chartGrossFinacial.Series["Expense"].Color = Color.Violet;
             chartGrossFinacial.Series["Expense"].BorderWidth = 2;
             chartGrossFinacial.Series["Expense"].LegendText = "Chi phí";
-            
-            // Profit Series (Green)
+            chartGrossFinacial.Series["Expense"].MarkerSize = 10;
+            chartGrossFinacial.Series["Expense"].MarkerSize = 7;
+            chartGrossFinacial.Series["Expense"].MarkerStep = 1;
+            chartGrossFinacial.Series["Expense"].MarkerStyle = System.Windows.Forms.DataVisualization.Charting.MarkerStyle.Circle;
+
+
             chartGrossFinacial.Series.Add("Profit");
-            chartGrossFinacial.Series["Profit"].ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            chartGrossFinacial.Series["Profit"].Color = Color.Green;
+            chartGrossFinacial.Series["Profit"].ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
+            chartGrossFinacial.Series["Profit"].Color = Color.Turquoise;
             chartGrossFinacial.Series["Profit"].BorderWidth = 2;
             chartGrossFinacial.Series["Profit"].LegendText = "Lợi nhuận";
+            chartGrossFinacial.Series["Profit"].MarkerSize = 7;
+            chartGrossFinacial.Series["Profit"].MarkerStep = 1;
+            chartGrossFinacial.Series["Profit"].MarkerStyle = System.Windows.Forms.DataVisualization.Charting.MarkerStyle.Circle;
 
-            // Configure Chart Areas
+
             if (chartGrossFinacial.ChartAreas.Count > 0)
             {
                 var chartArea = chartGrossFinacial.ChartAreas[0];
-                chartArea.AxisX.Title = "Ngày";
-                chartArea.AxisY.Title = "Số tiền (VNĐ)";
-                chartArea.AxisY.LabelStyle.Format = "#,##0 đ";
 
-                // Configure X-axis for dates
+                chartArea.BackColor = Color.FromArgb(42, 45, 86);
+
+                chartArea.AxisY.LabelStyle.Format = "#,##0,K đ";
+                chartArea.AxisY.LabelStyle.ForeColor = Color.FromArgb(192, 192, 255);
+
                 chartArea.AxisX.LabelStyle.Format = "dd/MM";
+                chartArea.AxisX.LabelStyle.ForeColor = Color.FromArgb(192, 192, 255);
+
                 chartArea.AxisX.IntervalType = System.Windows.Forms.DataVisualization.Charting.DateTimeIntervalType.Days;
                 chartArea.AxisX.IntervalAutoMode = System.Windows.Forms.DataVisualization.Charting.IntervalAutoMode.VariableCount;
+                chartArea.AxisX.IsMarginVisible = false;
 
-                // Configure Y-axis
                 chartArea.AxisY.IsStartedFromZero = true;
 
-                // Grid configuration
-                chartArea.AxisX.MajorGrid.Enabled = true;
+                chartArea.AxisX.MajorGrid.Enabled = false;
                 chartArea.AxisY.MajorGrid.Enabled = true;
-                chartArea.AxisX.MajorGrid.LineColor = Color.LightGray;
-                chartArea.AxisY.MajorGrid.LineColor = Color.LightGray;
+                chartArea.AxisY.MajorGrid.LineColor = Color.FromArgb(73, 75, 111);
+
             }
-            
-            // Enable legend
+
             if (chartGrossFinacial.Legends.Count > 0)
             {
                 chartGrossFinacial.Legends[0].Enabled = true;
                 chartGrossFinacial.Legends[0].Docking = System.Windows.Forms.DataVisualization.Charting.Docking.Top;
+                chartGrossFinacial.Legends[0].BackColor = Color.FromArgb(42, 45, 86);
+                chartGrossFinacial.Legends[0].ForeColor = Color.FromArgb(192, 192, 255);
             }
-
-            // Setup Top Products Chart
+            // Setup doughnut chart for top products
             chartTopProduct.Series.Clear();
             chartTopProduct.Series.Add("TopProducts");
             chartTopProduct.Series["TopProducts"].ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Doughnut;
-        }
+            chartTopProduct.BackColor = Color.FromArgb(42, 45, 86);
+            chartTopProduct.ChartAreas[0].BackColor = Color.FromArgb(42, 45, 86);
+            chartTopProduct.Legends[0].ForeColor = Color.FromArgb(192, 192, 255);
+            chartTopProduct.Legends[0].BackColor = Color.FromArgb(42, 45, 86);
+            chartTopProduct.Series[0].BorderWidth = 4;
+            chartTopProduct.Series[0].BorderColor = Color.FromArgb(42, 45, 86);
+            chartTopProduct.Series[0].BackSecondaryColor = Color.Violet;
+            chartTopProduct.Series[0].BackGradientStyle = System.Windows.Forms.DataVisualization.Charting.GradientStyle.DiagonalLeft;
+            chartTopProduct.Series[0].Palette = System.Windows.Forms.DataVisualization.Charting.ChartColorPalette.Pastel;
 
+        }
+        #endregion
         private async Task LoadDataAsync()
         {
-            ShowLoading(true);
-            await _presenter.LoadDashboardDataAsync();
+            await ExecuteWithLoadingAsync(_presenter.LoadDashboardDataAsync);
         }
-
         private async Task LoadDataForPeriod(DateTime startDate, DateTime endDate)
         {
-            ShowLoading(true);
-            await _presenter.LoadDashboardDataAsync(startDate, endDate);
-            UpdateCharts();
-            ShowLoading(false);
+            await ExecuteWithLoadingAsync(async () =>
+            {
+                await _presenter.LoadDashboardDataAsync(startDate, endDate);
+            });
         }
-
-        private void OnCustomDateClick(object? sender, EventArgs e)
+        private void SetDateMenuButtonUI(object button)
         {
-            dtpStart.Enabled = true;
-            dtpEnd.Enabled = true;
-            btnOkeCustomDate.Enabled = true;
-        }
+            var btn = (Button)button;
+            btn.BackColor = btnLast30Days.FlatAppearance.BorderColor;
+            btn.ForeColor = Color.White;
+            if (currentlySelectedButton != null && currentlySelectedButton != btn)
+            {
+                currentlySelectedButton.BackColor = BackColor;
+                currentlySelectedButton.ForeColor = Color.FromArgb(124, 141, 181);
+            }
+            if (btn != btnCustomDate)
+            {
+                dtpStart.Enabled = false;
+                dtpEnd.Enabled = false;
+                btnOkeCustomDate.Enabled = false;
+            }
+            else
+            {
+                dtpStart.Enabled = true;
+                dtpEnd.Enabled = true;
+                btnOkeCustomDate.Enabled = true;
+                lblStartDate.Cursor = Cursors.Default;
+                lblEndDate.Cursor = Cursors.Default;
+            }
 
+            currentlySelectedButton = btn;
+        }
         private void UpdateCharts()
         {
-            // Debug: Log data count
-            System.Diagnostics.Debug.WriteLine($"GrossRevenueList count: {_model.GrossRevenueList?.Count ?? 0}");
-
-            // Update financial chart with 3 series
             if (chartGrossFinacial.Series.Count >= 3 && _model.GrossRevenueList != null)
             {
-                // Clear all series
                 chartGrossFinacial.Series["Revenue"].Points.Clear();
                 chartGrossFinacial.Series["Expense"].Points.Clear();
                 chartGrossFinacial.Series["Profit"].Points.Clear();
 
                 foreach (var data in _model.GrossRevenueList)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Adding point: Date={data.Date:yyyy-MM-dd}, Revenue={data.Revenue}, Expense={data.Expense}, Profit={data.Profit}");
-                    
-                    // Add points to each series
                     chartGrossFinacial.Series["Revenue"].Points.AddXY(data.Date, data.Revenue);
                     chartGrossFinacial.Series["Expense"].Points.AddXY(data.Date, data.Expense);
                     chartGrossFinacial.Series["Profit"].Points.AddXY(data.Date, data.Profit);
                 }
 
-                // Refresh chart
                 chartGrossFinacial.Invalidate();
-
-                System.Diagnostics.Debug.WriteLine($"Chart series counts - Revenue: {chartGrossFinacial.Series["Revenue"].Points.Count}, Expense: {chartGrossFinacial.Series["Expense"].Points.Count}, Profit: {chartGrossFinacial.Series["Profit"].Points.Count}");
             }
 
             if (chartTopProduct.Series.Count > 0 && _model.TopProducts != null)
             {
                 chartTopProduct.Series["TopProducts"].Points.Clear();
+
                 foreach (var product in _model.TopProducts.Take(5))
                 {
-                    chartTopProduct.Series["TopProducts"].Points.AddXY(product.ProductName, product.QuantitySold);
+                    var point = chartTopProduct.Series["TopProducts"].Points
+                        .AddXY(product.ProductName, product.QuantitySold);
+                    chartTopProduct.Series["TopProducts"].Points.Last().Label = product.QuantitySold.ToString();
+                    chartTopProduct.Series["TopProducts"].Points.Last().LegendText = product.ProductName;
                 }
             }
-        }
 
+        }
         private void OnDataLoaded(object? sender, EventArgs e)
         {
             if (InvokeRequired)
@@ -312,17 +389,8 @@ namespace Dashboard.Winform
                 return;
             }
 
-            Refresh();
-
-            if (dgvUnderstock != null && _model.UnderstockProducts != null)
-            {
-                dgvUnderstock.DataSource = null;
-                dgvUnderstock.DataSource = _model.UnderstockProducts;
-            }
-
             UpdateCharts();
         }
-
         private void OnPresenterError(object? sender, string errorMessage)
         {
             if (InvokeRequired)
@@ -333,21 +401,6 @@ namespace Dashboard.Winform
 
             MessageBox.Show(errorMessage, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
-
-        private void ShowLoading(bool show)
-        {
-            // TODO: Add a loading indicator 
-            //UseWaitCursor = show;
-
-            //foreach (Control control in Controls)
-            //{
-            //    if (control != label1)
-            //    {
-            //        control.Enabled = !show;
-            //    }
-            //}
-        }
-
         protected override void Dispose(bool disposing)
         {
             if (disposing)
@@ -366,8 +419,7 @@ namespace Dashboard.Winform
             }
             base.Dispose(disposing);
         }
-
-        private void dtpStart_ValueChanged(object? sender, EventArgs e)
+        private void DtpStart_ValueChanged(object? sender, EventArgs e)
         {
             dtpEnd.MinDate = dtpStart.Value;
 
@@ -375,14 +427,33 @@ namespace Dashboard.Winform
             {
                 dtpEnd.Value = dtpStart.Value;
             }
+            lblStartDate.Text = dtpStart.Value.ToString("dd/MM/yyyy");
         }
-        private void dtpEnd_ValueChanged(object? sender, EventArgs e)
+        private void DtpEnd_ValueChanged(object? sender, EventArgs e)
         {
+
             if (dtpEnd.Value < dtpStart.Value)
             {
                 MessageBox.Show("Ngày kết thúc không được nhỏ hơn ngày bắt đầu!",
                     "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 dtpEnd.Value = dtpStart.Value;
+            }
+            lblEndDate.Text = dtpEnd.Value.ToString("dd/MM/yyyy");
+        }
+        private void lblStartDate_Click(object sender, EventArgs e)
+        {
+            if (currentlySelectedButton == btnCustomDate)
+            {
+                dtpStart.Select();
+                SendKeys.Send("%{DOWN}");
+            }
+        }
+        private void lblEndDate_Click(object sender, EventArgs e)
+        {
+            if (currentlySelectedButton == btnCustomDate)
+            {
+                dtpEnd.Select();
+                SendKeys.Send("%{DOWN}");
             }
         }
     }

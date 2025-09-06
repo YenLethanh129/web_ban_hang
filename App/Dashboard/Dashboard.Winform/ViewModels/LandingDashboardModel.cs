@@ -23,10 +23,16 @@ namespace Dashboard.Winform.ViewModels
         private string _periodDescription = "Tháng này";
 
         // Collections
-        private List<UnderstockProductViewModel> _understockGoods = [];
+        private BindingList<UnderstockProductViewModel> _understockGoods = new();
         private List<TopProductViewModel> _topProducts = [];
         private List<BranchPerformanceViewModel> _branchPerformance = [];
         private List<RevenueByDateViewModel> _grossRevenueList = [];
+
+        // Previous period data for growth calculation
+        private decimal _previousTotalRevenue;
+        private decimal _previousTotalExpenses;
+        private int _previousTotalOrders;
+        private int _previousPendingOrders;
 
         // Main Properties with unified approach
         public decimal TotalRevenue
@@ -136,13 +142,59 @@ namespace Dashboard.Winform.ViewModels
             }
         }
 
-        public List<UnderstockProductViewModel> UnderstockProducts
+        public BindingList<UnderstockProductViewModel> UnderstockProducts
         {
             get => _understockGoods;
             set
             {
                 _understockGoods = value;
                 OnPropertyChanged(nameof(UnderstockProducts));
+            }
+        }
+
+        public decimal PreviousTotalRevenue
+        {
+            get => _previousTotalRevenue;
+            set
+            {
+                _previousTotalRevenue = value;
+                OnPropertyChanged(nameof(PreviousTotalRevenue));
+                OnPropertyChanged(nameof(RevenueGrowthPercentage));
+                OnPropertyChanged(nameof(RevenueGrowthFormatted));
+            }
+        }
+
+        public decimal PreviousTotalExpenses
+        {
+            get => _previousTotalExpenses;
+            set
+            {
+                _previousTotalExpenses = value;
+                OnPropertyChanged(nameof(PreviousTotalExpenses));
+                OnPropertyChanged(nameof(ProfitGrowthPercentage));
+                OnPropertyChanged(nameof(ProfitGrowthFormatted));
+            }
+        }
+
+        public int PreviousTotalOrders
+        {
+            get => _previousTotalOrders;
+            set
+            {
+                _previousTotalOrders = value;
+                OnPropertyChanged(nameof(PreviousTotalOrders));
+                OnPropertyChanged(nameof(OrdersGrowthPercentage));
+                OnPropertyChanged(nameof(OrdersGrowthFormatted));
+            }
+        }
+
+        public int PreviousPendingOrders
+        {
+            get => _previousPendingOrders;
+            set
+            {
+                _previousPendingOrders = value;
+                OnPropertyChanged(nameof(PreviousPendingOrders));
             }
         }
 
@@ -175,21 +227,46 @@ namespace Dashboard.Winform.ViewModels
             }
         }
 
-        // Helper method for VND formatting
         private static string FormatVND(decimal amount)
         {
             return amount.ToString("#,##0") + " đ";
         }
 
-        // Formatted Properties
+        private static decimal CalculateGrowthPercentage(decimal current, decimal previous)
+        {
+            if (previous == 0)
+                return current > 0 ? 100 : 0;
+            
+            return ((current - previous) / previous) * 100;
+        }
+
+        private static string FormatGrowthPercentage(decimal percentage)
+        {
+            var sign = percentage >= 0 ? "+" : "";
+            return $"{sign}{percentage:F1}%";
+        }
+
         public string TotalRevenueFormatted => FormatVND(_totalRevenue);
         public string TotalExpensesFormatted => FormatVND(_totalExpenses);
         public string NetProfitFormatted => FormatVND(NetProfit);
         public string ProfitMarginFormatted => ProfitMargin.ToString("F2") + "%";
+        public string StartDateFormatted => StartDate != default ? StartDate.ToString("dd/MM/yyyy") : "N/A";
+        public string EndDateFormatted => EndDate != default ? EndDate.ToString("dd/MM/yyyy") : "N/A";
 
         // Calculated Properties
         public decimal NetProfit => TotalRevenue - TotalExpenses;
         public decimal ProfitMargin => TotalRevenue > 0 ? (NetProfit / TotalRevenue) * 100 : 0;
+        public decimal PreviousNetProfit => PreviousTotalRevenue - PreviousTotalExpenses;
+
+        // Growth percentage calculations
+        public decimal RevenueGrowthPercentage => CalculateGrowthPercentage(TotalRevenue, PreviousTotalRevenue);
+        public decimal OrdersGrowthPercentage => CalculateGrowthPercentage(TotalOrders, PreviousTotalOrders);
+        public decimal ProfitGrowthPercentage => CalculateGrowthPercentage(NetProfit, PreviousNetProfit);
+
+        // Growth formatted properties
+        public string RevenueGrowthFormatted => FormatGrowthPercentage(RevenueGrowthPercentage);
+        public string OrdersGrowthFormatted => FormatGrowthPercentage(OrdersGrowthPercentage);
+        public string ProfitGrowthFormatted => FormatGrowthPercentage(ProfitGrowthPercentage);
 
         // Period Display
         public string PeriodDisplay => StartDate != default && EndDate != default
@@ -209,6 +286,14 @@ namespace Dashboard.Winform.ViewModels
             EndDate = end;
             if (!string.IsNullOrEmpty(description))
                 PeriodDescription = description;
+        }
+
+        public void SetPreviousPeriodData(decimal revenue, decimal expenses, int orders, int pendingOrders)
+        {
+            PreviousTotalRevenue = revenue;
+            PreviousTotalExpenses = expenses;
+            PreviousTotalOrders = orders;
+            PreviousPendingOrders = pendingOrders;
         }
 
     }

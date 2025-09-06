@@ -93,8 +93,6 @@ public class ReportingService : BaseTransactionalService, IReportingService
             _ => throw new ArgumentOutOfRangeException(nameof(period), "Unsupported reporting period")
         };
 
-        // Fix for CS0019: Convert DateTime to DateOnly for comparison with BranchExpense.StartDate
-
         var orderGroups = orders
             .Where(o => o.CreatedAt >= fromDate && o.CreatedAt <= toDate)
             .GroupBy(o => keySelector(o.CreatedAt));
@@ -175,7 +173,7 @@ public class ReportingService : BaseTransactionalService, IReportingService
             FromDate = fromDate,
             ToDate = toDate,
         });
-
+        var lowStockIngredients = await _ingredientRepository.GetLowStockWarehouseIngredientsAsync();
         return new DashboardSummaryData
         {
             OrderSummary = orders,
@@ -183,7 +181,7 @@ public class ReportingService : BaseTransactionalService, IReportingService
             ProfitSummary = orders.TotalRevenue - expenses.Sum(e => e.Amount),
             TopProducts = topProducts,
             FinacialReports = [.. finacialReports.Items],
-            UnderstockIngredientsDto = _mapper.Map<List<LowStockIngredientDto>>(await _ingredientRepository.GetLowStockWarehouseIngredientsAsync())
+            UnderstockIngredientsDto = _mapper.Map<List<LowStockIngredientDto>>(lowStockIngredients)
         };
     }
 

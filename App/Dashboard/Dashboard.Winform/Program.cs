@@ -40,8 +40,8 @@ namespace Dashboard.Winform
 
             ApplicationConfiguration.Initialize();
 
-            var mainForm = host.Services.GetRequiredService<frmLandingDashboard>();
-            Application.Run(mainForm);
+            var testForm = host.Services.GetRequiredService<frmLandingDashboard>();
+            Application.Run(testForm);
         }
     }
 }
