@@ -66,6 +66,9 @@ namespace Dashboard.Winform
             chartGrossFinacial = new Chart();
             bottomRightTableLayout = new TableLayoutPanel();
             panel4 = new Panel();
+            pictureBox6 = new PictureBox();
+            pictureBox4 = new PictureBox();
+            pictureBox5 = new PictureBox();
             lblNumberOfProducts = new Label();
             lblNumberOfSuppliers = new Label();
             label11 = new Label();
@@ -92,6 +95,9 @@ namespace Dashboard.Winform
             ((System.ComponentModel.ISupportInitialize)chartGrossFinacial).BeginInit();
             bottomRightTableLayout.SuspendLayout();
             panel4.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)pictureBox6).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)pictureBox4).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)pictureBox5).BeginInit();
             panel5.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dgvUnderstock).BeginInit();
             SuspendLayout();
@@ -113,7 +119,7 @@ namespace Dashboard.Winform
             mainTableLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 50F));
             mainTableLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 80F));
             mainTableLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            mainTableLayout.Size = new Size(1009, 599);
+            mainTableLayout.Size = new Size(1009, 698);
             mainTableLayout.TabIndex = 0;
             // 
             // headerPanel
@@ -519,7 +525,7 @@ namespace Dashboard.Winform
             bottomTableLayout.Name = "bottomTableLayout";
             bottomTableLayout.RowCount = 1;
             bottomTableLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            bottomTableLayout.Size = new Size(989, 449);
+            bottomTableLayout.Size = new Size(989, 548);
             bottomTableLayout.TabIndex = 2;
             // 
             // chartTopProduct
@@ -542,7 +548,7 @@ namespace Dashboard.Winform
             series1.Legend = "Legend1";
             series1.Name = "Series1";
             chartTopProduct.Series.Add(series1);
-            chartTopProduct.Size = new Size(241, 443);
+            chartTopProduct.Size = new Size(241, 542);
             chartTopProduct.TabIndex = 13;
             chartTopProduct.Text = "chart2";
             title1.Alignment = ContentAlignment.TopLeft;
@@ -566,7 +572,7 @@ namespace Dashboard.Winform
             rightSectionTableLayout.RowCount = 2;
             rightSectionTableLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 60F));
             rightSectionTableLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 40F));
-            rightSectionTableLayout.Size = new Size(742, 449);
+            rightSectionTableLayout.Size = new Size(742, 548);
             rightSectionTableLayout.TabIndex = 1;
             // 
             // chartGrossFinacial
@@ -585,7 +591,7 @@ namespace Dashboard.Winform
             series2.Legend = "Legend1";
             series2.Name = "Series1";
             chartGrossFinacial.Series.Add(series2);
-            chartGrossFinacial.Size = new Size(736, 263);
+            chartGrossFinacial.Size = new Size(736, 322);
             chartGrossFinacial.TabIndex = 12;
             chartGrossFinacial.Text = "chart1";
             title2.Alignment = ContentAlignment.TopLeft;
@@ -603,18 +609,21 @@ namespace Dashboard.Winform
             bottomRightTableLayout.Controls.Add(panel4, 0, 0);
             bottomRightTableLayout.Controls.Add(panel5, 1, 0);
             bottomRightTableLayout.Dock = DockStyle.Fill;
-            bottomRightTableLayout.Location = new Point(0, 269);
+            bottomRightTableLayout.Location = new Point(0, 328);
             bottomRightTableLayout.Margin = new Padding(0);
             bottomRightTableLayout.MinimumSize = new Size(500, 130);
             bottomRightTableLayout.Name = "bottomRightTableLayout";
             bottomRightTableLayout.RowCount = 1;
             bottomRightTableLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            bottomRightTableLayout.Size = new Size(742, 180);
+            bottomRightTableLayout.Size = new Size(742, 220);
             bottomRightTableLayout.TabIndex = 1;
             // 
             // panel4
             // 
             panel4.BackColor = Color.FromArgb(42, 45, 86);
+            panel4.Controls.Add(pictureBox6);
+            panel4.Controls.Add(pictureBox4);
+            panel4.Controls.Add(pictureBox5);
             panel4.Controls.Add(lblNumberOfProducts);
             panel4.Controls.Add(lblNumberOfSuppliers);
             panel4.Controls.Add(label11);
@@ -626,15 +635,45 @@ namespace Dashboard.Winform
             panel4.Location = new Point(3, 3);
             panel4.MinimumSize = new Size(150, 130);
             panel4.Name = "panel4";
-            panel4.Size = new Size(216, 174);
+            panel4.Size = new Size(216, 214);
             panel4.TabIndex = 11;
+            // 
+            // pictureBox6
+            // 
+            pictureBox6.Image = (Image)resources.GetObject("pictureBox6.Image");
+            pictureBox6.Location = new Point(8, 85);
+            pictureBox6.Name = "pictureBox6";
+            pictureBox6.Size = new Size(44, 40);
+            pictureBox6.SizeMode = PictureBoxSizeMode.StretchImage;
+            pictureBox6.TabIndex = 17;
+            pictureBox6.TabStop = false;
+            // 
+            // pictureBox4
+            // 
+            pictureBox4.Image = (Image)resources.GetObject("pictureBox4.Image");
+            pictureBox4.Location = new Point(8, 142);
+            pictureBox4.Name = "pictureBox4";
+            pictureBox4.Size = new Size(44, 40);
+            pictureBox4.SizeMode = PictureBoxSizeMode.StretchImage;
+            pictureBox4.TabIndex = 16;
+            pictureBox4.TabStop = false;
+            // 
+            // pictureBox5
+            // 
+            pictureBox5.Image = (Image)resources.GetObject("pictureBox5.Image");
+            pictureBox5.Location = new Point(8, 26);
+            pictureBox5.Name = "pictureBox5";
+            pictureBox5.Size = new Size(44, 40);
+            pictureBox5.SizeMode = PictureBoxSizeMode.StretchImage;
+            pictureBox5.TabIndex = 7;
+            pictureBox5.TabStop = false;
             // 
             // lblNumberOfProducts
             // 
             lblNumberOfProducts.AutoSize = true;
             lblNumberOfProducts.Font = new Font("Segoe UI", 13F);
             lblNumberOfProducts.ForeColor = Color.WhiteSmoke;
-            lblNumberOfProducts.Location = new Point(15, 144);
+            lblNumberOfProducts.Location = new Point(63, 159);
             lblNumberOfProducts.Name = "lblNumberOfProducts";
             lblNumberOfProducts.Size = new Size(52, 25);
             lblNumberOfProducts.TabIndex = 15;
@@ -645,18 +684,19 @@ namespace Dashboard.Winform
             lblNumberOfSuppliers.AutoSize = true;
             lblNumberOfSuppliers.Font = new Font("Segoe UI", 13F);
             lblNumberOfSuppliers.ForeColor = Color.WhiteSmoke;
-            lblNumberOfSuppliers.Location = new Point(15, 93);
+            lblNumberOfSuppliers.Location = new Point(63, 102);
             lblNumberOfSuppliers.Name = "lblNumberOfSuppliers";
             lblNumberOfSuppliers.Size = new Size(52, 25);
             lblNumberOfSuppliers.TabIndex = 4;
             lblNumberOfSuppliers.Text = "1000";
+            lblNumberOfSuppliers.Click += lblNumberOfSuppliers_Click;
             // 
             // label11
             // 
             label11.AutoSize = true;
             label11.Font = new Font("Segoe UI", 9.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
             label11.ForeColor = Color.FromArgb(124, 141, 181);
-            label11.Location = new Point(15, 127);
+            label11.Location = new Point(63, 142);
             label11.Name = "label11";
             label11.Size = new Size(66, 17);
             label11.TabIndex = 14;
@@ -667,7 +707,7 @@ namespace Dashboard.Winform
             label9.AutoSize = true;
             label9.Font = new Font("Segoe UI", 9.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
             label9.ForeColor = Color.FromArgb(124, 141, 181);
-            label9.Location = new Point(15, 76);
+            label9.Location = new Point(63, 85);
             label9.Name = "label9";
             label9.Size = new Size(89, 17);
             label9.TabIndex = 3;
@@ -689,7 +729,7 @@ namespace Dashboard.Winform
             lblNumberOfCustomers.AutoSize = true;
             lblNumberOfCustomers.Font = new Font("Segoe UI", 13F);
             lblNumberOfCustomers.ForeColor = Color.WhiteSmoke;
-            lblNumberOfCustomers.Location = new Point(15, 42);
+            lblNumberOfCustomers.Location = new Point(63, 43);
             lblNumberOfCustomers.Name = "lblNumberOfCustomers";
             lblNumberOfCustomers.Size = new Size(52, 25);
             lblNumberOfCustomers.TabIndex = 1;
@@ -700,7 +740,7 @@ namespace Dashboard.Winform
             label6.AutoSize = true;
             label6.Font = new Font("Segoe UI", 9.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
             label6.ForeColor = Color.FromArgb(124, 141, 181);
-            label6.Location = new Point(15, 25);
+            label6.Location = new Point(63, 26);
             label6.Name = "label6";
             label6.Size = new Size(76, 17);
             label6.TabIndex = 0;
@@ -715,11 +755,13 @@ namespace Dashboard.Winform
             panel5.Location = new Point(225, 3);
             panel5.MinimumSize = new Size(320, 130);
             panel5.Name = "panel5";
-            panel5.Size = new Size(514, 174);
+            panel5.Size = new Size(514, 214);
             panel5.TabIndex = 16;
             // 
             // dgvUnderstock
             // 
+            dgvUnderstock.AllowUserToAddRows = false;
+            dgvUnderstock.AllowUserToDeleteRows = false;
             dgvUnderstock.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle1.BackColor = SystemColors.Control;
@@ -739,9 +781,10 @@ namespace Dashboard.Winform
             dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
             dgvUnderstock.DefaultCellStyle = dataGridViewCellStyle2;
             dgvUnderstock.Dock = DockStyle.Fill;
-            dgvUnderstock.Location = new Point(0, 0);
-            dgvUnderstock.Margin = new Padding(10, 25, 10, 10);
+            dgvUnderstock.Location = new Point(0, 30);
+            dgvUnderstock.Margin = new Padding(20, 5, 10, 20);
             dgvUnderstock.Name = "dgvUnderstock";
+            dgvUnderstock.ReadOnly = true;
             dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle3.BackColor = SystemColors.Control;
             dataGridViewCellStyle3.Font = new Font("Segoe UI", 9F);
@@ -751,30 +794,32 @@ namespace Dashboard.Winform
             dataGridViewCellStyle3.WrapMode = DataGridViewTriState.True;
             dgvUnderstock.RowHeadersDefaultCellStyle = dataGridViewCellStyle3;
             dgvUnderstock.RowHeadersWidth = 51;
-            dgvUnderstock.Size = new Size(514, 174);
+            dgvUnderstock.Size = new Size(514, 184);
             dgvUnderstock.TabIndex = 3;
             // 
             // label13
             // 
-            label13.AutoSize = true;
+            label13.Dock = DockStyle.Top;
             label13.Font = new Font("Segoe UI", 12F);
             label13.ForeColor = Color.WhiteSmoke;
-            label13.Location = new Point(3, 0);
+            label13.Location = new Point(0, 0);
             label13.Name = "label13";
-            label13.Size = new Size(67, 21);
+            label13.Padding = new Padding(10, 5, 0, 5);
+            label13.Size = new Size(514, 30);
             label13.TabIndex = 2;
-            label13.Text = "Tồn Kho";
+            label13.Text = "Hàng sắp hết";
+            label13.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // frmLandingDashboard
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(24, 28, 63);
-            ClientSize = new Size(1009, 599);
+            ClientSize = new Size(1009, 698);
             Controls.Add(mainTableLayout);
             Font = new Font("Segoe UI", 9F);
             ForeColor = SystemColors.ControlText;
-            MinimumSize = new Size(1000, 550);
+            MinimumSize = new Size(1025, 737);
             Name = "frmLandingDashboard";
             Text = "  ";
             Load += MainDashboardForm_Load;
@@ -800,8 +845,10 @@ namespace Dashboard.Winform
             bottomRightTableLayout.ResumeLayout(false);
             panel4.ResumeLayout(false);
             panel4.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)pictureBox6).EndInit();
+            ((System.ComponentModel.ISupportInitialize)pictureBox4).EndInit();
+            ((System.ComponentModel.ISupportInitialize)pictureBox5).EndInit();
             panel5.ResumeLayout(false);
-            panel5.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)dgvUnderstock).EndInit();
             ResumeLayout(false);
 
@@ -860,5 +907,8 @@ namespace Dashboard.Winform
         private TableLayoutPanel bottomTableLayout;
         private TableLayoutPanel rightSectionTableLayout;
         private TableLayoutPanel bottomRightTableLayout;
+        private PictureBox pictureBox6;
+        private PictureBox pictureBox4;
+        private PictureBox pictureBox5;
     }
 }

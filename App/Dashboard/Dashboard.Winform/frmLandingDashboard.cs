@@ -272,9 +272,11 @@ namespace Dashboard.Winform
 
                 chartArea.AxisY.LabelStyle.Format = "#,##0,K đ";
                 chartArea.AxisY.LabelStyle.ForeColor = Color.FromArgb(192, 192, 255);
+                chartArea.AxisY.LabelStyle.Font = new Font("Segoe UI", 11, FontStyle.Regular);
 
                 chartArea.AxisX.LabelStyle.Format = "dd/MM";
                 chartArea.AxisX.LabelStyle.ForeColor = Color.FromArgb(192, 192, 255);
+                chartArea.AxisX.LabelStyle.Font = new Font("Segoe UI", 11, FontStyle.Regular); 
 
                 chartArea.AxisX.IntervalType = System.Windows.Forms.DataVisualization.Charting.DateTimeIntervalType.Days;
                 chartArea.AxisX.IntervalAutoMode = System.Windows.Forms.DataVisualization.Charting.IntervalAutoMode.VariableCount;
@@ -294,7 +296,12 @@ namespace Dashboard.Winform
                 chartGrossFinacial.Legends[0].Docking = System.Windows.Forms.DataVisualization.Charting.Docking.Top;
                 chartGrossFinacial.Legends[0].BackColor = Color.FromArgb(42, 45, 86);
                 chartGrossFinacial.Legends[0].ForeColor = Color.FromArgb(192, 192, 255);
+                chartGrossFinacial.Legends[0].Font = new Font("Segoe UI", 11, FontStyle.Regular);
             }
+            chartGrossFinacial.Series["Revenue"].Font = new Font("Segoe UI", 11, FontStyle.Regular);
+            chartGrossFinacial.Series["Expense"].Font = new Font("Segoe UI", 11, FontStyle.Regular);
+            chartGrossFinacial.Series["Profit"].Font = new Font("Segoe UI", 11, FontStyle.Regular);
+
             // Setup doughnut chart for top products
             chartTopProduct.Series.Clear();
             chartTopProduct.Series.Add("TopProducts");
@@ -304,11 +311,12 @@ namespace Dashboard.Winform
             chartTopProduct.Legends[0].ForeColor = Color.FromArgb(192, 192, 255);
             chartTopProduct.Legends[0].BackColor = Color.FromArgb(42, 45, 86);
             chartTopProduct.Series[0].BorderWidth = 4;
+            chartTopProduct.Series[0].Font = new Font("Segoe UI", 11, FontStyle.Regular);
             chartTopProduct.Series[0].BorderColor = Color.FromArgb(42, 45, 86);
             chartTopProduct.Series[0].BackSecondaryColor = Color.Violet;
             chartTopProduct.Series[0].BackGradientStyle = System.Windows.Forms.DataVisualization.Charting.GradientStyle.DiagonalLeft;
             chartTopProduct.Series[0].Palette = System.Windows.Forms.DataVisualization.Charting.ChartColorPalette.Pastel;
-
+            chartTopProduct.Legends[0].Font = new Font("Segoe UI", 11, FontStyle.Regular);
         }
         #endregion
         private async Task LoadDataAsync()
@@ -455,6 +463,11 @@ namespace Dashboard.Winform
                 dtpEnd.Select();
                 SendKeys.Send("%{DOWN}");
             }
+        }
+
+        private void lblNumberOfSuppliers_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
