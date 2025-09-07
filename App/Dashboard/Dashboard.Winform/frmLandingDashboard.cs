@@ -2,15 +2,20 @@
 using Dashboard.DataAccess.Models.Entities;
 using Dashboard.Winform.Presenters;
 using Dashboard.Winform.ViewModels;
+using Dashboard.Winform.Interfaces;
 using Microsoft.Extensions.Logging;
 
 namespace Dashboard.Winform
 {
-    public partial class FrmLandingDashboard : BaseForm
+    public partial class FrmLandingDashboard : Form, IBlurLoadingServiceAware
     {
         private readonly ILandingDashboardPresenter _presenter;
         private readonly LandingDashboardModel _model;
+        private readonly ILogger<FrmLandingDashboard>? _logger;
         private Button currentlySelectedButton = null!;
+        
+        // Centralized blur loading service
+        private IBlurLoadingService? _blurLoadingService;
 
         //public FrmLandingDashboard() : this(null!, null!) { }
 
@@ -20,9 +25,10 @@ namespace Dashboard.Winform
         }
 
         #region Setup dashboard components
-        public FrmLandingDashboard(ILogger<FrmLandingDashboard> logger, ILandingDashboardPresenter presenter) : base(logger)
+        public FrmLandingDashboard(ILogger<FrmLandingDashboard> logger, ILandingDashboardPresenter presenter)
         {
             InitializeComponent();
+            _logger = logger;
             _presenter = presenter;
 
             dtpStart.Enabled = false;
@@ -43,6 +49,20 @@ namespace Dashboard.Winform
             SetupUnderstockGrid();
             SetupDataBinding();
         }
+
+        #region IBlurLoadingServiceAware Implementation
+        
+        /// <summary>
+        /// Sets the blur loading service for centralized loading management
+        /// </summary>
+        /// <param name="blurLoadingService">The blur loading service instance</param>
+        public void SetBlurLoadingService(IBlurLoadingService blurLoadingService)
+        {
+            _blurLoadingService = blurLoadingService;
+            _logger?.LogInformation("Blur loading service has been set for FrmLandingDashboard");
+        }
+        
+        #endregion
 
         private void InitializeConstraint()
         {
@@ -320,14 +340,56 @@ namespace Dashboard.Winform
         #endregion
         private async Task LoadDataAsync()
         {
-            await ExecuteWithLoadingAsync(_presenter.LoadDashboardDataAsync);
+            if (_blurLoadingService != null)
+            {
+                await _blurLoadingService.ExecuteWithLoadingAsync(async () =>
+                {
+                    _logger?.LogInformation("Loading dashboard data...");
+                    await _presenter.LoadDashboardDataAsync();
+                    _logger?.LogInformation("Dashboard data loaded successfully");
+                }, "Đang tải dữ liệu Dashboard...", true);
+            }
+            else
+            {
+                try
+                {
+                    _logger?.LogInformation("Loading dashboard data...");
+                    await _presenter.LoadDashboardDataAsync();
+                    _logger?.LogInformation("Dashboard data loaded successfully");
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogError(ex, "Error loading dashboard data");
+                    MessageBox.Show($"Có lỗi xảy ra khi tải dữ liệu: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
         }
+        
         private async Task LoadDataForPeriod(DateTime startDate, DateTime endDate)
         {
-            await ExecuteWithLoadingAsync(async () =>
+            if (_blurLoadingService != null)
             {
-                await _presenter.LoadDashboardDataAsync(startDate, endDate);
-            });
+                await _blurLoadingService.ExecuteWithLoadingAsync(async () =>
+                {
+                    _logger?.LogInformation("Loading dashboard data for period {StartDate} to {EndDate}", startDate, endDate);
+                    await _presenter.LoadDashboardDataAsync(startDate, endDate);
+                    _logger?.LogInformation("Dashboard data for period loaded successfully");
+                }, $"Đang tải dữ liệu từ {startDate:dd/MM/yyyy} đến {endDate:dd/MM/yyyy}...", true);
+            }
+            else
+            {
+                try
+                {
+                    _logger?.LogInformation("Loading dashboard data for period {StartDate} to {EndDate}", startDate, endDate);
+                    await _presenter.LoadDashboardDataAsync(startDate, endDate);
+                    _logger?.LogInformation("Dashboard data for period loaded successfully");
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogError(ex, "Error loading dashboard data for period");
+                    MessageBox.Show($"Có lỗi xảy ra khi tải dữ liệu: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
         }
         private void SetDateMenuButtonUI(object button)
         {

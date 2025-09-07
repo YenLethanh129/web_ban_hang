@@ -10,22 +10,40 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Dashboard.Winform.Controls;
+using Dashboard.Winform.Interfaces;
+using System.Diagnostics;
 
 namespace Dashboard.Winform
 {
-    public partial class FrmBaseMdiWithSidePanel : Form
+    public partial class FrmBaseMdiWithSidePanel : Form, IBlurLoadingService
     {
         private bool UserManagementTransitionActive = false;
         private bool SidebarTransitionActive = false;
         private Form? activeForm = null;
 
         private readonly IServiceProvider _serviceProvider;
+        private readonly ILogger<FrmBaseMdiWithSidePanel>? _logger;
+        
+        // Blur loading overlay properties
+        private BlurLoadingOverlay? _blurLoadingOverlay;
+        private Stopwatch? _loadingStopwatch;
+        private bool _isLoading = false;
+        
+        /// <summary>
+        /// Indicates whether loading is currently active
+        /// </summary>
+        public bool IsLoading => _isLoading;
         //private FrmLandingDashboard? frmLandingDashboard = null;
         public FrmBaseMdiWithSidePanel(IServiceProvider serviceProvider)
         {
             InitializeComponent();
             _serviceProvider = serviceProvider;
+            _logger = serviceProvider.GetService<ILogger<FrmBaseMdiWithSidePanel>>();
+            
             pnHeaderTitle.MouseDown += pnHeaderTitle_MouseDown;
+            
+            EnableDoubleBuffering();
 
             // Anti-aliasing for sidebar transition 
             typeof(Panel).InvokeMember("DoubleBuffered",
@@ -41,6 +59,258 @@ namespace Dashboard.Winform
                 null, pnSBHeader, new object[] { true });
 
         }
+
+        #region Double Buffering and Blur Loading Methods
+        
+        private void EnableDoubleBuffering()
+        {
+            // Enable double buffering để giảm flickering
+            SetStyle(ControlStyles.AllPaintingInWmPaint | 
+                     ControlStyles.UserPaint | 
+                     ControlStyles.DoubleBuffer | 
+                     ControlStyles.ResizeRedraw, true);
+            
+            UpdateStyles();
+        }
+
+        /// <summary>
+        /// Protected method for internal form use
+        /// </summary>
+        protected async Task ExecuteWithLoadingInternalAsync(Func<Task> asyncAction, string loadingMessage = "Đang tải...", bool useFadeEffect = false)
+        {
+            await ExecuteWithLoadingAsyncInternal(asyncAction, loadingMessage, useFadeEffect);
+        }
+
+        /// <summary>
+        /// Execute an async action with blur loading overlay (Public interface implementation)
+        /// </summary>
+        public async Task ExecuteWithLoadingAsync(Func<Task> asyncAction, string loadingMessage = "Đang tải...", bool useFadeEffect = false)
+        {
+            await ExecuteWithLoadingAsyncInternal(asyncAction, loadingMessage, useFadeEffect);
+        }
+
+        /// <summary>
+        /// Execute an async function with blur loading overlay and return result
+        /// </summary>
+        public async Task<T> ExecuteWithLoadingAsync<T>(Func<Task<T>> asyncFunction, string loadingMessage = "Đang tải...", bool useFadeEffect = false)
+        {
+            T? result = default(T);
+            
+            await ExecuteWithLoadingAsyncInternal(async () =>
+            {
+                result = await asyncFunction();
+            }, loadingMessage, useFadeEffect);
+            
+            return result!;
+        }
+
+        /// <summary>
+        /// Shows blur loading overlay manually
+        /// </summary>
+        public async Task ShowLoadingAsync(string message = "Đang tải...", bool useFadeEffect = false)
+        {
+            if (_isLoading) return; // Prevent nested loading
+            
+            try
+            {
+                _isLoading = true;
+                _loadingStopwatch = Stopwatch.StartNew();
+                _logger?.LogInformation($"Starting manual blur loading overlay: {message}");
+
+                if (InvokeRequired)
+                {
+                    await Task.Run(() => Invoke(new Action(async () => await ShowBlurLoadingAsync(message, useFadeEffect))));
+                }
+                else
+                {
+                    await ShowBlurLoadingAsync(message, useFadeEffect);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error in ShowLoadingAsync");
+                _isLoading = false;
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Hides blur loading overlay manually
+        /// </summary>
+        public async Task HideLoadingAsync(bool useFadeEffect = false)
+        {
+            if (!_isLoading) return; // Nothing to hide
+            
+            try
+            {
+                if (_loadingStopwatch != null)
+                {
+                    _loadingStopwatch.Stop();
+                    _loadingStopwatch = null;
+                }
+
+                if (InvokeRequired)
+                {
+                    await Task.Run(() => Invoke(new Action(async () => await HideBlurLoadingAsync(useFadeEffect))));
+                }
+                else
+                {
+                    await HideBlurLoadingAsync(useFadeEffect);
+                }
+
+                _logger?.LogInformation("Manual loading completed successfully");
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error in HideLoadingAsync");
+                throw;
+            }
+            finally
+            {
+                _isLoading = false;
+            }
+        }
+
+        private async Task ExecuteWithLoadingAsyncInternal(Func<Task> asyncAction, string loadingMessage = "Đang tải...", bool useFadeEffect = false)
+        {
+            if (_isLoading)
+            {
+                _logger?.LogWarning("Loading already in progress, skipping new request");
+                return;
+            }
+
+            try
+            {
+                _isLoading = true;
+                _loadingStopwatch = Stopwatch.StartNew();
+                _logger?.LogInformation("Starting blur loading overlay");
+
+                if (InvokeRequired)
+                {
+                    await Task.Run(() => Invoke(new Action(async () => await ShowBlurLoadingAsync(loadingMessage, useFadeEffect))));
+                }
+                else
+                {
+                    await ShowBlurLoadingAsync(loadingMessage, useFadeEffect);
+                }
+
+                await asyncAction();
+
+                if (_loadingStopwatch != null)
+                {
+                    _loadingStopwatch.Stop();
+                    _loadingStopwatch = null;
+                }
+
+                if (InvokeRequired)
+                {
+                    await Task.Run(() => Invoke(new Action(async () => await HideBlurLoadingAsync(useFadeEffect))));
+                }
+                else
+                {
+                    await HideBlurLoadingAsync(useFadeEffect);
+                }
+
+                _logger?.LogInformation("Loading completed successfully");
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, $"Error in ExecuteWithLoadingAsync\n {ex.Message}");
+
+                if (InvokeRequired)
+                {
+                    Invoke(new Action(() => HideBlurLoading()));
+                }
+                else
+                {
+                    HideBlurLoading();
+                }
+
+                MessageBox.Show($"Có lỗi xảy ra: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                _isLoading = false;
+            }
+        }
+
+        private async Task ShowBlurLoadingAsync(string message, bool useFadeEffect = false)
+        {
+            try
+            {
+                if (_blurLoadingOverlay == null)
+                {
+                    _blurLoadingOverlay = new BlurLoadingOverlay();
+                }
+                
+                if (useFadeEffect)
+                {
+                    await _blurLoadingOverlay.ShowLoadingWithFadeAsync(this, message);
+                }
+                else
+                {
+                    _blurLoadingOverlay.ShowLoading(this, message);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Failed to show blur loading overlay, falling back to simple message");
+                Cursor = Cursors.WaitCursor;
+            }
+        }
+
+        private async Task HideBlurLoadingAsync(bool useFadeEffect = false)
+        {
+            try
+            {
+                if (_blurLoadingOverlay != null)
+                {
+                    if (useFadeEffect)
+                    {
+                        await _blurLoadingOverlay.HideLoadingWithFadeAsync();
+                    }
+                    else
+                    {
+                        _blurLoadingOverlay.HideLoading();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error hiding blur loading overlay");
+            }
+            finally
+            {
+                // Always restore cursor
+                Cursor = Cursors.Default;
+                Activate();
+                Focus();
+            }
+        }
+
+        private void HideBlurLoading()
+        {
+            try
+            {
+                if (_blurLoadingOverlay != null)
+                {
+                    _blurLoadingOverlay.HideLoading();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error hiding blur loading overlay");
+            }
+            finally
+            {
+                // Always restore cursor
+                Cursor = Cursors.Default;
+                Activate();
+                Focus();
+            }
+        }
+
+        #endregion
 
 
 
@@ -129,82 +399,202 @@ namespace Dashboard.Winform
 
         private void SBUserManagementTransition_Tick(object sender, EventArgs e)
         {
-            int targetHeight = UserManagementTransitionActive ? 50 : 150;
-            int diff = targetHeight - fpnUserManagementContainer.Height;
-            int speed = Math.Max(2, Math.Abs(diff) / 5);
+            try
+            {
+                int targetHeight = UserManagementTransitionActive ? 50 : 150;
+                int diff = targetHeight - fpnUserManagementContainer.Height;
+                int speed = Math.Max(2, Math.Abs(diff) / 5);
 
-            if (Math.Abs(diff) <= speed)
-            {
-                fpnUserManagementContainer.Height = targetHeight;
-                SBUserManagementTransition.Stop();
-                UserManagementTransitionActive = !UserManagementTransitionActive;
+                if (Math.Abs(diff) <= speed)
+                {
+                    fpnUserManagementContainer.Height = targetHeight;
+                    SBUserManagementTransition.Stop();
+                    UserManagementTransitionActive = !UserManagementTransitionActive;
+                }
+                else
+                {
+                    fpnUserManagementContainer.Height += (diff > 0 ? speed : -speed);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                fpnUserManagementContainer.Height += (diff > 0 ? speed : -speed);
+                _logger?.LogError(ex, "Error in SBUserManagementTransition_Tick");
+                SBUserManagementTransition.Stop();
             }
         }
 
 
         private void BtnSBUser_Click(object sender, EventArgs e)
         {
-            SBUserManagementTransition.Start();
+            try
+            {
+                SBUserManagementTransition.Start();
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error in BtnSBUser_Click");
+                MessageBox.Show("Không thể thực hiện animation", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
 
         private void SBTransition_Tick(object sender, EventArgs e)
         {
-            fpnSideBar.SuspendLayout();
-            pnSBHeader.SuspendLayout();
-
-            int targetWidth = SidebarTransitionActive ? 246 : 60;
-            int diff = targetWidth - fpnSideBar.Width;
-            int speed = Math.Max(2, Math.Abs(diff) / 5);
-
-            if (Math.Abs(diff) <= speed)
+            try
             {
-                fpnSideBar.Width = targetWidth;
-                pnSBHeader.Width = targetWidth;
-                fpnSideBar.Invalidate();
-                pnSBHeader.Invalidate();
+                fpnSideBar.SuspendLayout();
+                pnSBHeader.SuspendLayout();
+
+                int targetWidth = SidebarTransitionActive ? 246 : 60;
+                int diff = targetWidth - fpnSideBar.Width;
+                int speed = Math.Max(2, Math.Abs(diff) / 5);
+
+                if (Math.Abs(diff) <= speed)
+                {
+                    fpnSideBar.Width = targetWidth;
+                    pnSBHeader.Width = targetWidth;
+                    fpnSideBar.Invalidate();
+                    pnSBHeader.Invalidate();
+                    SBTransition.Stop();
+                    SidebarTransitionActive = !SidebarTransitionActive;
+                }
+                else
+                {
+                    fpnSideBar.Width += (diff > 0 ? speed : -speed);
+                    pnSBHeader.Width = fpnSideBar.Width;
+                }
+
+                pnSBHeader.ResumeLayout();
+                fpnSideBar.ResumeLayout();
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error in SBTransition_Tick");
                 SBTransition.Stop();
-                SidebarTransitionActive = !SidebarTransitionActive;
+                
+                // Resume layout để tránh freeze UI
+                try
+                {
+                    pnSBHeader.ResumeLayout();
+                    fpnSideBar.ResumeLayout();
+                }
+                catch { }
             }
-            else
-            {
-                fpnSideBar.Width += (diff > 0 ? speed : -speed);
-                pnSBHeader.Width = fpnSideBar.Width;
-            }
-
-            pnSBHeader.ResumeLayout();
-            fpnSideBar.ResumeLayout();
         }
 
 
         private void picSideBarIcon_Click(object sender, EventArgs e)
         {
-            SBTransition.Start();
+            try
+            {
+                SBTransition.Start();
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error in picSideBarIcon_Click");
+                MessageBox.Show("Không thể thực hiện animation", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
 
-        private void btnSBLanding_Click(object sender, EventArgs e)
+        private async void btnSBLanding_Click(object sender, EventArgs e)
         {
-            var frmLandingDashboard = _serviceProvider.GetRequiredService<FrmLandingDashboard>();
-            OpenChildForm(frmLandingDashboard);
+            await ExecuteWithLoadingInternalAsync(async () =>
+            {
+                await Task.Run(() =>
+                {
+                    if (InvokeRequired)
+                    {
+                        Invoke(new Action(() =>
+                        {
+                            var frmLandingDashboard = _serviceProvider.GetRequiredService<FrmLandingDashboard>();
+                            OpenChildForm(frmLandingDashboard);
+                        }));
+                    }
+                    else
+                    {
+                        var frmLandingDashboard = _serviceProvider.GetRequiredService<FrmLandingDashboard>();
+                        OpenChildForm(frmLandingDashboard);
+                    }
+                });
+            }, "Đang tải Dashboard...", true);
         }
 
         private void OpenChildForm(Form childForm)
         {
-            if (activeForm != null)
-                activeForm.Close();
+            try
+            {
+                if (activeForm != null)
+                {
+                    activeForm.Close();
+                    activeForm.Dispose();
+                }
 
-            activeForm = childForm;
-            childForm.TopLevel = false;
-            childForm.FormBorderStyle = FormBorderStyle.None;
-            childForm.Dock = DockStyle.Fill;
+                activeForm = childForm;
+                childForm.TopLevel = false;
+                childForm.FormBorderStyle = FormBorderStyle.None;
+                childForm.Dock = DockStyle.Fill;
 
-            pnMainContainer.Controls.Clear();
-            pnMainContainer.Controls.Add(childForm);
-            childForm.BringToFront();
-            childForm.Show();
+                // Inject IBlurLoadingService if the child form supports it
+                if (childForm is IBlurLoadingServiceAware blurAwareForm)
+                {
+                    blurAwareForm.SetBlurLoadingService(this);
+                }
+
+                pnMainContainer.Controls.Clear();
+                pnMainContainer.Controls.Add(childForm);
+                childForm.BringToFront();
+                childForm.Show();
+                
+                _logger?.LogInformation($"Successfully opened child form: {childForm.GetType().Name}");
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, $"Error opening child form: {childForm?.GetType().Name}");
+                MessageBox.Show($"Không thể mở form: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
+
+        #region Demo Methods for Testing Blur Loading
+
+        /// <summary>
+        /// Demo method để test blur loading functionality
+        /// </summary>
+        public async Task TestBlurLoadingAsync()
+        {
+            await ExecuteWithLoadingInternalAsync(async () =>
+            {
+                // Simulate some work
+                await Task.Delay(3000);
+                
+                // Simulate some UI work that needs to be done on UI thread
+                await Task.Run(() =>
+                {
+                    if (InvokeRequired)
+                    {
+                        Invoke(new Action(() =>
+                        {
+                            MessageBox.Show("Test blur loading completed!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }));
+                    }
+                    else
+                    {
+                        MessageBox.Show("Test blur loading completed!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                });
+            }, "Đang test blur loading...", true);
+        }
+
+        /// <summary>
+        /// Demo method để test exception handling
+        /// </summary>
+        public async Task TestExceptionHandlingAsync()
+        {
+            await ExecuteWithLoadingInternalAsync(async () =>
+            {
+                await Task.Delay(1000);
+                throw new InvalidOperationException("This is a test exception to demonstrate error handling");
+            }, "Đang test exception handling...", true);
+        }
+
+        #endregion
     }
 }

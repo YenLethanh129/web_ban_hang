@@ -1,4 +1,6 @@
-﻿namespace Dashboard.Winform
+﻿using Microsoft.Extensions.Logging;
+
+namespace Dashboard.Winform
 {
     partial class FrmBaseMdiWithSidePanel
     {
@@ -13,9 +15,31 @@
         /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         protected override void Dispose(bool disposing)
         {
-            if (disposing && (components != null))
+            if (disposing)
             {
-                components.Dispose();
+                try
+                {
+                    // Dispose custom resources
+                    _blurLoadingOverlay?.Dispose();
+                    activeForm?.Dispose();
+                    _loadingStopwatch?.Stop();
+
+                    // Dispose components
+                    if (components != null)
+                    {
+                        components.Dispose();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogError(ex, "Error during disposal");
+                    
+                    // Still dispose components even if custom disposal fails
+                    if (components != null)
+                    {
+                        components.Dispose();
+                    }
+                }
             }
             base.Dispose(disposing);
         }
