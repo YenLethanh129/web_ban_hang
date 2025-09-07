@@ -34,13 +34,14 @@ namespace Dashboard.Winform
             builder.Services.AddAutoMapper(typeof(ReportMappingProfile));
 
             builder.Services.AddScoped<ILandingDashboardPresenter, LandingDashboardPresenter>();
-            builder.Services.AddTransient<frmLandingDashboard>();
+            builder.Services.AddTransient<FrmLandingDashboard>();
+            builder.Services.AddTransient<FrmBaseMdiWithSidePanel>();
 
             using var host = builder.Build();
 
             ApplicationConfiguration.Initialize();
 
-            var testForm = host.Services.GetRequiredService<frmLandingDashboard>();
+            var testForm = host.Services.GetRequiredService<FrmBaseMdiWithSidePanel>();
             Application.Run(testForm);
         }
     }

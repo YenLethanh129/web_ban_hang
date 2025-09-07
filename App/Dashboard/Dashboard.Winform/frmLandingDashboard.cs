@@ -6,13 +6,13 @@ using Microsoft.Extensions.Logging;
 
 namespace Dashboard.Winform
 {
-    public partial class frmLandingDashboard : BaseForm
+    public partial class FrmLandingDashboard : BaseForm
     {
         private readonly ILandingDashboardPresenter _presenter;
         private readonly LandingDashboardModel _model;
         private Button currentlySelectedButton = null!;
 
-        public frmLandingDashboard() : this(null!, null!) { }
+        //public FrmLandingDashboard() : this(null!, null!) { }
 
         private async void MainDashboardForm_Load(object sender, EventArgs e)
         {
@@ -20,7 +20,7 @@ namespace Dashboard.Winform
         }
 
         #region Setup dashboard components
-        public frmLandingDashboard(ILogger<frmLandingDashboard> logger, ILandingDashboardPresenter presenter) : base(logger)
+        public FrmLandingDashboard(ILogger<FrmLandingDashboard> logger, ILandingDashboardPresenter presenter) : base(logger)
         {
             InitializeComponent();
             _presenter = presenter;
@@ -227,7 +227,6 @@ namespace Dashboard.Winform
                 row.DefaultCellStyle.SelectionBackColor = Color.FromArgb(73, 75, 111);
             }
         }
-
 
         private void SetupCharts()
         {

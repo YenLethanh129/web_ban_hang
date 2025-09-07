@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <PackageReference Include="System.Text.Json" />
+    <PackageReference Include="ReaLTaiizor" />
     <PackageReference Include="WinForms.DataVisualization" />
   </ItemGroup>
 
