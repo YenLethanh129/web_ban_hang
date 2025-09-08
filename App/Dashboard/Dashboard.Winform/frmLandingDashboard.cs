@@ -14,14 +14,37 @@ namespace Dashboard.Winform
         private readonly ILogger<FrmLandingDashboard>? _logger;
         private Button currentlySelectedButton = null!;
         
-        // Centralized blur loading service
         private IBlurLoadingService? _blurLoadingService;
-
-        //public FrmLandingDashboard() : this(null!, null!) { }
+        private TaskCompletionSource<bool>? _dataLoadingCompletionSource;
 
         private async void MainDashboardForm_Load(object sender, EventArgs e)
         {
-            await LoadDataAsync();
+            _dataLoadingCompletionSource = new TaskCompletionSource<bool>();
+            
+            try
+            {
+                await Task.Delay(50);
+                await LoadDataAsync();
+                
+                _dataLoadingCompletionSource.SetResult(true);
+            }
+            catch (Exception ex)
+            {
+                _dataLoadingCompletionSource.SetException(ex);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Wait for the form's data loading to complete
+        /// </summary>
+        /// <returns>A task that completes when data loading is finished</returns>
+        public async Task WaitForDataLoadingComplete()
+        {
+            if (_dataLoadingCompletionSource != null)
+            {
+                await _dataLoadingCompletionSource.Task;
+            }
         }
 
         #region Setup dashboard components
@@ -61,9 +84,10 @@ namespace Dashboard.Winform
             _blurLoadingService = blurLoadingService;
             _logger?.LogInformation("Blur loading service has been set for FrmLandingDashboard");
         }
-        
+
         #endregion
 
+        #region Constraints, Events and DataBinding
         private void InitializeConstraint()
         {
 
@@ -139,6 +163,9 @@ namespace Dashboard.Winform
 
             dgvUnderstock.DataSource = _model.UnderstockProducts;
         }
+        #endregion
+
+        #region Setup charts and grids
         private void SetupUnderstockGrid()
         {
             dgvUnderstock.AutoGenerateColumns = false;
@@ -212,7 +239,6 @@ namespace Dashboard.Winform
             dgvUnderstock.RowPrePaint += DgvUnderstock_RowPrePaint;
             dgvUnderstock.CellFormatting += DgvUnderstock_CellFormatting;
         }
-
         private void DgvUnderstock_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
         {
             if (sender is DataGridView grid && e.RowIndex >= 0)
@@ -247,7 +273,6 @@ namespace Dashboard.Winform
                 row.DefaultCellStyle.SelectionBackColor = Color.FromArgb(73, 75, 111);
             }
         }
-
         private void SetupCharts()
         {
             chartGrossFinacial.Series.Clear();
@@ -338,30 +363,25 @@ namespace Dashboard.Winform
             chartTopProduct.Legends[0].Font = new Font("Segoe UI", 11, FontStyle.Regular);
         }
         #endregion
+
+        #endregion
+
+        #region Load data
         private async Task LoadDataAsync()
         {
-            if (_blurLoadingService != null)
+            // Since parent form is managing the loading overlay, we don't need to show another one
+            // Just load the data directly
+            try
             {
-                await _blurLoadingService.ExecuteWithLoadingAsync(async () =>
-                {
-                    _logger?.LogInformation("Loading dashboard data...");
-                    await _presenter.LoadDashboardDataAsync();
-                    _logger?.LogInformation("Dashboard data loaded successfully");
-                }, "Đang tải dữ liệu Dashboard...", true);
+                _logger?.LogInformation("Loading dashboard data...");
+                await _presenter.LoadDashboardDataAsync();
+                _logger?.LogInformation("Dashboard data loaded successfully");
             }
-            else
+            catch (Exception ex)
             {
-                try
-                {
-                    _logger?.LogInformation("Loading dashboard data...");
-                    await _presenter.LoadDashboardDataAsync();
-                    _logger?.LogInformation("Dashboard data loaded successfully");
-                }
-                catch (Exception ex)
-                {
-                    _logger?.LogError(ex, "Error loading dashboard data");
-                    MessageBox.Show($"Có lỗi xảy ra khi tải dữ liệu: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
+                _logger?.LogError(ex, "Error loading dashboard data");
+                MessageBox.Show($"Có lỗi xảy ra khi tải dữ liệu: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                throw; // Re-throw to signal completion source
             }
         }
         
@@ -391,6 +411,8 @@ namespace Dashboard.Winform
                 }
             }
         }
+        #endregion
+
         private void SetDateMenuButtonUI(object button)
         {
             var btn = (Button)button;
@@ -509,7 +531,7 @@ namespace Dashboard.Winform
             }
             lblEndDate.Text = dtpEnd.Value.ToString("dd/MM/yyyy");
         }
-        private void lblStartDate_Click(object sender, EventArgs e)
+        private void LblStartDate_Click(object sender, EventArgs e)
         {
             if (currentlySelectedButton == btnCustomDate)
             {
@@ -517,18 +539,13 @@ namespace Dashboard.Winform
                 SendKeys.Send("%{DOWN}");
             }
         }
-        private void lblEndDate_Click(object sender, EventArgs e)
+        private void LblEndDate_Click(object sender, EventArgs e)
         {
             if (currentlySelectedButton == btnCustomDate)
             {
                 dtpEnd.Select();
                 SendKeys.Send("%{DOWN}");
             }
-        }
-
-        private void lblNumberOfSuppliers_Click(object sender, EventArgs e)
-        {
-
         }
     }
 }

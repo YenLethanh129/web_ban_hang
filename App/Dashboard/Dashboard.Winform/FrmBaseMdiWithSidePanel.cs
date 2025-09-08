@@ -18,50 +18,68 @@ namespace Dashboard.Winform
 {
     public partial class FrmBaseMdiWithSidePanel : Form, IBlurLoadingService
     {
-        private bool UserManagementTransitionActive = false;
-        private bool SidebarTransitionActive = false;
-        private Form? activeForm = null;
-
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<FrmBaseMdiWithSidePanel>? _logger;
-        
-        // Blur loading overlay properties
-        private BlurLoadingOverlay? _blurLoadingOverlay;
-        private Stopwatch? _loadingStopwatch;
+
+        private bool UserManagementTransitionActive = false;
+        private bool SidebarTransitionActive = true;
         private bool _isLoading = false;
-        
-        /// <summary>
-        /// Indicates whether loading is currently active
-        /// </summary>
+
+        private Form? activeForm = null;
+
+        private Button? CurrentSelectedSidebarButton = null;
+        private PictureBox? CurrentSelectedPictureBox = null;
+        private Dictionary<Button, PictureBox> _buttonIconMap = new();
+        private Stopwatch? _loadingStopwatch;
+        private BlurLoadingOverlay? _blurLoadingOverlay;
+
+        private readonly List<Color> _sidebarColors =
+        [
+            Color.FromArgb(54, 58, 105),
+            Color.Gainsboro
+        ];
+
         public bool IsLoading => _isLoading;
-        //private FrmLandingDashboard? frmLandingDashboard = null;
         public FrmBaseMdiWithSidePanel(IServiceProvider serviceProvider)
         {
             InitializeComponent();
+
             _serviceProvider = serviceProvider;
             _logger = serviceProvider.GetService<ILogger<FrmBaseMdiWithSidePanel>>();
-            
-            pnHeaderTitle.MouseDown += pnHeaderTitle_MouseDown;
-            
-            EnableDoubleBuffering();
+            _buttonIconMap = new Dictionary<Button, PictureBox>
+            {
+                { btnSBLanding, iconSBlanding },
+                { btnSBUser, iconSBUser },
+                { btnSBEmployee, iconSBEmployee },
+                { btnSBCustomer, iconSBCustomer },
+                { btnSBGoods, iconSBGoods },
+                { btnSBProduct, iconSBProduct },
+                { btnSBSupplier, iconSBSupplier },
+                { btnSBExit, iconSBExit }
+            };
+
 
             // Anti-aliasing for sidebar transition 
+            EnableDoubleBuffering();
             typeof(Panel).InvokeMember("DoubleBuffered",
                 System.Reflection.BindingFlags.SetProperty
                 | System.Reflection.BindingFlags.Instance
                 | System.Reflection.BindingFlags.NonPublic,
-                null, fpnSideBar, new object[] { true });
+                null, fpnSideBar, [true]);
 
             typeof(Panel).InvokeMember("DoubleBuffered",
                 System.Reflection.BindingFlags.SetProperty
                 | System.Reflection.BindingFlags.Instance
                 | System.Reflection.BindingFlags.NonPublic,
-                null, pnSBHeader, new object[] { true });
+                null, pnSBHeader, [true]);
 
+
+            InitializeEvents();
         }
 
+        #region Setup out side regions
         #region Double Buffering and Blur Loading Methods
-        
+
         private void EnableDoubleBuffering()
         {
             // Enable double buffering để giảm flickering
@@ -109,7 +127,7 @@ namespace Dashboard.Winform
         /// </summary>
         public async Task ShowLoadingAsync(string message = "Đang tải...", bool useFadeEffect = false)
         {
-            if (_isLoading) return; // Prevent nested loading
+            if (_isLoading) return;
             
             try
             {
@@ -131,6 +149,10 @@ namespace Dashboard.Winform
                 _logger?.LogError(ex, "Error in ShowLoadingAsync");
                 _isLoading = false;
                 throw;
+            } 
+            finally
+            {
+                _isLoading = false;
             }
         }
 
@@ -175,8 +197,18 @@ namespace Dashboard.Winform
         {
             if (_isLoading)
             {
-                _logger?.LogWarning("Loading already in progress, skipping new request");
-                return;
+                _logger?.LogWarning("Loading already in progress, executing action without additional loading overlay");
+                try
+                {
+                    await asyncAction();
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogError(ex, $"Error in nested loading action\n {ex.Message}");
+                    MessageBox.Show($"Có lỗi xảy ra: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    throw;
+                }
             }
 
             try
@@ -312,14 +344,7 @@ namespace Dashboard.Winform
 
         #endregion
 
-
-
-        private void Form1_Load(object sender, EventArgs e)
-        {
-
-        }
-
-        #region Drag form khi giữ pnHeaderTitle
+        #region Dragging form along with while draggign pnHeaderTitle
         [DllImport("user32.dll")]
         public static extern bool ReleaseCapture();
 
@@ -340,7 +365,7 @@ namespace Dashboard.Winform
         #endregion
 
         #region Resize borderless form
-        private const int cGrip = 16; 
+        private const int cGrip = 16;
         private const int cCaption = 32;
         protected override void WndProc(ref Message m)
         {
@@ -395,6 +420,61 @@ namespace Dashboard.Winform
             }
         }
         #endregion
+        #endregion
+        private void Form1_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        #region events region
+        private void InitializeEvents()
+        {
+
+
+            // Click events
+            // Main event handlers
+            btnSBLanding.Click += (s, e) =>  LaunchLandingForm(s!, e);
+
+            // Secondary event handlers for UI state
+            foreach (var kv in _buttonIconMap.Keys)
+            {
+                kv.Click += (s, e) => SetSBButtonUI(s!);
+            }
+
+            // Timer events
+            picSideBarIcon.Click += (s, e) => OpenAndClosedSideBar(s!, e);
+            btnSBUser.Click += (s, e) => OpenUserManagementContainer(s!, e);
+
+            // Mouse down event for dragging the form
+            pnHeaderTitle.MouseDown += pnHeaderTitle_MouseDown;
+        }
+
+        private void SetSBButtonUI(object sender)
+        {
+            var btn = (Button)sender;
+
+            btn.BackColor = Color.FromArgb(128, 128, 255);
+            btn.ForeColor = Color.Black;
+
+            var oldPictureBox = CurrentSelectedPictureBox;
+
+            _buttonIconMap.TryGetValue(btn, out var pictureBox);
+            CurrentSelectedPictureBox = pictureBox;
+
+            if (CurrentSelectedPictureBox != null)
+                CurrentSelectedPictureBox.BackColor = Color.FromArgb(128, 128, 255);
+
+            if (oldPictureBox != null && oldPictureBox != CurrentSelectedPictureBox)
+                oldPictureBox.BackColor = Color.FromArgb(54, 58, 105);
+
+            if (CurrentSelectedSidebarButton != null && CurrentSelectedSidebarButton != btn)
+            {
+                CurrentSelectedSidebarButton.BackColor = _sidebarColors[0];
+                CurrentSelectedSidebarButton.ForeColor = _sidebarColors[1];
+            }
+
+            CurrentSelectedSidebarButton = btn;
+        }
 
 
         private void SBUserManagementTransition_Tick(object sender, EventArgs e)
@@ -423,12 +503,12 @@ namespace Dashboard.Winform
             }
         }
 
-
-        private void BtnSBUser_Click(object sender, EventArgs e)
+        private void OpenUserManagementContainer(object sender, EventArgs e)
         {
             try
             {
-                SBUserManagementTransition.Start();
+                if (SidebarTransitionActive)
+                    SBUserManagementTransition.Start();
             }
             catch (Exception ex)
             {
@@ -444,7 +524,7 @@ namespace Dashboard.Winform
                 fpnSideBar.SuspendLayout();
                 pnSBHeader.SuspendLayout();
 
-                int targetWidth = SidebarTransitionActive ? 246 : 60;
+                int targetWidth = SidebarTransitionActive ? 60 : 246;
                 int diff = targetWidth - fpnSideBar.Width;
                 int speed = Math.Max(2, Math.Abs(diff) / 5);
 
@@ -471,7 +551,6 @@ namespace Dashboard.Winform
                 _logger?.LogError(ex, "Error in SBTransition_Tick");
                 SBTransition.Stop();
                 
-                // Resume layout để tránh freeze UI
                 try
                 {
                     pnSBHeader.ResumeLayout();
@@ -481,11 +560,15 @@ namespace Dashboard.Winform
             }
         }
 
-
-        private void picSideBarIcon_Click(object sender, EventArgs e)
+        private void OpenAndClosedSideBar(object sender, EventArgs e)
         {
             try
             {
+                if (SidebarTransitionActive && UserManagementTransitionActive)
+                {
+                    SBUserManagementTransition.Start();
+                }
+
                 SBTransition.Start();
             }
             catch (Exception ex)
@@ -495,26 +578,34 @@ namespace Dashboard.Winform
             }
         }
 
-        private async void btnSBLanding_Click(object sender, EventArgs e)
+        private async void LaunchLandingForm(object sender, EventArgs e)
         {
             await ExecuteWithLoadingInternalAsync(async () =>
             {
+                FrmLandingDashboard frmLandingDashboard = null!;
+                
                 await Task.Run(() =>
                 {
                     if (InvokeRequired)
                     {
                         Invoke(new Action(() =>
                         {
-                            var frmLandingDashboard = _serviceProvider.GetRequiredService<FrmLandingDashboard>();
+                            frmLandingDashboard = _serviceProvider.GetRequiredService<FrmLandingDashboard>();
                             OpenChildForm(frmLandingDashboard);
                         }));
                     }
                     else
                     {
-                        var frmLandingDashboard = _serviceProvider.GetRequiredService<FrmLandingDashboard>();
+                        frmLandingDashboard = _serviceProvider.GetRequiredService<FrmLandingDashboard>();
                         OpenChildForm(frmLandingDashboard);
                     }
                 });
+                
+                // Wait for child form to complete its data loading
+                if (frmLandingDashboard != null)
+                {
+                    await frmLandingDashboard.WaitForDataLoadingComplete();
+                }
             }, "Đang tải Dashboard...", true);
         }
 
@@ -533,7 +624,6 @@ namespace Dashboard.Winform
                 childForm.FormBorderStyle = FormBorderStyle.None;
                 childForm.Dock = DockStyle.Fill;
 
-                // Inject IBlurLoadingService if the child form supports it
                 if (childForm is IBlurLoadingServiceAware blurAwareForm)
                 {
                     blurAwareForm.SetBlurLoadingService(this);
@@ -552,49 +642,6 @@ namespace Dashboard.Winform
                 MessageBox.Show($"Không thể mở form: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
-        #region Demo Methods for Testing Blur Loading
-
-        /// <summary>
-        /// Demo method để test blur loading functionality
-        /// </summary>
-        public async Task TestBlurLoadingAsync()
-        {
-            await ExecuteWithLoadingInternalAsync(async () =>
-            {
-                // Simulate some work
-                await Task.Delay(3000);
-                
-                // Simulate some UI work that needs to be done on UI thread
-                await Task.Run(() =>
-                {
-                    if (InvokeRequired)
-                    {
-                        Invoke(new Action(() =>
-                        {
-                            MessageBox.Show("Test blur loading completed!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        }));
-                    }
-                    else
-                    {
-                        MessageBox.Show("Test blur loading completed!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
-                });
-            }, "Đang test blur loading...", true);
-        }
-
-        /// <summary>
-        /// Demo method để test exception handling
-        /// </summary>
-        public async Task TestExceptionHandlingAsync()
-        {
-            await ExecuteWithLoadingInternalAsync(async () =>
-            {
-                await Task.Delay(1000);
-                throw new InvalidOperationException("This is a test exception to demonstrate error handling");
-            }, "Đang test exception handling...", true);
-        }
-
         #endregion
     }
 }

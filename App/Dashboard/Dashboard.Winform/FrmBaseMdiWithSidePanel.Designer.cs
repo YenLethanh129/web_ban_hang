@@ -64,25 +64,25 @@ namespace Dashboard.Winform
             btnSBLanding = new Button();
             fpnUserManagementContainer = new FlowLayoutPanel();
             pnUserManagement = new Panel();
-            pictureBox3 = new PictureBox();
+            iconSBUser = new PictureBox();
             btnSBUser = new Button();
             pnSBEmployee = new Panel();
-            pictureBox5 = new PictureBox();
+            iconSBEmployee = new PictureBox();
             btnSBEmployee = new Button();
             pnSBCustomer = new Panel();
-            pictureBox2 = new PictureBox();
+            iconSBCustomer = new PictureBox();
             btnSBCustomer = new Button();
             pnSBGoods = new Panel();
-            pictureBox1 = new PictureBox();
+            iconSBGoods = new PictureBox();
             btnSBGoods = new Button();
             pnSBProduct = new Panel();
-            pictureBox7 = new PictureBox();
+            iconSBProduct = new PictureBox();
             btnSBProduct = new Button();
             pnSBSupplier = new Panel();
-            pictureBox6 = new PictureBox();
+            iconSBSupplier = new PictureBox();
             btnSBSupplier = new Button();
             pnSBExit = new Panel();
-            pictureBox8 = new PictureBox();
+            iconSBExit = new PictureBox();
             btnSBExit = new Button();
             SBUserManagementTransition = new System.Windows.Forms.Timer(components);
             SBTransition = new System.Windows.Forms.Timer(components);
@@ -98,19 +98,19 @@ namespace Dashboard.Winform
             ((System.ComponentModel.ISupportInitialize)iconSBlanding).BeginInit();
             fpnUserManagementContainer.SuspendLayout();
             pnUserManagement.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)pictureBox3).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)iconSBUser).BeginInit();
             pnSBEmployee.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)pictureBox5).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)iconSBEmployee).BeginInit();
             pnSBCustomer.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)pictureBox2).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)iconSBCustomer).BeginInit();
             pnSBGoods.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)iconSBGoods).BeginInit();
             pnSBProduct.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)pictureBox7).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)iconSBProduct).BeginInit();
             pnSBSupplier.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)pictureBox6).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)iconSBSupplier).BeginInit();
             pnSBExit.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)pictureBox8).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)iconSBExit).BeginInit();
             pnMainDisplayRegion.SuspendLayout();
             pnHeaderTitle.SuspendLayout();
             SuspendLayout();
@@ -185,7 +185,6 @@ namespace Dashboard.Winform
             picSideBarIcon.SizeMode = PictureBoxSizeMode.StretchImage;
             picSideBarIcon.TabIndex = 12;
             picSideBarIcon.TabStop = false;
-            picSideBarIcon.Click += picSideBarIcon_Click;
             // 
             // pnSBLanding
             // 
@@ -221,7 +220,6 @@ namespace Dashboard.Winform
             btnSBLanding.TabIndex = 2;
             btnSBLanding.Text = "Trang chủ";
             btnSBLanding.UseVisualStyleBackColor = false;
-            btnSBLanding.Click += btnSBLanding_Click;
             // 
             // fpnUserManagementContainer
             // 
@@ -237,7 +235,7 @@ namespace Dashboard.Winform
             // 
             // pnUserManagement
             // 
-            pnUserManagement.Controls.Add(pictureBox3);
+            pnUserManagement.Controls.Add(iconSBUser);
             pnUserManagement.Controls.Add(btnSBUser);
             pnUserManagement.Location = new Point(0, 0);
             pnUserManagement.Margin = new Padding(0);
@@ -245,16 +243,16 @@ namespace Dashboard.Winform
             pnUserManagement.Size = new Size(246, 50);
             pnUserManagement.TabIndex = 4;
             // 
-            // pictureBox3
+            // iconSBUser
             // 
-            pictureBox3.BackColor = Color.FromArgb(54, 58, 105);
-            pictureBox3.Image = (Image)resources.GetObject("pictureBox3.Image");
-            pictureBox3.Location = new Point(14, 16);
-            pictureBox3.Name = "pictureBox3";
-            pictureBox3.Size = new Size(28, 25);
-            pictureBox3.SizeMode = PictureBoxSizeMode.StretchImage;
-            pictureBox3.TabIndex = 3;
-            pictureBox3.TabStop = false;
+            iconSBUser.BackColor = Color.FromArgb(54, 58, 105);
+            iconSBUser.Image = (Image)resources.GetObject("iconSBUser.Image");
+            iconSBUser.Location = new Point(14, 16);
+            iconSBUser.Name = "iconSBUser";
+            iconSBUser.Size = new Size(28, 25);
+            iconSBUser.SizeMode = PictureBoxSizeMode.StretchImage;
+            iconSBUser.TabIndex = 3;
+            iconSBUser.TabStop = false;
             // 
             // btnSBUser
             // 
@@ -264,15 +262,15 @@ namespace Dashboard.Winform
             btnSBUser.ForeColor = Color.Gainsboro;
             btnSBUser.Location = new Point(-101, -10);
             btnSBUser.Name = "btnSBUser";
-            btnSBUser.Size = new Size(401, 70);
+            btnSBUser.Size = new Size(400, 70);
             btnSBUser.TabIndex = 2;
             btnSBUser.Text = "Người dùng";
             btnSBUser.UseVisualStyleBackColor = false;
-            btnSBUser.Click += BtnSBUser_Click;
+            btnSBUser.Click += OpenUserManagementContainer;
             // 
             // pnSBEmployee
             // 
-            pnSBEmployee.Controls.Add(pictureBox5);
+            pnSBEmployee.Controls.Add(iconSBEmployee);
             pnSBEmployee.Controls.Add(btnSBEmployee);
             pnSBEmployee.Location = new Point(0, 50);
             pnSBEmployee.Margin = new Padding(0);
@@ -280,32 +278,32 @@ namespace Dashboard.Winform
             pnSBEmployee.Size = new Size(246, 50);
             pnSBEmployee.TabIndex = 6;
             // 
-            // pictureBox5
+            // iconSBEmployee
             // 
-            pictureBox5.BackColor = Color.FromArgb(54, 58, 105);
-            pictureBox5.Image = (Image)resources.GetObject("pictureBox5.Image");
-            pictureBox5.Location = new Point(51, 16);
-            pictureBox5.Name = "pictureBox5";
-            pictureBox5.Size = new Size(28, 25);
-            pictureBox5.SizeMode = PictureBoxSizeMode.StretchImage;
-            pictureBox5.TabIndex = 3;
-            pictureBox5.TabStop = false;
+            iconSBEmployee.BackColor = Color.FromArgb(54, 58, 105);
+            iconSBEmployee.Image = (Image)resources.GetObject("iconSBEmployee.Image");
+            iconSBEmployee.Location = new Point(44, 16);
+            iconSBEmployee.Name = "iconSBEmployee";
+            iconSBEmployee.Size = new Size(28, 25);
+            iconSBEmployee.SizeMode = PictureBoxSizeMode.StretchImage;
+            iconSBEmployee.TabIndex = 3;
+            iconSBEmployee.TabStop = false;
             // 
             // btnSBEmployee
             // 
             btnSBEmployee.BackColor = Color.FromArgb(54, 58, 105);
             btnSBEmployee.Font = new Font("Microsoft Sans Serif", 11F);
             btnSBEmployee.ForeColor = Color.Gainsboro;
-            btnSBEmployee.Location = new Point(-38, -7);
+            btnSBEmployee.Location = new Point(-48, -7);
             btnSBEmployee.Name = "btnSBEmployee";
-            btnSBEmployee.Size = new Size(307, 70);
+            btnSBEmployee.Size = new Size(336, 70);
             btnSBEmployee.TabIndex = 2;
             btnSBEmployee.Text = "Nhân sự";
             btnSBEmployee.UseVisualStyleBackColor = false;
             // 
             // pnSBCustomer
             // 
-            pnSBCustomer.Controls.Add(pictureBox2);
+            pnSBCustomer.Controls.Add(iconSBCustomer);
             pnSBCustomer.Controls.Add(btnSBCustomer);
             pnSBCustomer.Location = new Point(0, 100);
             pnSBCustomer.Margin = new Padding(0);
@@ -313,32 +311,32 @@ namespace Dashboard.Winform
             pnSBCustomer.Size = new Size(246, 50);
             pnSBCustomer.TabIndex = 7;
             // 
-            // pictureBox2
+            // iconSBCustomer
             // 
-            pictureBox2.BackColor = Color.FromArgb(54, 58, 105);
-            pictureBox2.Image = (Image)resources.GetObject("pictureBox2.Image");
-            pictureBox2.Location = new Point(51, 16);
-            pictureBox2.Name = "pictureBox2";
-            pictureBox2.Size = new Size(28, 25);
-            pictureBox2.SizeMode = PictureBoxSizeMode.StretchImage;
-            pictureBox2.TabIndex = 3;
-            pictureBox2.TabStop = false;
+            iconSBCustomer.BackColor = Color.FromArgb(54, 58, 105);
+            iconSBCustomer.Image = (Image)resources.GetObject("iconSBCustomer.Image");
+            iconSBCustomer.Location = new Point(44, 16);
+            iconSBCustomer.Name = "iconSBCustomer";
+            iconSBCustomer.Size = new Size(28, 25);
+            iconSBCustomer.SizeMode = PictureBoxSizeMode.StretchImage;
+            iconSBCustomer.TabIndex = 3;
+            iconSBCustomer.TabStop = false;
             // 
             // btnSBCustomer
             // 
             btnSBCustomer.BackColor = Color.FromArgb(54, 58, 105);
             btnSBCustomer.Font = new Font("Microsoft Sans Serif", 11F);
             btnSBCustomer.ForeColor = Color.Gainsboro;
-            btnSBCustomer.Location = new Point(-25, -7);
+            btnSBCustomer.Location = new Point(-61, -7);
             btnSBCustomer.Name = "btnSBCustomer";
-            btnSBCustomer.Size = new Size(307, 70);
+            btnSBCustomer.Size = new Size(384, 70);
             btnSBCustomer.TabIndex = 2;
             btnSBCustomer.Text = "Khách hàng";
             btnSBCustomer.UseVisualStyleBackColor = false;
             // 
             // pnSBGoods
             // 
-            pnSBGoods.Controls.Add(pictureBox1);
+            pnSBGoods.Controls.Add(iconSBGoods);
             pnSBGoods.Controls.Add(btnSBGoods);
             pnSBGoods.Location = new Point(0, 206);
             pnSBGoods.Margin = new Padding(0);
@@ -346,16 +344,16 @@ namespace Dashboard.Winform
             pnSBGoods.Size = new Size(246, 50);
             pnSBGoods.TabIndex = 7;
             // 
-            // pictureBox1
+            // iconSBGoods
             // 
-            pictureBox1.BackColor = Color.FromArgb(54, 58, 105);
-            pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
-            pictureBox1.Location = new Point(14, 16);
-            pictureBox1.Name = "pictureBox1";
-            pictureBox1.Size = new Size(28, 25);
-            pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
-            pictureBox1.TabIndex = 3;
-            pictureBox1.TabStop = false;
+            iconSBGoods.BackColor = Color.FromArgb(54, 58, 105);
+            iconSBGoods.Image = (Image)resources.GetObject("iconSBGoods.Image");
+            iconSBGoods.Location = new Point(14, 16);
+            iconSBGoods.Name = "iconSBGoods";
+            iconSBGoods.Size = new Size(28, 25);
+            iconSBGoods.SizeMode = PictureBoxSizeMode.StretchImage;
+            iconSBGoods.TabIndex = 3;
+            iconSBGoods.TabStop = false;
             // 
             // btnSBGoods
             // 
@@ -372,7 +370,7 @@ namespace Dashboard.Winform
             // 
             // pnSBProduct
             // 
-            pnSBProduct.Controls.Add(pictureBox7);
+            pnSBProduct.Controls.Add(iconSBProduct);
             pnSBProduct.Controls.Add(btnSBProduct);
             pnSBProduct.Location = new Point(0, 256);
             pnSBProduct.Margin = new Padding(0);
@@ -380,16 +378,16 @@ namespace Dashboard.Winform
             pnSBProduct.Size = new Size(246, 50);
             pnSBProduct.TabIndex = 9;
             // 
-            // pictureBox7
+            // iconSBProduct
             // 
-            pictureBox7.BackColor = Color.FromArgb(54, 58, 105);
-            pictureBox7.Image = (Image)resources.GetObject("pictureBox7.Image");
-            pictureBox7.Location = new Point(14, 16);
-            pictureBox7.Name = "pictureBox7";
-            pictureBox7.Size = new Size(28, 25);
-            pictureBox7.SizeMode = PictureBoxSizeMode.StretchImage;
-            pictureBox7.TabIndex = 3;
-            pictureBox7.TabStop = false;
+            iconSBProduct.BackColor = Color.FromArgb(54, 58, 105);
+            iconSBProduct.Image = (Image)resources.GetObject("iconSBProduct.Image");
+            iconSBProduct.Location = new Point(14, 16);
+            iconSBProduct.Name = "iconSBProduct";
+            iconSBProduct.Size = new Size(28, 25);
+            iconSBProduct.SizeMode = PictureBoxSizeMode.StretchImage;
+            iconSBProduct.TabIndex = 3;
+            iconSBProduct.TabStop = false;
             // 
             // btnSBProduct
             // 
@@ -407,7 +405,7 @@ namespace Dashboard.Winform
             // 
             // pnSBSupplier
             // 
-            pnSBSupplier.Controls.Add(pictureBox6);
+            pnSBSupplier.Controls.Add(iconSBSupplier);
             pnSBSupplier.Controls.Add(btnSBSupplier);
             pnSBSupplier.Location = new Point(0, 306);
             pnSBSupplier.Margin = new Padding(0);
@@ -415,16 +413,16 @@ namespace Dashboard.Winform
             pnSBSupplier.Size = new Size(246, 50);
             pnSBSupplier.TabIndex = 8;
             // 
-            // pictureBox6
+            // iconSBSupplier
             // 
-            pictureBox6.BackColor = Color.FromArgb(54, 58, 105);
-            pictureBox6.Image = (Image)resources.GetObject("pictureBox6.Image");
-            pictureBox6.Location = new Point(15, 16);
-            pictureBox6.Name = "pictureBox6";
-            pictureBox6.Size = new Size(28, 25);
-            pictureBox6.SizeMode = PictureBoxSizeMode.StretchImage;
-            pictureBox6.TabIndex = 3;
-            pictureBox6.TabStop = false;
+            iconSBSupplier.BackColor = Color.FromArgb(54, 58, 105);
+            iconSBSupplier.Image = (Image)resources.GetObject("iconSBSupplier.Image");
+            iconSBSupplier.Location = new Point(15, 16);
+            iconSBSupplier.Name = "iconSBSupplier";
+            iconSBSupplier.Size = new Size(28, 25);
+            iconSBSupplier.SizeMode = PictureBoxSizeMode.StretchImage;
+            iconSBSupplier.TabIndex = 3;
+            iconSBSupplier.TabStop = false;
             // 
             // btnSBSupplier
             // 
@@ -442,7 +440,7 @@ namespace Dashboard.Winform
             // 
             // pnSBExit
             // 
-            pnSBExit.Controls.Add(pictureBox8);
+            pnSBExit.Controls.Add(iconSBExit);
             pnSBExit.Controls.Add(btnSBExit);
             pnSBExit.Location = new Point(0, 356);
             pnSBExit.Margin = new Padding(0);
@@ -450,16 +448,16 @@ namespace Dashboard.Winform
             pnSBExit.Size = new Size(246, 50);
             pnSBExit.TabIndex = 10;
             // 
-            // pictureBox8
+            // iconSBExit
             // 
-            pictureBox8.BackColor = Color.FromArgb(54, 58, 105);
-            pictureBox8.Image = (Image)resources.GetObject("pictureBox8.Image");
-            pictureBox8.Location = new Point(16, 16);
-            pictureBox8.Name = "pictureBox8";
-            pictureBox8.Size = new Size(28, 25);
-            pictureBox8.SizeMode = PictureBoxSizeMode.StretchImage;
-            pictureBox8.TabIndex = 3;
-            pictureBox8.TabStop = false;
+            iconSBExit.BackColor = Color.FromArgb(54, 58, 105);
+            iconSBExit.Image = (Image)resources.GetObject("iconSBExit.Image");
+            iconSBExit.Location = new Point(16, 16);
+            iconSBExit.Name = "iconSBExit";
+            iconSBExit.Size = new Size(28, 25);
+            iconSBExit.SizeMode = PictureBoxSizeMode.StretchImage;
+            iconSBExit.TabIndex = 3;
+            iconSBExit.TabStop = false;
             // 
             // btnSBExit
             // 
@@ -562,19 +560,19 @@ namespace Dashboard.Winform
             ((System.ComponentModel.ISupportInitialize)iconSBlanding).EndInit();
             fpnUserManagementContainer.ResumeLayout(false);
             pnUserManagement.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)pictureBox3).EndInit();
+            ((System.ComponentModel.ISupportInitialize)iconSBUser).EndInit();
             pnSBEmployee.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)pictureBox5).EndInit();
+            ((System.ComponentModel.ISupportInitialize)iconSBEmployee).EndInit();
             pnSBCustomer.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)pictureBox2).EndInit();
+            ((System.ComponentModel.ISupportInitialize)iconSBCustomer).EndInit();
             pnSBGoods.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
+            ((System.ComponentModel.ISupportInitialize)iconSBGoods).EndInit();
             pnSBProduct.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)pictureBox7).EndInit();
+            ((System.ComponentModel.ISupportInitialize)iconSBProduct).EndInit();
             pnSBSupplier.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)pictureBox6).EndInit();
+            ((System.ComponentModel.ISupportInitialize)iconSBSupplier).EndInit();
             pnSBExit.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)pictureBox8).EndInit();
+            ((System.ComponentModel.ISupportInitialize)iconSBExit).EndInit();
             pnMainDisplayRegion.ResumeLayout(false);
             pnHeaderTitle.ResumeLayout(false);
             ResumeLayout(false);
@@ -583,29 +581,29 @@ namespace Dashboard.Winform
         #endregion
         private FlowLayoutPanel fpnSideBar;
         private Panel pnUserManagement;
-        private PictureBox pictureBox3;
+        private PictureBox iconSBUser;
         private Button btnSBUser;
         private Panel pnSBEmployee;
-        private PictureBox pictureBox5;
+        private PictureBox iconSBEmployee;
         private Button btnSBEmployee;
         private FlowLayoutPanel fpnUserManagementContainer;
         private Panel pnSBLanding;
         private PictureBox iconSBlanding;
         private Button btnSBLanding;
         private Panel pnSBCustomer;
-        private PictureBox pictureBox2;
+        private PictureBox iconSBCustomer;
         private Button btnSBCustomer;
         private Panel pnSBGoods;
-        private PictureBox pictureBox1;
+        private PictureBox iconSBGoods;
         private Button btnSBGoods;
         private Panel pnSBSupplier;
-        private PictureBox pictureBox6;
+        private PictureBox iconSBSupplier;
         private Button btnSBSupplier;
         private Panel pnSBProduct;
-        private PictureBox pictureBox7;
+        private PictureBox iconSBProduct;
         private Button btnSBProduct;
         private Panel pnSBExit;
-        private PictureBox pictureBox8;
+        private PictureBox iconSBExit;
         private Button btnSBExit;
         private System.Windows.Forms.Timer SBUserManagementTransition;
         private System.Windows.Forms.Timer SBTransition;

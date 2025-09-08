@@ -151,6 +151,7 @@ namespace Dashboard.Winform
             // 
             // lblEndDate
             // 
+            lblEndDate.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             lblEndDate.AutoSize = true;
             lblEndDate.Font = new Font("Microsoft Sans Serif", 10F);
             lblEndDate.ForeColor = Color.FromArgb(124, 141, 181);
@@ -162,10 +163,11 @@ namespace Dashboard.Winform
             lblEndDate.TabIndex = 18;
             lblEndDate.Text = "09/05/2025";
             lblEndDate.TextAlign = ContentAlignment.MiddleLeft;
-            lblEndDate.Click += lblEndDate_Click;
+            lblEndDate.Click += LblEndDate_Click;
             // 
             // btnOkeCustomDate
             // 
+            btnOkeCustomDate.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             btnOkeCustomDate.BackColor = Color.FromArgb(241, 88, 127);
             btnOkeCustomDate.BackgroundImage = (Image)resources.GetObject("btnOkeCustomDate.BackgroundImage");
             btnOkeCustomDate.BackgroundImageLayout = ImageLayout.Stretch;
@@ -181,6 +183,7 @@ namespace Dashboard.Winform
             // 
             // lblStartDate
             // 
+            lblStartDate.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             lblStartDate.AutoSize = true;
             lblStartDate.Font = new Font("Microsoft Sans Serif", 10F);
             lblStartDate.ForeColor = Color.FromArgb(124, 141, 181);
@@ -192,10 +195,11 @@ namespace Dashboard.Winform
             lblStartDate.TabIndex = 2;
             lblStartDate.Text = "09/05/2025";
             lblStartDate.TextAlign = ContentAlignment.MiddleRight;
-            lblStartDate.Click += lblStartDate_Click;
+            lblStartDate.Click += LblStartDate_Click;
             // 
             // btnCustomDate
             // 
+            btnCustomDate.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             btnCustomDate.FlatAppearance.BorderColor = Color.FromArgb(107, 83, 255);
             btnCustomDate.FlatStyle = FlatStyle.Flat;
             btnCustomDate.Font = new Font("Microsoft Sans Serif", 11F);
@@ -210,6 +214,7 @@ namespace Dashboard.Winform
             // 
             // label4
             // 
+            label4.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             label4.AutoSize = true;
             label4.ForeColor = Color.FromArgb(124, 141, 181);
             label4.Location = new Point(696, 7);
@@ -220,6 +225,7 @@ namespace Dashboard.Winform
             // 
             // btnToday
             // 
+            btnToday.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             btnToday.FlatAppearance.BorderColor = Color.FromArgb(107, 83, 255);
             btnToday.FlatStyle = FlatStyle.Flat;
             btnToday.Font = new Font("Microsoft Sans Serif", 11F);
@@ -234,6 +240,7 @@ namespace Dashboard.Winform
             // 
             // btnLast7Days
             // 
+            btnLast7Days.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             btnLast7Days.FlatAppearance.BorderColor = Color.FromArgb(107, 83, 255);
             btnLast7Days.FlatStyle = FlatStyle.Flat;
             btnLast7Days.Font = new Font("Microsoft Sans Serif", 11F);
@@ -248,6 +255,7 @@ namespace Dashboard.Winform
             // 
             // btnLast30Days
             // 
+            btnLast30Days.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             btnLast30Days.FlatAppearance.BorderColor = Color.FromArgb(107, 83, 255);
             btnLast30Days.FlatStyle = FlatStyle.Flat;
             btnLast30Days.Font = new Font("Microsoft Sans Serif", 11F);
@@ -262,6 +270,7 @@ namespace Dashboard.Winform
             // 
             // btnOneYear
             // 
+            btnOneYear.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             btnOneYear.FlatAppearance.BorderColor = Color.FromArgb(107, 83, 255);
             btnOneYear.FlatStyle = FlatStyle.Flat;
             btnOneYear.Font = new Font("Microsoft Sans Serif", 11F);
@@ -276,6 +285,7 @@ namespace Dashboard.Winform
             // 
             // dtpStart
             // 
+            dtpStart.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             dtpStart.CustomFormat = "dd/MM/yyyy";
             dtpStart.Format = DateTimePickerFormat.Short;
             dtpStart.Location = new Point(603, 7);
@@ -286,6 +296,7 @@ namespace Dashboard.Winform
             // 
             // dtpEnd
             // 
+            dtpEnd.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             dtpEnd.CustomFormat = "dd/MM/yyyy";
             dtpEnd.Format = DateTimePickerFormat.Short;
             dtpEnd.Location = new Point(729, 6);
@@ -671,7 +682,6 @@ namespace Dashboard.Winform
             lblNumberOfSuppliers.Size = new Size(50, 22);
             lblNumberOfSuppliers.TabIndex = 4;
             lblNumberOfSuppliers.Text = "1000";
-            lblNumberOfSuppliers.Click += lblNumberOfSuppliers_Click;
             // 
             // label11
             // 
