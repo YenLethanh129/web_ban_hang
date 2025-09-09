@@ -71,7 +71,6 @@ public class WebSecurityConfig {
 		});
 
 		httpSecurity.cors(new Customizer<CorsConfigurer<HttpSecurity>>() {
-			
 			@Override
 			public void customize(CorsConfigurer<HttpSecurity> httpSecurityCorsConfigurer) {
 				CorsConfiguration corsConfiguration = new CorsConfiguration();

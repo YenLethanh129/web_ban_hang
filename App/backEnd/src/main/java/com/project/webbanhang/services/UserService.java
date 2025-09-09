@@ -28,7 +28,6 @@ import lombok.RequiredArgsConstructor;
 public class UserService implements IUserService{
 
 	private final UserRepository userRepository;
-	private final CustomerRepository customerRepository;
 	private final RoleRepository roleRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final JwtTokenUtil jwtTokenUtil;

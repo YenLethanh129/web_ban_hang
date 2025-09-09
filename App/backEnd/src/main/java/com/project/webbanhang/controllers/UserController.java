@@ -67,9 +67,6 @@ public class UserController {
                         .toList();
                 return ResponseEntity.badRequest().body(localizationUtil.getLocalizedMessage(MessageKey.REGISTER_FAILED, errorMessages));
             }
-//            if (!userDTO.getPassword().equals(userDTO.getRetypePassword())) {
-//                return ResponseEntity.badRequest().body(localizationUtil.getLocalizedMessage(MessageKey.WRONG_RETYPE_PASSWORD));
-//            }
             
             User user = userService.createUser(userDTO);
 
