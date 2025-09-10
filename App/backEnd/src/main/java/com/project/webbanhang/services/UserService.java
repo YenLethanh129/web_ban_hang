@@ -3,8 +3,9 @@ package com.project.webbanhang.services;
 import java.util.Optional;
 
 import com.project.webbanhang.components.LocalizationUtil;
-import com.project.webbanhang.dtos.UserUpdateDTO;
-import com.project.webbanhang.repositories.CustomerRepository;
+import com.project.webbanhang.dtos.user.ChangPasswordDTO;
+import com.project.webbanhang.dtos.user.UserUpdateDTO;
+import com.project.webbanhang.services.Interfaces.IUserService;
 import com.project.webbanhang.utils.MessageKey;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -14,7 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.project.webbanhang.components.JwtTokenUtil;
-import com.project.webbanhang.dtos.UserDTO;
+import com.project.webbanhang.dtos.user.UserDTO;
 import com.project.webbanhang.exceptions.DataNotFoundException;
 import com.project.webbanhang.models.Role;
 import com.project.webbanhang.models.User;
@@ -25,7 +26,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class UserService implements IUserService{
+public class UserService implements IUserService {
 
 	private final UserRepository userRepository;
 	private final RoleRepository roleRepository;
@@ -108,7 +109,7 @@ public class UserService implements IUserService{
 	}
 
 	@Override
-	public User updateUserFromToken(String extractedToken, UserUpdateDTO userUpdateDTO) throws DataNotFoundException, Exception {
+	public User updateUserFromToken(String extractedToken, UserUpdateDTO userUpdateDTO) throws Exception {
 		if (jwtTokenUtil.isTokenExpired(extractedToken)) {
 			throw new Exception("Token is expired");
 		}
@@ -126,11 +127,11 @@ public class UserService implements IUserService{
 		existingUser.setFullName(userUpdateDTO.getFullName());
 		existingUser.setAddress(userUpdateDTO.getAddress());
 		existingUser.setDateOfBirth(userUpdateDTO.getDateOfBirth());
-		String password = userUpdateDTO.getPassword();
-		if (password != null && !password.isEmpty()) {
-			String encodePassword = passwordEncoder.encode(password);
-			existingUser.setPassword(encodePassword);
-		}
+//		String password = userUpdateDTO.getPassword();
+//		if (password != null && !password.isEmpty()) {
+//			String encodePassword = passwordEncoder.encode(password);
+//			existingUser.setPassword(encodePassword);
+//		}
 
 		try {
 			return userRepository.save(existingUser);
@@ -139,6 +140,47 @@ public class UserService implements IUserService{
 		} catch (Exception e) {
 			throw new Exception(localizationUtil.getLocalizedMessage(MessageKey.UPDATE_PROFILE_FAILED, e.getMessage()));
 		}
+	}
+
+	@Override
+	public boolean updatePassword(String extractedToken, ChangPasswordDTO changPasswordDTO) throws Exception {
+		if (jwtTokenUtil.isTokenExpired(extractedToken)) {
+			throw new Exception("Token is expired");
+		}
+		String phoneNumber = jwtTokenUtil.extractPhoneNumber(extractedToken);
+		if (phoneNumber == null) {
+			throw new Exception("Invalid Token");
+		}
+
+		Optional<User> optionalUser = userRepository.findByPhoneNumber(phoneNumber);
+		if (optionalUser.isEmpty()) {
+			throw new DataNotFoundException(localizationUtil.getLocalizedMessage(MessageKey.USER_NOT_FOUND));
+		}
+		User existingUser = optionalUser.get();
+		String oldPassword = changPasswordDTO.getOldPassword();
+		if (!passwordEncoder.matches(oldPassword, existingUser.getPassword())) {
+			throw new Exception("Mat khau cu khong chinh xac!");
+		}
+		String newPassword = changPasswordDTO.getNewPassword();
+		String encodePassword = passwordEncoder.encode(newPassword);
+		existingUser.setPassword(encodePassword);
+
+		try {
+			userRepository.save(existingUser);
+			return true;
+		} catch (Exception e) {
+			throw new Exception(localizationUtil.getLocalizedMessage(MessageKey.UPDATE_PROFILE_FAILED, e.getMessage()));
+		}
+	}
+
+	@Override
+	public User findByPhoneNumber(String phoneNumber) throws Exception {
+		return null;
+	}
+
+	@Override
+	public String forgotPassword(String phoneNumber, String otp) throws Exception {
+		return "";
 	}
 
 }

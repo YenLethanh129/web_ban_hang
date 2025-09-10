@@ -3,17 +3,22 @@ package com.project.webbanhang.services;
 import com.project.webbanhang.models.DeliveryStatus;
 import com.project.webbanhang.models.Order;
 import com.project.webbanhang.models.OrderDeliveryTracking;
+import com.project.webbanhang.models.ShippingProvider;
 import com.project.webbanhang.repositories.OrderDeliveryTrackingRepository;
+import com.project.webbanhang.repositories.ShippingProviderRepository;
+import com.project.webbanhang.services.Interfaces.IOrderDeliveryTrackingService;
 import com.project.webbanhang.utils.TrackingNumberGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class OrderDeliveryTrackingService implements IOrderDeliveryTrackingService{
+public class OrderDeliveryTrackingService implements IOrderDeliveryTrackingService {
     private final OrderDeliveryTrackingRepository orderDeliveryTrackingRepository;
+    private final ShippingProviderRepository shippingProviderRepository;
 
     @Override
     public void createOrderDeliveryTrackingService(Order order) {
@@ -29,6 +34,8 @@ public class OrderDeliveryTrackingService implements IOrderDeliveryTrackingServi
             estimateDelivery = null;
         }
 
+        Optional<ShippingProvider> shippingProvider = shippingProviderRepository.findById(1L);
+
         OrderDeliveryTracking orderDeliveryTracking = OrderDeliveryTracking.builder()
                 .order(order)
                 .trackingNumber(trackingNumber)
@@ -36,8 +43,9 @@ public class OrderDeliveryTrackingService implements IOrderDeliveryTrackingServi
                 .location("29A Hau Giang")
                 .estimatedDelivery(estimateDelivery)
                 .deliveryPerson(null)
-                .shippingProvider(null)
                 .build();
+
+        shippingProvider.ifPresent(orderDeliveryTracking::setShippingProvider);
 
         orderDeliveryTrackingRepository.save(orderDeliveryTracking);
     }

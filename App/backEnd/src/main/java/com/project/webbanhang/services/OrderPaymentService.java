@@ -6,6 +6,7 @@ import com.project.webbanhang.models.PaymentMethod;
 import com.project.webbanhang.models.PaymentStatus;
 import com.project.webbanhang.repositories.OrderPaymentRepository;
 import com.project.webbanhang.repositories.PaymentMethodRepository;
+import com.project.webbanhang.services.Interfaces.IOrderPaymentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +15,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class OrderPaymentService implements IOrderPaymentService{
+public class OrderPaymentService implements IOrderPaymentService {
     private final PaymentMethodRepository paymentMethodRepository;
     private final OrderPaymentRepository orderPaymentRepository;
 

@@ -1,5 +1,6 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Injectable, Injector } from '@angular/core';
+import { Injectable, Injector, Inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { Observable, tap, of } from 'rxjs';
 import { RegisterDTO } from '../dtos/register.dto';
 import { LoginDTO } from '../dtos/login.dto';
@@ -21,7 +22,8 @@ export class UserService {
     private http: HttpClient,
     private tokenService: TokenService,
     private cacheService: CacheService,
-    private injector: Injector
+    private injector: Injector,
+    @Inject(PLATFORM_ID) private platformId: Object
   ) {
     // Load user from cache on service initialization
     this.loadUserFromCache();
@@ -44,13 +46,34 @@ export class UserService {
         headers,
       })
       .pipe(
-        tap((response: LoginResponse) => {
+        tap(async (response: LoginResponse) => {
           // After successful login, get user info and cache it
           if (response.token) {
             this.tokenService.setToken(response.token);
             this.getUserFromServer().subscribe((user) => {
               this.setCurrentUser(user);
             });
+
+            // Khởi động token monitoring sau khi login thành công
+            try {
+              const { TokenMonitorService } = await import(
+                './token-monitor.service'
+              );
+              const monitorService = new TokenMonitorService(
+                this.injector.get(
+                  await import('./auth-init.service').then(
+                    (m) => m.AuthInitService
+                  )
+                ),
+                this.tokenService
+              );
+              monitorService.restartMonitoring();
+            } catch (error) {
+              console.warn(
+                'Không thể khởi động token monitoring sau login:',
+                error
+              );
+            }
           }
         })
       );
@@ -118,25 +141,31 @@ export class UserService {
     this.cacheService.clearAll(); // Clear all cache data
     this.tokenService.removeToken();
 
-    // Clear user address cache as well - using injector to avoid circular dependency
-    try {
-      import('./user-address.service')
-        .then((module) => {
-          const userAddressService = this.injector.get(
-            module.UserAddressService
-          );
-          userAddressService.clearUserAddress();
-        })
-        .catch((error) => {
-          console.warn('Could not clear user address cache:', error);
-        });
-    } catch (error) {
-      console.warn('Could not import user address service:', error);
-    }
+    // Clear user address cache as well - chỉ trong browser environment
+    if (isPlatformBrowser(this.platformId)) {
+      try {
+        import('./user-address.service')
+          .then((module) => {
+            const userAddressService = this.injector.get(
+              module.UserAddressService
+            );
+            userAddressService.clearUserAddress();
+          })
+          .catch((error) => {
+            console.warn('Could not clear user address cache:', error);
+          });
+      } catch (error) {
+        console.warn('Could not import user address service:', error);
+      }
 
-    // Also clear localStorage manually to ensure everything is cleared
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
+      // Also clear localStorage manually to ensure everything is cleared
+      try {
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+      } catch (error) {
+        console.warn('Could not access localStorage:', error);
+      }
+    }
 
     console.log('🚪 User logged out - all data cleared');
   }
@@ -156,5 +185,20 @@ export class UserService {
     });
 
     return this.http.patch(`${this.apiUrl}/update`, updateDTO, { headers });
+  }
+
+  // Update user password
+  updatePassword(passwordData: {
+    old_password: string;
+    new_password: string;
+  }): Observable<any> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${this.tokenService.getToken()}`,
+    });
+
+    return this.http.post(`${this.apiUrl}/update-password`, passwordData, {
+      headers,
+    });
   }
 }

@@ -27,11 +27,8 @@ export class UserProfileComponent implements OnInit {
   profile: UserDTO | null = null;
   isEditing = false;
   isLoading = false;
-  showPassword = false;
-  showCurrentPasswordError = false;
   showFullNameError = false;
   showDateOfBirthError = false;
-  showPasswordError = false;
   showAddressError = false;
 
   // Form data for editing
@@ -39,8 +36,6 @@ export class UserProfileComponent implements OnInit {
     fullname: '',
     dateOfBirth: '',
     address: '',
-    password: '',
-    confirmPassword: '',
   };
 
   constructor(
@@ -83,25 +78,8 @@ export class UserProfileComponent implements OnInit {
           this.profile.date_of_birth
         );
         this.editData.address = this.profile.address;
-        this.editData.password = '';
-        this.editData.confirmPassword = '';
       }
     }
-  }
-
-  togglePasswordVisibility(): void {
-    this.showPassword = !this.showPassword;
-  }
-
-  validatePassword(): boolean {
-    return !this.editData.password || this.editData.password.length >= 6;
-  }
-
-  validateConfirmPassword(): boolean {
-    return (
-      !this.editData.password ||
-      this.editData.password === this.editData.confirmPassword
-    );
   }
 
   validateAge(): boolean {
@@ -142,12 +120,7 @@ export class UserProfileComponent implements OnInit {
   }
 
   onSubmit(): void {
-    if (
-      !this.updateForm.valid ||
-      !this.validatePassword() ||
-      !this.validateConfirmPassword() ||
-      !this.validateAge()
-    ) {
+    if (!this.updateForm.valid || !this.validateAge()) {
       this.notificationService.showWarning('Vui lòng kiểm tra lại thông tin!');
       return;
     }
@@ -173,10 +146,6 @@ export class UserProfileComponent implements OnInit {
       updateDTO.address = this.editData.address;
     }
 
-    if (this.editData.password) {
-      updateDTO.password = this.editData.password;
-    }
-
     // Check if there are any changes
     if (Object.keys(updateDTO).length === 0) {
       this.notificationService.showInfo('Không có thay đổi nào để cập nhật');
@@ -188,26 +157,15 @@ export class UserProfileComponent implements OnInit {
     updateDTO.date_of_birth = new Date(this.editData.dateOfBirth);
     updateDTO.address = this.editData.address;
     updateDTO.fullname = this.editData.fullname;
-    if (this.editData.password) {
-      updateDTO.password = this.editData.password;
-    }
 
     this.userService.updateUser(updateDTO).subscribe({
       next: (response) => {
         this.isLoading = false;
         this.isEditing = false;
-        this.notificationService.showSuccess(
-          'Cập nhật thông tin thành công! Bạn sẽ được đăng xuất để đảm bảo bảo mật.'
-        );
+        this.notificationService.showSuccess('Cập nhật thông tin thành công!');
 
-        // Auto logout after successful update
-        setTimeout(() => {
-          this.userService.logout();
-          this.router.navigate(['/login']);
-          this.notificationService.showInfo(
-            'Vui lòng đăng nhập lại với thông tin mới.'
-          );
-        }, 2000); // Wait 2 seconds to show success message
+        // Reload profile
+        this.loadUserProfile();
       },
       error: (error) => {
         this.isLoading = false;
@@ -229,8 +187,6 @@ export class UserProfileComponent implements OnInit {
         this.profile.date_of_birth
       );
       this.editData.address = this.profile.address;
-      this.editData.password = '';
-      this.editData.confirmPassword = '';
     }
   }
 }

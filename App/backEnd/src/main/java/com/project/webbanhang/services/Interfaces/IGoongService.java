@@ -1,6 +1,6 @@
-package com.project.webbanhang.services;
+package com.project.webbanhang.services.Interfaces;
 
-import com.project.webbanhang.dtos.GoongPlaceSearchDTO;
+import com.project.webbanhang.dtos.goong.GoongPlaceSearchDTO;
 import com.project.webbanhang.response.GoongPlaceResponse;
 
 public interface IGoongService {

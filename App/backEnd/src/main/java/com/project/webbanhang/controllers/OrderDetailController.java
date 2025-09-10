@@ -2,7 +2,7 @@ package com.project.webbanhang.controllers;
 
 import com.project.webbanhang.dtos.OrderDetailDTO;
 import com.project.webbanhang.response.OrderDetailResponse;
-import com.project.webbanhang.services.IOrderDetailService;
+import com.project.webbanhang.services.Interfaces.IOrderDetailService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

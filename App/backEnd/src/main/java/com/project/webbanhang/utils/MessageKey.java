@@ -14,6 +14,7 @@ public class MessageKey {
 	public static final String PHONE_HAS_EXIST = "user.register.phone_has_exist";
 	public static final String ROLE_NOT_EXIST = "user.register.role_not_exist";
 	public static final String PROFILE_FAILED = "user.profile.profile_failed";
+	public static final String UPDATE_PASSWORD_SUCCESSFULLY = "user.profile.update_password_successfully";
 
 	/**
 	 * product

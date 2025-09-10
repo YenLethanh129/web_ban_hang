@@ -1,19 +1,20 @@
 package com.project.webbanhang.controllers;
 
 import com.project.webbanhang.components.LocalizationUtil;
-import com.project.webbanhang.dtos.UserDTO;
-import com.project.webbanhang.dtos.UserLoginDTO;
-import com.project.webbanhang.dtos.UserUpdateDTO;
+import com.project.webbanhang.dtos.user.ChangPasswordDTO;
+import com.project.webbanhang.dtos.user.UserDTO;
+import com.project.webbanhang.dtos.user.UserLoginDTO;
+import com.project.webbanhang.dtos.user.UserUpdateDTO;
 import com.project.webbanhang.models.Customer;
 import com.project.webbanhang.models.User;
 import com.project.webbanhang.response.LoginResponse;
+import com.project.webbanhang.response.MessageResponse;
 import com.project.webbanhang.response.RegisterResponse;
 import com.project.webbanhang.response.UserResponse;
-import com.project.webbanhang.services.ICustomerService;
-import com.project.webbanhang.services.IUserService;
+import com.project.webbanhang.services.Interfaces.ICustomerService;
+import com.project.webbanhang.services.Interfaces.IUserService;
 import com.project.webbanhang.utils.MessageKey;
 
-import ch.qos.logback.core.subst.Token;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -134,6 +135,44 @@ public class UserController {
             );
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(localizationUtil.getLocalizedMessage(MessageKey.UPDATE_PROFILE_FAILED, e.getMessage()));
+        }
+    }
+
+    @PostMapping("/update-password")
+    public ResponseEntity<?> updatePassword(
+    		@RequestHeader("Authorization") String token,
+    		@Valid @RequestBody ChangPasswordDTO changPasswordDTO,
+            BindingResult result
+    ) {
+        try {
+            if (result.hasErrors()) {
+                List<String> errorMessages = result.getFieldErrors()
+                        .stream()
+                        .map(FieldError::getDefaultMessage)
+                        .toList();
+                return ResponseEntity.badRequest().body(localizationUtil.getLocalizedMessage(MessageKey.UPDATE_PROFILE_FAILED, errorMessages));
+            }
+
+            String extractedToken = token.substring(7); // Loại bỏ "Bearer " từ chuỗi token
+            boolean isUpdated = userService.updatePassword(extractedToken, changPasswordDTO);
+            if (!isUpdated) {
+                return ResponseEntity.badRequest().body(
+                        MessageResponse.builder()
+                                .message(localizationUtil.getLocalizedMessage(MessageKey.UPDATE_PROFILE_FAILED, "Update password failed"))
+                                .build()
+                );
+            }
+            return ResponseEntity.ok(
+                    MessageResponse.builder()
+                            .message(localizationUtil.getLocalizedMessage(MessageKey.UPDATE_PASSWORD_SUCCESSFULLY))
+                            .build()
+            );
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(
+                    MessageResponse.builder()
+                            .message(localizationUtil.getLocalizedMessage(MessageKey.UPDATE_PROFILE_FAILED, e.getMessage()))
+                            .build()
+            );
         }
     }
 }

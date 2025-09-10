@@ -3,6 +3,7 @@ package com.project.webbanhang.services;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.project.webbanhang.services.Interfaces.IOrderDetailService;
 import org.springframework.stereotype.Service;
 
 import com.project.webbanhang.dtos.OrderDetailDTO;
@@ -19,7 +20,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class OrderDetailService implements IOrderDetailService{
+public class OrderDetailService implements IOrderDetailService {
 	private final OrderDetailRepository orderDetailRepository;
 	private final OrderRepository orderRepository;
 	private final ProductRepository productRepository;

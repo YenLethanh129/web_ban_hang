@@ -41,6 +41,8 @@ public class WebSecurityConfig {
 					// Momo
 					.requestMatchers("/api/momo/**").permitAll()
 					.requestMatchers(HttpMethod.POST, "/api/momo/**").permitAll()
+					// Goong
+					.requestMatchers(HttpMethod.GET, String.format("%s/location/**", apiPrefix)).permitAll()
 					// User
 					.requestMatchers(String.format("%s/users/**", apiPrefix)).permitAll()
 					// Product

@@ -2,12 +2,14 @@ package com.project.webbanhang.models;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
 @Setter
 @Getter
+@Builder
 @Table(name = "shipping_providers")
 public class ShippingProvider extends BaseEntity {
     @Id

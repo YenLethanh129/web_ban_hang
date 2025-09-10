@@ -1,4 +1,4 @@
-package com.project.webbanhang.dtos;
+package com.project.webbanhang.dtos.user;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
@@ -17,9 +17,6 @@ public class UserUpdateDTO {
 
     @JsonProperty("address")
     private String address;
-
-    @JsonProperty("password")
-    private String password;
 
     @JsonProperty("date_of_birth")
     private Date dateOfBirth;

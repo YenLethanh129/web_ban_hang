@@ -6,13 +6,14 @@ import { OrderConfirmComponent } from './components/order-confirm/order-confirm.
 import { LoginComponent } from './components/login/login.component';
 import { RegisterComponent } from './components/register/register.component';
 import { AuthGuard } from './guards/auth.guard';
-import { GuestGuard } from './guards/guest.guard';
+import { LoginGuard } from './guards/login.guard';
 import { CartComponent } from './components/cart/cart.component';
 import { CategoryComponent } from './components/category/category.component';
-import { InfoOrderComponent } from './info-order/info-order.component';
+import { InfoOrderComponent } from './components/info-order/info-order.component';
 import { NotificationTestComponent } from './components/notification-test/notification-test.component';
 import { SearchResultsComponent } from './components/search-results/search-results.component';
 import { UserProfileComponent } from './components/user-profile/user-profile.component';
+import { ChangePasswordComponent } from './components/change-password/change-password.component';
 
 export const routes: Routes = [
   {
@@ -28,13 +29,13 @@ export const routes: Routes = [
     path: 'register',
     component: RegisterComponent,
     data: { skipLocationChange: false },
-    canActivate: [GuestGuard],
+    canActivate: [LoginGuard],
   },
   { path: 'detail-product/:id', component: DetailProductComponent },
   { path: 'order', component: OrderComponent, canActivate: [AuthGuard] },
   // { path: 'order', component: OrderComponent},
   { path: 'order-confirm/:id', component: OrderConfirmComponent },
-  { path: 'login', component: LoginComponent, canActivate: [GuestGuard] },
+  { path: 'login', component: LoginComponent, canActivate: [LoginGuard] },
   { path: 'product/:id', component: DetailProductComponent },
   { path: 'cart', component: CartComponent },
   { path: 'category/:id', component: CategoryComponent },
@@ -53,6 +54,11 @@ export const routes: Routes = [
     path: 'profile',
     redirectTo: 'user-profile',
     pathMatch: 'full',
+  },
+  {
+    path: 'change-password',
+    component: ChangePasswordComponent,
+    canActivate: [AuthGuard],
   },
   {
     path: 'notification-test',

@@ -1,8 +1,9 @@
 package com.project.webbanhang.services;
 
 import com.project.webbanhang.api.GoongApi;
-import com.project.webbanhang.dtos.GoongPlaceSearchDTO;
+import com.project.webbanhang.dtos.goong.GoongPlaceSearchDTO;
 import com.project.webbanhang.response.GoongPlaceResponse;
+import com.project.webbanhang.services.Interfaces.IGoongService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

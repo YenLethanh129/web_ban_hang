@@ -1,12 +1,10 @@
 package com.project.webbanhang.services;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import com.project.webbanhang.response.CacheablePageResponse;
+import com.project.webbanhang.services.Interfaces.IProductService;
 import jakarta.transaction.Transactional;
-import jakarta.validation.constraints.Null;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
@@ -31,7 +29,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class ProductService implements IProductService{
+public class ProductService implements IProductService {
 	
 	private final ProductRepository productRepository;
 	private final CategoryRepository categoryRepository;

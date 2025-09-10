@@ -1,4 +1,4 @@
-package com.project.webbanhang.dtos;
+package com.project.webbanhang.dtos.momo;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;

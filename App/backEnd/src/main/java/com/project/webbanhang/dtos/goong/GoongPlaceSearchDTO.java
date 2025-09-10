@@ -1,4 +1,4 @@
-package com.project.webbanhang.dtos;
+package com.project.webbanhang.dtos.goong;
 
 import lombok.*;
 

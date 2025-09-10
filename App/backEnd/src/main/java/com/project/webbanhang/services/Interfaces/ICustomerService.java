@@ -1,4 +1,4 @@
-package com.project.webbanhang.services;
+package com.project.webbanhang.services.Interfaces;
 
 import com.project.webbanhang.models.Customer;
 

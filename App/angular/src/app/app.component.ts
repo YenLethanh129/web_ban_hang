@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { FooterComponent } from './components/footer/footer.component';
 import { HeaderComponent } from './components/header/header.component';
 import { MaterialModule } from './material.module';
 import { DataLoadingService } from './services/data-loading.service';
+import { AuthInitService } from './services/auth-init.service';
 
 @Component({
   selector: 'app-root',
@@ -12,14 +13,25 @@ import { DataLoadingService } from './services/data-loading.service';
   templateUrl: './app.component.html',
   styles: '',
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, AfterViewInit {
   title = 'Chú bé VUI Coffee';
 
-  constructor(private dataLoadingService: DataLoadingService) {}
+  constructor(
+    private dataLoadingService: DataLoadingService,
+    private authInitService: AuthInitService
+  ) {}
 
   ngOnInit() {
     // Initialize app data on startup
     this.initializeApp();
+  }
+
+  ngAfterViewInit() {
+    // Không tự động chạy auth check nữa - để cho guard xử lý
+    // Auth check sẽ được xử lý bởi AuthGuard khi cần thiết
+    console.log(
+      '✅ App view initialized - Auth check sẽ được xử lý bởi guards'
+    );
   }
 
   private async initializeApp() {

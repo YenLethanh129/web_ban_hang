@@ -6,14 +6,76 @@
 // CSS Variables for consistent theming - Phuc Long inspired
 :root {
   // Primary Colors - Phuc Long green theme
-  --primary-dark: #1a5f4a;
+  --primary-50: #f0f9f6;
+  --primary-100: #dbf1e7;
+  --primary-200: #b8e3d0;
+  --primary-300: #8ed0b3;
+  --primary-400: #5fb892;
+  --primary-500: #2d7a5f;
+  --primary-600: #1a5f4a;
+  --primary-700: #164c3b;
+  --primary-800: #12392d;
+  --primary-900: #0e2a20;
   --primary-main: #2d7a5f;
+  --primary-dark: #1a5f4a;
   --primary-light: #4a9577;
 
   // Secondary Colors - Warm earthy tones
-  --secondary-dark: #8b4513;
+  --secondary-50: #fdf6f0;
+  --secondary-100: #f7e6d3;
+  --secondary-200: #edcc9f;
+  --secondary-300: #e0b26b;
+  --secondary-400: #d49a3f;
+  --secondary-500: #cd853f;
+  --secondary-600: #8b4513;
+  --secondary-700: #6d3710;
+  --secondary-800: #4f290c;
+  --secondary-900: #311b08;
   --secondary-main: #cd853f;
+  --secondary-dark: #8b4513;
   --secondary-light: #daa520;
+
+  // Error Colors
+  --error-50: #fef5f3;
+  --error-100: #fde8e3;
+  --error-200: #f9cdc4;
+  --error-300: #f4a895;
+  --error-400: #ed7a5e;
+  --error-500: #e76f51;
+  --error-600: #d85a3e;
+  --error-700: #b4472d;
+  --error-800: #90361f;
+  --error-900: #6c2815;
+
+  // Success Colors
+  --success-50: #f0fdf4;
+  --success-100: #dcfce7;
+  --success-200: #bbf7d0;
+  --success-300: #86efac;
+  --success-400: #4ade80;
+  --success-500: #28a745;
+  --success-600: #22c55e;
+  --success-700: #15803d;
+  --success-800: #166534;
+  --success-900: #14532d;
+
+  // Warning Colors
+  --warning-50: #fffbeb;
+  --warning-100: #fef3c7;
+  --warning-200: #fde68a;
+  --warning-300: #fcd34d;
+  --warning-400: #fbbf24;
+  --warning-500: #f4a261;
+  --warning-600: #d97706;
+  --warning-700: #b45309;
+  --warning-800: #92400e;
+  --warning-900: #78350f;
+
+  // RGB values for alpha usage
+  --primary-500-rgb: 45, 122, 95;
+  --error-600-rgb: 216, 90, 62;
+  --success-500-rgb: 40, 167, 69;
+  --warning-500-rgb: 244, 162, 97;
 
   // Accent Colors
   --accent-success: #28a745;

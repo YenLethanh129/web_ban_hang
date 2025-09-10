@@ -1,6 +1,5 @@
 package com.project.webbanhang.controllers;
 
-import com.github.javafaker.Faker;
 import com.project.webbanhang.components.LocalizationUtil;
 import com.project.webbanhang.dtos.ProductDTO;
 import com.project.webbanhang.dtos.ProductImageDTO;
@@ -11,14 +10,12 @@ import com.project.webbanhang.models.ProductImage;
 import com.project.webbanhang.response.CacheablePageResponse;
 import com.project.webbanhang.response.ProductListResponse;
 import com.project.webbanhang.response.ProductResponse;
-import com.project.webbanhang.services.IProductImageService;
-import com.project.webbanhang.services.IProductService;
+import com.project.webbanhang.services.Interfaces.IProductService;
 
 import com.project.webbanhang.utils.MessageKey;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;

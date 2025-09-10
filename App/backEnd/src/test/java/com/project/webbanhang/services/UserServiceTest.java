@@ -1,7 +1,7 @@
 package com.project.webbanhang.services;
 
 import com.project.webbanhang.components.JwtTokenUtil;
-import com.project.webbanhang.dtos.UserDTO;
+import com.project.webbanhang.dtos.user.UserDTO;
 import com.project.webbanhang.exceptions.DataNotFoundException;
 import com.project.webbanhang.models.Role;
 import com.project.webbanhang.models.User;

@@ -1,21 +1,6 @@
 USE [${DB_NAME}];
 GO
 
-
--- Insert into categories
-INSERT INTO [dbo].[categories] ([name]) VALUES
-(N'CÀ PHÊ'),
-(N'TRÀ'),
-(N'NƯỚC ÉP'),
-(N'BÁNH NGỌT'),
-(N'MÓN ĂN NHẸ'),
-(N'ĐỒ UỐNG LẠNH'),
-(N'COMBO SET'),
-(N'NƯỚC NGỌT'),
-(N'YAOURT'),
-(N'SODA');
-GO
-
 -- Insert into ingredient_categories
 INSERT INTO [dbo].[ingredient_categories] ([name], [description], [created_at], [last_modified]) VALUES
 (N'Nguyên liệu cà phê', N'Các loại hạt cà phê và nguyên liệu pha chế', GETDATE(), GETDATE()),
@@ -164,17 +149,6 @@ INSERT INTO [dbo].[employees] ([branch_id], [full_name], [phone], [email], [posi
 (2, N'Hoàng Văn E', '0901111115', 'hve@coffee.com', N'Nhân viên kho', '2023-05-01', 'ACTIVE', GETDATE(), GETDATE()),
 (4, N'Ngô Thị F', '0901111116', 'ntf@coffee.com', N'Nhân viên marketing', '2023-06-15', 'ACTIVE', GETDATE(), GETDATE()),
 (5, N'Võ Văn G', '0901111117', 'vvg@coffee.com', N'Nhân viên bảo trì', '2023-07-20', 'ACTIVE', GETDATE(), GETDATE());
-GO
-
--- Insert into products
-INSERT INTO [dbo].[products] ([price], [category_id], [tax_id], [description], [name], [thumbnail], [created_at], [last_modified]) VALUES
-(45000, 1, 1, N'Cà phê espresso đậm đà, hương vị mạnh mẽ', N'Espresso', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
-(55000, 1, 1, N'Cà phê cappuccino với lớp foam mịn màng', N'Cappuccino', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
-(35000, 2, 1, N'Trà xanh thơm mát, tốt cho sức khỏe', N'Trà xanh', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
-(40000, 3, 1, N'Nước ép cam tươi nguyên chất', N'Nước ép cam', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
-(25000, 4, 1, N'Bánh croissant bơ thơm ngon', N'Croissant', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
-(35000, 1, 1, N'Cà phê latte thơm ngon với sữa tươi', N'Latte', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
-(20000, 4, 1, N'Bánh muffin chocolate chip', N'Muffin Chocolate', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE());
 GO
 
 -- Insert into ingredients
@@ -500,15 +474,6 @@ INSERT INTO [dbo].[suppliers] ([name], [phone], [email], [address], [note], [cre
 (N'Công ty Cà phê Highlands', '0281234574', 'order@highlands.com', N'303 Đường VWX, Quận 2, TP.HCM', N'Cung cấp cà phê chuyên nghiệp', GETDATE(), GETDATE()),
 (N'Vinacafe Biên Hòa', '0281234575', 'sales@vinacafe.com', N'404 Đường YZ, Biên Hòa', N'Cà phê hòa tan', GETDATE(), GETDATE()),
 (N'Công ty Sữa TH True Milk', '0281234576', 'info@thmilk.com', N'505 Đường ABC2, Quận 7, TP.HCM', N'Sữa tươi organic', GETDATE(), GETDATE());
-GO
-
--- Additional products
-INSERT INTO [dbo].[products] ([price], [category_id], [tax_id], [description], [name], [thumbnail], [created_at], [last_modified]) VALUES
-(65000, 1, 1, N'Cà phê latte với nghệ thuật foam đẹp mắt', N'Latte Art', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
-(50000, 1, 1, N'Cà phê Americano đậm đà, ít calo', N'Americano', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
-(45000, 2, 1, N'Trà sữa Thái lan đậm đà, thơm ngon', N'Trà sữa Thái', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
-(60000, 3, 1, N'Sinh tố bơ sáp dinh dưỡng', N'Sinh tố bơ', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
-(30000, 4, 1, N'Bánh muffin blueberry tươi ngon', N'Muffin Blueberry', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE());
 GO
 
 -- Additional ingredients

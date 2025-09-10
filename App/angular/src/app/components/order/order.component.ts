@@ -115,6 +115,7 @@ export class OrderComponent implements OnInit, OnDestroy {
   }
 
   onSubmit() {
+    this.isLoading = true;
     this.createOrder();
   }
 
@@ -255,6 +256,8 @@ export class OrderComponent implements OnInit, OnDestroy {
         },
       });
     }
+
+    this.isLoading = false;
   }
 
   clearCart(): void {

@@ -1,10 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
-import { OrderService } from '../services/order.service';
-import { UserService } from '../services/user.service';
-import { TokenService } from '../services/token.service';
-import { OrderResponseDTO } from '../dtos/order.dto';
+import { OrderService } from '../../services/order.service';
+import { UserService } from '../../services/user.service';
+import { TokenService } from '../../services/token.service';
+import { OrderResponseDTO } from '../../dtos/order.dto';
 
 @Component({
   selector: 'app-info-order',
@@ -18,19 +18,18 @@ export class InfoOrderComponent implements OnInit {
   isLoading: boolean = false;
 
   orderStatus: { [key: string]: string } = {
-    "PENDING": "Chờ xác nhận",
-    "PROCESSING": "Đang xử lý",
-    "SHIPPING": "Đang vận chuyển",
-    "DELIVERED": "Đã giao hàng",
-    "CANCELLED": "Đã hủy",
+    PENDING: 'Chờ xác nhận',
+    PROCESSING: 'Đang xử lý',
+    SHIPPING: 'Đang vận chuyển',
+    DELIVERED: 'Đã giao hàng',
+    CANCELLED: 'Đã hủy',
   };
 
   orderPaymentStatus: { [key: string]: string } = {
-    "PENDING": "Chưa thanh toán",
-    "PAID": "Đã thanh toán",
-    "FAILED": "Thanh toán thất bại",
+    PENDING: 'Chưa thanh toán',
+    PAID: 'Đã thanh toán',
+    FAILED: 'Thanh toán thất bại',
   };
-
 
   constructor(
     private router: Router,
