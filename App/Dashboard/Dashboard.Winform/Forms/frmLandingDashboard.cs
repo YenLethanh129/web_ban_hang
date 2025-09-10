@@ -111,7 +111,6 @@ namespace Dashboard.Winform
             btnLast30Days.Click += (s, e) => SetDateMenuButtonUI(s!);
             btnOneYear.Click += (s, e) => SetDateMenuButtonUI(s!);
             btnCustomDate.Click += (s, e) => SetDateMenuButtonUI(s!);
-
         }
         private void SetupDataBinding()
         {

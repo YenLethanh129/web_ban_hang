@@ -1,18 +1,19 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Dashboard.Winform.Controls;
+using Dashboard.Winform.Forms;
+using Dashboard.Winform.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Dashboard.Winform.Controls;
-using Dashboard.Winform.Interfaces;
-using System.Diagnostics;
 
 namespace Dashboard.Winform
 {
@@ -429,23 +430,17 @@ namespace Dashboard.Winform
         #region events region
         private void InitializeEvents()
         {
-
-
-            // Click events
-            // Main event handlers
             btnSBLanding.Click += (s, e) =>  LaunchLandingForm(s!, e);
+            btnSBGoods.Click += (s, e) => LaunchGoodsForm(s!,e);
 
-            // Secondary event handlers for UI state
             foreach (var kv in _buttonIconMap.Keys)
             {
                 kv.Click += (s, e) => SetSBButtonUI(s!);
             }
 
-            // Timer events
             picSideBarIcon.Click += (s, e) => OpenAndClosedSideBar(s!, e);
             btnSBUser.Click += (s, e) => OpenUserManagementContainer(s!, e);
 
-            // Mouse down event for dragging the form
             pnHeaderTitle.MouseDown += pnHeaderTitle_MouseDown;
         }
 
@@ -601,12 +596,18 @@ namespace Dashboard.Winform
                     }
                 });
                 
-                // Wait for child form to complete its data loading
                 if (frmLandingDashboard != null)
                 {
                     await frmLandingDashboard.WaitForDataLoadingComplete();
                 }
             }, "Đang tải Dashboard...", true);
+        }
+
+        private void LaunchGoodsForm(object sender, EventArgs e)
+        {
+            FrmBaseManagement frmGoodsManagement = new FrmBaseManagement();
+            OpenChildForm(frmGoodsManagement);
+
         }
 
         private void OpenChildForm(Form childForm)

@@ -128,7 +128,7 @@ namespace Dashboard.Winform
             fpnSideBar.Dock = DockStyle.Left;
             fpnSideBar.Location = new Point(0, 0);
             fpnSideBar.Name = "fpnSideBar";
-            fpnSideBar.Size = new Size(246, 767);
+            fpnSideBar.Size = new Size(245, 767);
             fpnSideBar.TabIndex = 1;
             // 
             // pnSBHeader
@@ -489,9 +489,9 @@ namespace Dashboard.Winform
             pnMainDisplayRegion.Controls.Add(pnMainContainer);
             pnMainDisplayRegion.Controls.Add(pnHeaderTitle);
             pnMainDisplayRegion.Dock = DockStyle.Fill;
-            pnMainDisplayRegion.Location = new Point(246, 0);
+            pnMainDisplayRegion.Location = new Point(245, 0);
             pnMainDisplayRegion.Name = "pnMainDisplayRegion";
-            pnMainDisplayRegion.Size = new Size(980, 767);
+            pnMainDisplayRegion.Size = new Size(995, 767);
             pnMainDisplayRegion.TabIndex = 2;
             // 
             // pnMainContainer
@@ -499,7 +499,7 @@ namespace Dashboard.Winform
             pnMainContainer.Dock = DockStyle.Fill;
             pnMainContainer.Location = new Point(0, 29);
             pnMainContainer.Name = "pnMainContainer";
-            pnMainContainer.Size = new Size(980, 738);
+            pnMainContainer.Size = new Size(995, 738);
             pnMainContainer.TabIndex = 1;
             // 
             // pnHeaderTitle
@@ -509,7 +509,7 @@ namespace Dashboard.Winform
             pnHeaderTitle.Dock = DockStyle.Top;
             pnHeaderTitle.Location = new Point(0, 0);
             pnHeaderTitle.Name = "pnHeaderTitle";
-            pnHeaderTitle.Size = new Size(980, 29);
+            pnHeaderTitle.Size = new Size(995, 29);
             pnHeaderTitle.TabIndex = 0;
             // 
             // metroControlBox1
@@ -521,7 +521,7 @@ namespace Dashboard.Winform
             metroControlBox1.DefaultLocation = ReaLTaiizor.Enum.Metro.LocationType.Normal;
             metroControlBox1.DisabledForeColor = Color.DimGray;
             metroControlBox1.IsDerivedStyle = true;
-            metroControlBox1.Location = new Point(880, 3);
+            metroControlBox1.Location = new Point(895, 3);
             metroControlBox1.MaximizeBox = true;
             metroControlBox1.MaximizeHoverBackColor = Color.FromArgb(238, 238, 238);
             metroControlBox1.MaximizeHoverForeColor = Color.Gray;
@@ -543,11 +543,11 @@ namespace Dashboard.Winform
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1226, 767);
+            ClientSize = new Size(1240, 767);
             Controls.Add(pnMainDisplayRegion);
             Controls.Add(fpnSideBar);
             FormBorderStyle = FormBorderStyle.None;
-            MinimumSize = new Size(1226, 767);
+            MinimumSize = new Size(1240, 764);
             Name = "FrmBaseMdiWithSidePanel";
             Text = "Form1";
             Load += Form1_Load;
