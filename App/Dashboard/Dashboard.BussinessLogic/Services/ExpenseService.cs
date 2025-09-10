@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using Dashboard.DataAccess.Data;
 using Dashboard.DataAccess.Models.Entities;
 using Dashboard.DataAccess.Repositories;
@@ -14,13 +14,13 @@ public interface IExpenseService
 {
     Task<PagedList<ExpenseDto>> GetExpensesAsync(GetExpensesInput input);
     Task<ExpenseDto> GetExpenseByIdAsync(long id);
-    Task<ExpenseDto> CreateExpenseAsync(CreateExpenseInput input);
-    Task<ExpenseDto> UpdateExpenseAsync(long id, UpdateExpenseInput input);
-    Task DeleteExpenseAsync(long id);
-    Task<IEnumerable<ExpenseDto>> GetExpensesByBranchAsync(long branchId, DateOnly? fromDate = null, DateOnly? toDate = null);
-    Task<IEnumerable<ExpenseDto>> GetExpensesByTypeAsync(string expenseType, DateOnly? fromDate = null, DateOnly? toDate = null);
-    Task<decimal> GetTotalExpensesAsync(long? branchId = null, DateOnly? fromDate = null, DateOnly? toDate = null);
-    Task<IEnumerable<ExpenseSummaryDto>> GetExpensesSummaryAsync(DateOnly fromDate, DateOnly toDate, long? branchId = null);
+    Task<ExpenseDto> CreateBranchExpenseAsync(CreateExpenseInput input);
+    Task<ExpenseDto> UpdateBranchExpenseAsync(long id, UpdateExpenseInput input);
+    Task DeleteBranchExpenseAsync(long id);
+    Task<IEnumerable<ExpenseDto>> GetExpensesByBranchAsync(long branchId, DateTime? fromDate = null, DateTime? toDate = null);
+    Task<IEnumerable<ExpenseDto>> GetExpensesByTypeAsync(string expenseType, DateTime? fromDate = null, DateTime? toDate = null);
+    Task<decimal> GetTotalExpensesAsync(long? branchId = null, DateTime? fromDate = null, DateTime? toDate = null);
+    Task<IEnumerable<ExpenseSummaryDto>> GetCogsSummaryAsync(DateTime fromDate, DateTime toDate, long? branchId = null);
 }
 
 public class ExpenseService : BaseTransactionalService, IExpenseService
@@ -37,12 +37,19 @@ public class ExpenseService : BaseTransactionalService, IExpenseService
 
     public async Task<PagedList<ExpenseDto>> GetExpensesAsync(GetExpensesInput input)
     {
-        var specification = ExpenseSpecifications.WithAdvancedFilter(input);
-        var expenses = await _unitOfWork.Repository<BranchExpense>().GetAllWithSpecAsync(specification, true);
-        
-        var sortedExpenses = expenses.OrderByDescending(e => e.StartDate);
-        var expenseDtos = _mapper.Map<IEnumerable<ExpenseDto>>(sortedExpenses);
-        
+        var branhExpenseSpecification = ExpenseSpecifications.WithAdvancedFilter(input);
+        var branchExpenses = await _unitOfWork.Repository<BranchExpense>().GetAllWithSpecAsync(branhExpenseSpecification, true);
+        var cogsSpecification = ExpenseSpecifications.CogsWithAdvancedFilter(input);
+        var cogsSummary = await _unitOfWork.Repository<VCogsSummary>().GetAllWithSpecAsync(cogsSpecification, true);
+
+
+        var expenseDtos = _mapper.Map<IEnumerable<ExpenseDto>>(branchExpenses);
+        var cogsDtos = _mapper.Map<IEnumerable<ExpenseDto>>(cogsSummary);
+
+        var allExpenses = expenseDtos.Concat(cogsDtos)
+                                   .OrderByDescending(e => e.StartDate)
+                                   .ToList();
+
         return new PagedList<ExpenseDto>
         {
             Items = expenseDtos.Skip((input.PageNumber - 1) * input.PageSize).Take(input.PageSize).ToList(),
@@ -56,7 +63,7 @@ public class ExpenseService : BaseTransactionalService, IExpenseService
     {
         var specification = new Specification<BranchExpense>(e => e.Id == id);
         specification.IncludeStrings.Add("Branch");
-        
+
         var expense = await _unitOfWork.Repository<BranchExpense>().GetWithSpecAsync(specification);
         if (expense == null)
             throw new KeyNotFoundException($"Expense with ID {id} not found");
@@ -64,7 +71,7 @@ public class ExpenseService : BaseTransactionalService, IExpenseService
         return _mapper.Map<ExpenseDto>(expense);
     }
 
-    public async Task<ExpenseDto> CreateExpenseAsync(CreateExpenseInput input)
+    public async Task<ExpenseDto> CreateBranchExpenseAsync(CreateExpenseInput input)
     {
         var expense = _mapper.Map<BranchExpense>(input);
         
@@ -74,7 +81,7 @@ public class ExpenseService : BaseTransactionalService, IExpenseService
         return await GetExpenseByIdAsync(expense.Id);
     }
 
-    public async Task<ExpenseDto> UpdateExpenseAsync(long id, UpdateExpenseInput input)
+    public async Task<ExpenseDto> UpdateBranchExpenseAsync(long id, UpdateExpenseInput input)
     {
         var expense = await _unitOfWork.Repository<BranchExpense>().GetAsync(id);
         if (expense == null)
@@ -89,7 +96,7 @@ public class ExpenseService : BaseTransactionalService, IExpenseService
         return await GetExpenseByIdAsync(id);
     }
 
-    public async Task DeleteExpenseAsync(long id)
+    public async Task DeleteBranchExpenseAsync(long id)
     {
         var expense = await _unitOfWork.Repository<BranchExpense>().GetAsync(id);
         if (expense == null)
@@ -99,16 +106,26 @@ public class ExpenseService : BaseTransactionalService, IExpenseService
         await _unitOfWork.SaveChangesAsync();
     }
 
-    public async Task<IEnumerable<ExpenseDto>> GetExpensesByBranchAsync(long branchId, DateOnly? fromDate = null, DateOnly? toDate = null)
+    public async Task<IEnumerable<ExpenseDto>> GetExpensesByBranchAsync(long branchId, DateTime? fromDate = null, DateTime? toDate = null)
     {
         var specification = ExpenseSpecifications.ByBranch(branchId, fromDate, toDate);
-        var expenses = await _unitOfWork.Repository<BranchExpense>().GetAllWithSpecAsync(specification, true);
-        
-        var sortedExpenses = expenses.OrderByDescending(e => e.StartDate);
-        return _mapper.Map<IEnumerable<ExpenseDto>>(sortedExpenses);
+        var branchExpenses = await _unitOfWork.Repository<BranchExpense>().GetAllWithSpecAsync(specification, true);
+
+        var cogsSummary = await _unitOfWork.Repository<VCogsSummary>().GetAllAsync();
+        var filteredCogs = cogsSummary
+            .AsEnumerable()
+            .Where(c => c.BranchId == branchId
+                    && new DateTime(c.Year, c.Month, 1) >= (fromDate ?? DateTime.MinValue)
+                    && new DateTime(c.Year, c.Month, 1) <= (toDate ?? DateTime.MaxValue));
+
+        var branchDtos = _mapper.Map<IEnumerable<ExpenseDto>>(branchExpenses);
+        var cogsDtos = _mapper.Map<IEnumerable<ExpenseDto>>(filteredCogs);
+
+        return [.. branchDtos.Concat(cogsDtos).OrderByDescending(e => e.StartDate)];
     }
 
-    public async Task<IEnumerable<ExpenseDto>> GetExpensesByTypeAsync(string expenseType, DateOnly? fromDate = null, DateOnly? toDate = null)
+
+    public async Task<IEnumerable<ExpenseDto>> GetExpensesByTypeAsync(string expenseType, DateTime? fromDate = null, DateTime? toDate = null)
     {
         var specification = ExpenseSpecifications.ByExpenseType(expenseType, fromDate, toDate);
         var expenses = await _unitOfWork.Repository<BranchExpense>().GetAllWithSpecAsync(specification, true);
@@ -117,17 +134,28 @@ public class ExpenseService : BaseTransactionalService, IExpenseService
         return _mapper.Map<IEnumerable<ExpenseDto>>(sortedExpenses);
     }
 
-    public async Task<decimal> GetTotalExpensesAsync(long? branchId = null, DateOnly? fromDate = null, DateOnly? toDate = null)
+    public async Task<decimal> GetTotalExpensesAsync(long? branchId = null, DateTime? fromDate = null, DateTime? toDate = null)
     {
         var specification = ExpenseSpecifications.ForTotalCalculation(branchId, fromDate, toDate);
-        var expenses = await _unitOfWork.Repository<BranchExpense>().GetAllWithSpecAsync(specification, true);
-        
-        return expenses.Sum(e => e.Amount);
+        var branchExpenses = await _unitOfWork.Repository<BranchExpense>().GetAllWithSpecAsync(specification, true);
+        var totalBranchExpenses = branchExpenses.Sum(e => e.Amount);
+
+        var cogsSummary = await _unitOfWork.Repository<VCogsSummary>().GetAllAsync();
+        var filteredCogs = cogsSummary
+            .AsEnumerable() 
+            .Where(c => (!branchId.HasValue || c.BranchId == branchId)
+                && DateTime.ParseExact($"01-{c.Period}", "dd-MM-yyyy", null) >= (fromDate ?? DateTime.MinValue)
+                && DateTime.ParseExact($"01-{c.Period}", "dd-MM-yyyy", null) <= (toDate ?? DateTime.MaxValue));
+
+        var totalCogs = filteredCogs.Sum(c => c.ExpenseAfterTax);
+
+        return totalBranchExpenses + totalCogs;
     }
 
-    public async Task<IEnumerable<ExpenseSummaryDto>> GetExpensesSummaryAsync(DateOnly fromDate, DateOnly toDate, long? branchId = null)
+
+    public async Task<IEnumerable<ExpenseSummaryDto>> GetCogsSummaryAsync(DateTime fromDate, DateTime toDate, long? branchId = null)
     {
-        var summaries = await _expenseRepository.GetExpensesSummaryAsync(fromDate, toDate, branchId);
+        var summaries = await _expenseRepository.GetCogsSummaryByBranchAndDateAsync(fromDate, toDate, branchId);
         return _mapper.Map<IEnumerable<ExpenseSummaryDto>>(summaries);
     }
 }

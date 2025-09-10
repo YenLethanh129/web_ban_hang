@@ -431,8 +431,8 @@ INSERT INTO [dbo].[sales_summary] ([branch_id], [period_type], [period_value], [
 (2, 'MONTH', '2024-11', 110, 220, 11000000, 12100000, 1100000, DATEADD(month, -1, GETDATE()), DATEADD(month, -1, GETDATE()));
 GO
 
--- Insert into expenses_summary
-INSERT INTO [dbo].[expenses_summary] ([branch_id], [period_type], [period_value], [total_purchase_orders], [total_ingredients], [expense_before_tax], [expense_after_tax], [tax_amount], [created_at], [last_modified]) VALUES
+-- Insert into cogs_summary
+INSERT INTO [dbo].[cogs_summary] ([branch_id], [period_type], [period_value], [total_purchase_orders], [total_ingredients], [expense_before_tax], [expense_after_tax], [tax_amount], [created_at], [last_modified]) VALUES
 (1, 'MONTH', '2024-12', 20, 50, 8000000, 8800000, 800000, GETDATE(), GETDATE()),
 (2, 'MONTH', '2024-12', 15, 40, 6000000, 6600000, 600000, GETDATE(), GETDATE()),
 (3, 'MONTH', '2024-12', 18, 45, 7000000, 7700000, 700000, GETDATE(), GETDATE()),
@@ -487,8 +487,8 @@ INSERT INTO [dbo].[v_profit_summary] ([branch_id], [year], [month], [period], [r
 (2, 2024, 11, '2024-11', 11000000, 12100000, 6500000, 7150000, 1100000, 650000, 450000, 4500000, 4500000);
 GO
 
--- Insert into v_expenses_summary
-INSERT INTO [dbo].[v_expenses_summary] ([branch_id], [year], [month], [period], [total_purchase_orders], [total_ingredients], [expense_before_tax], [expense_after_tax], [tax_amount]) VALUES
+-- Insert into v_cogs_summary
+INSERT INTO [dbo].[v_cogs_summary] ([branch_id], [year], [month], [period], [total_purchase_orders], [total_ingredients], [expense_before_tax], [expense_after_tax], [tax_amount]) VALUES
 (1, 2024, 12, '2024-12', 20, 50, 8000000, 8800000, 800000),
 (2, 2024, 12, '2024-12', 15, 40, 6000000, 6600000, 600000),
 (3, 2024, 12, '2024-12', 18, 45, 7000000, 7700000, 700000),

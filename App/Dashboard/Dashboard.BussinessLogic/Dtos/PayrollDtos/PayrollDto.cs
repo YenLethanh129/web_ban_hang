@@ -37,8 +37,8 @@ public class GetPayrollInput : DefaultInput
     public long? BranchId { get; set; }
     public int? Month { get; set; }
     public int? Year { get; set; }
-    public DateOnly? FromDate { get; set; }
-    public DateOnly? ToDate { get; set; }
+    public DateTime? FromDate { get; set; }
+    public DateTime? ToDate { get; set; }
 }
 
 public class PayrollSummaryDto
@@ -64,7 +64,7 @@ public class EmployeeSalaryDto
     public decimal Bonus { get; set; }
     public decimal Penalty { get; set; }
     public decimal TaxRate { get; set; }
-    public DateOnly EffectiveDate { get; set; }
+    public DateTime EffectiveDate { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime LastModified { get; set; }
 }
@@ -78,7 +78,7 @@ public class CreateEmployeeSalaryInput
     public decimal? Bonus { get; set; }
     public decimal? Penalty { get; set; }
     public decimal? TaxRate { get; set; }
-    public DateOnly EffectiveDate { get; set; }
+    public DateTime EffectiveDate { get; set; }
 }
 
 public class UpdateEmployeeSalaryInput
@@ -91,7 +91,7 @@ public class UpdateEmployeeSalaryInput
     public decimal? Bonus { get; set; }
     public decimal? Penalty { get; set; }
     public decimal? TaxRate { get; set; }
-    public DateOnly? EffectiveDate { get; set; }
+    public DateTime? EffectiveDate { get; set; }
 }
 
 public class UpdatePayrollInput
@@ -109,8 +109,8 @@ public class GetPayrollsInput : DefaultInput
     public long? BranchId { get; set; }
     public int? Month { get; set; }
     public int? Year { get; set; }
-    public DateOnly? FromDate { get; set; }
-    public DateOnly? ToDate { get; set; }
+    public DateTime? FromDate { get; set; }
+    public DateTime? ToDate { get; set; }
     public string? SearchTerm { get; set; }
 }
 

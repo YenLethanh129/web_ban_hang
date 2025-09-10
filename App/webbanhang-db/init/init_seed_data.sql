@@ -377,8 +377,8 @@ INSERT INTO [dbo].[sales_summary] ([branch_id], [period_type], [period_value], [
 (2, 'MONTH', '2024-11', 110, 220, 11000000, 12100000, 1100000, DATEADD(month, -1, GETDATE()), DATEADD(month, -1, GETDATE()));
 GO
 
--- Insert into expenses_summary
-INSERT INTO [dbo].[expenses_summary] ([branch_id], [period_type], [period_value], [total_purchase_orders], [total_ingredients], [expense_before_tax], [expense_after_tax], [tax_amount], [created_at], [last_modified]) VALUES
+-- Insert into cogs_summary
+INSERT INTO [dbo].[cogs_summary] ([branch_id], [period_type], [period_value], [total_purchase_orders], [total_ingredients], [expense_before_tax], [expense_after_tax], [tax_amount], [created_at], [last_modified]) VALUES
 (1, 'MONTH', '2024-12', 20, 50, 8000000, 8800000, 800000, GETDATE(), GETDATE()),
 (2, 'MONTH', '2024-12', 15, 40, 6000000, 6600000, 600000, GETDATE(), GETDATE()),
 (3, 'MONTH', '2024-12', 18, 45, 7000000, 7700000, 700000, GETDATE(), GETDATE()),
@@ -396,7 +396,7 @@ INSERT INTO [dbo].[profit_summary] ([branch_id], [period_type], [period_value], 
 GO
 
 -- Views are automatically populated from base tables - no manual INSERT needed
--- v_sales_summary, v_employee_payroll, v_inventory_status, v_profit_summary, v_expenses_summary
+-- v_sales_summary, v_employee_payroll, v_inventory_status, v_profit_summary, v_cogs_summary
 -- will display data based on underlying tables (orders, employees, inventory, financial_reports, etc.)
 
 -- Insert sample Purchase Orders

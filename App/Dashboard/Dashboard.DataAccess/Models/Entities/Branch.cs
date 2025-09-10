@@ -37,7 +37,7 @@ public partial class Branch : BaseAuditableEntity
     public virtual ICollection<Employee> Employees { get; set; } = new List<Employee>();
 
     [InverseProperty("Branch")]
-    public virtual ICollection<ExpensesSummary> ExpensesSummaries { get; set; } = new List<ExpensesSummary>();
+    public virtual ICollection<CogsSummary> ExpensesSummaries { get; set; } = new List<CogsSummary>();
 
     [InverseProperty("Branch")]
     public virtual ICollection<GoodsReceivedNote> GoodsReceivedNotes { get; set; } = new List<GoodsReceivedNote>();

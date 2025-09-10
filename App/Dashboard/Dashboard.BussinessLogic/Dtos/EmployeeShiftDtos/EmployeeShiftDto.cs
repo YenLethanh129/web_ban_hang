@@ -6,7 +6,7 @@ public class EmployeeShiftDto
     public long EmployeeId { get; set; }
     public string EmployeeName { get; set; } = string.Empty;
     public string BranchName { get; set; } = string.Empty;
-    public DateOnly ShiftDate { get; set; }
+    public DateTime ShiftDate { get; set; }
     public TimeOnly StartTime { get; set; }
     public TimeOnly EndTime { get; set; }
     public string Status { get; set; } = "SCHEDULED";
@@ -18,7 +18,7 @@ public class EmployeeShiftDto
 public class CreateEmployeeShiftInput
 {
     public long EmployeeId { get; set; }
-    public DateOnly ShiftDate { get; set; }
+    public DateTime ShiftDate { get; set; }
     public TimeOnly StartTime { get; set; }
     public TimeOnly EndTime { get; set; }
     public string Status { get; set; } = "SCHEDULED";
@@ -27,7 +27,7 @@ public class CreateEmployeeShiftInput
 public class UpdateEmployeeShiftInput
 {
     public long Id { get; set; }
-    public DateOnly? ShiftDate { get; set; }
+    public DateTime? ShiftDate { get; set; }
     public TimeOnly? StartTime { get; set; }
     public TimeOnly? EndTime { get; set; }
     public string? Status { get; set; }
@@ -37,8 +37,8 @@ public class GetEmployeeShiftsInput : DefaultInput
 {
     public long? EmployeeId { get; set; }
     public long? BranchId { get; set; }
-    public DateOnly? FromDate { get; set; }
-    public DateOnly? ToDate { get; set; }
+    public DateTime? FromDate { get; set; }
+    public DateTime? ToDate { get; set; }
     public string? Status { get; set; }
     public string? SearchTerm { get; set; }
 }
@@ -55,7 +55,7 @@ public class EmployeeShiftSummaryDto
 
 public class ShiftScheduleDto
 {
-    public DateOnly Date { get; set; }
+    public DateTime Date { get; set; }
     public List<EmployeeShiftDto> Shifts { get; set; } = new();
     public int TotalEmployees { get; set; }
     public decimal TotalHours { get; set; }

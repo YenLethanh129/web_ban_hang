@@ -24,7 +24,7 @@ public class CreateUserInput
     public string FullName { get; set; } = string.Empty;
     public string PhoneNumber { get; set; } = string.Empty;
     public string? Address { get; set; }
-    public DateOnly? DateOfBirth { get; set; }
+    public DateTime? DateOfBirth { get; set; }
     public long RoleId { get; set; }
     public string Password { get; set; } = string.Empty;
     public bool IsActive { get; set; } = true;
@@ -36,7 +36,7 @@ public class UpdateUserInput
     public string? FullName { get; set; }
     public string? PhoneNumber { get; set; }
     public string? Address { get; set; }
-    public DateOnly? DateOfBirth { get; set; }
+    public DateTime? DateOfBirth { get; set; }
     public long? RoleId { get; set; }
     public long? EmployeeId { get; set; }
     public bool? IsActive { get; set; }

@@ -93,7 +93,7 @@ namespace Dashboard.DataAccess.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("(getdate())");
 
-                    b.Property<DateOnly?>("EndDate")
+                    b.Property<DateTime?>("EndDate")
                         .HasColumnType("date")
                         .HasColumnName("end_date");
 
@@ -121,7 +121,7 @@ namespace Dashboard.DataAccess.Migrations
                         .HasDefaultValue("MONTHLY")
                         .HasColumnName("payment_cycle");
 
-                    b.Property<DateOnly>("StartDate")
+                    b.Property<DateTime>("StartDate")
                         .HasColumnType("date")
                         .HasColumnName("start_date");
 
@@ -326,7 +326,7 @@ namespace Dashboard.DataAccess.Migrations
                         .HasColumnType("nvarchar(100)")
                         .HasColumnName("full_name");
 
-                    b.Property<DateOnly>("HireDate")
+                    b.Property<DateTime>("HireDate")
                         .HasColumnType("date")
                         .HasColumnName("hire_date");
 
@@ -346,7 +346,7 @@ namespace Dashboard.DataAccess.Migrations
                         .HasColumnType("nvarchar(50)")
                         .HasColumnName("position");
 
-                    b.Property<DateOnly?>("ResignDate")
+                    b.Property<DateTime?>("ResignDate")
                         .HasColumnType("date")
                         .HasColumnName("resign_date");
 
@@ -398,7 +398,7 @@ namespace Dashboard.DataAccess.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("(getdate())");
 
-                    b.Property<DateOnly>("EffectiveDate")
+                    b.Property<DateTime>("EffectiveDate")
                         .HasColumnType("date")
                         .HasColumnName("effective_date");
 
@@ -468,7 +468,7 @@ namespace Dashboard.DataAccess.Migrations
                         .HasColumnType("datetime2(6)")
                         .HasColumnName("last_modified");
 
-                    b.Property<DateOnly>("ShiftDate")
+                    b.Property<DateTime>("ShiftDate")
                         .HasColumnType("date")
                         .HasColumnName("shift_date");
 
@@ -492,7 +492,7 @@ namespace Dashboard.DataAccess.Migrations
                     b.ToTable("employee_shifts");
                 });
 
-            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.ExpensesSummary", b =>
+            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.CogsSummary", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -556,7 +556,7 @@ namespace Dashboard.DataAccess.Migrations
 
                     b.HasIndex("BranchId");
 
-                    b.ToTable("expenses_summary");
+                    b.ToTable("cogs_summary");
                 });
 
             modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.GoodsReceivedDetail", b =>
@@ -581,7 +581,7 @@ namespace Dashboard.DataAccess.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("(getdate())");
 
-                    b.Property<DateOnly?>("ExpiryDate")
+                    b.Property<DateTime?>("ExpiryDate")
                         .HasColumnType("date")
                         .HasColumnName("expiry_date");
 
@@ -2385,7 +2385,7 @@ namespace Dashboard.DataAccess.Migrations
                         .HasDefaultValue(0m)
                         .HasColumnName("discount_rate");
 
-                    b.Property<DateOnly?>("ExpiryDate")
+                    b.Property<DateTime?>("ExpiryDate")
                         .HasColumnType("date")
                         .HasColumnName("expiry_date");
 
@@ -2610,7 +2610,7 @@ namespace Dashboard.DataAccess.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("(getdate())");
 
-                    b.Property<DateOnly?>("ExpiryDate")
+                    b.Property<DateTime?>("ExpiryDate")
                         .HasColumnType("date")
                         .HasColumnName("expiry_date");
 
@@ -3311,7 +3311,7 @@ namespace Dashboard.DataAccess.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("(sysdatetime())");
 
-                    b.Property<DateOnly?>("DateOfBirth")
+                    b.Property<DateTime?>("DateOfBirth")
                         .HasColumnType("date")
                         .HasColumnName("date_of_birth");
 
@@ -3384,7 +3384,7 @@ namespace Dashboard.DataAccess.Migrations
                         .HasColumnType("varchar(255)")
                         .HasColumnName("branch_name");
 
-                    b.Property<DateOnly?>("EffectiveDate")
+                    b.Property<DateTime?>("EffectiveDate")
                         .HasColumnType("date")
                         .HasColumnName("effective_date");
 
@@ -3392,7 +3392,7 @@ namespace Dashboard.DataAccess.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("employee_id");
 
-                    b.Property<DateOnly?>("EndDate")
+                    b.Property<DateTime?>("EndDate")
                         .HasColumnType("date")
                         .HasColumnName("end_date");
 
@@ -3435,7 +3435,7 @@ namespace Dashboard.DataAccess.Migrations
                     b.ToTable("v_employee_payroll");
                 });
 
-            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.VExpensesSummary", b =>
+            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.VCogsSummary", b =>
                 {
                     b.Property<long?>("BranchId")
                         .HasColumnType("bigint")
@@ -3464,8 +3464,7 @@ namespace Dashboard.DataAccess.Migrations
                         .HasColumnType("decimal(18, 2)")
                         .HasColumnName("tax_amount");
 
-                    b.Property<decimal>("TotalIngredients")
-                        .HasColumnType("decimal(18, 2)")
+                    b.Property<int>("TotalIngredients")
                         .HasColumnName("total_ingredients");
 
                     b.Property<int>("TotalPurchaseOrders")
@@ -3478,7 +3477,7 @@ namespace Dashboard.DataAccess.Migrations
 
                     b.HasIndex("BranchId");
 
-                    b.ToTable("v_expenses_summary");
+                    b.ToTable("v_cogs_summary");
                 });
 
             modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.VInventoryStatus", b =>
@@ -3741,12 +3740,12 @@ namespace Dashboard.DataAccess.Migrations
                     b.Navigation("Employee");
                 });
 
-            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.ExpensesSummary", b =>
+            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.CogsSummary", b =>
                 {
                     b.HasOne("Dashboard.DataAccess.Models.Entities.Branch", "Branch")
                         .WithMany("ExpensesSummaries")
                         .HasForeignKey("BranchId")
-                        .HasConstraintName("FK_expenses_summary_branches");
+                        .HasConstraintName("FK_cogs_summary_branches");
 
                     b.Navigation("Branch");
                 });
@@ -4412,7 +4411,7 @@ namespace Dashboard.DataAccess.Migrations
                     b.Navigation("Employee");
                 });
 
-            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.VExpensesSummary", b =>
+            modelBuilder.Entity("Dashboard.DataAccess.Models.Entities.VCogsSummary", b =>
                 {
                     b.HasOne("Dashboard.DataAccess.Models.Entities.Branch", "Branch")
                         .WithMany()

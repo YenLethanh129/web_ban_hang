@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Dashboard.BussinessLogic.Dtos;
+using Dashboard.BussinessLogic.Dtos.ExpenseDtos;
 using Dashboard.BussinessLogic.Dtos.IngredientDtos;
 using Dashboard.BussinessLogic.Dtos.OrderDtos;
 using Dashboard.BussinessLogic.Dtos.ReportDtos;
@@ -10,7 +11,8 @@ using Dashboard.DataAccess.Models.Entities;
 using Dashboard.DataAccess.Repositories;
 using Dashboard.DataAccess.Specification;
 using Microsoft.EntityFrameworkCore;
-using System.Globalization;
+using Microsoft.Extensions.Logging;
+
 
 namespace Dashboard.BussinessLogic.Services;
 
@@ -28,20 +30,22 @@ public class ReportingService : BaseTransactionalService, IReportingService
     private readonly IExpenseRepository _expenseRepository;
     private readonly IOrderService _orderService;
     private readonly IOrderRepository _orderRepository;
+    private readonly IExpenseService _expenseService;
     private readonly IMapper _mapper;
-
     public ReportingService(
         IUnitOfWork unitOfWork,
         IIngredientRepository ingredientRepository,
         IExpenseRepository expenseRepository,
         IOrderService orderService,
         IOrderRepository orderRepository,
+        IExpenseService expenseService,
         IMapper mapper) : base(unitOfWork)
     {
         _ingredientRepository = ingredientRepository;
         _expenseRepository = expenseRepository;
         _orderService = orderService;
         _orderRepository = orderRepository;
+        _expenseService = expenseService;
         _mapper = mapper;
     }
 
@@ -54,9 +58,9 @@ public class ReportingService : BaseTransactionalService, IReportingService
        
         return new DashboardSummaryDto
         {
-            TotalRevenue = summaryData.OrderSummary.TotalRevenue,
+            TotalRevenue = summaryData.RevenueSummary,
             NetProfit = summaryData.ProfitSummary,
-            TotalExpenses = summaryData.ExpensesSummary,
+            TotalExpenses = summaryData.ExpenseSummary,
             TotalOrders = summaryData.OrderSummary.TotalOrders,
             PendingOrders = summaryData.OrderSummary.PendingOrders,
             TopProducts = summaryData.TopProducts,
@@ -77,9 +81,9 @@ public class ReportingService : BaseTransactionalService, IReportingService
         return PaginateResults(finacialReport, input.PageNumber, input.PageSize);
     }
 
-    private static List<FinacialReportDto> GroupFinancialReport(
+    private List<FinacialReportDto> GroupFinancialReport(
         IEnumerable<Order> orders,
-        IEnumerable<BranchExpense> expenses,
+        IEnumerable<ExpenseDto> expenses,
         ReportPeriodEnum period,
         DateTime fromDate,
         DateTime toDate)
@@ -95,32 +99,40 @@ public class ReportingService : BaseTransactionalService, IReportingService
 
         var orderGroups = orders
             .Where(o => o.CreatedAt >= fromDate && o.CreatedAt <= toDate)
-            .GroupBy(o => keySelector(o.CreatedAt));
+            .GroupBy(o => keySelector(o.CreatedAt))
+            .ToDictionary(g => g.Key, g => g.ToList());
 
         var expenseGroups = expenses
-            .Where(e => e.StartDate >= DateOnly.FromDateTime(fromDate) 
-                    && e.StartDate <= DateOnly.FromDateTime(toDate))
-            .GroupBy(e => keySelector(e.StartDate.ToDateTime(TimeOnly.MinValue)));
+            .Where(e => e.StartDate >= fromDate && e.StartDate <= toDate)
+            .GroupBy(e => keySelector(e.StartDate))
+            .ToDictionary(g => g.Key, g => g.ToList());
+
+        var allKeys = orderGroups.Keys
+            .Union(expenseGroups.Keys)
+            .OrderBy(k => k);
 
         var result = new List<FinacialReportDto>();
 
-        foreach (var group in orderGroups)
+        foreach (var key in allKeys)
         {
-            var expensesForPeriod = expenseGroups.FirstOrDefault(e => e.Key == group.Key);
-            var revenue = group.Sum(o => o.TotalMoney ?? 0);
-            var expense = expensesForPeriod?.Sum(e => e.Amount) ?? 0;
+            var ordersForPeriod = orderGroups.ContainsKey(key) ? orderGroups[key] : new List<Order>();
+            var expensesForPeriod = expenseGroups.ContainsKey(key) ? expenseGroups[key] : new List<ExpenseDto>();
+
+            var revenue = ordersForPeriod.Sum(o => o.TotalMoney ?? 0);
+            var expense = expensesForPeriod.Sum(e => e.Amount);
 
             result.Add(new FinacialReportDto
             {
-                ReportDate = group.Key,
+                ReportDate = key,
                 TotalRevenue = revenue,
                 TotalExpenses = expense,
                 NetProfit = revenue - expense
             });
         }
 
-        return result.OrderBy(r => r.ReportDate).ToList();
+        return result;
     }
+
 
     private static DateTime FirstDateOfWeek(DateTime date)
     {
@@ -166,19 +178,25 @@ public class ReportingService : BaseTransactionalService, IReportingService
     private async Task<DashboardSummaryData> GetDashboardDataAsync(DateTime fromDate, DateTime toDate)
     {
         var orders = await _orderService.GetOrderSummaryAsync(fromDate, toDate);
-        var expenses = await GetExpensesAsync(fromDate, toDate);
         var topProducts = await GetTopProductsAsync(fromDate, toDate, 5);
         var finacialReports = await GetFinacialReportAsync(new GetRevenueReportInput
         {
             FromDate = fromDate,
             ToDate = toDate,
+            PageNumber = 1,
+            PageSize = int.MaxValue,
         });
+        var nonZeroExpenses = finacialReports.Items
+            .Where(f => f.TotalExpenses != 0)
+            .ToList();
+
         var lowStockIngredients = await _ingredientRepository.GetLowStockWarehouseIngredientsAsync();
         return new DashboardSummaryData
         {
             OrderSummary = orders,
-            ExpensesSummary = expenses.Sum(e => e.Amount),
-            ProfitSummary = orders.TotalRevenue - expenses.Sum(e => e.Amount),
+            RevenueSummary = finacialReports.Items.Sum(f => f.TotalRevenue),
+            ExpenseSummary = finacialReports.Items.Sum(f => f.TotalExpenses),
+            ProfitSummary = finacialReports.Items.Sum(f => f.NetProfit),
             TopProducts = topProducts,
             FinacialReports = [.. finacialReports.Items],
             UnderstockIngredientsDto = _mapper.Map<List<LowStockIngredientDto>>(lowStockIngredients)
@@ -219,24 +237,19 @@ public class ReportingService : BaseTransactionalService, IReportingService
         return [.. orders];
     }
 
-    private async Task<List<BranchExpense>> GetExpensesAsync(DateTime fromDate, DateTime toDate, long? branchId = null)
+    private async Task<List<ExpenseDto>> GetExpensesAsync(DateTime fromDate, DateTime toDate, long? branchId = null)
     {
-        var fromDateOnly = DateOnly.FromDateTime(fromDate);
-        var toDateOnly = DateOnly.FromDateTime(toDate);
-        
-        var spec = new Specification<BranchExpense>(e => 
-            e.StartDate >= fromDateOnly && 
-            e.StartDate <= toDateOnly);
-        
-        if (branchId.HasValue)
+        var spec = new GetExpensesInput
         {
-            spec = new Specification<BranchExpense>(e => 
-                e.StartDate >= fromDateOnly && 
-                e.StartDate <= toDateOnly &&
-                e.BranchId == branchId.Value);
-        }
-        
-        return (await _unitOfWork.Repository<BranchExpense>().GetAllWithSpecAsync(spec, true)).ToList();
+            FromDate = fromDate,
+            ToDate = toDate,
+            BranchId = branchId,
+            PageNumber = 1,
+            PageSize = int.MaxValue
+        };
+
+        var expenses = await _expenseService.GetExpensesAsync(spec);
+        return expenses.Items.ToList();
     }
 
     private async Task<List<BranchPerformanceDto>> GetBranchPerformanceAsync(DateTime fromDate, DateTime toDate)
@@ -265,7 +278,7 @@ public class ReportingService : BaseTransactionalService, IReportingService
         return revenue > 0 ? (netProfit / revenue) * 100 : 0;
     }
 
-    private static List<ExpenseBredownDto> GroupExpenseBreakdown(IEnumerable<BranchExpense> expenses, decimal totalExpenses)
+    private static List<ExpenseBredownDto> GroupExpenseBreakdown(IEnumerable<ExpenseDto> expenses, decimal totalExpenses)
     {
         return [.. expenses
             .GroupBy(e => e.ExpenseType)
@@ -298,7 +311,8 @@ public class ReportingService : BaseTransactionalService, IReportingService
 internal class DashboardSummaryData
 {
     public OrderSummaryDto OrderSummary { get; set; } = null!;
-    public decimal ExpensesSummary { get; set; }
+    public decimal RevenueSummary { get; set; }
+    public decimal ExpenseSummary { get; set; }
     public decimal ProfitSummary { get; set; }
     public List<TopSellingProductDto> TopProducts { get; set; } = null!;
     public List<FinacialReportDto> FinacialReports { get; set; } = null!;

@@ -38,7 +38,7 @@ public class ReportMappingProfile : Profile
             .ForMember(dest => dest.ReportDate, opt => opt.MapFrom(src => src.ReportDate))
             .ForMember(dest => dest.BranchId, opt => opt.MapFrom(src => src.BranchId))
             .ForMember(dest => dest.BranchName, opt => opt.MapFrom(src => src.BranchName));
-        CreateMap<FinacialReportDto, RevenueByDateViewModel>()
+        CreateMap<FinacialReportDto, FinancialReportByDateViewModel>()
             .ForMember(dest => dest.Date, opt => opt.MapFrom(src => src.ReportDate))
             .ForMember(dest => dest.Revenue, opt => opt.MapFrom(src => src.TotalRevenue))
             .ForMember(dest => dest.Expense, opt => opt.MapFrom(src => src.TotalExpenses));

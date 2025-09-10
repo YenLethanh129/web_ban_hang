@@ -76,7 +76,7 @@ public interface IEmployeeSalaryRepository : IRepository<EmployeeSalary>
 {
     Task<EmployeeSalary?> GetCurrentSalaryAsync(long employeeId);
     Task<List<EmployeeSalary>> GetSalaryHistoryAsync(long employeeId);
-    Task<EmployeeSalary?> GetSalaryByDateAsync(long employeeId, DateOnly date);
+    Task<EmployeeSalary?> GetSalaryByDateAsync(long employeeId, DateTime date);
 }
 
 public class EmployeeSalaryRepository : Repository<EmployeeSalary>, IEmployeeSalaryRepository
@@ -103,7 +103,7 @@ public class EmployeeSalaryRepository : Repository<EmployeeSalary>, IEmployeeSal
             .ToListAsync();
     }
 
-    public async Task<EmployeeSalary?> GetSalaryByDateAsync(long employeeId, DateOnly date)
+    public async Task<EmployeeSalary?> GetSalaryByDateAsync(long employeeId, DateTime date)
     {
         return await _context.EmployeeSalaries
             .Include(s => s.Employee)

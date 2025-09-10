@@ -33,7 +33,7 @@ public partial class EmployeeSalary : BaseAuditableEntity
     public decimal? TaxRate { get; set; }
 
     [Column("effective_date")]
-    public DateOnly EffectiveDate { get; set; }
+    public DateTime EffectiveDate { get; set; }
 
     [ForeignKey("EmployeeId")]
     [InverseProperty("EmployeeSalaries")]

@@ -26,7 +26,7 @@ namespace Dashboard.Winform.ViewModels
         private BindingList<UnderstockProductViewModel> _understockGoods = new();
         private List<TopProductViewModel> _topProducts = [];
         private List<BranchPerformanceViewModel> _branchPerformance = [];
-        private List<RevenueByDateViewModel> _grossRevenueList = [];
+        private List<FinancialReportByDateViewModel> _grossRevenueList = [];
 
         // Previous period data for growth calculation
         private decimal _previousTotalRevenue;
@@ -217,7 +217,7 @@ namespace Dashboard.Winform.ViewModels
                 OnPropertyChanged(nameof(BranchPerformance));
             }
         }
-        public List<RevenueByDateViewModel> GrossRevenueList
+        public List<FinancialReportByDateViewModel> GrossRevenueList
         {
             get => _grossRevenueList;
             set
@@ -317,7 +317,7 @@ public class BranchPerformanceViewModel
     public string RevenueFormatted => Revenue.ToString("#,##0") + " đ";
     public string ProfitFormatted => Profit.ToString("#,##0") + " đ";
 }
-public class RevenueByDateViewModel()
+public class FinancialReportByDateViewModel()
 {
     public DateTime Date { get; set; }
     public decimal Revenue { get; set; }

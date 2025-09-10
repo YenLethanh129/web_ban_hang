@@ -10,16 +10,7 @@ using System.Windows.Forms;
 
 namespace Dashboard.Winform.Forms
 {
-    public interface IFrmBaseManagement
-    {
-        Task WaitForDataLoadingComplete();
-        void InitializeEvents();
-        void OnDataLoaded(object? sender, EventArgs e);
-        void OnPresenterError(object? sender, string errorMessage);
-
-
-    }
-    public partial class FrmBaseManagement : Form, IFrmBaseManagement
+    public partial class FrmBaseManagement : Form
     {
         public FrmBaseManagement()
         {
@@ -28,9 +19,7 @@ namespace Dashboard.Winform.Forms
 
         protected virtual void InitializeEvents()
         {
-            //btnOrderBy.Click += BtnOrderBy_Click;
-            //btnfilterByGoodsStatus.Click += BtnOrderBy_Click;
-            cbxOrderBy.SelectedIndexChanged += (s, o) => CbxOrderBySelectedIndexChanged (s!,o);
+            cbxOrderBy.SelectedIndexChanged += (s, o) => CbxOrderBySelectedIndexChanged(s!, o);
             cbxFilterByGoodsStatus.SelectedIndexChanged += (s, o) => CbxFilterByGoodsStatusSelectedIndexChanged(s!, o);
             cbxFilterByStockStatus.SelectedIndexChanged += (s, o) => cbxFilterByStockStatusSelectedIndexChanged(s!, o);
             cbxNumbRecordsPerPage.SelectedIndexChanged += (s, o) => CbxNumbRecordsPerPageSelectedIndexChanged(s!, o);
@@ -60,16 +49,10 @@ namespace Dashboard.Winform.Forms
                 btnOrderBy.Text = cbxOrderBy.Text;
         }
 
-        public Task WaitForDataLoadingComplete()
+        public virtual Task WaitForDataLoadingComplete()
         {
             throw new NotImplementedException();
         }
-
-        void IFrmBaseManagement.InitializeEvents()
-        {
-            InitializeEvents();
-        }
-
         public void OnDataLoaded(object? sender, EventArgs e)
         {
             throw new NotImplementedException();

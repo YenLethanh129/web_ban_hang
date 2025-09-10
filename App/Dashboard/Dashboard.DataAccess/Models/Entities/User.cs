@@ -13,7 +13,7 @@ public partial class User : BaseAuditableEntity
     public long? EmployeeId { get; set; }
 
     [Column("date_of_birth")]
-    public DateOnly? DateOfBirth { get; set; }
+    public DateTime? DateOfBirth { get; set; }
 
     [Column("facebook_account_id")]
     public long? FacebookAccountId { get; set; }

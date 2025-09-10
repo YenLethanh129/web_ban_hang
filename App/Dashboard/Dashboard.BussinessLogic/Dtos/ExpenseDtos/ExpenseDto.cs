@@ -8,8 +8,8 @@ public class ExpenseDto
     public string ExpenseType { get; set; } = string.Empty;
     public string? Description { get; set; }
     public decimal Amount { get; set; }
-    public DateOnly StartDate { get; set; }
-    public DateOnly? EndDate { get; set; }
+    public DateTime StartDate { get; set; }
+    public DateTime? EndDate { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime LastModified { get; set; }
 }
@@ -20,8 +20,8 @@ public class CreateExpenseInput
     public string ExpenseType { get; set; } = string.Empty;
     public string? Description { get; set; }
     public decimal Amount { get; set; }
-    public DateOnly StartDate { get; set; }
-    public DateOnly? EndDate { get; set; }
+    public DateTime StartDate { get; set; }
+    public DateTime? EndDate { get; set; }
 }
 
 public class UpdateExpenseInput
@@ -29,8 +29,8 @@ public class UpdateExpenseInput
     public string ExpenseType { get; set; } = string.Empty;
     public string? Description { get; set; }
     public decimal Amount { get; set; }
-    public DateOnly StartDate { get; set; }
-    public DateOnly? EndDate { get; set; }
+    public DateTime StartDate { get; set; }
+    public DateTime? EndDate { get; set; }
 }
 
 public class GetExpensesInput : DefaultInput

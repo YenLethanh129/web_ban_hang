@@ -31,10 +31,10 @@ public partial class Employee : BaseAuditableEntity
     public string? Position { get; set; }
 
     [Column("hire_date")]
-    public DateOnly HireDate { get; set; }
+    public DateTime HireDate { get; set; }
 
     [Column("resign_date")]
-    public DateOnly? ResignDate { get; set; }
+    public DateTime? ResignDate { get; set; }
 
     [Column("status")]
     [StringLength(20)]

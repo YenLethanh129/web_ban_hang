@@ -13,7 +13,7 @@ public partial class EmployeeShift : BaseAuditableEntity
     public long EmployeeId { get; set; }
 
     [Column("shift_date")]
-    public DateOnly ShiftDate { get; set; }
+    public DateTime ShiftDate { get; set; }
 
     [Column("start_time")]
     public TimeOnly StartTime { get; set; }

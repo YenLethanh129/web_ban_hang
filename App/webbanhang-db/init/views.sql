@@ -22,7 +22,7 @@ GROUP BY o.branch_id, YEAR(o.order_date), MONTH(o.order_date);
 
 -- Expenses Summary View
 GO
-CREATE VIEW [dbo].[v_expenses_summary] AS
+CREATE VIEW [dbo].[v_cogs_summary] AS
 SELECT 
     po.branch_id,
     YEAR(po.order_date) as year,
@@ -56,7 +56,7 @@ SELECT
     (COALESCE(s.revenue_before_tax, 0) - COALESCE(e.expense_before_tax, 0)) as profit_before_tax,
     (COALESCE(s.revenue_after_tax, 0) - COALESCE(e.expense_after_tax, 0)) as profit_after_tax
 FROM [dbo].[v_sales_summary] s
-FULL OUTER JOIN [dbo].[v_expenses_summary] e 
+FULL OUTER JOIN [dbo].[v_cogs_summary] e 
     ON s.branch_id = e.branch_id AND s.year = e.year AND s.month = e.month;
 
 -- Inventory Status View

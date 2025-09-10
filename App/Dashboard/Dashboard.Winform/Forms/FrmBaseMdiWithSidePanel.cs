@@ -577,7 +577,7 @@ namespace Dashboard.Winform
         {
             await ExecuteWithLoadingInternalAsync(async () =>
             {
-                FrmLandingDashboard frmLandingDashboard = null!;
+                frmLandingDashboard frmLandingDashboard = null!;
                 
                 await Task.Run(() =>
                 {
@@ -585,13 +585,13 @@ namespace Dashboard.Winform
                     {
                         Invoke(new Action(() =>
                         {
-                            frmLandingDashboard = _serviceProvider.GetRequiredService<FrmLandingDashboard>();
+                            frmLandingDashboard = _serviceProvider.GetRequiredService<frmLandingDashboard>();
                             OpenChildForm(frmLandingDashboard);
                         }));
                     }
                     else
                     {
-                        frmLandingDashboard = _serviceProvider.GetRequiredService<FrmLandingDashboard>();
+                        frmLandingDashboard = _serviceProvider.GetRequiredService<frmLandingDashboard>();
                         OpenChildForm(frmLandingDashboard);
                     }
                 });

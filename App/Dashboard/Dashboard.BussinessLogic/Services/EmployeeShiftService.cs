@@ -17,7 +17,7 @@ public interface IEmployeeShiftService
     Task<EmployeeShiftDto> UpdateShiftAsync(UpdateEmployeeShiftInput input);
     Task<bool> DeleteShiftAsync(long id);
     Task<List<EmployeeShiftSummaryDto>> GetShiftSummaryAsync(long? branchId, int month, int year);
-    Task<List<ShiftScheduleDto>> GetShiftScheduleAsync(DateOnly fromDate, DateOnly toDate, long? branchId = null);
+    Task<List<ShiftScheduleDto>> GetShiftScheduleAsync(DateTime fromDate, DateTime toDate, long? branchId = null);
     Task<bool> CheckInAsync(long shiftId);
     Task<bool> CheckOutAsync(long shiftId);
     Task<List<EmployeeShiftDto>> GetUpcomingShiftsAsync(long employeeId, int days = 7);
@@ -49,8 +49,8 @@ public class EmployeeShiftService : BaseTransactionalService, IEmployeeShiftServ
         try
         {
             var shifts = await _shiftRepository.GetShiftsByDateRangeAsync(
-                input.FromDate ?? DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
-                input.ToDate ?? DateOnly.FromDateTime(DateTime.Now.AddDays(30)),
+                input.FromDate ?? DateTime.Now.AddDays(-30),
+                input.ToDate ?? DateTime.Now.AddDays(30),
                 input.EmployeeId,
                 input.BranchId);
 
@@ -220,7 +220,7 @@ public class EmployeeShiftService : BaseTransactionalService, IEmployeeShiftServ
     {
         try
         {
-            var startDate = new DateOnly(year, month, 1);
+            var startDate = new DateTime(year, month, 1);
             var endDate = startDate.AddMonths(1).AddDays(-1);
 
             var shifts = await _shiftRepository.GetShiftsByDateRangeAsync(startDate, endDate, null, branchId);
@@ -250,7 +250,7 @@ public class EmployeeShiftService : BaseTransactionalService, IEmployeeShiftServ
         }
     }
 
-    public async Task<List<ShiftScheduleDto>> GetShiftScheduleAsync(DateOnly fromDate, DateOnly toDate, long? branchId = null)
+    public async Task<List<ShiftScheduleDto>> GetShiftScheduleAsync(DateTime fromDate, DateTime toDate, long? branchId = null)
     {
         try
         {
@@ -338,7 +338,7 @@ public class EmployeeShiftService : BaseTransactionalService, IEmployeeShiftServ
     {
         try
         {
-            var fromDate = DateOnly.FromDateTime(DateTime.Now);
+            var fromDate = DateTime.Now;
             var toDate = fromDate.AddDays(days);
 
             var shifts = await _shiftRepository.GetShiftsByDateRangeAsync(fromDate, toDate, employeeId);

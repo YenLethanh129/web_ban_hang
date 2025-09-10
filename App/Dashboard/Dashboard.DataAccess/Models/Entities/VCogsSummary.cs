@@ -7,8 +7,8 @@ using Microsoft.EntityFrameworkCore;
 namespace Dashboard.DataAccess.Models.Entities;
 
 [Keyless]
-[Table("v_expenses_summary")]
-public partial class VExpensesSummary
+[Table("v_cogs_summary")]
+public partial class VCogsSummary
 {
     [Column("branch_id")]
     public long? BranchId { get; set; }
@@ -27,8 +27,8 @@ public partial class VExpensesSummary
     [Column("total_purchase_orders")]
     public int TotalPurchaseOrders { get; set; }
 
-    [Column("total_ingredients", TypeName = "decimal(18, 2)")]
-    public decimal TotalIngredients { get; set; }
+    [Column("total_ingredients")]
+    public int TotalIngredients { get; set; }
 
     [Column("expense_before_tax", TypeName = "decimal(18, 2)")]
     public decimal ExpenseBeforeTax { get; set; }

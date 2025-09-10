@@ -44,7 +44,7 @@ public partial class PurchaseInvoiceDetail : BaseAuditableEntity
     public decimal FinalAmount { get; set; }
 
     [Column("expiry_date")]
-    public DateOnly? ExpiryDate { get; set; }
+    public DateTime? ExpiryDate { get; set; }
 
     [Column("batch_number")]
     [StringLength(50)]

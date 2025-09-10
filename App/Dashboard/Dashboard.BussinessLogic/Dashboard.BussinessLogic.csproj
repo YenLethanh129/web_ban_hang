@@ -7,6 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Behaviours\**" />
+    <EmbeddedResource Remove="Behaviours\**" />
+    <None Remove="Behaviours\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Dashboard.Common\Dashboard.Common.csproj" />
     <ProjectReference Include="..\Dashboard.DataAccess\Dashboard.DataAccess.csproj" />
   </ItemGroup>
@@ -25,9 +31,5 @@
 		<PackageReference Include="MediatR" />
 		<PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" />
 		
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="Behaviours\" />
 	</ItemGroup>
 </Project>

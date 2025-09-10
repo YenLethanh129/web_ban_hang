@@ -2,7 +2,7 @@ using System.Windows.Forms.DataVisualization.Charting;
 
 namespace Dashboard.Winform
 {
-    partial class FrmLandingDashboard
+    partial class frmLandingDashboard
     {
         /// <summary>
         ///  Required designer variable.
@@ -17,7 +17,7 @@ namespace Dashboard.Winform
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmLandingDashboard));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmLandingDashboard));
             ChartArea chartArea1 = new ChartArea();
             Legend legend1 = new Legend();
             Series series1 = new Series();

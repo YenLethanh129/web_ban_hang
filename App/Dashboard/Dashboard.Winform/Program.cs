@@ -1,4 +1,4 @@
-using Dashboard.BussinessLogic;
+﻿using Dashboard.BussinessLogic;
 using Dashboard.BussinessLogic.Mappings;
 using Dashboard.DataAccess;
 using Dashboard.Winform.Presenters;
@@ -34,7 +34,7 @@ namespace Dashboard.Winform
             builder.Services.AddAutoMapper(typeof(ReportMappingProfile));
 
             builder.Services.AddScoped<ILandingDashboardPresenter, LandingDashboardPresenter>();
-            builder.Services.AddTransient<FrmLandingDashboard>();
+            builder.Services.AddTransient<frmLandingDashboard>();
             builder.Services.AddTransient<FrmBaseMdiWithSidePanel>();
 
             using var host = builder.Build();

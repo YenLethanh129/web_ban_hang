@@ -11,8 +11,7 @@ namespace Dashboard.Winform.Presenters
     {
         LandingDashboardModel Model { get; }
         event EventHandler? OnDataLoaded;
-        Task LoadDashboardDataAsync();
-        Task LoadDashboardDataAsync(DateTime startDate, DateTime endDate);
+        Task LoadDashboardDataAsync(DateTime? startDate = null, DateTime? endDate = null);
     }
 
     public class LandingDashboardPresenter : ILandingDashboardPresenter
@@ -42,80 +41,22 @@ namespace Dashboard.Winform.Presenters
             Model = new LandingDashboardModel();
         }
 
-        public async Task LoadDashboardDataAsync()
+        public async Task LoadDashboardDataAsync(DateTime? startDate = null, DateTime? endDate = null)
         {
             var today = DateTime.Now;
-            var startOfYear = new DateTime(today.Year, 1, 1);
+            var start = startDate ?? DateTime.Today.AddDays(-7);
+            var end = endDate ?? today;
 
-            var previousYearStart = startOfYear.AddYears(-1);
-            var previousYearEnd = today.AddYears(-1);
+            var (previousStart, previousEnd) = CalculatePreviousPeriod(start, end);
 
-            var dashboardSummary = await _reportingService.GetDashboardSummaryAsync();
-            var previousYearSummary = await _reportingService.GetDashboardSummaryAsync(previousYearStart, previousYearEnd);
+            var dashboardSummary = await _reportingService.GetDashboardSummaryAsync(start, end);
+            var previousDashboardSummary = await _reportingService.GetDashboardSummaryAsync(previousStart, previousEnd);
 
             Model.TotalOrders = dashboardSummary.TotalOrders;
             Model.PendingOrders = dashboardSummary.PendingOrders;
             Model.TotalRevenue = dashboardSummary.TotalRevenue;
             Model.TotalExpenses = dashboardSummary.TotalExpenses;
-            
-            Model.SetPreviousPeriodData(
-                previousYearSummary.TotalRevenue,
-                previousYearSummary.TotalExpenses,
-                previousYearSummary.TotalOrders,
-                previousYearSummary.PendingOrders
-            );
 
-            Model.SupplierCount = await _supplierManagementService.GetSuppliersAsync(new GetSuppliersInput()).ContinueWith(t => t.Result.TotalRecords);
-            Model.CustomerCount = await _customerService.GetCountAsync();
-            Model.ProductCount = await _productService.GetCountAsync();
-            Model.TopProducts = _mapper.Map<List<TopProductViewModel>>(dashboardSummary.TopProducts);
-            Model.GrossRevenueList = _mapper.Map<List<RevenueByDateViewModel>>(dashboardSummary.FinacialReports);
-            Model.StartDate = startOfYear;
-            Model.EndDate = today;
-            Model.PeriodDescription = "Tổng";
-
-            if (dashboardSummary.UnderstockIngredients != null)
-            {
-                var understockProducts = dashboardSummary.UnderstockIngredients.Select(ingredient => new UnderstockProductViewModel
-                {
-                    ProductId = ingredient.Id,
-                    ProductName = ingredient.Name,
-                    ProductCode = $"ING-{ingredient.Id:D6}",
-                    Category = ingredient.CategoryName,
-                    CurrentStock = ingredient.InStockQuantity,
-                    SafetyStock = ingredient.SafetyStock,
-                    MaximumStock = ingredient.MaximumStock,
-                    LastRestockDate = ingredient.UpdatedAt ?? ingredient.CreatedAt,
-                    Location = "Kho chính"
-                }).ToList();
-
-                Model.UnderstockProducts.Clear();
-                foreach (var item in understockProducts)
-                    Model.UnderstockProducts.Add(item);
-            }
-
-            OnDataLoaded?.Invoke(this, EventArgs.Empty);
-        }
-
-        public async Task LoadDashboardDataAsync(DateTime startDate, DateTime endDate)
-        {
-            var (previousStartDate, previousEndDate) = CalculatePreviousPeriod(startDate, endDate);
-
-            var dashboardSummary = await _reportingService.GetDashboardSummaryAsync(startDate, endDate);
-            
-            var previousDashboardSummary = await _reportingService.GetDashboardSummaryAsync(previousStartDate, previousEndDate);
-
-            if (startDate != endDate)
-            {
-                Model.TopProducts = _mapper.Map<List<TopProductViewModel>>(dashboardSummary.TopProducts);
-                Model.GrossRevenueList = _mapper.Map<List<RevenueByDateViewModel>>(dashboardSummary.FinacialReports);
-            }
-            
-            Model.TotalOrders = dashboardSummary.TotalOrders;
-            Model.PendingOrders = dashboardSummary.PendingOrders;
-            Model.TotalRevenue = dashboardSummary.TotalRevenue;
-            Model.TotalExpenses = dashboardSummary.TotalExpenses;
-            
             Model.SetPreviousPeriodData(
                 previousDashboardSummary.TotalRevenue,
                 previousDashboardSummary.TotalExpenses,
@@ -125,36 +66,46 @@ namespace Dashboard.Winform.Presenters
 
             Model.CustomerCount = await _customerService.GetCountAsync();
             Model.ProductCount = await _productService.GetCountAsync();
-            Model.StartDate = startDate;
-            Model.EndDate = endDate;
+            Model.SupplierCount = await _supplierManagementService.GetSuppliersAsync(new GetSuppliersInput())
+                                                .ContinueWith(t => t.Result.TotalRecords);
 
-            var daysDiff = (endDate - startDate).Days;
-            if (daysDiff == 0)
-                Model.PeriodDescription = "Hôm nay";
-            else if (daysDiff <= 7)
-                Model.PeriodDescription = "7 ngày qua";
-            else if (daysDiff <= 30)
-                Model.PeriodDescription = "30 ngày qua";
-            else
-                Model.PeriodDescription = "Khoảng thời gian tùy chọn";
+            Model.TopProducts = _mapper.Map<List<TopProductViewModel>>(dashboardSummary.TopProducts);
+            Model.GrossRevenueList = _mapper.Map<List<FinancialReportByDateViewModel>>(dashboardSummary.FinacialReports);
+            Model.StartDate = start;
+            Model.EndDate = end;
 
-            if (dashboardSummary.UnderstockIngredients != null)
+            var daysDiff = (end - start).Days;
+            Model.PeriodDescription = daysDiff switch
             {
-                var understockProducts = dashboardSummary.UnderstockIngredients.Select(ingredient => new UnderstockProductViewModel
-                {
-                    ProductId = ingredient.Id,
-                    ProductName = ingredient.Name,
-                    ProductCode = $"ING-{ingredient.Id:D6}",
-                    Category = ingredient.CategoryName,
-                    CurrentStock = ingredient.InStockQuantity,
-                    SafetyStock = ingredient.SafetyStock,
-                    MaximumStock = ingredient.MaximumStock,
-                    LastRestockDate = ingredient.UpdatedAt ?? ingredient.CreatedAt,
-                    Location = "Kho chính"
-                }).ToList();
+                0 => "Hôm nay",
+                <= 7 => "7 ngày qua",
+                <= 30 => "30 ngày qua",
+                _ => "Khoảng thời gian tùy chọn"
+            };
 
-                Model.UnderstockProducts = new BindingList<UnderstockProductViewModel>(understockProducts);
+            var understockProducts = dashboardSummary.UnderstockIngredients.Select(ingredient => new UnderstockProductViewModel
+            {
+                ProductId = ingredient.Id,
+                ProductName = ingredient.Name,
+                ProductCode = $"ING-{ingredient.Id:D6}",
+                Category = ingredient.CategoryName,
+                CurrentStock = ingredient.InStockQuantity,
+                SafetyStock = ingredient.SafetyStock,
+                MaximumStock = ingredient.MaximumStock,
+                LastRestockDate = ingredient.UpdatedAt ?? ingredient.CreatedAt,
+                Location = "Kho chính"
+            }).ToList();
+
+            Model.UnderstockProducts.RaiseListChangedEvents = false;
+            Model.UnderstockProducts.Clear();
+
+            foreach (var product in understockProducts)
+            {
+                Model.UnderstockProducts.Add(product);
             }
+
+            Model.UnderstockProducts.RaiseListChangedEvents = true;
+            Model.UnderstockProducts.ResetBindings();
 
             OnDataLoaded?.Invoke(this, EventArgs.Empty);
         }

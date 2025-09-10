@@ -7,11 +7,11 @@ using Microsoft.Extensions.Logging;
 
 namespace Dashboard.Winform
 {
-    public partial class FrmLandingDashboard : Form, IBlurLoadingServiceAware
+    public partial class frmLandingDashboard : Form, IBlurLoadingServiceAware
     {
         private readonly ILandingDashboardPresenter _presenter;
         private readonly LandingDashboardModel _model;
-        private readonly ILogger<FrmLandingDashboard>? _logger;
+        private readonly ILogger<frmLandingDashboard>? _logger;
         private Button currentlySelectedButton = null!;
         
         private IBlurLoadingService? _blurLoadingService;
@@ -48,7 +48,7 @@ namespace Dashboard.Winform
         }
 
         #region Setup dashboard components
-        public FrmLandingDashboard(ILogger<FrmLandingDashboard> logger, ILandingDashboardPresenter presenter)
+        public frmLandingDashboard(ILogger<frmLandingDashboard> logger, ILandingDashboardPresenter presenter)
         {
             InitializeComponent();
             _logger = logger;
@@ -101,7 +101,7 @@ namespace Dashboard.Winform
         private void InitializeEvents()
         {
             _presenter.OnDataLoaded += OnDataLoaded;
-            btnToday.Click += async (s, e) => await LoadDataForPeriod(DateTime.Today, DateTime.Today);
+            btnToday.Click += async (s, e) => await LoadDataForPeriod(DateTime.Today, DateTime.Now);
             btnLast7Days.Click += async (s, e) => await LoadDataForPeriod(DateTime.Today.AddDays(-7), DateTime.Today);
             btnLast30Days.Click += async (s, e) => await LoadDataForPeriod(DateTime.Today.AddDays(-30), DateTime.Today);
             btnOneYear.Click += async (s, e) => await LoadDataForPeriod(DateTime.Today.AddYears(-1), DateTime.Today);
@@ -368,8 +368,7 @@ namespace Dashboard.Winform
         #region Load data
         private async Task LoadDataAsync()
         {
-            // Since parent form is managing the loading overlay, we don't need to show another one
-            // Just load the data directly
+
             try
             {
                 _logger?.LogInformation("Loading dashboard data...");
@@ -380,7 +379,7 @@ namespace Dashboard.Winform
             {
                 _logger?.LogError(ex, "Error loading dashboard data");
                 MessageBox.Show($"Có lỗi xảy ra khi tải dữ liệu: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                throw; // Re-throw to signal completion source
+                throw; 
             }
         }
         

@@ -7,10 +7,10 @@ namespace Dashboard.DataAccess.Repositories;
 
 public interface IEmployeeShiftRepository : IRepository<EmployeeShift>
 {
-    Task<List<EmployeeShift>> GetShiftsByDateRangeAsync(DateOnly fromDate, DateOnly toDate, long? employeeId = null, long? branchId = null);
+    Task<List<EmployeeShift>> GetShiftsByDateRangeAsync(DateTime fromDate, DateTime toDate, long? employeeId = null, long? branchId = null);
     Task<List<EmployeeShift>> GetShiftsByEmployeeAndMonthAsync(long employeeId, int month, int year);
     Task<decimal> GetTotalWorkingHoursAsync(long employeeId, int month, int year);
-    Task<bool> HasConflictingShiftAsync(long employeeId, DateOnly shiftDate, TimeOnly startTime, TimeOnly endTime, long? excludeShiftId = null);
+    Task<bool> HasConflictingShiftAsync(long employeeId, DateTime shiftDate, TimeOnly startTime, TimeOnly endTime, long? excludeShiftId = null);
     Task<List<EmployeeShift>> GetShiftsByStatusAsync(string status);
 }
 
@@ -20,7 +20,7 @@ public class EmployeeShiftRepository : Repository<EmployeeShift>, IEmployeeShift
     {
     }
 
-    public async Task<List<EmployeeShift>> GetShiftsByDateRangeAsync(DateOnly fromDate, DateOnly toDate, long? employeeId = null, long? branchId = null)
+    public async Task<List<EmployeeShift>> GetShiftsByDateRangeAsync(DateTime fromDate, DateTime toDate, long? employeeId = null, long? branchId = null)
     {
         var query = _context.EmployeeShifts
             .Include(s => s.Employee)
@@ -42,7 +42,7 @@ public class EmployeeShiftRepository : Repository<EmployeeShift>, IEmployeeShift
 
     public async Task<List<EmployeeShift>> GetShiftsByEmployeeAndMonthAsync(long employeeId, int month, int year)
     {
-        var startDate = new DateOnly(year, month, 1);
+        var startDate = new DateTime(year, month, 1);
         var endDate = startDate.AddMonths(1).AddDays(-1);
 
         return await _context.EmployeeShifts
@@ -64,7 +64,7 @@ public class EmployeeShiftRepository : Repository<EmployeeShift>, IEmployeeShift
             .Sum(s => CalculateWorkingHours(s.StartTime, s.EndTime));
     }
 
-    public async Task<bool> HasConflictingShiftAsync(long employeeId, DateOnly shiftDate, TimeOnly startTime, TimeOnly endTime, long? excludeShiftId = null)
+    public async Task<bool> HasConflictingShiftAsync(long employeeId, DateTime shiftDate, TimeOnly startTime, TimeOnly endTime, long? excludeShiftId = null)
     {
         var query = _context.EmployeeShifts
             .Where(s => s.EmployeeId == employeeId && 

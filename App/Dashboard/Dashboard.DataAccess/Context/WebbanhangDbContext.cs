@@ -29,7 +29,7 @@ public partial class WebbanhangDbContext : DbContext
 
     public virtual DbSet<EmployeeShift> EmployeeShifts { get; set; }
 
-    public virtual DbSet<ExpensesSummary> ExpensesSummaries { get; set; }
+    public virtual DbSet<CogsSummary> ExpensesSummaries { get; set; }
 
     public virtual DbSet<GoodsReceivedDetail> GoodsReceivedDetails { get; set; }
 
@@ -113,7 +113,7 @@ public partial class WebbanhangDbContext : DbContext
 
     public virtual DbSet<VEmployeePayroll> VEmployeePayrolls { get; set; }
 
-    public virtual DbSet<VExpensesSummary> VExpensesSummaries { get; set; }
+    public virtual DbSet<VCogsSummary> VExpensesSummaries { get; set; }
 
     public virtual DbSet<VInventoryStatus> VInventoryStatuses { get; set; }
 
@@ -220,13 +220,13 @@ public partial class WebbanhangDbContext : DbContext
                 .HasConstraintName("FK_shifts_employee");
         });
 
-        modelBuilder.Entity<ExpensesSummary>(entity =>
+        modelBuilder.Entity<CogsSummary>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__expenses__3213E83F27D3985C");
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
 
-            entity.HasOne(d => d.Branch).WithMany(p => p.ExpensesSummaries).HasConstraintName("FK_expenses_summary_branches");
+            entity.HasOne(d => d.Branch).WithMany(p => p.ExpensesSummaries).HasConstraintName("FK_cogs_summary_branches");
         });
 
         modelBuilder.Entity<GoodsReceivedDetail>(entity =>

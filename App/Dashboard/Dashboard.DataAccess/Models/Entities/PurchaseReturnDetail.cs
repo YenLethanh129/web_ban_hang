@@ -35,7 +35,7 @@ public partial class PurchaseReturnDetail : BaseAuditableEntity
     public string? BatchNumber { get; set; }
 
     [Column("expiry_date")]
-    public DateOnly? ExpiryDate { get; set; }
+    public DateTime? ExpiryDate { get; set; }
 
     [Column("quality_issue")]
     [StringLength(255)]

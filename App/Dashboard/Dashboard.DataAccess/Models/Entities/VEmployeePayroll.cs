@@ -48,10 +48,10 @@ public partial class VEmployeePayroll
     public decimal GrossSalary { get; set; }
 
     [Column("effective_date")]
-    public DateOnly? EffectiveDate { get; set; }
+    public DateTime? EffectiveDate { get; set; }
 
     [Column("end_date")]
-    public DateOnly? EndDate { get; set; }
+    public DateTime? EndDate { get; set; }
 
     [ForeignKey("EmployeeId")]
     public virtual Employee Employee { get; set; } = null!;

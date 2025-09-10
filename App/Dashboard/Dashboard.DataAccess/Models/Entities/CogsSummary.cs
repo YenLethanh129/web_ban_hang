@@ -6,8 +6,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Dashboard.DataAccess.Models.Entities;
 
-[Table("expenses_summary")]
-public partial class ExpensesSummary : BaseAuditableEntity
+[Table("cogs_summary")]
+public partial class CogsSummary : BaseAuditableEntity
 {
     [Column("branch_id")]
     public long? BranchId { get; set; }

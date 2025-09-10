@@ -6,7 +6,7 @@ GO
 -- ALTER DATABASE [webbanhang] COLLATE Vietnamese_CI_AS;
 
 -- Drop views first (views depend on tables)
-IF OBJECT_ID('dbo.v_expenses_summary', 'V') IS NOT NULL DROP VIEW [dbo].[v_expenses_summary];
+IF OBJECT_ID('dbo.v_cogs_summary', 'V') IS NOT NULL DROP VIEW [dbo].[v_cogs_summary];
 IF OBJECT_ID('dbo.v_profit_summary', 'V') IS NOT NULL DROP VIEW [dbo].[v_profit_summary];
 IF OBJECT_ID('dbo.v_inventory_status', 'V') IS NOT NULL DROP VIEW [dbo].[v_inventory_status];
 IF OBJECT_ID('dbo.v_employee_payroll', 'V') IS NOT NULL DROP VIEW [dbo].[v_employee_payroll];
@@ -21,7 +21,7 @@ IF OBJECT_ID('dbo.goods_received_notes', 'U') IS NOT NULL DROP TABLE [dbo].[good
 IF OBJECT_ID('dbo.purchase_invoice_details', 'U') IS NOT NULL DROP TABLE [dbo].[purchase_invoice_details];
 IF OBJECT_ID('dbo.purchase_invoices', 'U') IS NOT NULL DROP TABLE [dbo].[purchase_invoices];
 IF OBJECT_ID('dbo.profit_summary', 'U') IS NOT NULL DROP TABLE [dbo].[profit_summary];
-IF OBJECT_ID('dbo.expenses_summary', 'U') IS NOT NULL DROP TABLE [dbo].[expenses_summary];
+IF OBJECT_ID('dbo.cogs_summary', 'U') IS NOT NULL DROP TABLE [dbo].[cogs_summary];
 IF OBJECT_ID('dbo.sales_summary', 'U') IS NOT NULL DROP TABLE [dbo].[sales_summary];
 IF OBJECT_ID('dbo.order_delivery_tracking', 'U') IS NOT NULL DROP TABLE [dbo].[order_delivery_tracking];
 IF OBJECT_ID('dbo.order_shipments', 'U') IS NOT NULL DROP TABLE [dbo].[order_shipments];
@@ -240,7 +240,7 @@ CREATE TABLE [dbo].[employees] (
     [phone] varchar(20),
     [email] varchar(255),
     [position] nvarchar(100) COLLATE Vietnamese_CI_AS,
-    [hire_date] date,
+    [hire_date] datetime2,
     [status] varchar(20) DEFAULT 'ACTIVE',
     [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
     [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
@@ -314,7 +314,7 @@ GO
 CREATE TABLE [dbo].[users] (
     [id] bigint IDENTITY(1,1) NOT NULL,
     [employee_id] bigint,
-    [date_of_birth] date,
+    [date_of_birth] datetime2,
     [facebook_account_id] bigint,
     [google_account_id] bigint,
     [is_active] bit NOT NULL DEFAULT 1,
@@ -486,7 +486,7 @@ CREATE TABLE [dbo].[employee_salaries] (
     [bonus] decimal(18,2) DEFAULT 0,
     [penalty] decimal(18,2) DEFAULT 0,
     [tax_rate] decimal(5,2) DEFAULT 0,
-    [effective_date] date NOT NULL,
+    [effective_date] datetime2 NOT NULL,
     [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
     [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
     CONSTRAINT [PK_employee_salaries] PRIMARY KEY ([id]),
@@ -498,7 +498,7 @@ GO
 CREATE TABLE [dbo].[employee_shifts] (
     [id] bigint IDENTITY(1,1) NOT NULL,
     [employee_id] bigint NOT NULL,
-    [shift_date] date NOT NULL,
+    [shift_date] datetime2 NOT NULL,
     [start_time] time NOT NULL,
     [end_time] time NOT NULL,
     [status] varchar(20) DEFAULT 'SCHEDULED',
@@ -644,8 +644,8 @@ CREATE TABLE [dbo].[supplier_ingredient_prices] (
     [ingredient_id] bigint NOT NULL,
     [price] decimal(18,2) NOT NULL,
     [unit] nvarchar(20) COLLATE Vietnamese_CI_AS NOT NULL,
-    [effective_date] date NOT NULL,
-    [expired_date] date,
+    [effective_date] datetime2 NOT NULL,
+    [expired_date] datetime2,
     [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
     [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
     CONSTRAINT [PK_supplier_ingredient_prices] PRIMARY KEY ([id]),
@@ -660,8 +660,8 @@ CREATE TABLE [dbo].[branch_expenses] (
     [branch_id] bigint NOT NULL,
     [expense_type] nvarchar(100) COLLATE Vietnamese_CI_AS NOT NULL,
     [amount] decimal(18,2) NOT NULL,
-    [start_date] date NOT NULL,
-    [end_date] date,
+    [start_date] datetime2 NOT NULL,
+    [end_date] datetime2,
     [payment_cycle] varchar(20) DEFAULT 'MONTHLY',
     [note] nvarchar(1000) COLLATE Vietnamese_CI_AS,
     [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
@@ -805,7 +805,7 @@ CREATE TABLE [dbo].[sales_summary] (
 GO
 
 -- Expenses Summary table
-CREATE TABLE [dbo].[expenses_summary] (
+CREATE TABLE [dbo].[cogs_summary] (
     [id] bigint IDENTITY(1,1) NOT NULL,
     [branch_id] bigint NOT NULL,
     [period_type] varchar(20) NOT NULL,
@@ -817,8 +817,8 @@ CREATE TABLE [dbo].[expenses_summary] (
     [tax_amount] decimal(18,2) DEFAULT 0,
     [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
     [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
-    CONSTRAINT [PK_expenses_summary] PRIMARY KEY ([id]),
-    CONSTRAINT [FK_expenses_summary_branches] FOREIGN KEY ([branch_id]) REFERENCES [dbo].[branches]([id])
+    CONSTRAINT [PK_cogs_summary] PRIMARY KEY ([id]),
+    CONSTRAINT [FK_cogs_summary_branches] FOREIGN KEY ([branch_id]) REFERENCES [dbo].[branches]([id])
 );
 GO
 
@@ -890,7 +890,7 @@ CREATE TABLE [dbo].[purchase_invoice_details] (
     [discount_rate] decimal(5,2) DEFAULT 0,
     [discount_amount] decimal(18,2) DEFAULT 0,
     [final_amount] decimal(18,2) NOT NULL,
-    [expiry_date] date,
+    [expiry_date] datetime2,
     [batch_number] nvarchar(100),
     [note] nvarchar(1000) COLLATE Vietnamese_CI_AS,
     [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
@@ -942,7 +942,7 @@ CREATE TABLE [dbo].[goods_received_details] (
     [quality_status] varchar(50) DEFAULT 'PENDING',
     [rejection_reason] nvarchar(500) COLLATE Vietnamese_CI_AS,
     [unit_price] decimal(18,2),
-    [expiry_date] date,
+    [expiry_date] datetime2,
     [batch_number] nvarchar(100),
     [storage_location] nvarchar(100),
     [note] nvarchar(1000) COLLATE Vietnamese_CI_AS,
@@ -993,7 +993,7 @@ CREATE TABLE [dbo].[purchase_return_details] (
     [return_amount] decimal(18,2),
     [return_reason] nvarchar(500) COLLATE Vietnamese_CI_AS,
     [batch_number] nvarchar(100),
-    [expiry_date] date,
+    [expiry_date] datetime2,
     [quality_issue] nvarchar(500) COLLATE Vietnamese_CI_AS,
     [note] nvarchar(1000) COLLATE Vietnamese_CI_AS,
     [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
@@ -1118,7 +1118,7 @@ WHERE [period_type] = 'MONTH';
 GO
 
 -- Expenses Summary View
-CREATE VIEW [dbo].[v_expenses_summary] AS
+CREATE VIEW [dbo].[v_cogs_summary] AS
 SELECT 
     [branch_id],
     YEAR([created_at]) as [year],
@@ -1129,7 +1129,7 @@ SELECT
     [expense_before_tax],
     [expense_after_tax],
     [tax_amount]
-FROM [dbo].[expenses_summary]
+FROM [dbo].[cogs_summary]
 WHERE [period_type] = 'MONTH';
 GO
 
