@@ -174,7 +174,7 @@
             // 
             lblFilter2.AutoSize = true;
             lblFilter2.ForeColor = Color.FromArgb(124, 141, 181);
-            lblFilter2.Location = new Point(6, 3);
+            lblFilter2.Location = new Point(0, 3);
             lblFilter2.Name = "lblFilter2";
             lblFilter2.Size = new Size(93, 15);
             lblFilter2.TabIndex = 4;
@@ -223,7 +223,7 @@
             // 
             lblFilter1.AutoSize = true;
             lblFilter1.ForeColor = Color.FromArgb(124, 141, 181);
-            lblFilter1.Location = new Point(6, 3);
+            lblFilter1.Location = new Point(0, 3);
             lblFilter1.Name = "lblFilter1";
             lblFilter1.Size = new Size(128, 15);
             lblFilter1.TabIndex = 4;
@@ -272,7 +272,7 @@
             // 
             lblSortBy.AutoSize = true;
             lblSortBy.ForeColor = Color.FromArgb(124, 141, 181);
-            lblSortBy.Location = new Point(6, 3);
+            lblSortBy.Location = new Point(0, 1);
             lblSortBy.Name = "lblSortBy";
             lblSortBy.Size = new Size(80, 15);
             lblSortBy.TabIndex = 4;
@@ -320,7 +320,7 @@
             // 
             lblSearchString.AutoSize = true;
             lblSearchString.ForeColor = Color.FromArgb(124, 141, 181);
-            lblSearchString.Location = new Point(13, 3);
+            lblSearchString.Location = new Point(1, 3);
             lblSearchString.Margin = new Padding(0);
             lblSearchString.Name = "lblSearchString";
             lblSearchString.Size = new Size(162, 15);
@@ -503,7 +503,6 @@
             Name = "FrmBaseManagement";
             Padding = new Padding(10, 0, 10, 10);
             Text = "Form1";
-            Load += Form1_Load;
             tableLayoutPanel1.ResumeLayout(false);
             tbpnHeaderManagementSection.ResumeLayout(false);
             panel3.ResumeLayout(false);

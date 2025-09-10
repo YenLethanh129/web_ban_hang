@@ -26,44 +26,38 @@ namespace Dashboard.Winform.Forms
             InitializeComponent();
         }
 
-        private void InitializeEvents()
+        protected virtual void InitializeEvents()
         {
             //btnOrderBy.Click += BtnOrderBy_Click;
             //btnfilterByGoodsStatus.Click += BtnOrderBy_Click;
-            //cbxOrderBy.SelectedIndexChanged += cbxOrderBy_SelectedIndexChanged;
-            //cbxFilterStatus.SelectedIndexChanged += cbxFilterStatus_SelectedIndexChanged;
-            //cbxFilterByGoodStatus.SelectedIndexChanged += cbxFilterByGoodStatus_SelectedIndexChanged;
-            //cbxNumbRecordsPerPage.SelectedIndexChanged += cbxNumbRecordsPerPage_SelectedIndexChanged;
+            cbxOrderBy.SelectedIndexChanged += (s, o) => CbxOrderBySelectedIndexChanged (s!,o);
+            cbxFilterByGoodsStatus.SelectedIndexChanged += (s, o) => CbxFilterByGoodsStatusSelectedIndexChanged(s!, o);
+            cbxFilterByStockStatus.SelectedIndexChanged += (s, o) => cbxFilterByStockStatusSelectedIndexChanged(s!, o);
+            cbxNumbRecordsPerPage.SelectedIndexChanged += (s, o) => CbxNumbRecordsPerPageSelectedIndexChanged(s!, o);
         }
 
-        private void BtnOrderBy_Click(object sender, EventArgs e)
+        protected virtual void CbxNumbRecordsPerPageSelectedIndexChanged(object v, EventArgs o)
         {
-            throw new NotImplementedException();
+            if (cbxNumbRecordsPerPage.SelectedItem != null)
+                btnNumbOfRecordShowing.Text = cbxNumbRecordsPerPage.Text;
         }
 
-        private void Form1_Load(object sender, EventArgs e)
+        protected virtual void cbxFilterByStockStatusSelectedIndexChanged(object v, EventArgs o)
         {
-
+            if (cbxFilterByStockStatus.SelectedItem != null)
+                btnFilterByStockStatus.Text = cbxFilterByStockStatus.Text;
         }
 
-        private void cbxOrderBy_SelectedIndexChanged(object sender, EventArgs e)
+        protected virtual void CbxFilterByGoodsStatusSelectedIndexChanged(object s, EventArgs o)
         {
-
+            if (cbxFilterByGoodsStatus.SelectedItem != null)
+                btnfilterByGoodsStatus.Text = cbxFilterByGoodsStatus.Text;
         }
 
-        private void cbxFilterStatus_SelectedIndexChanged(object sender, EventArgs e)
+        protected virtual void CbxOrderBySelectedIndexChanged(object sender, EventArgs e)
         {
-
-        }
-
-        private void cbxFilterByGoodStatus_SelectedIndexChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void cbxNumbRecordsPerPage_SelectedIndexChanged(object sender, EventArgs e)
-        {
-
+            if (cbxOrderBy.SelectedItem != null)
+                btnOrderBy.Text = cbxOrderBy.Text;
         }
 
         public Task WaitForDataLoadingComplete()
