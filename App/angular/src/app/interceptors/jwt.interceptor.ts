@@ -26,6 +26,8 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
   const publicEndpoints = [
     '/users/register',
     '/users/login',
+    '/users/forgot-password',
+    '/users/verify-otp',
     '/products/get-all',
     '/products/get-by-id',
     '/categories',

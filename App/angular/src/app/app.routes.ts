@@ -5,6 +5,8 @@ import { OrderComponent } from './components/order/order.component';
 import { OrderConfirmComponent } from './components/order-confirm/order-confirm.component';
 import { LoginComponent } from './components/login/login.component';
 import { RegisterComponent } from './components/register/register.component';
+import { ForgotPasswordComponent } from './components/forgot-password/forgot-password.component';
+import { VerifyOtpComponent } from './components/verify-otp/verify-otp.component';
 import { AuthGuard } from './guards/auth.guard';
 import { LoginGuard } from './guards/login.guard';
 import { CartComponent } from './components/cart/cart.component';
@@ -36,6 +38,16 @@ export const routes: Routes = [
   // { path: 'order', component: OrderComponent},
   { path: 'order-confirm/:id', component: OrderConfirmComponent },
   { path: 'login', component: LoginComponent, canActivate: [LoginGuard] },
+  {
+    path: 'forgot-password',
+    component: ForgotPasswordComponent,
+    canActivate: [LoginGuard],
+  },
+  {
+    path: 'verify-otp',
+    component: VerifyOtpComponent,
+    canActivate: [LoginGuard],
+  },
   { path: 'product/:id', component: DetailProductComponent },
   { path: 'cart', component: CartComponent },
   { path: 'category/:id', component: CategoryComponent },

@@ -1,16 +1,10 @@
 package com.project.webbanhang.controllers;
 
 import com.project.webbanhang.components.LocalizationUtil;
-import com.project.webbanhang.dtos.user.ChangPasswordDTO;
-import com.project.webbanhang.dtos.user.UserDTO;
-import com.project.webbanhang.dtos.user.UserLoginDTO;
-import com.project.webbanhang.dtos.user.UserUpdateDTO;
+import com.project.webbanhang.dtos.user.*;
 import com.project.webbanhang.models.Customer;
 import com.project.webbanhang.models.User;
-import com.project.webbanhang.response.LoginResponse;
-import com.project.webbanhang.response.MessageResponse;
-import com.project.webbanhang.response.RegisterResponse;
-import com.project.webbanhang.response.UserResponse;
+import com.project.webbanhang.response.*;
 import com.project.webbanhang.services.Interfaces.ICustomerService;
 import com.project.webbanhang.services.Interfaces.IUserService;
 import com.project.webbanhang.utils.MessageKey;
@@ -171,6 +165,72 @@ public class UserController {
             return ResponseEntity.badRequest().body(
                     MessageResponse.builder()
                             .message(localizationUtil.getLocalizedMessage(MessageKey.UPDATE_PROFILE_FAILED, e.getMessage()))
+                            .build()
+            );
+        }
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(
+    		@Valid @RequestBody ForgotPasswordDTO forgotPasswordDTO,
+            BindingResult result
+    ) {
+        try {
+            if (result.hasErrors()) {
+                List<String> errorMessages = result.getFieldErrors()
+                        .stream()
+                        .map(FieldError::getDefaultMessage)
+                        .toList();
+                return ResponseEntity.badRequest().body(localizationUtil.getLocalizedMessage(MessageKey.FORGOT_PASSWORD_FAILED, errorMessages));
+            }
+
+            boolean existsByPhoneNumber = userService.findByPhoneNumber(forgotPasswordDTO.getPhoneNumber());
+            if (!existsByPhoneNumber) {
+                return ResponseEntity.badRequest().body(
+                        MessageResponse.builder()
+                                .message(localizationUtil.getLocalizedMessage(MessageKey.FORGOT_PASSWORD_FAILED, "User not found with the provided phone number"))
+                                .build()
+                );
+            }
+            return ResponseEntity.ok(
+                    MessageResponse.builder()
+                            .message("OTP has been sent to your phone number")
+                            .build()
+            );
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(
+                    MessageResponse.builder()
+                            .message(localizationUtil.getLocalizedMessage(MessageKey.FORGOT_PASSWORD_FAILED, e.getMessage()))
+                            .build()
+            );
+        }
+    }
+
+    @PostMapping("verify-otp")
+    public ResponseEntity<?> verifyOtp(
+    		@Valid @RequestBody ForgotPasswordDTO forgotPasswordDTO,
+            BindingResult result
+    ) {
+        try {
+            if (result.hasErrors()) {
+                List<String> errorMessages = result.getFieldErrors()
+                        .stream()
+                        .map(FieldError::getDefaultMessage)
+                        .toList();
+                return ResponseEntity.badRequest().body(localizationUtil.getLocalizedMessage(MessageKey.FORGOT_PASSWORD_FAILED, errorMessages));
+            }
+
+            String newPassword = userService.forgotPassword(forgotPasswordDTO.getPhoneNumber(), forgotPasswordDTO.getOtpCode());
+            return ResponseEntity.ok(
+                    ForgotPasswordResponse.builder()
+                            .message(localizationUtil.getLocalizedMessage(MessageKey.FORGOT_PASSWORD_SUCCESSFULLY))
+                            .newPassword(newPassword)
+                            .build()
+            );
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(
+                    MessageResponse.builder()
+                            .message(localizationUtil.getLocalizedMessage(MessageKey.FORGOT_PASSWORD_FAILED, e.getMessage()))
                             .build()
             );
         }

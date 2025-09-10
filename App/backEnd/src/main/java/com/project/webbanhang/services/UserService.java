@@ -1,5 +1,9 @@
 package com.project.webbanhang.services;
 
+import java.security.SecureRandom;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import com.project.webbanhang.components.LocalizationUtil;
@@ -127,11 +131,6 @@ public class UserService implements IUserService {
 		existingUser.setFullName(userUpdateDTO.getFullName());
 		existingUser.setAddress(userUpdateDTO.getAddress());
 		existingUser.setDateOfBirth(userUpdateDTO.getDateOfBirth());
-//		String password = userUpdateDTO.getPassword();
-//		if (password != null && !password.isEmpty()) {
-//			String encodePassword = passwordEncoder.encode(password);
-//			existingUser.setPassword(encodePassword);
-//		}
 
 		try {
 			return userRepository.save(existingUser);
@@ -174,13 +173,62 @@ public class UserService implements IUserService {
 	}
 
 	@Override
-	public User findByPhoneNumber(String phoneNumber) throws Exception {
-		return null;
+	public boolean findByPhoneNumber(String phoneNumber) throws Exception {
+		Optional<User> optionalUser = userRepository.findByPhoneNumber(phoneNumber);
+		if (optionalUser.isEmpty()) {
+			throw new DataNotFoundException(localizationUtil.getLocalizedMessage(MessageKey.USER_NOT_FOUND));
+		}
+		return true;
 	}
 
 	@Override
 	public String forgotPassword(String phoneNumber, String otp) throws Exception {
-		return "";
+		Optional<User> optionalUser = userRepository.findByPhoneNumber(phoneNumber);
+		if (optionalUser.isEmpty()) {
+			throw new DataNotFoundException(localizationUtil.getLocalizedMessage(MessageKey.USER_NOT_FOUND));
+		}
+		User existingUser = optionalUser.get();
+		if (!otp.equals("000000")) {
+			throw new Exception("Invalid OTP");
+		}
+		String newPassword = generateValidPassword();
+		String encodePassword = passwordEncoder.encode(newPassword);
+		existingUser.setPassword(encodePassword);
+
+		try {
+			userRepository.save(existingUser);
+			return newPassword;
+		} catch (Exception e) {
+			throw new Exception(localizationUtil.getLocalizedMessage(MessageKey.UPDATE_PROFILE_FAILED, e.getMessage()));
+		}
 	}
 
+	private String generateValidPassword() {
+		String upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+		String lower = "abcdefghijklmnopqrstuvwxyz";
+		String digits = "0123456789";
+		String special = "@$!%*?&";
+		String all = upper + lower + digits + special;
+		SecureRandom random = new SecureRandom();
+		List<Character> password = new ArrayList<>();
+
+		// Ensure at least one character from each required set
+		password.add(upper.charAt(random.nextInt(upper.length())));
+		password.add(lower.charAt(random.nextInt(lower.length())));
+		password.add(digits.charAt(random.nextInt(digits.length())));
+		password.add(special.charAt(random.nextInt(special.length())));
+
+		// Fill the rest with random characters
+		for (int i = 4; i < 16; i++) {
+			password.add(all.charAt(random.nextInt(all.length())));
+		}
+
+		Collections.shuffle(password, random);
+		StringBuilder passwordStr = new StringBuilder();
+		for (char c : password) {
+			passwordStr.append(c);
+		}
+
+		return passwordStr.toString();
+	}
 }
