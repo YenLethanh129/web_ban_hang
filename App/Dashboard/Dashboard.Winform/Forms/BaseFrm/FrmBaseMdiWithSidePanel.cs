@@ -433,7 +433,8 @@ namespace Dashboard.Winform
             btnSBLanding.Click += (s, e) =>  LaunchLandingForm(s!, e);
             btnSBGoods.Click += (s, e) => LaunchGoodsForm(s!,e);
             btnSBEmployee.Click += (s, e) => LaunchEmployeeForm(s!, e);
-
+            btnSBExit.Click += (s, e) => Application.Exit();
+            btnSBProduct.Click += (s, e) => LaunchProductForm(s!, e);
             foreach (var kv in _buttonIconMap.Keys)
             {
                 kv.Click += (s, e) => SetSBButtonUI(s!);
@@ -609,6 +610,35 @@ namespace Dashboard.Winform
             OpenChildForm(frmGoodsManagement);
 
         }
+
+        private async void LaunchProductForm(object sender, EventArgs e)
+        {
+            await ExecuteWithLoadingInternalAsync(async () =>
+            {
+                FrmProductManagement frmProductManagement = null!;
+                await Task.Run(() =>
+                {
+                    if (InvokeRequired)
+                    {
+                        Invoke(new Action(() =>
+                        {
+                            frmProductManagement = _serviceProvider.GetRequiredService<FrmProductManagement>();
+                            OpenChildForm(frmProductManagement);
+                        }));
+                    }
+                    else
+                    {
+                        frmProductManagement = _serviceProvider.GetRequiredService<FrmProductManagement>();
+                        OpenChildForm(frmProductManagement);
+                    }
+                });
+                if (frmProductManagement != null)
+                {
+                    await frmProductManagement.WaitForDataLoadingComplete();
+                }
+            }, "Đang tải Dashboard...", true);
+        }
+
 
         private async void LaunchEmployeeForm(object sender, EventArgs e)
         {

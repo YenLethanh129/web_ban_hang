@@ -5,6 +5,7 @@ using Dashboard.Common.Enums;
 using Dashboard.DataAccess.Data;
 using Dashboard.DataAccess.Models.Entities;
 using Dashboard.DataAccess.Models.Entities.Products;
+using Dashboard.DataAccess.Models.Entities.Orders;
 using Dashboard.DataAccess.Repositories;
 using Dashboard.DataAccess.Specification;
 using Microsoft.Extensions.Logging;
@@ -21,6 +22,7 @@ public interface IProductService
     Task<bool> DeleteProductAsync(int id);
     Task<bool> IsProductNameExistsAsync(string name, int? excludeId = null);
     Task<int> GetAmount(GetProductsInput input);
+    Task<Dictionary<long, int>> GetSoldQuantitiesAsync();
 }
 
 public class ProductService : IProductService
@@ -62,6 +64,7 @@ public class ProductService : IProductService
 
         specification.IncludeStrings.Add("Category");
         specification.IncludeStrings.Add("ProductImages");
+        specification.IncludeStrings.Add("Tax");
 
         var allProducts = await _productRepository.GetAllWithSpecAsync(specification, true);
 
@@ -193,5 +196,13 @@ public class ProductService : IProductService
 
         return allProducts.Count();
 
+    }
+
+    public async Task<Dictionary<long, int>> GetSoldQuantitiesAsync()
+    {
+        var orderDetails = await _unitOfWork.Repository<OrderDetail>().GetAllAsync();
+        return orderDetails
+            .GroupBy(od => od.ProductId)
+            .ToDictionary(g => g.Key, g => g.Sum(od => od.Quantity));
     }
 }

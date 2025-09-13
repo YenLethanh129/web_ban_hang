@@ -18,9 +18,20 @@ public class EmployeeMappingProfile : Profile
         
         CreateMap<UpdateEmployeeShiftInput, EmployeeShift>()
             .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
-        CreateMap<Employee, EmployeeDto>();
+
+        CreateMap<Employee, EmployeeDto>()
+            .ForMember(dest => dest.Phone, opt => opt.MapFrom(src => src.PhoneNumber));
+
+        CreateMap<EmployeeDto, Employee>()
+            .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.Phone));
+
         CreateMap<Employee, EmployeeDetailDto>()
-            .ForMember(dest => dest.BranchName, opt => opt.MapFrom(src => src.Branch != null ? src.Branch.Name : string.Empty));
+            .ForMember(dest => dest.BranchName, opt => opt.MapFrom(src => src.Branch != null ? src.Branch.Name : string.Empty))
+            .ForMember(dest => dest.Phone, opt => opt.MapFrom(src => src.PhoneNumber));
+
+        CreateMap<EmployeeDetailDto, Employee>()
+            .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.Phone));
+
         CreateMap<CreateEmployeeInput, Employee>()
             .ForMember(Employee => Employee.Status, opt => opt.MapFrom(_ => "Active"));
         CreateMap<EmployeePosition, PositionDto>();

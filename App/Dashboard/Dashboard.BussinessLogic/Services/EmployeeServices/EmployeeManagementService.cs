@@ -138,7 +138,7 @@ public class EmployeeManagementService : BaseTransactionalService, IEmployeeMana
             throw new ArgumentException("Invalid employee data.");
         }
 
-        var existingEmployee = await _employeeRepository.GetAsync(employee.EmployeeId) ?? throw new ArgumentException($"Employee with ID {employee.EmployeeId} does not exist.");
+        ; var existingEmployee = await _employeeRepository.GetAsync(employee.EmployeeId) ?? throw new ArgumentException($"Employee with ID {employee.EmployeeId} does not exist.");
         
         if (employee.BranchId.HasValue)
         {

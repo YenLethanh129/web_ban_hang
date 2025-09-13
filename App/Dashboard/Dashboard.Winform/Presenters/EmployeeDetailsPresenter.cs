@@ -19,6 +19,7 @@ namespace Dashboard.Winform.Presenters
         EmployeeDetailViewModel Model { get; }
         event EventHandler? OnDataLoaded;
         event EventHandler<string>? OnError;
+        event EventHandler? OnEmployeeSaved;
         Task LoadEmployeeDetailsAsync(long employeeId);
         Task LoadLookupsAsync();
         Task SaveEmployeeAsync(EmployeeDetailViewModel employee);
@@ -39,11 +40,13 @@ namespace Dashboard.Winform.Presenters
         private static List<BranchDto>? _cachedBranches;
         private static List<PositionDto>? _cachedPositions;
         private static readonly SemaphoreSlim _semaphore = new(1, 1);
+        private readonly SemaphoreSlim _instanceSemaphore = new(1, 1);
 
         public EmployeeDetailViewModel Model { get; }
 
         public event EventHandler? OnDataLoaded;
         public event EventHandler<string>? OnError;
+        public event EventHandler? OnEmployeeSaved;
 
         public EmployeeDetailsPresenter(
             IEmployeeManagementService employeeService,
@@ -71,14 +74,19 @@ namespace Dashboard.Winform.Presenters
 
         public async Task LoadLookupsAsync()
         {
+            await _instanceSemaphore.WaitAsync();
             try
             {
                 await LoadCachedDataAsync();
-                // Do not raise OnDataLoaded here to avoid multiple invocations
+                RaiseDataLoaded();
             }
             catch (Exception ex)
             {
                 OnError?.Invoke(this, $"Error loading lookups: {ex.Message}");
+            }
+            finally
+            {
+                _instanceSemaphore.Release();
             }
         }
 
@@ -137,9 +145,9 @@ namespace Dashboard.Winform.Presenters
 
         public async Task LoadEmployeeDetailsAsync(long employeeId)
         {
+            await _instanceSemaphore.WaitAsync();
             try
             {
-
                 var employeeDto = await _employeeService.GetEmployeeByIdAsync(employeeId);
                 if (employeeDto == null)
                 {
@@ -209,10 +217,15 @@ namespace Dashboard.Winform.Presenters
             {
                 OnError?.Invoke(this, $"Error loading employee details: {ex.Message}");
             }
+            finally
+            {
+                _instanceSemaphore.Release();
+            }
         }
 
         public async Task SaveEmployeeAsync(EmployeeDetailViewModel employee)
         {
+            await _instanceSemaphore.WaitAsync();
             try
             {
                 if (employee.Id == 0)
@@ -226,16 +239,22 @@ namespace Dashboard.Winform.Presenters
                     var updateInput = _mapper.Map<UpdateEmployeeInput>(employee);
                     await _employeeService.UpdateEmployeeAsync(updateInput);
                 }
+                OnEmployeeSaved?.Invoke(this, EventArgs.Empty);
                 RaiseDataLoaded();
             }
             catch (Exception ex)
             {
                 OnError?.Invoke(this, $"Error saving employee: {ex.Message}");
             }
+            finally
+            {
+                _instanceSemaphore.Release();
+            }
         }
 
         public async Task DeleteEmployeeAsync(long employeeId)
         {
+            await _instanceSemaphore.WaitAsync();
             try
             {
                 await _employeeService.DeleteEmployeeAsync(employeeId);
@@ -244,6 +263,10 @@ namespace Dashboard.Winform.Presenters
             catch (Exception ex)
             {
                 OnError?.Invoke(this, $"Error deleting employee: {ex.Message}");
+            }
+            finally
+            {
+                _instanceSemaphore.Release();
             }
         }
     }

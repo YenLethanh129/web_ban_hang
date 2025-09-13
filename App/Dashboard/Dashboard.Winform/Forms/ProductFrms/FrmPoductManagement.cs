@@ -13,60 +13,121 @@ using Microsoft.Extensions.Logging;
 
 namespace Dashboard.Winform.Forms
 {
-    public partial class FrmProductManagement : FrmBaseManagement
+    public partial class FrmProductManagement : FrmBaseManagement<ProductManagementModel, ProductManagementPresenter>
     {
         #region Fields
-        private readonly ILogger<FrmProductManagement> _logger;
-        private readonly ProductManagementPresenter _productPresenter;
-        private readonly RecipeManagementPresenter _recipePresenter;
-        private readonly ProductManagementModel _productModel;
-        private readonly RecipeManagementModel _recipeModel;
+        private readonly ProductManagementModel _model;
+        private readonly IServiceProvider _serviceProvider;
         #endregion
 
         #region Constructor
         public FrmProductManagement(
+            IServiceProvider serviceProvider,
             ILogger<FrmProductManagement> logger,
-            ProductManagementPresenter productPresenter,
-            RecipeManagementPresenter recipePresenter
-        ) : base()
+            ProductManagementPresenter productPresenter
+        ) : base(logger, productPresenter)
         {
-            _logger = logger;
-            _productPresenter = productPresenter;
-            _recipePresenter = recipePresenter;
-            _productModel = _productPresenter.Model;
-            _recipeModel = _recipePresenter.Model;
+            _model = _presenter.Model;
+            _serviceProvider = serviceProvider;
 
-            InitializeDgvListItem();
             InitializeBaseComponents();
 
-            //SetupPresenters();
-            //OverrideTextUI();
-            //OverrideComboBoxItems();
-            //SetupDataBindings();
-            SetupDataGridViews();
-            SetupTabControl();
-            FinalizeFormSetup();
+            // Setup event handler cho OnDataLoaded
+            _presenter.OnDataLoaded += (s, e) =>
+            {
+                try
+                {
+                    if (e is ProductsLoadedEventArgs args)
+                    {
+                        if (InvokeRequired)
+                        {
+                            Invoke(new Action(() =>
+                            {
+                                try
+                                {
+                                    ApplyProductsToModel(args.Products, args.TotalCount);
+                                }
+                                catch (Exception ex)
+                                {
+                                    ShowError($"Lỗi khi cập nhật dữ liệu: {ex.Message}");
+                                }
+                            }));
+                        }
+                        else
+                        {
+                            ApplyProductsToModel(args.Products, args.TotalCount);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    if (InvokeRequired)
+                    {
+                        Invoke(new Action(() => ShowError($"Lỗi xử lý dữ liệu: {ex.Message}")));
+                    }
+                    else
+                    {
+                        ShowError($"Lỗi xử lý dữ liệu: {ex.Message}");
+                    }
+                }
+            };
 
             Load += FrmProductManagement_Load;
+            OverrideTextUI();
+            OverrideComboBoxItem();
+            SetupDataBindings();
+            SetupDgvListItem();
+            FinalizeFormSetup();
         }
         #endregion
 
         #region Override Base Components
         protected override void InitializeDerivedComponents()
         {
-            // Components will be initialized in InitializeComponent()
-        }
-        #endregion
-
-        #region Setup Methods
-        private void SetupDataGridViews()
-        {
-            SetupProductDataGridView();
-            SetupRecipeDataGridView();
+            InitializeDgvListItem();
         }
 
-        private void SetupProductDataGridView()
+        private void OverrideTextUI()
         {
+            lblFilter1.Text = "Trạng thái:";
+            lblFilter2.Text = "Danh mục:";
+            lblSearchString.Text = "Tìm kiếm theo (ID/tên sản phẩm):";
+            Text = "Quản lý sản phẩm";
+        }
+
+        private void SetupDataBindings()
+        {
+            cbxFilter1.DataSource = _model.Statuses;
+            cbxFilter1.SelectedItem = "All";
+
+            cbxFilter2.DataSource = _model.Categories;
+            cbxFilter2.DisplayMember = "Name";
+            cbxFilter2.ValueMember = "Id";
+            cbxFilter2.SelectedValue = 0;
+
+            tbxFindString.DataBindings.Add(
+                "Text", _model,
+                nameof(_model.SearchText),
+                false, DataSourceUpdateMode.OnPropertyChanged
+            );
+        }
+
+
+        private void OverrideComboBoxItem()
+        {
+            cbxOrderBy.Items.Clear();
+            cbxOrderBy.Items.AddRange(["ID", "Name", "Price", "Category", "SoldQuantity"]);
+            if (cbxOrderBy.Items.Count > 0)
+                cbxOrderBy.SelectedIndex = 0;
+        }
+
+        protected void SetupDgvListItem()
+        {
+            if (dgvProducts == null)
+            {
+                throw new InvalidOperationException("dgvProducts must be initialized before calling SetupDgvListItem()");
+            }
+
             dgvProducts.AutoGenerateColumns = false;
             dgvProducts.Columns.Clear();
 
@@ -114,227 +175,36 @@ namespace Dashboard.Winform.Forms
                 Width = 80
             });
 
-            dgvProducts.DataSource = _productModel.Products;
-            dgvProducts.RowPrePaint += DgvListItems_RowPrePaint;
-        }
-
-        private void SetupRecipeDataGridView()
-        {
-            dgvRecipes.AutoGenerateColumns = false;
-            dgvRecipes.Columns.Clear();
-
-            dgvRecipes.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                DataPropertyName = nameof(RecipeViewModel.Id),
-                HeaderText = "ID",
-                Width = 60,
-                AutoSizeMode = DataGridViewAutoSizeColumnMode.None
-            });
-
-            dgvRecipes.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                DataPropertyName = nameof(RecipeViewModel.Name),
-                HeaderText = "Tên công thức",
-                Width = 200
-            });
-
-            dgvRecipes.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                DataPropertyName = nameof(RecipeViewModel.ProductName),
-                HeaderText = "Sản phẩm",
-                Width = 180
-            });
-
-            dgvRecipes.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                DataPropertyName = nameof(RecipeViewModel.ServingSize),
-                HeaderText = "Khẩu phần",
-                Width = 80,
-                DefaultCellStyle = new DataGridViewCellStyle { Format = "N1" }
-            });
-
-            dgvRecipes.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                DataPropertyName = nameof(RecipeViewModel.Unit),
-                HeaderText = "Đơn vị",
-                Width = 80
-            });
-
-            dgvRecipes.Columns.Add(new DataGridViewCheckBoxColumn
-            {
-                DataPropertyName = nameof(RecipeViewModel.IsActive),
-                HeaderText = "Hoạt động",
-                Width = 80
-            });
-
-            dgvRecipes.DataSource = _recipeModel.Recipes;
-            dgvRecipes.RowPrePaint += DgvListItems_RowPrePaint;
-        }
-
-        private void SetupTabControl()
-        {
-            tabControl.DrawMode = TabDrawMode.OwnerDrawFixed;
-            //tabControl.DrawItem += TabControl_DrawItem;
-            tabControl.SelectedIndexChanged += TabControl_SelectedIndexChanged;
-            ApplyDarkThemeToTabs();
-        }
-
-        private void ApplyDarkThemeToTabs()
-        {
-            tabControl.BackColor = Color.FromArgb(24, 28, 63);
-
-            foreach (TabPage tabPage in tabControl.TabPages)
-            {
-                tabPage.BackColor = Color.FromArgb(42, 45, 86);
-            }
+            dgvProducts.DataSource = _model.Products;
+            dgvProducts.Refresh();
         }
         #endregion
 
-        #region Tab Control Events
-        private void TabControl_DrawItem(object sender, DrawItemEventArgs e)
-        {
-            if (sender is not TabControl tabControl)
-                return;
+        #region Override Event Handlers Base Class
 
-            TabPage tabPage = tabControl.TabPages[e.Index];
-            Rectangle tabRect = tabControl.GetTabRect(e.Index);
-
-            // Colors for dark theme
-            Color tabBackColor = Color.FromArgb(24, 28, 63);
-            Color selectedTabBackColor = Color.FromArgb(42, 45, 86);
-            Color tabTextColor = Color.FromArgb(124, 141, 181);
-            Color selectedTabTextColor = Color.FromArgb(192, 255, 192);
-            Color borderColor = Color.FromArgb(107, 83, 255);
-
-            using (SolidBrush brush = new SolidBrush(e.Index == tabControl.SelectedIndex ? selectedTabBackColor : tabBackColor))
-            {
-                e.Graphics.FillRectangle(brush, tabRect);
-            }
-
-            if (e.Index == tabControl.SelectedIndex)
-            {
-                using Pen pen = new Pen(borderColor, 2);
-                e.Graphics.DrawRectangle(pen, tabRect.X, tabRect.Y, tabRect.Width - 1, tabRect.Height - 1);
-            }
-
-            using SolidBrush textBrush = new SolidBrush(e.Index == tabControl.SelectedIndex ? selectedTabTextColor : tabTextColor);
-            StringFormat stringFormat = new StringFormat()
-            {
-                Alignment = StringAlignment.Center,
-                LineAlignment = StringAlignment.Center
-            };
-
-            e.Graphics.DrawString(tabPage.Text, tabControl.Font, textBrush, tabRect, stringFormat);
-        }
-
-        private void TabControl_SelectedIndexChanged(object? sender, EventArgs e)
-        {
-            try
-            {
-                // Update filter combo box based on selected tab
-                UpdateFilterComboBox();
-
-                // Update search text binding
-                UpdateSearchBinding();
-
-                // Refresh pagination info
-                UpdatePaginationInfo();
-            }
-            catch (Exception ex)
-            {
-                ShowErrorMessage($"Lỗi khi chuyển tab: {ex.Message}");
-            }
-        }
-
-        private void UpdateFilterComboBox()
-        {
-            if (tabControl.SelectedIndex == 0) // Products tab
-            {
-                lblFilter2.Text = "Danh mục:";
-                cbxFilter2.DataSource = null;
-                cbxFilter2.Items.Clear();
-
-                // TODO: Load categories from service
-                cbxFilter2.Items.Add(new { Id = 0, Name = "All" });
-                cbxFilter2.Items.Add(new { Id = 1, Name = "Đồ uống" });
-                cbxFilter2.Items.Add(new { Id = 2, Name = "Đồ ăn" });
-                cbxFilter2.Items.Add(new { Id = 3, Name = "Bánh kẹo" });
-                cbxFilter2.DisplayMember = "Name";
-                cbxFilter2.ValueMember = "Id";
-                cbxFilter2.SelectedIndex = 0;
-            }
-            else // Recipes tab
-            {
-                lblFilter2.Text = "Sản phẩm:";
-                cbxFilter2.DataSource = null;
-                cbxFilter2.Items.Clear();
-
-                // TODO: Load products from service
-                cbxFilter2.Items.Add(new { Id = 0, Name = "All" });
-                cbxFilter2.Items.Add(new { Id = 1, Name = "Cà phê đen" });
-                cbxFilter2.Items.Add(new { Id = 2, Name = "Cà phê sữa" });
-                cbxFilter2.Items.Add(new { Id = 3, Name = "Bánh mì thịt" });
-                cbxFilter2.DisplayMember = "Name";
-                cbxFilter2.ValueMember = "Id";
-                cbxFilter2.SelectedIndex = 0;
-            }
-        }
-
-        private void UpdateSearchBinding()
-        {
-            tbxFindString.DataBindings.Clear();
-
-            if (tabControl.SelectedIndex == 0) // Products tab
-            {
-                tbxFindString.DataBindings.Add(
-                    "Text", _productModel,
-                    nameof(_productModel.SearchText),
-                    false, DataSourceUpdateMode.OnPropertyChanged
-                );
-            }
-            else // Recipes tab
-            {
-                tbxFindString.DataBindings.Add(
-                    "Text", _recipeModel,
-                    nameof(_recipeModel.SearchText),
-                    false, DataSourceUpdateMode.OnPropertyChanged
-                );
-            }
-        }
-        #endregion
-
-        #region Override Event Handlers
         protected override void BtnSearch_Click(object sender, EventArgs e)
         {
             PerformSearch();
         }
 
-        protected override void BtnAdd_Click(object sender, EventArgs e)
+        protected override void Btnfilter1_Click(object sender, EventArgs e)
         {
-            if (tabControl.SelectedIndex == 0)
-                OpenProductDetailsDialog();
-            else
-                OpenRecipeDetailsDialog();
+            base.Btnfilter1_Click(sender, e);
         }
 
-        protected override void BtnGetDetails_Click(object sender, EventArgs e)
+        protected override void BtnFilter2_Click(object sender, EventArgs e)
         {
-            if (tabControl.SelectedIndex == 0)
-            {
-                var selectedProduct = GetSelectedProduct();
-                if (selectedProduct != null)
-                    OpenProductDetailsDialog(selectedProduct);
-                else
-                    ShowErrorMessage("Vui lòng chọn một sản phẩm để xem chi tiết.");
-            }
-            else
-            {
-                var selectedRecipe = GetSelectedRecipe();
-                if (selectedRecipe != null)
-                    OpenRecipeDetailsDialog(selectedRecipe);
-                else
-                    ShowErrorMessage("Vui lòng chọn một công thức để xem chi tiết.");
-            }
+            base.BtnFilter2_Click(sender, e);
+        }
+
+        protected override void BtnOrderBy_Click(object sender, EventArgs e)
+        {
+            base.BtnOrderBy_Click(sender, e);
+        }
+
+        protected override void BtnNumbOfRecordShowing_Click(object sender, EventArgs e)
+        {
+            base.BtnNumbOfRecordShowing_Click(sender, e);
         }
 
         protected override void BtnNext_Click(object sender, EventArgs e)
@@ -355,45 +225,35 @@ namespace Dashboard.Winform.Forms
         protected override void InitializeEvents()
         {
             base.InitializeEvents();
-
             cbxFilter1.SelectedIndexChanged += (s, e) => ApplyStatusFilter();
-            cbxFilter2.SelectedIndexChanged += (s, e) => ApplySecondFilter();
+            cbxFilter2.SelectedIndexChanged += (s, e) => ApplyCategoryFilter();
             cbxOrderBy.SelectedIndexChanged += (s, e) => ApplySorting();
         }
 
-        protected override async Task TbxFindString_TextChanged(object sender, EventArgs e)
+        protected override async Task TbxFindString_TextChanged(object? sender, EventArgs e)
         {
-            await Task.Delay(300);
-
             var textBox = sender as TextBox;
             var searchText = textBox?.Text;
             if (string.IsNullOrEmpty(searchText))
                 return;
-
-            if (tabControl.SelectedIndex == 0)
-                await _productPresenter.SearchAsync(searchText);
-            else
-                await _recipePresenter.SearchAsync(searchText);
+            await _presenter.SearchAsync(searchText);
         }
+
         #endregion
 
-        #region Business Logic Methods
+        #region Product Management Specific Methods
+
         private async void PerformSearch()
         {
             try
             {
                 SetLoadingState(true);
-
-                if (tabControl.SelectedIndex == 0)
-                    await _productPresenter.SearchAsync(_productModel.SearchText);
-                else
-                    await _recipePresenter.SearchAsync(_recipeModel.SearchText);
-
+                await _presenter.SearchAsync(_model.SearchText);
                 UpdatePaginationInfo();
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Lỗi khi tìm kiếm: {ex.Message}");
+                ShowError($"Lỗi khi tìm kiếm: {ex.Message}");
             }
             finally
             {
@@ -409,17 +269,12 @@ namespace Dashboard.Winform.Forms
 
                 SetLoadingState(true);
                 var selectedStatus = cbxFilter1.SelectedItem.ToString();
-
-                if (tabControl.SelectedIndex == 0)
-                    await _productPresenter.FilterByStatusAsync(selectedStatus!);
-                else
-                    await _recipePresenter.FilterByStatusAsync(selectedStatus!);
-
+                await _presenter.FilterByStatusAsync(selectedStatus!);
                 UpdatePaginationInfo();
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Lỗi khi lọc theo trạng thái: {ex.Message}");
+                ShowError($"Lỗi khi lọc theo trạng thái: {ex.Message}");
             }
             finally
             {
@@ -427,27 +282,22 @@ namespace Dashboard.Winform.Forms
             }
         }
 
-        private async void ApplySecondFilter()
+        private async void ApplyCategoryFilter()
         {
             try
             {
                 if (cbxFilter2.SelectedValue == null) return;
 
                 SetLoadingState(true);
-
-                if (cbxFilter2.SelectedValue is int id && id > 0)
+                if (cbxFilter2.SelectedValue is long categoryId)
                 {
-                    if (tabControl.SelectedIndex == 0)
-                        await _productPresenter.FilterByCategoryAsync(id);
-                    else
-                        await _recipePresenter.FilterByProductAsync(id);
+                    await _presenter.FilterByCategoryAsync(categoryId);
+                    UpdatePaginationInfo();
                 }
-
-                UpdatePaginationInfo();
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Lỗi khi lọc: {ex.Message}");
+                ShowError($"Lỗi khi lọc theo danh mục: {ex.Message}");
             }
             finally
             {
@@ -463,17 +313,12 @@ namespace Dashboard.Winform.Forms
 
                 SetLoadingState(true);
                 var sortBy = cbxOrderBy.SelectedItem.ToString();
-
-                if (tabControl.SelectedIndex == 0)
-                    await _productPresenter.SortBy(sortBy);
-                else
-                    await _recipePresenter.SortBy(sortBy);
-
+                await _presenter.SortBy(sortBy);
                 UpdatePaginationInfo();
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Lỗi khi sắp xếp: {ex.Message}");
+                ShowError($"Lỗi khi sắp xếp: {ex.Message}");
             }
             finally
             {
@@ -486,17 +331,12 @@ namespace Dashboard.Winform.Forms
             try
             {
                 SetLoadingState(true);
-
-                if (tabControl.SelectedIndex == 0)
-                    await _productPresenter.GoToNextPageAsync();
-                else
-                    await _recipePresenter.GoToNextPageAsync();
-
+                await _presenter.GoToNextPageAsync();
                 UpdatePaginationInfo();
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Lỗi khi chuyển trang: {ex.Message}");
+                ShowError($"Lỗi khi chuyển trang: {ex.Message}");
             }
             finally
             {
@@ -509,17 +349,12 @@ namespace Dashboard.Winform.Forms
             try
             {
                 SetLoadingState(true);
-
-                if (tabControl.SelectedIndex == 0)
-                    await _productPresenter.GoToPreviousPageAsync();
-                else
-                    await _recipePresenter.GoToPreviousPageAsync();
-
+                await _presenter.GoToPreviousPageAsync();
                 UpdatePaginationInfo();
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Lỗi khi chuyển trang: {ex.Message}");
+                ShowError($"Lỗi khi chuyển trang: {ex.Message}");
             }
             finally
             {
@@ -536,17 +371,13 @@ namespace Dashboard.Winform.Forms
                 SetLoadingState(true);
                 if (int.TryParse(cbxNumbRecordsPerPage.SelectedItem.ToString(), out int pageSize))
                 {
-                    if (tabControl.SelectedIndex == 0)
-                        await _productPresenter.ChangePageSizeAsync(pageSize);
-                    else
-                        await _recipePresenter.ChangePageSizeAsync(pageSize);
+                    await _presenter.ChangePageSizeAsync(pageSize);
+                    UpdatePaginationInfo();
                 }
-
-                UpdatePaginationInfo();
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Lỗi khi thay đổi số bản ghi hiển thị: {ex.Message}");
+                ShowError($"Lỗi khi thay đổi số bản ghi hiển thị: {ex.Message}");
             }
             finally
             {
@@ -559,44 +390,57 @@ namespace Dashboard.Winform.Forms
             try
             {
                 SetLoadingState(true);
-
-                if (tabControl.SelectedIndex == 0)
-                    await _productPresenter.RefreshCacheAsync();
-                else
-                    await _recipePresenter.RefreshCacheAsync();
-
+                await _presenter.RefreshCacheAsync();
                 UpdatePaginationInfo();
-                ShowSuccessMessage("Dữ liệu đã được cập nhật!");
+                ShowInfo("Dữ liệu đã được cập nhật!");
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Lỗi khi làm mới dữ liệu: {ex.Message}");
+                ShowError($"Lỗi khi làm mới dữ liệu: {ex.Message}");
             }
             finally
             {
                 SetLoadingState(false);
             }
         }
+
         #endregion
 
         #region Helper Methods
+
         private void UpdatePaginationInfo()
         {
-            if (tabControl.SelectedIndex == 0) // Products tab
+            if (_model != null)
             {
-                UpdateRecordsDisplay(_productModel.TotalItems, _productModel.CurrentPage, _productModel.TotalPages);
-                UpdatePaginationButtons(_productModel.CurrentPage > 1, _productModel.CurrentPage < _productModel.TotalPages);
+                lblNumberOfRecords.Text = $"Số lượng: {_model.TotalItems}";
+                lblShowingAtPage.Text = $"Hiện trang {_model.CurrentPage} trên {_model.TotalPages}";
+
+
+                btnToday.Enabled = _model.CurrentPage > 1;
+                btnNext.Enabled = _model.CurrentPage < _model.TotalPages;
             }
-            else // Recipes tab
-            {
-                UpdateRecordsDisplay(_recipeModel.TotalItems, _recipeModel.CurrentPage, _recipeModel.TotalPages);
-                UpdatePaginationButtons(_recipeModel.CurrentPage > 1, _recipeModel.CurrentPage < _recipeModel.TotalPages);
-            }
+        }
+
+        private void ShowError(string message)
+        {
+            MessageBox.Show(message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+
+        private void ShowInfo(string message)
+        {
+            MessageBox.Show(message, "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void SetLoadingState(bool isLoading)
         {
-            ShowLoading(isLoading);
+            btnGetDetails.Enabled = !isLoading;
+            btnAdd.Enabled = !isLoading;
+            cbxFilter1.Enabled = !isLoading;
+            cbxFilter2.Enabled = !isLoading;
+            cbxOrderBy.Enabled = !isLoading;
+            cbxNumbRecordsPerPage.Enabled = !isLoading;
+
+            this.Cursor = isLoading ? Cursors.WaitCursor : Cursors.Default;
         }
 
         private ProductViewModel? GetSelectedProduct()
@@ -609,101 +453,67 @@ namespace Dashboard.Winform.Forms
             return null;
         }
 
-        private RecipeViewModel? GetSelectedRecipe()
-        {
-            if (dgvRecipes.SelectedRows.Count > 0)
-            {
-                var selectedRow = dgvRecipes.SelectedRows[0];
-                return selectedRow.DataBoundItem as RecipeViewModel;
-            }
-            return null;
-        }
-
         private void ApplyProductsToModel(List<ProductViewModel> products, int totalCount)
         {
-            _productModel.Products.Clear();
+            _model.Products.Clear();
             foreach (var product in products)
             {
-                _productModel.Products.Add(product);
+                _model.Products.Add(product);
             }
 
-            _productModel.TotalItems = totalCount;
+            _model.TotalItems = totalCount;
             UpdatePaginationInfo();
         }
 
-        private void ApplyRecipesToModel(List<RecipeViewModel> recipes, int totalCount)
-        {
-            _recipeModel.Recipes.Clear();
-            foreach (var recipe in recipes)
-            {
-                _recipeModel.Recipes.Add(recipe);
-            }
-
-            _recipeModel.TotalItems = totalCount;
-            UpdatePaginationInfo();
-        }
-
-        private void FinalizeFormSetup()
-        {
-            SetupAdditionalEvents();
-            btnGetDetails.Enabled = false;
-        }
-
-        private void SetupAdditionalEvents()
-        {
-            if (dgvProducts != null)
-            {
-                dgvProducts.CellDoubleClick += (s, e) =>
-                {
-                    if (e.RowIndex >= 0)
-                    {
-                        var selectedProduct = GetSelectedProduct();
-                        if (selectedProduct != null)
-                            OpenProductDetailsDialog(selectedProduct);
-                    }
-                };
-
-                dgvProducts.SelectionChanged += (s, e) =>
-                {
-                    if (tabControl.SelectedIndex == 0)
-                        btnGetDetails.Enabled = dgvProducts.SelectedRows.Count > 0;
-                };
-            }
-
-            if (dgvRecipes != null)
-            {
-                dgvRecipes.CellDoubleClick += (s, e) =>
-                {
-                    if (e.RowIndex >= 0)
-                    {
-                        var selectedRecipe = GetSelectedRecipe();
-                        if (selectedRecipe != null)
-                            OpenRecipeDetailsDialog(selectedRecipe);
-                    }
-                };
-
-                dgvRecipes.SelectionChanged += (s, e) =>
-                {
-                    if (tabControl.SelectedIndex == 1)
-                        btnGetDetails.Enabled = dgvRecipes.SelectedRows.Count > 0;
-                };
-            }
-        }
         #endregion
 
-        #region Dialog Methods
+        #region Event Handlers
+
+        private async void FrmProductManagement_Load(object? sender, EventArgs e)
+        {
+            _dataLoadingCompletionSource = new TaskCompletionSource<bool>();
+            try
+            {
+                SetLoadingState(true);
+
+                await _presenter.LoadDataAsync(page: _model.CurrentPage, pageSize: _model.PageSize);
+                
+                cbxFilter1.SelectedItem = "All";
+
+                if (cbxFilter2.Items.Count > 0)
+                    cbxFilter2.SelectedIndex = 0;
+                
+
+                UpdatePaginationInfo();
+
+                _dataLoadingCompletionSource.SetResult(true);
+            }
+            catch (Exception ex)
+            {
+                _dataLoadingCompletionSource.SetException(ex);
+                ShowError($"Lỗi khi tải dữ liệu sản phẩm: {ex.Message}");
+            }
+            finally
+            {
+                SetLoadingState(false);
+            }
+        }
+
+        #endregion
+
+        #region Dialog Integration Methods
+
         private async void OpenProductDetailsDialog(ProductViewModel? selectedProduct = null)
         {
             try
             {
                 SetLoadingState(true);
 
-                ProductDetailViewModel? detailViewModel = null;
+                ProductDetailViewModel? initialModel = null;
 
                 if (selectedProduct != null)
                 {
-                    // TODO: Load product details from service
-                    detailViewModel = new ProductDetailViewModel
+                    initialModel = new ProductDetailViewModel
                     {
                         Id = selectedProduct.Id,
                         Name = selectedProduct.Name,
@@ -723,7 +533,7 @@ namespace Dashboard.Winform.Forms
                     };
                 }
 
-                using var detailForm = new FrmProductDetails(selectedProduct?.Id, detailViewModel);
+                using var detailForm = new FrmProductDetails(selectedProduct?.Id, initialModel);
                 var result = detailForm.ShowDialog(this);
 
                 if (result == DialogResult.OK)
@@ -733,12 +543,12 @@ namespace Dashboard.Winform.Forms
                     if (selectedProduct != null)
                     {
                         await HandleProductUpdate(updatedProduct);
-                        ShowSuccessMessage("Cập nhật sản phẩm thành công!");
+                        ShowInfo("Cập nhật sản phẩm thành công!");
                     }
                     else
                     {
                         await HandleProductAdd(updatedProduct);
-                        ShowSuccessMessage("Thêm sản phẩm mới thành công!");
+                        ShowInfo("Thêm sản phẩm mới thành công!");
                     }
 
                     RefreshData();
@@ -746,66 +556,7 @@ namespace Dashboard.Winform.Forms
             }
             catch (Exception ex)
             {
-                ShowErrorMessage($"Lỗi khi {(selectedProduct != null ? "cập nhật" : "thêm")} sản phẩm: {ex.Message}");
-            }
-            finally
-            {
-                SetLoadingState(false);
-            }
-        }
-
-        private async void OpenRecipeDetailsDialog(RecipeViewModel? selectedRecipe = null)
-        {
-            try
-            {
-                SetLoadingState(true);
-
-                RecipeDetailViewModel? detailViewModel = null;
-
-                if (selectedRecipe != null)
-                {
-                    // TODO: Load recipe details from service
-                    detailViewModel = new RecipeDetailViewModel
-                    {
-                        Id = selectedRecipe.Id,
-                        Name = selectedRecipe.Name,
-                        Description = selectedRecipe.Description,
-                        ProductId = selectedRecipe.ProductId,
-                        ProductName = selectedRecipe.ProductName,
-                        ServingSize = selectedRecipe.ServingSize,
-                        Unit = selectedRecipe.Unit,
-                        IsActive = selectedRecipe.IsActive,
-                        Notes = selectedRecipe.Notes,
-                        CreatedAt = selectedRecipe.CreatedAt,
-                        UpdatedAt = selectedRecipe.UpdatedAt,
-                        RecipeIngredients = new BindingList<RecipeIngredientViewModel>()
-                    };
-                }
-
-                using var detailForm = new FrmRecipeDetails(selectedRecipe?.Id, detailViewModel);
-                var result = detailForm.ShowDialog(this);
-
-                if (result == DialogResult.OK)
-                {
-                    var updatedRecipe = detailForm.Recipe;
-
-                    if (selectedRecipe != null)
-                    {
-                        await HandleRecipeUpdate(updatedRecipe);
-                        ShowSuccessMessage("Cập nhật công thức thành công!");
-                    }
-                    else
-                    {
-                        await HandleRecipeAdd(updatedRecipe);
-                        ShowSuccessMessage("Thêm công thức mới thành công!");
-                    }
-
-                    RefreshData();
-                }
-            }
-            catch (Exception ex)
-            {
-                ShowErrorMessage($"Lỗi khi {(selectedRecipe != null ? "cập nhật" : "thêm")} công thức: {ex.Message}");
+                ShowError($"Lỗi khi {(selectedProduct != null ? "cập nhật" : "thêm")} sản phẩm: {ex.Message}");
             }
             finally
             {
@@ -815,60 +566,95 @@ namespace Dashboard.Winform.Forms
 
         private async Task HandleProductAdd(ProductDetailViewModel product)
         {
-            // TODO: Implement product add logic
+            // TODO: Implement product add logic through presenter
             await Task.Delay(50);
-            _logger.LogInformation("Added product: {ProductName}, Price: {Price}", product.Name, product.Price);
+            Console.WriteLine($"Thêm sản phẩm: {product.Name}, Giá: {product.Price}");
         }
 
         private async Task HandleProductUpdate(ProductDetailViewModel product)
         {
-            // TODO: Implement product update logic
+            // TODO: Implement product update logic through presenter
             await Task.Delay(50);
-            _logger.LogInformation("Updated product ID {ProductId}: {ProductName}", product.Id, product.Name);
+            Console.WriteLine($"Cập nhật sản phẩm ID {product.Id}: {product.Name}");
         }
 
-        private async Task HandleRecipeAdd(RecipeDetailViewModel recipe)
-        {
-            // TODO: Implement recipe add logic
-            await Task.Delay(50);
-            _logger.LogInformation("Added recipe: {RecipeName} for product: {ProductName}", recipe.Name, recipe.ProductName);
-        }
-
-        private async Task HandleRecipeUpdate(RecipeDetailViewModel recipe)
-        {
-            // TODO: Implement recipe update logic
-            await Task.Delay(50);
-            _logger.LogInformation("Updated recipe ID {RecipeId}: {RecipeName}", recipe.Id, recipe.Name);
-        }
         #endregion
 
-        #region Form Events
-        private async void FrmProductManagement_Load(object? sender, EventArgs e)
+        #region Override Event Handlers - Updated
+
+        protected override void BtnAdd_Click(object sender, EventArgs e)
         {
-            _dataLoadingCompletionSource = new TaskCompletionSource<bool>();
-            try
+            OpenProductDetailsDialog();
+        }
+
+        protected override void BtnGetDetails_Click(object sender, EventArgs e)
+        {
+            var selectedProduct = GetSelectedProduct();
+
+            if (selectedProduct != null)
             {
-                SetLoadingState(true);
-
-                // Load initial data for products tab
-                await _productPresenter.LoadDataAsync(page: _productModel.CurrentPage, pageSize: _productModel.PageSize);
-
-                // Preload recipes data
-                await _recipePresenter.LoadDataAsync(page: _recipeModel.CurrentPage, pageSize: _recipeModel.PageSize);
-
-                UpdatePaginationInfo();
-                _dataLoadingCompletionSource.SetResult(true);
+                OpenProductDetailsDialog(selectedProduct);
             }
-            catch (Exception ex)
+            else
             {
-                _dataLoadingCompletionSource.SetException(ex);
-                ShowErrorMessage($"Lỗi khi tải dữ liệu: {ex.Message}");
-            }
-            finally
-            {
-                SetLoadingState(false);
+                MessageBox.Show("Vui lòng chọn một sản phẩm để xem chi tiết.",
+                               "Thông báo",
+                               MessageBoxButtons.OK,
+                               MessageBoxIcon.Information);
             }
         }
+
+        private void DgvListItems_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex >= 0)
+            {
+                var selectedProduct = GetSelectedProduct();
+                if (selectedProduct != null)
+                {
+                    OpenProductDetailsDialog(selectedProduct);
+                }
+            }
+        }
+
+        #endregion
+
+        #region Additional Helper Methods
+
+        /// <summary>
+        /// Setup thêm event cho DataGridView double-click
+        /// </summary>
+        private void SetupAdditionalEvents()
+        {
+            if (dgvProducts != null)
+            {
+                dgvProducts.CellDoubleClick += (s, o) => DgvListItems_CellDoubleClick(s!, o);
+
+                dgvProducts.SelectionChanged += (s, e) =>
+                {
+                    btnGetDetails.Enabled = dgvProducts.SelectedRows.Count > 0;
+                };
+            }
+        }
+
+        private void FinalizeFormSetup()
+        {
+            SetupAdditionalEvents();
+
+            if (btnGetDetails != null)
+                btnGetDetails.Enabled = false;
+        }
+
+        #endregion
+
+        #region Context Menu for Refresh
+
+        private void SetupContextMenu()
+        {
+            var contextMenu = new ContextMenuStrip();
+            contextMenu.Items.Add("Làm mới dữ liệu", null, (s, e) => RefreshData());
+            dgvProducts.ContextMenuStrip = contextMenu;
+        }
+
         #endregion
     }
 }

@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using Dashboard.Winform.ViewModels;
+using Dashboard.Winform.Helpers;
 
 namespace Dashboard.Winform.Forms
 {
@@ -47,54 +48,21 @@ namespace Dashboard.Winform.Forms
                 btnSave.Text = "Thêm";
             }
 
-            tabControl.DrawMode = TabDrawMode.OwnerDrawFixed;
-            tabControl.DrawItem += (s, o) => TabControl_DrawItem(s!, o);
-            ApplyDarkTheme();
+            // Setup dark theme for TabControl using the helper
+            TabControlHelper.SetupDarkTheme(tabControl);
         }
 
-        private void TabControl_DrawItem(object sender, DrawItemEventArgs e)
+        protected override void Dispose(bool disposing)
         {
-            if (sender is not TabControl tabControl)
-                return;
-            TabPage tabPage = tabControl.TabPages[e.Index];
-            Rectangle tabRect = tabControl.GetTabRect(e.Index);
-
-            Color tabBackColor = Color.FromArgb(24, 28, 63);
-            Color selectedTabBackColor = Color.FromArgb(42, 45, 86);
-            Color tabTextColor = Color.FromArgb(124, 141, 181);
-            Color selectedTabTextColor = Color.FromArgb(192, 255, 192);
-            Color borderColor = Color.FromArgb(107, 83, 255);
-
-            using (SolidBrush brush = new SolidBrush(e.Index == tabControl.SelectedIndex ? selectedTabBackColor : tabBackColor))
+            if (disposing)
             {
-                e.Graphics.FillRectangle(brush, tabRect);
+                TabControlHelper.CleanupDarkTheme(tabControl);
+                if (components != null)
+                {
+                    components.Dispose();
+                }
             }
-
-            if (e.Index == tabControl.SelectedIndex)
-            {
-                using Pen pen = new Pen(borderColor, 2);
-                e.Graphics.DrawRectangle(pen, tabRect.X, tabRect.Y, tabRect.Width - 1, tabRect.Height - 1);
-            }
-
-            using SolidBrush textBrush = new SolidBrush(e.Index == tabControl.SelectedIndex ? selectedTabTextColor : tabTextColor);
-            StringFormat stringFormat = new StringFormat()
-            {
-                Alignment = StringAlignment.Center,
-                LineAlignment = StringAlignment.Center
-            };
-
-            e.Graphics.DrawString(tabPage.Text, tabControl.Font, textBrush, tabRect, stringFormat);
-        }
-
-        private void ApplyDarkTheme()
-        {
-            BackColor = Color.FromArgb(24, 28, 63);
-            tabControl.BackColor = Color.FromArgb(24, 28, 63);
-
-            foreach (TabPage tabPage in tabControl.TabPages)
-            {
-                tabPage.BackColor = Color.FromArgb(42, 45, 86);
-            }
+            base.Dispose(disposing);
         }
         #endregion
 
@@ -107,6 +75,7 @@ namespace Dashboard.Winform.Forms
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.ShowIcon = false;
+            this.BackColor = Color.FromArgb(24, 28, 63);
         }
 
         private void SetupEventHandlers()
@@ -124,6 +93,7 @@ namespace Dashboard.Winform.Forms
             btnAddRecipe.Click += (s, e) => BtnAddRecipe_Click(s!, e);
             btnEditRecipe.Click += (s, e) => BtnEditRecipe_Click(s!, e);
             btnDeleteRecipe.Click += (s, e) => BtnDeleteRecipe_Click(s!, e);
+            //btnViewRecipeDetails.Click += (s, e) => BtnViewRecipeDetails_Click(s!, e);
 
             // Validation events
             txtName.Validating += (s, e) => TxtName_Validating(s!, e);
@@ -185,6 +155,13 @@ namespace Dashboard.Winform.Forms
 
             dgvRecipes.Columns.Add(new DataGridViewTextBoxColumn
             {
+                DataPropertyName = nameof(RecipeViewModel.Description),
+                HeaderText = "Mô tả",
+                Width = 180
+            });
+
+            dgvRecipes.Columns.Add(new DataGridViewTextBoxColumn
+            {
                 DataPropertyName = nameof(RecipeViewModel.ServingSize),
                 HeaderText = "Khẩu phần",
                 Width = 80,
@@ -204,6 +181,8 @@ namespace Dashboard.Winform.Forms
                 HeaderText = "Hoạt động",
                 Width = 80
             });
+
+            dgvRecipes.DataSource = _product.Recipes;
         }
 
         private void LoadInitialData()
@@ -311,9 +290,11 @@ namespace Dashboard.Winform.Forms
 
                 if (result == DialogResult.Yes)
                 {
-                    // TODO: Implement delete image logic
-                    MessageBox.Show("Chức năng xóa hình ảnh sẽ được triển khai",
-                        "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    var selectedImage = dgvProductImages.SelectedRows[0].DataBoundItem as ProductImageViewModel;
+                    if (selectedImage != null)
+                    {
+                        _product.ProductImages.Remove(selectedImage);
+                    }
                 }
             }
             else
@@ -325,18 +306,61 @@ namespace Dashboard.Winform.Forms
 
         private void BtnAddRecipe_Click(object sender, EventArgs e)
         {
-            // TODO: Implement add recipe dialog
-            MessageBox.Show("Chức năng thêm công thức sẽ được triển khai",
-                "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            try
+            {
+                var newRecipe = new RecipeViewModel
+                {
+                    ProductId = _product.Id,
+                    ProductName = _product.Name,
+                    IsActive = true,
+                    CreatedAt = DateTime.Now
+                };
+
+                using var recipeForm = new FrmRecipeDetails(null, ConvertToRecipeDetailViewModel(newRecipe));
+                var result = recipeForm.ShowDialog(this);
+
+                if (result == DialogResult.OK)
+                {
+                    var updatedRecipe = ConvertToRecipeViewModel(recipeForm.Recipe);
+                    _product.Recipes.Add(updatedRecipe);
+                    MessageBox.Show("Thêm công thức thành công!", "Thông báo",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi khi thêm công thức: {ex.Message}", "Lỗi",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void BtnEditRecipe_Click(object sender, EventArgs e)
         {
-            if (dgvRecipes.SelectedRows.Count > 0)
+            var selectedRecipe = GetSelectedRecipe();
+            if (selectedRecipe != null)
             {
-                // TODO: Implement edit recipe dialog
-                MessageBox.Show("Chức năng sửa công thức sẽ được triển khai",
-                    "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                try
+                {
+                    using var recipeForm = new FrmRecipeDetails(selectedRecipe.Id, ConvertToRecipeDetailViewModel(selectedRecipe));
+                    var result = recipeForm.ShowDialog(this);
+
+                    if (result == DialogResult.OK)
+                    {
+                        var updatedRecipe = ConvertToRecipeViewModel(recipeForm.Recipe);
+                        var index = _product.Recipes.IndexOf(selectedRecipe);
+                        if (index >= 0)
+                        {
+                            _product.Recipes[index] = updatedRecipe;
+                        }
+                        MessageBox.Show("Cập nhật công thức thành công!", "Thông báo",
+                            MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Lỗi khi chỉnh sửa công thức: {ex.Message}", "Lỗi",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
             else
             {
@@ -347,22 +371,46 @@ namespace Dashboard.Winform.Forms
 
         private void BtnDeleteRecipe_Click(object sender, EventArgs e)
         {
-            if (dgvRecipes.SelectedRows.Count > 0)
+            var selectedRecipe = GetSelectedRecipe();
+            if (selectedRecipe != null)
             {
                 var result = MessageBox.Show(
-                    "Bạn có chắc chắn muốn xóa công thức này?",
+                    $"Bạn có chắc chắn muốn xóa công thức '{selectedRecipe.Name}'?",
                     "Xác nhận", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
                 if (result == DialogResult.Yes)
                 {
-                    // TODO: Implement delete recipe logic
-                    MessageBox.Show("Chức năng xóa công thức sẽ được triển khai",
-                        "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    _product.Recipes.Remove(selectedRecipe);
+                    MessageBox.Show("Xóa công thức thành công!", "Thông báo",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             }
             else
             {
                 MessageBox.Show("Vui lòng chọn một công thức để xóa",
+                    "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        private void BtnViewRecipeDetails_Click(object sender, EventArgs e)
+        {
+            var selectedRecipe = GetSelectedRecipe();
+            if (selectedRecipe != null)
+            {
+                try
+                {
+                    using var recipeForm = new FrmRecipeDetails(selectedRecipe.Id, ConvertToRecipeDetailViewModel(selectedRecipe), isReadOnly: true);
+                    recipeForm.ShowDialog(this);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Lỗi khi xem chi tiết công thức: {ex.Message}", "Lỗi",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+            else
+            {
+                MessageBox.Show("Vui lòng chọn một công thức để xem chi tiết",
                     "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
@@ -459,6 +507,52 @@ namespace Dashboard.Winform.Forms
                     }
                 }
             }
+        }
+
+        private RecipeViewModel? GetSelectedRecipe()
+        {
+            if (dgvRecipes.SelectedRows.Count > 0)
+            {
+                return dgvRecipes.SelectedRows[0].DataBoundItem as RecipeViewModel;
+            }
+            return null;
+        }
+
+        private RecipeDetailViewModel ConvertToRecipeDetailViewModel(RecipeViewModel recipe)
+        {
+            return new RecipeDetailViewModel
+            {
+                Id = recipe.Id,
+                Name = recipe.Name,
+                Description = recipe.Description,
+                ProductId = recipe.ProductId,
+                ProductName = recipe.ProductName,
+                ServingSize = recipe.ServingSize,
+                Unit = recipe.Unit,
+                IsActive = recipe.IsActive,
+                Notes = recipe.Notes,
+                CreatedAt = recipe.CreatedAt,
+                UpdatedAt = recipe.UpdatedAt,
+                RecipeIngredients = new BindingList<RecipeIngredientViewModel>()
+            };
+        }
+
+        private RecipeViewModel ConvertToRecipeViewModel(RecipeDetailViewModel recipeDetail)
+        {
+            return new RecipeViewModel
+            {
+                Id = recipeDetail.Id,
+                Name = recipeDetail.Name,
+                Description = recipeDetail.Description,
+                ProductId = recipeDetail.ProductId,
+                ProductName = recipeDetail.ProductName,
+                ServingSize = recipeDetail.ServingSize,
+                Unit = recipeDetail.Unit,
+                IsActive = recipeDetail.IsActive,
+                Notes = recipeDetail.Notes,
+                CreatedAt = recipeDetail.CreatedAt,
+                UpdatedAt = recipeDetail.UpdatedAt
+            };
         }
         #endregion
     }

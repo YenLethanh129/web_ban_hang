@@ -19,13 +19,10 @@ namespace Dashboard.Winform.Forms
         #region Properties
         public DialogResult Result { get; private set; }
         public RecipeDetailViewModel Recipe => _recipe;
-        #endregion
-
-        #region Constructor
-        public FrmRecipeDetails(long? recipeId = null, RecipeDetailViewModel? recipe = null)
+        public FrmRecipeDetails(long? recipeId = null, RecipeDetailViewModel? recipe = null, bool? isReadOnly = false)
         {
             _recipeId = recipeId;
-            _isEditMode = recipeId.HasValue;
+            _isEditMode = !(isReadOnly ?? false);
             _recipe = recipe ?? new RecipeDetailViewModel();
 
             InitializeComponent();

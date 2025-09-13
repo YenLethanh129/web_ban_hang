@@ -188,6 +188,7 @@ namespace Dashboard.Winform.ViewModels
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public string Status => IsActive ? "ACTIVE" : "INACTIVE";
+        public int SoldQuantity { get; set; }
     }
 
     public class ProductDetailViewModel
@@ -290,12 +291,5 @@ namespace Dashboard.Winform.ViewModels
         public long Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public decimal Rate { get; set; }
-    }
-
-    public class IngredientViewModel
-    {
-        public long Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public string Unit { get; set; } = string.Empty;
     }
 }

@@ -1,10 +1,6 @@
-﻿using AutoMapper;
-using Dashboard.BussinessLogic.Services.BranchServices;
-using Dashboard.BussinessLogic.Services.EmployeeServices;
-using Dashboard.BussinessLogic.Services.RBACServices;
-using Dashboard.Winform.Events;
+﻿using Dashboard.Winform.Events;
 using Dashboard.Winform.Presenters;
-using Dashboard.Winform.ViewModels.EmployeeModels;
+using Dashboard.Winform.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
@@ -15,16 +11,17 @@ using System.Windows.Forms;
 
 namespace Dashboard.Winform.Forms
 {
-    public partial class FrmEmployeeManagement
-        : FrmBaseManagement<EmployeeManagementModel, EmployeeManagementPresenter>
+    public partial class FrmIngredientManagement
+        : FrmBaseManagement<IngredientManagementModel, IngredientManagementPresenter>
     {
-        private readonly EmployeeManagementModel _model;
+        private readonly IngredientManagementModel _model;
         private readonly IServiceProvider _serviceProvider;
-        public FrmEmployeeManagement(
+
+        public FrmIngredientManagement(
             IServiceProvider serviceProvider,
-            ILogger<FrmEmployeeManagement> logger,
-            EmployeeManagementPresenter employeeManagementPresenter
-        ) : base(logger, employeeManagementPresenter)
+            ILogger<FrmIngredientManagement> logger,
+            IngredientManagementPresenter ingredientManagementPresenter
+        ) : base(logger, ingredientManagementPresenter)
         {
             _model = _presenter.Model;
             _serviceProvider = serviceProvider;
@@ -35,7 +32,7 @@ namespace Dashboard.Winform.Forms
             {
                 try
                 {
-                    if (e is EmployeesLoadedEventArgs args)
+                    if (e is IngredientsLoadedEventArgs args)
                     {
                         if (InvokeRequired)
                         {
@@ -43,7 +40,7 @@ namespace Dashboard.Winform.Forms
                             {
                                 try
                                 {
-                                    ApplyEmployeesToModel(args.Employees);
+                                    ApplyIngredientsToModel(args.Ingredients);
                                 }
                                 catch (Exception ex)
                                 {
@@ -53,7 +50,7 @@ namespace Dashboard.Winform.Forms
                         }
                         else
                         {
-                            ApplyEmployeesToModel(args.Employees);
+                            ApplyIngredientsToModel(args.Ingredients);
                         }
                     }
                 }
@@ -70,7 +67,7 @@ namespace Dashboard.Winform.Forms
                 }
             };
 
-            Load += FrmEmployeeManagement_Load;
+            Load += FrmIngredientManagement_Load;
             OverrideTextUI();
             OverrideComboBoxItem();
             SetupDataBindings();
@@ -79,7 +76,7 @@ namespace Dashboard.Winform.Forms
         }
 
         /// <summary>
-        /// Override để khởi tạo components riêng của Employee Management
+        /// Override để khởi tạo components riêng của Ingredient Management
         /// </summary>
         protected override void InitializeDerivedComponents()
         {
@@ -89,9 +86,9 @@ namespace Dashboard.Winform.Forms
         private void OverrideTextUI()
         {
             lblFilter1.Text = "Trạng thái:";
-            lblFilter2.Text = "Vai trò:";
-            lblSearchString.Text = "Tìm kiếm theo (ID/tên nhân viên):";
-            Text = "Quản lý nhân viên";
+            lblFilter2.Text = "Danh mục:";
+            lblSearchString.Text = "Tìm kiếm theo (ID/tên nguyên liệu):";
+            Text = "Quản lý nguyên liệu";
         }
 
         private void SetupDataBindings()
@@ -99,8 +96,7 @@ namespace Dashboard.Winform.Forms
             cbxFilter1.DataSource = _model.Statuses;
             cbxFilter1.SelectedIndex = 0;
 
-            cbxFilter2.DataSource = _model.Positions;
-
+            cbxFilter2.DataSource = _model.Categories;
             cbxFilter2.DisplayMember = "Name";
             cbxFilter2.ValueMember = "Id";
 
@@ -110,13 +106,15 @@ namespace Dashboard.Winform.Forms
                 false, DataSourceUpdateMode.OnPropertyChanged
             );
         }
+
         private void OverrideComboBoxItem()
         {
             cbxOrderBy.Items.Clear();
-            cbxOrderBy.Items.AddRange(["ID", "FullName", "position", "hiredate"]);
+            cbxOrderBy.Items.AddRange(["ID", "Name", "Category", "Unit", "Status", "Created Date"]);
             if (cbxOrderBy.Items.Count > 0)
                 cbxOrderBy.SelectedIndex = 0;
         }
+
         protected void SetupDgvListItem()
         {
             if (dgvListItems == null)
@@ -129,48 +127,56 @@ namespace Dashboard.Winform.Forms
 
             dgvListItems.Columns.Add(new DataGridViewTextBoxColumn
             {
-                DataPropertyName = nameof(EmployeeViewModel.Id),
+                DataPropertyName = nameof(IngredientViewModel.Id),
                 HeaderText = "ID",
-                Width = 20,
-                AutoSizeMode = DataGridViewAutoSizeColumnMode.None
-            });
-            dgvListItems.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                DataPropertyName = nameof(EmployeeViewModel.BranchId),
-                HeaderText = "Mã chi nhánh",
                 Width = 50,
                 AutoSizeMode = DataGridViewAutoSizeColumnMode.None
             });
 
             dgvListItems.Columns.Add(new DataGridViewTextBoxColumn
             {
-                DataPropertyName = nameof(EmployeeViewModel.FullName),
-                HeaderText = "Họ tên",
+                DataPropertyName = nameof(IngredientViewModel.Name),
+                HeaderText = "Tên nguyên liệu",
                 Width = 200
             });
 
             dgvListItems.Columns.Add(new DataGridViewTextBoxColumn
             {
-                DataPropertyName = nameof(EmployeeViewModel.PositionName),
-                HeaderText = "Chức vụ",
-                Width = 150
+                DataPropertyName = nameof(IngredientViewModel.CategoryName),
+                HeaderText = "Danh mục",
+                Width = 120
             });
 
             dgvListItems.Columns.Add(new DataGridViewTextBoxColumn
             {
-                DataPropertyName = nameof(EmployeeViewModel.PhoneNumber),
-                HeaderText = "Số điện thoại",
-                Width = 130
+                DataPropertyName = nameof(IngredientViewModel.Unit),
+                HeaderText = "Đơn vị",
+                Width = 80
+            });
+
+            dgvListItems.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                DataPropertyName = nameof(IngredientViewModel.Description),
+                HeaderText = "Mô tả",
+                Width = 150
             });
 
             dgvListItems.Columns.Add(new DataGridViewCheckBoxColumn
             {
-                DataPropertyName = nameof(EmployeeViewModel.IsActive),
+                DataPropertyName = nameof(IngredientViewModel.IsActive),
                 HeaderText = "Hoạt động",
                 Width = 80
             });
 
-            dgvListItems.DataSource = _model.Employees;
+            dgvListItems.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                DataPropertyName = nameof(IngredientViewModel.CreatedAt),
+                HeaderText = "Ngày tạo",
+                Width = 100,
+                DefaultCellStyle = new DataGridViewCellStyle { Format = "dd/MM/yyyy" }
+            });
+
+            dgvListItems.DataSource = _model.Ingredients;
             dgvListItems.Refresh();
         }
 
@@ -220,9 +226,10 @@ namespace Dashboard.Winform.Forms
         {
             base.InitializeEvents();
             cbxFilter1.SelectedIndexChanged += (s, e) => ApplyStatusFilter();
-            cbxFilter2.SelectedIndexChanged += (s, e) => ApplyPositionFilter();
+            cbxFilter2.SelectedIndexChanged += (s, e) => ApplyCategoryFilter();
             cbxOrderBy.SelectedIndexChanged += (s, e) => ApplySorting();
         }
+
         protected override async Task TbxFindString_TextChanged(object? sender, EventArgs e)
         {
             var textBox = sender as TextBox;
@@ -232,17 +239,15 @@ namespace Dashboard.Winform.Forms
             await _presenter.SearchAsync(searchText);
         }
 
-
         #endregion
 
-        #region Employee Management Specific Methods
+        #region Ingredient Management Specific Methods
 
         private async void PerformSearch()
         {
             try
             {
                 SetLoadingState(true);
-
                 await _presenter.SearchAsync(_model.SearchText);
                 UpdatePaginationInfo();
             }
@@ -253,27 +258,6 @@ namespace Dashboard.Winform.Forms
             finally
             {
                 SetLoadingState(false);
-            }
-        }
-
-        private void OpenAddEmployeeDialog()
-        {
-            try
-            {
-                // Mở dialog để thêm nhân viên mới
-                // Có thể inject dependency cho AddEmployeeForm
-                // var addForm = _serviceProvider.GetService<FrmAddEmployee>();
-                // if (addForm?.ShowDialog() == DialogResult.OK)
-                // {
-                //     await RefreshData();
-                // }
-
-                MessageBox.Show("Chức năng thêm nhân viên sẽ được triển khai",
-                    "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-            catch (Exception ex)
-            {
-                ShowError($"Lỗi khi mở form thêm nhân viên: {ex.Message}");
             }
         }
 
@@ -298,22 +282,22 @@ namespace Dashboard.Winform.Forms
             }
         }
 
-        private async void ApplyPositionFilter()
+        private async void ApplyCategoryFilter()
         {
             try
             {
                 if (cbxFilter2.SelectedValue == null) return;
 
                 SetLoadingState(true);
-                if (cbxFilter2.SelectedValue is long positionId)
+                if (cbxFilter2.SelectedValue is long categoryId)
                 {
-                    await _presenter.FilterByPositionAsync(positionId);
+                    await _presenter.FilterByCategoryAsync(categoryId);
                     UpdatePaginationInfo();
                 }
             }
             catch (Exception ex)
             {
-                ShowError($"Lỗi khi lọc theo vai trò: {ex.Message}");
+                ShowError($"Lỗi khi lọc theo danh mục: {ex.Message}");
             }
             finally
             {
@@ -458,12 +442,12 @@ namespace Dashboard.Winform.Forms
             this.Cursor = isLoading ? Cursors.WaitCursor : Cursors.Default;
         }
 
-        private EmployeeViewModel? GetSelectedEmployee()
+        private IngredientViewModel? GetSelectedIngredient()
         {
             if (dgvListItems.SelectedRows.Count > 0)
             {
                 var selectedRow = dgvListItems.SelectedRows[0];
-                return selectedRow.DataBoundItem as EmployeeViewModel;
+                return selectedRow.DataBoundItem as IngredientViewModel;
             }
             return null;
         }
@@ -471,7 +455,7 @@ namespace Dashboard.Winform.Forms
 
         #region Event Handlers
 
-        private async void FrmEmployeeManagement_Load(object? sender, EventArgs e)
+        private async void FrmIngredientManagement_Load(object? sender, EventArgs e)
         {
             _dataLoadingCompletionSource = new TaskCompletionSource<bool>();
             try
@@ -484,7 +468,7 @@ namespace Dashboard.Winform.Forms
             catch (Exception ex)
             {
                 _dataLoadingCompletionSource.SetException(ex);
-                ShowError($"Lỗi khi tải dữ liệu nhân viên: {ex.Message}");
+                ShowError($"Lỗi khi tải dữ liệu nguyên liệu: {ex.Message}");
             }
             finally
             {
@@ -492,12 +476,12 @@ namespace Dashboard.Winform.Forms
             }
         }
 
-        private void ApplyEmployeesToModel(List<EmployeeViewModel> employees)
+        private void ApplyIngredientsToModel(List<IngredientViewModel> ingredients)
         {
-            _model.Employees.Clear();
-            foreach (var emp in employees)
+            _model.Ingredients.Clear();
+            foreach (var ingredient in ingredients)
             {
-                _model.Employees.Add(emp);
+                _model.Ingredients.Add(ingredient);
             }
 
             UpdatePaginationInfo();
@@ -517,102 +501,129 @@ namespace Dashboard.Winform.Forms
         #endregion
 
         #region Dialog Integration Methods
-        // frmEmployeeManagement
 
-        private void OpenEmployeeDetailsDialog(EmployeeViewModel? selectedEmployee = null)
+        private async void OpenIngredientDetailsDialog(IngredientViewModel? selectedIngredient = null)
         {
             try
             {
-                var presenter = _serviceProvider.GetRequiredService<IEmployeeDetailsPresenter>();
-                presenter.OnEmployeeSaved += (s, e) => RefreshData();
+                SetLoadingState(true);
+                await Task.Delay(50);
+                // TODO: Create IngredientDetailsPresenter when backend services are ready
+                // var detailsPresenter = new IngredientDetailsPresenter(
+                //     _serviceProvider.GetRequiredService<IIngredientManagementService>(),
+                //     _serviceProvider.GetRequiredService<IIngredientCategoryService>(),
+                //     _serviceProvider.GetRequiredService<ITaxService>(),
+                //     _serviceProvider.GetRequiredService<IMapper>()
+                // );
 
-                long? employeeId = selectedEmployee?.Id;
-                EmployeeDetailViewModel? employeeDetail = null;
+                long? ingredientId = selectedIngredient?.Id;
+                IngredientDetailViewModel? initialModel = null;
 
-                if (selectedEmployee != null)
+                if (selectedIngredient != null)
                 {
-                    // Map to detail view model manually
-                    employeeDetail = new EmployeeDetailViewModel
+                    initialModel = new IngredientDetailViewModel
                     {
-                        Id = selectedEmployee.Id,
-                        FullName = selectedEmployee.FullName,
-                        Phone = selectedEmployee.PhoneNumber,
-                        Email = selectedEmployee.Email,
-                        HireDate = selectedEmployee.HireDate,
-                        PositionId = selectedEmployee.PositionId,
-                        BranchId = selectedEmployee.BranchId,
-                        Status = selectedEmployee.IsActive ? "Active" : "Inactive"
+                        Id = selectedIngredient.Id,
+                        Name = selectedIngredient.Name,
+                        Unit = selectedIngredient.Unit,
+                        CategoryId = selectedIngredient.CategoryId,
+                        CategoryName = selectedIngredient.CategoryName,
+                        Description = selectedIngredient.Description,
+                        IsActive = selectedIngredient.IsActive,
+                        TaxId = selectedIngredient.TaxId,
+                        CreatedAt = selectedIngredient.CreatedAt,
+                        UpdatedAt = selectedIngredient.UpdatedAt
                     };
                 }
 
-                using var form = new FrmEmployeeDetails(presenter, employeeId, employeeDetail);
-                var result = form.ShowDialog();
+                // TODO: Create FrmIngredientDetails form
+                // var detailForm = new FrmIngredientDetails(detailsPresenter, selectedIngredient?.Id, initialModel);
 
-                if (result == DialogResult.OK)
-                {
-                    RefreshData();
-                }
+                // For now, show a placeholder dialog
+                MessageBox.Show(selectedIngredient != null ?
+                    $"Sẽ mở dialog chi tiết cho nguyên liệu: {selectedIngredient.Name}" :
+                    "Sẽ mở dialog thêm nguyên liệu mới",
+                    "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                // TODO: Implement when detail form is created
+                // var result = detailForm.ShowDialog(this);
+                // if (result == DialogResult.OK)
+                // {
+                //     var updatedIngredient = detailForm.Ingredient;
+                //     if (selectedIngredient != null)
+                //     {
+                //         await HandleIngredientUpdate(updatedIngredient);
+                //         ShowInfo("Cập nhật thông tin nguyên liệu thành công!");
+                //     }
+                //     else
+                //     {
+                //         await HandleIngredientAdd(updatedIngredient);
+                //         ShowInfo("Thêm nguyên liệu mới thành công!");
+                //     }
+                //     RefreshData();
+                // }
             }
             catch (Exception ex)
             {
-                ShowError($"Lỗi khi mở form chi tiết nhân viên: {ex.Message}");
+                ShowError($"Lỗi khi {(selectedIngredient != null ? "cập nhật" : "thêm")} nguyên liệu: {ex.Message}");
+            }
+            finally
+            {
+                SetLoadingState(false);
             }
         }
 
-        //private async Task HandleEmployeeAdd(EmployeeDetailViewModel employee)
-        //{
-        //    await _presenter.AddEmployeeAsync(
-        //        employee.FullName,
-        //        employee.PositionId,
-        //        employee.Email,
-        //        employee.Phone,
-        //        employee.HireDate ?? DateTime.Now,
-        //        employee.ResignDate ?? DateTime.Now.AddYears(1),
-        //        employee.Status,
-        //        employee.Salaries.FirstOrDefault()?.BaseSalary ?? 0,
-        //        employee.Salaries.FirstOrDefault()?.SalaryType ?? "MONTHLY"
-        //    );
-        //    var logInfo = $"Thêm nhân viên: {employee.FullName}, Email: {employee.Email}, SĐT: {employee.Phone}";
-        //    Console.WriteLine(logInfo);
-        //}
+        private async Task HandleIngredientAdd(IngredientDetailViewModel ingredient)
+        {
+            await _presenter.AddIngredientAsync(
+                ingredient.Name,
+                ingredient.Unit,
+                ingredient.CategoryId,
+                ingredient.Description,
+                ingredient.IsActive,
+                ingredient.TaxId
+            );
 
-        //private async Task HandleEmployeeUpdate(EmployeeDetailViewModel employee)
-        //{
-        //    await _presenter.UpdateUserAsync(
-        //        employee.Id,
-        //        employee.FullName,
-        //        employee.PositionId,
-        //        employee.Email,
-        //        employee.Phone,
-        //        employee.HireDate ?? DateTime.Now,
-        //        employee.ResignDate ?? DateTime.Now.AddYears(1),
-        //        employee.Status,
-        //        employee.Salaries.FirstOrDefault()?.BaseSalary ?? 0,
-        //        employee.Salaries.FirstOrDefault()?.SalaryType ?? "MONTHLY"
-        //    );
-        //    var logInfo = $"Cập nhật nhân viên ID {employee.Id}: {employee.FullName}, Email: {employee.Email}";
-        //    Console.WriteLine(logInfo);
-        //}
+            var logInfo = $"Thêm nguyên liệu: {ingredient.Name}, Đơn vị: {ingredient.Unit}, Danh mục: {ingredient.CategoryName}";
+            Console.WriteLine(logInfo);
+        }
+
+        private async Task HandleIngredientUpdate(IngredientDetailViewModel ingredient)
+        {
+            await _presenter.UpdateIngredientAsync(
+                ingredient.Id,
+                ingredient.Name,
+                ingredient.Unit,
+                ingredient.CategoryId,
+                ingredient.Description,
+                ingredient.IsActive,
+                ingredient.TaxId
+            );
+
+            var logInfo = $"Cập nhật nguyên liệu ID {ingredient.Id}: {ingredient.Name}, Đơn vị: {ingredient.Unit}";
+            Console.WriteLine(logInfo);
+        }
+
         #endregion
 
         #region Override Event Handlers - Updated
 
         protected override void BtnAdd_Click(object sender, EventArgs e)
         {
-            OpenEmployeeDetailsDialog();
+            OpenIngredientDetailsDialog();
         }
 
         protected override void BtnGetDetails_Click(object sender, EventArgs e)
         {
-            var selectedEmployee = GetSelectedEmployee();
+            var selectedIngredient = GetSelectedIngredient();
 
-            if (selectedEmployee != null)
+            if (selectedIngredient != null)
             {
-                OpenEmployeeDetailsDialog(selectedEmployee);
+                OpenIngredientDetailsDialog(selectedIngredient);
             }
             else
             {
-                MessageBox.Show("Vui lòng chọn một nhân viên để xem chi tiết.",
+                MessageBox.Show("Vui lòng chọn một nguyên liệu để xem chi tiết.",
                                "Thông báo",
                                MessageBoxButtons.OK,
                                MessageBoxIcon.Information);
@@ -623,16 +634,15 @@ namespace Dashboard.Winform.Forms
         {
             if (e.RowIndex >= 0)
             {
-                var selectedEmployee = GetSelectedEmployee();
-                if (selectedEmployee != null)
+                var selectedIngredient = GetSelectedIngredient();
+                if (selectedIngredient != null)
                 {
-                    OpenEmployeeDetailsDialog(selectedEmployee);
+                    OpenIngredientDetailsDialog(selectedIngredient);
                 }
             }
         }
 
         #endregion
-
 
         #region Additional Helper Methods
 
@@ -661,6 +671,5 @@ namespace Dashboard.Winform.Forms
         }
 
         #endregion
-
     }
 }

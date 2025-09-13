@@ -34,6 +34,8 @@ public static class DependencyInjection
         builder.Services.AddMediatR(Assembly.GetExecutingAssembly());
 
         builder.Services.AddScoped<IProductService, ProductService>();
+        builder.Services.AddScoped<ICategoryService, CategoryService>();
+        //builder.Services.AddScoped<IRecipeService, RecipeService>();
         builder.Services.AddScoped<IBranchService, BranchService>();
         builder.Services.AddScoped<IExpenseService, ExpenseService>();
         builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();

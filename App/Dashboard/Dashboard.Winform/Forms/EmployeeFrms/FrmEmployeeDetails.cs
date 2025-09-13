@@ -12,7 +12,6 @@ namespace Dashboard.Winform.Forms
     public partial class FrmEmployeeDetails : Form, IBlurLoadingServiceAware
     {
         #region Fields
-
         private readonly bool _isEditMode;
         private readonly long? _employeeId;
         private readonly EmployeeDetailViewModel _model;
@@ -46,7 +45,7 @@ namespace Dashboard.Winform.Forms
             InitializeFormSettings();
             SetupEventHandlers();
             SetupDataGridViews();
-            BindModelToUI();
+            //BindModelToUI();
 
             if (_isEditMode)
             {
@@ -340,34 +339,23 @@ namespace Dashboard.Winform.Forms
             {
                 await _blurLoadingService.ExecuteWithLoadingAsync(async () =>
                 {
+
                     await _presenter.LoadLookupsAsync();
-                    if (_isEditMode)
+                    BindModelToUI(); // Thêm bind sau load lookups
+                    if (_employeeId.HasValue)
                     {
-                        await _presenter.LoadEmployeeDetailsAsync(_employeeId!.Value);
+                        await _presenter.LoadEmployeeDetailsAsync(_employeeId.Value);
                     }
-                    else
-                    {
-                        _presenter.RaiseDataLoaded();
-                    }
-                }, "Đang tải dữ liệu nhân viên...", true);
+
+                });
             }
             else
             {
-                try
+                await _presenter.LoadLookupsAsync();
+                BindModelToUI(); 
+                if (_employeeId.HasValue)
                 {
-                    await _presenter.LoadLookupsAsync();
-                    if (_isEditMode)
-                    {
-                        await _presenter.LoadEmployeeDetailsAsync(_employeeId!.Value);
-                    }
-                    else
-                    {
-                        _presenter.RaiseDataLoaded();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Lỗi load dữ liệu: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    await _presenter.LoadEmployeeDetailsAsync(_employeeId.Value);
                 }
             }
         }
@@ -380,17 +368,23 @@ namespace Dashboard.Winform.Forms
                 return;
             }
 
-            cbxBranch.DataSource = _model.ExistingBranches;
-            cbxBranch.DisplayMember = nameof(BranchViewModel.Name);
-            cbxBranch.ValueMember = nameof(BranchViewModel.Id);
+            if (cbxBranch.DataSource == null)
+            {
+                cbxBranch.DataSource = _model.ExistingBranches;
+                cbxBranch.DisplayMember = nameof(BranchViewModel.Name);
+                cbxBranch.ValueMember = nameof(BranchViewModel.Id);
+            }
 
-            cbxPosition.DataSource = _model.ExistingPositions;
-            cbxPosition.DisplayMember = nameof(PositionViewModel.Name);
-            cbxPosition.ValueMember = nameof(PositionViewModel.Id);
+            if (cbxPosition.DataSource == null)
+            {
+                cbxPosition.DataSource = _model.ExistingPositions;
+                cbxPosition.DisplayMember = nameof(PositionViewModel.Name);
+                cbxPosition.ValueMember = nameof(PositionViewModel.Id);
+            }
 
-            cbxStatus.DataSource = _model.Statuses;
+            cbxStatus.DataSource ??= _model.Statuses;
+
         }
-
         private void OnPresenterError(object? sender, string errorMessage)
         {
             if (InvokeRequired)

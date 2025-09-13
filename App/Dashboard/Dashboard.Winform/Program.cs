@@ -34,10 +34,16 @@ namespace Dashboard.Winform
 
             builder.Services.AddAutoMapper(typeof(ReportMappingProfile));
             builder.Services.AddAutoMapper(typeof(BranchViewModelMappingProfile));
+            builder.Services.AddAutoMapper(typeof(ProductViewModelMappingProfile));
 
             builder.Services.AddTransient<ILandingDashboardPresenter, LandingDashboardPresenter>();
             builder.Services.AddTransient<IEmployeeDetailsPresenter, EmployeeDetailsPresenter>();
+            builder.Services.AddTransient<IEmployeeManagementPresenter, EmployeeManagementPresenter>();
+            //builder.Services.AddTransient<IProdu, ProductDetailsPresenter>();
             builder.Services.AddScoped<EmployeeManagementPresenter>();
+            builder.Services.AddTransient<ProductManagementPresenter>();
+            builder.Services.AddTransient<RecipeManagementPresenter>();
+
             // Register Forms
             builder.Services.AddTransient<frmLandingDashboard>();
             builder.Services.AddTransient<FrmEmployeeManagement>();

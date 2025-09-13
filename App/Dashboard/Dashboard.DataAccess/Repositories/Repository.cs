@@ -17,6 +17,7 @@ public interface IRepository<T> where T : class
     Task<T?> AddAsync(T entity);
     Task<T?> AnyAsnc(Func<T, bool>? predicate = null);
     IQueryable<T> GetQueryable(bool asNoTracking = false);
+    Task<IEnumerable<T>> GetContainString(string propertyName, string value, bool asNoTracking = false);
 
     void Add(T entity);
     void AddRange(IEnumerable<T> entities);
@@ -169,5 +170,18 @@ public class Repository<T> : IRepository<T> where T : class
             .Invoke(null, [source, lambda]);
 
         return (IQueryable<T>)result!;
+    }
+
+    public Task<IEnumerable<T>> GetContainString(string propertyName, string value, bool asNoTracking = false)
+    {
+        IQueryable<T> query = asNoTracking ? _dbSet.AsNoTracking() : _dbSet;
+        var parameter = Expression.Parameter(typeof(T), "x");
+        var property = Expression.PropertyOrField(parameter, propertyName);
+        var method = typeof(string).GetMethod("Contains", [typeof(string)])!;
+        var someValue = Expression.Constant(value, typeof(string));
+        var containsMethodExp = Expression.Call(property, method, someValue);
+        var lambda = Expression.Lambda<Func<T, bool>>(containsMethodExp, parameter);
+        query = query.Where(lambda);
+        return Task.FromResult(query.AsEnumerable());
     }
 }

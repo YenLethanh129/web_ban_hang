@@ -11,14 +11,7 @@
         /// Clean up any resources being used.
         /// </summary>
         /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing && (components != null))
-            {
-                components.Dispose();
-            }
-            base.Dispose(disposing);
-        }
+
 
         #region Windows Form Designer generated code
 
@@ -68,6 +61,7 @@
             pnlRecipeButtons = new Panel();
             btnAddRecipe = new Button();
             btnEditRecipe = new Button();
+            btnViewRecipeDetails = new Button();
             btnDeleteRecipe = new Button();
             pnlButtons = new Panel();
             btnSave = new Button();
@@ -514,6 +508,7 @@
             pnlRecipeButtons.BackColor = Color.FromArgb(42, 45, 86);
             pnlRecipeButtons.Controls.Add(btnAddRecipe);
             pnlRecipeButtons.Controls.Add(btnEditRecipe);
+            pnlRecipeButtons.Controls.Add(btnViewRecipeDetails);
             pnlRecipeButtons.Controls.Add(btnDeleteRecipe);
             pnlRecipeButtons.Location = new Point(18, 481);
             pnlRecipeButtons.Name = "pnlRecipeButtons";
@@ -544,15 +539,27 @@
             btnEditRecipe.Text = "Sửa";
             btnEditRecipe.UseVisualStyleBackColor = true;
             // 
+            // btnViewRecipeDetails
+            // 
+            btnViewRecipeDetails.FlatAppearance.BorderColor = Color.FromArgb(255, 193, 7);
+            btnViewRecipeDetails.FlatStyle = FlatStyle.Flat;
+            btnViewRecipeDetails.ForeColor = Color.FromArgb(255, 193, 7);
+            btnViewRecipeDetails.Location = new Point(158, 5);
+            btnViewRecipeDetails.Name = "btnViewRecipeDetails";
+            btnViewRecipeDetails.Size = new Size(70, 28);
+            btnViewRecipeDetails.TabIndex = 2;
+            btnViewRecipeDetails.Text = "Chi tiết";
+            btnViewRecipeDetails.UseVisualStyleBackColor = true;
+            // 
             // btnDeleteRecipe
             // 
             btnDeleteRecipe.FlatAppearance.BorderColor = Color.FromArgb(255, 99, 132);
             btnDeleteRecipe.FlatStyle = FlatStyle.Flat;
             btnDeleteRecipe.ForeColor = Color.FromArgb(255, 99, 132);
-            btnDeleteRecipe.Location = new Point(158, 5);
+            btnDeleteRecipe.Location = new Point(237, 5);
             btnDeleteRecipe.Name = "btnDeleteRecipe";
             btnDeleteRecipe.Size = new Size(70, 28);
-            btnDeleteRecipe.TabIndex = 2;
+            btnDeleteRecipe.TabIndex = 3;
             btnDeleteRecipe.Text = "Xóa";
             btnDeleteRecipe.UseVisualStyleBackColor = true;
             // 
@@ -683,6 +690,7 @@
         private Panel pnlRecipeButtons;
         private Button btnAddRecipe;
         private Button btnEditRecipe;
+        private Button btnViewRecipeDetails;
         private Button btnDeleteRecipe;
         private Panel pnlButtons;
         private Button btnSave;
