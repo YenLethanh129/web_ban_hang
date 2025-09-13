@@ -33,7 +33,6 @@ export class AuthInitService {
 
     if (!token) {
       console.log('❌ Không có token');
-      // Không redirect tự động - để route guard xử lý
       return;
     }
 

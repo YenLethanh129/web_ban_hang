@@ -10,6 +10,7 @@ import { LoginDTO } from '../../dtos/login.dto';
 import { LoginResponse } from '../../response/LoginResponse';
 import { TokenService } from '../../services/token.service';
 import { NotificationService } from '../../services/notification.service';
+import e from 'express';
 
 @Component({
   selector: 'app-login',
@@ -20,8 +21,8 @@ import { NotificationService } from '../../services/notification.service';
     CommonModule,
     HttpClientModule,
     MatButtonModule,
-    MatIconModule
-],
+    MatIconModule,
+  ],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })
@@ -37,6 +38,8 @@ export class LoginComponent {
   isLoading = false;
   showPhoneError = false;
   showPasswordError = false;
+  showErrorLoginMessage = false;
+  errorLoginMessage = '';
 
   constructor(
     private router: Router,
@@ -59,7 +62,7 @@ export class LoginComponent {
     return (
       this.loginForm?.valid === true &&
       this.loginData.phoneNumber.length === 10 &&
-      this.loginData.password.length >= 6
+      this.loginData.password.length >= 12
     );
   }
 
@@ -67,19 +70,23 @@ export class LoginComponent {
     if (!this.validateForm()) {
       this.showPhoneError = this.loginData.phoneNumber.length !== 10;
       this.showPasswordError = this.loginData.password.length < 6;
-      
+
       if (this.showPhoneError) {
-        this.notificationService.showError('📱 Số điện thoại phải có đúng 10 chữ số');
+        this.notificationService.showError(
+          '📱 Số điện thoại phải có đúng 10 chữ số'
+        );
       }
       if (this.showPasswordError) {
-        this.notificationService.showError('🔒 Mật khẩu phải có ít nhất 6 ký tự');
+        this.notificationService.showError(
+          '🔒 Mật khẩu phải có ít nhất 12 ký tự'
+        );
       }
       return;
     }
 
     this.isLoading = true;
     this.notificationService.showInfo('⏳ Đang xử lý đăng nhập...');
-    
+
     const loginDTO: LoginDTO = {
       phone_number: this.loginData.phoneNumber,
       password: this.loginData.password,
@@ -91,15 +98,19 @@ export class LoginComponent {
         const { token } = response;
         if (!token) {
           console.log('Không nhận được token từ máy chủ');
-          this.notificationService.showError('❌ Đăng nhập thất bại: Không nhận được token từ máy chủ');
+          this.notificationService.showError(
+            '❌ Đăng nhập thất bại: Không nhận được token từ máy chủ'
+          );
           this.isLoading = false;
           return;
         }
-        
+
         this.tokenService.setToken(token);
-        this.notificationService.showSuccess('🎉 Đăng nhập thành công! Chào mừng bạn trở lại!');
+        this.notificationService.showSuccess(
+          '🎉 Đăng nhập thành công! Chào mừng bạn trở lại!'
+        );
         this.isLoading = false;
-        
+
         // Chuyển hướng sau khi hiển thị thông báo
         setTimeout(() => {
           this.router.navigate(['/']);
@@ -109,8 +120,9 @@ export class LoginComponent {
         this.isLoading = false;
         console.error('Lỗi đăng nhập:', error);
 
-        // Sử dụng service thông báo để xử lý lỗi HTTP một cách thông minh
-        this.notificationService.showHttpError(error, 'Có lỗi xảy ra khi đăng nhập. Vui lòng thử lại sau.');
+        this.errorLoginMessage =
+          error.error?.message || 'Đăng nhập thất bại. Vui lòng thử lại.';
+        this.showErrorLoginMessage = true;
       },
     });
   }

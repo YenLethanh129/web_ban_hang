@@ -77,13 +77,13 @@ public class UserService implements IUserService {
 	public String login(String phoneNumber, String password) throws Exception {
 		Optional<User> optionalUser = userRepository.findByPhoneNumber(phoneNumber);
 		if (optionalUser.isEmpty()) {
-			throw new DataNotFoundException("Invalid phonenumber or password");
+			throw new DataNotFoundException(localizationUtil.getLocalizedMessage(MessageKey.INVALID_PHONE_NUMBER));
 		}
 		
 		User existingUser = optionalUser.get();
 		if (existingUser.getGoogleAccountId() == 0 && existingUser.getFacebookAccountId() == 0) {
 			if (!passwordEncoder.matches(password, existingUser.getPassword())) {
-				throw new BadCredentialsException("Wrong phone number or password");
+				throw new BadCredentialsException(localizationUtil.getLocalizedMessage(MessageKey.INVALID_PASSWORD));
 			}
 		}
 		

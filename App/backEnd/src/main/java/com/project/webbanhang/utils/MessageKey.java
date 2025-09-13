@@ -6,6 +6,8 @@ public class MessageKey {
 	 */
 	public static final String LOGIN_SUCCESSFULLY = "user.login.login_successfully";
 	public static final String LOGIN_FAILED = "user.login.login_failed";
+	public static final String INVALID_PHONE_NUMBER = "user.login.invalid_phone_number";
+	public static final String INVALID_PASSWORD = "user.login.invalid_password";
 	public static final String UPDATE_PROFILE_FAILED = "user.profile.update_profile_failed";
 	public static final String USER_NOT_FOUND = "user.profile.user_not_found";
 

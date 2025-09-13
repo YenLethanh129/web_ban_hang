@@ -73,12 +73,12 @@
             *ngIf="
               showPasswordError &&
               password.touched &&
-              loginData.password.length < 6
+              loginData.password.length < 12
             "
             class="error-message"
           >
             <i class="fas fa-exclamation-circle"></i>
-            Mật khẩu phải có ít nhất 6 ký tự
+            Mật khẩu phải có ít nhất 12 ký tự
           </div>
         </div>
 
@@ -105,6 +105,16 @@
           <i *ngIf="!isLoading" class="fas fa-sign-in-alt"></i>
           {{ isLoading ? "Đang xử lý..." : "Đăng nhập" }}
         </button>
+        <!-- Show error when login fails -->
+        <div
+            *ngIf="
+              showErrorLoginMessage
+            "
+            class="error-message"
+          >
+            <i class="fas fa-exclamation-circle"></i>
+            {{ errorLoginMessage }}
+          </div>
 
         <div class="divider">
           <span>hoặc</span>
