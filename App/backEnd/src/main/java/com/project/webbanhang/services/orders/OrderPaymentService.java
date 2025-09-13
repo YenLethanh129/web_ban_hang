@@ -1,7 +1,7 @@
-package com.project.webbanhang.services;
+package com.project.webbanhang.services.orders;
 
-import com.project.webbanhang.models.Order;
-import com.project.webbanhang.models.OrderPayment;
+import com.project.webbanhang.models.orders.Order;
+import com.project.webbanhang.models.orders.OrderPayment;
 import com.project.webbanhang.models.PaymentMethod;
 import com.project.webbanhang.models.PaymentStatus;
 import com.project.webbanhang.repositories.OrderPaymentRepository;

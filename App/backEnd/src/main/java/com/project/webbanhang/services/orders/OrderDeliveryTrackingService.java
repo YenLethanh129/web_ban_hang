@@ -1,8 +1,8 @@
-package com.project.webbanhang.services;
+package com.project.webbanhang.services.orders;
 
 import com.project.webbanhang.models.DeliveryStatus;
-import com.project.webbanhang.models.Order;
-import com.project.webbanhang.models.OrderDeliveryTracking;
+import com.project.webbanhang.models.orders.Order;
+import com.project.webbanhang.models.orders.OrderDeliveryTracking;
 import com.project.webbanhang.models.ShippingProvider;
 import com.project.webbanhang.repositories.OrderDeliveryTrackingRepository;
 import com.project.webbanhang.repositories.ShippingProviderRepository;

@@ -1,4 +1,4 @@
-package com.project.webbanhang.models;
+package com.project.webbanhang.models.orders;
 
 import jakarta.persistence.*;
 import lombok.*;

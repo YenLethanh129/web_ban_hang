@@ -1,6 +1,7 @@
 package com.project.webbanhang.controllers;
 
 import com.project.webbanhang.dtos.OrderDTO;
+import com.project.webbanhang.models.User;
 import com.project.webbanhang.response.OrderResponse;
 import com.project.webbanhang.services.Interfaces.IOrderService;
 
@@ -43,41 +44,28 @@ public class OrderController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
-
-    // Done
-    @GetMapping("/{order_id}")
-    public ResponseEntity<?> getOrder(
-    		@Valid @PathVariable("order_id") Long orderId
-    ) {
-        try {
-        	 OrderResponse existingOrderResponse = orderService.getOrderById(orderId);
-            return ResponseEntity.ok(existingOrderResponse);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
     
     // Done
-    @GetMapping("")
-    public ResponseEntity<?> getAllOrders(
-    ) {
-        try {
-
-        	List<OrderResponse> existingOrderResponses = orderService.getAllOrders();
-        	
-            return ResponseEntity.ok(existingOrderResponses);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Get orders failed");
-        }
-    }
+//    @GetMapping("")
+//    public ResponseEntity<?> getAllOrders(
+//    ) {
+//        try {
+//        	List<OrderResponse> existingOrderResponses = orderService.getAllOrders();
+//
+//            return ResponseEntity.ok(existingOrderResponses);
+//        } catch (Exception e) {
+//            return ResponseEntity.badRequest().body("Get orders failed");
+//        }
+//    }
 
     // Done
-    @GetMapping("/user/{user_id}")
+    @PostMapping("/user")
     public ResponseEntity<?> getOrdersByUserId(
-    		@Valid @PathVariable("user_id") Long userId
+            @RequestHeader("Authorization") String token
     ) {
         try {
-        	List<OrderResponse> existingOrderResponses = orderService.findAllByCustomerId(userId);
+            String extractedToken = token.substring(7);
+        	List<OrderResponse> existingOrderResponses = orderService.findByCustomer(extractedToken);
 
             return ResponseEntity.ok(existingOrderResponses);
         } catch (Exception e) {

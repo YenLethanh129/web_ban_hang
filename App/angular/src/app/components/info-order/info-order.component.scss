@@ -106,10 +106,15 @@
   color: white;
 
   .order-info {
-    .order-id {
+    .order-uuid {
       margin: 0 0 5px 0;
-      font-size: 1.3rem;
+      font-size: 1.1rem;
       font-weight: 700;
+      font-family: "Courier New", monospace;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 4px 8px;
+      border-radius: 8px;
+      backdrop-filter: blur(10px);
     }
 
     .order-date {
@@ -135,142 +140,213 @@
 // Status colors
 .status-pending {
   background: rgba(255, 193, 7, 0.2);
-  color: #ff6b35;
+  color: white;
   border: 1px solid rgba(255, 107, 53, 0.3);
 }
 
 .status-confirmed {
   background: rgba(0, 123, 255, 0.2);
-  color: #007bff;
+  color: white;
   border: 1px solid rgba(0, 123, 255, 0.3);
 }
 
 .status-processing {
   background: rgba(255, 107, 53, 0.2);
-  color: #ff6b35;
+  color: white;
   border: 1px solid rgba(255, 107, 53, 0.3);
 }
 
 .status-shipping {
   background: rgba(108, 117, 125, 0.2);
-  color: #6c757d;
+  color: white;
   border: 1px solid rgba(108, 117, 125, 0.3);
 }
 
 .status-delivered {
   background: rgba(40, 167, 69, 0.2);
-  color: #28a745;
+  color: white;
   border: 1px solid rgba(40, 167, 69, 0.3);
 }
 
 .status-cancelled {
   background: rgba(220, 53, 69, 0.2);
-  color: #dc3545;
+  color: white;
   border: 1px solid rgba(220, 53, 69, 0.3);
 }
 
 .order-content {
   padding: 30px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
 }
 
-.order-details {
-  .detail-item {
-    display: flex;
-    align-items: flex-start;
-    margin-bottom: 20px;
+.order-summary {
+  background: rgba(249, 250, 251, 0.8);
+  padding: 20px;
+  border-radius: 15px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
 
-    i {
-      color: #2d8074;
-      font-size: 1.1rem;
-      margin-right: 15px;
-      margin-top: 3px;
-      width: 20px;
+  .summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+
+    &:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
     }
 
-    .detail-content {
-      flex: 1;
+    .label {
+      color: #666;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
 
-      .label {
-        display: block;
-        color: #666;
-        font-size: 0.9rem;
-        margin-bottom: 3px;
-        font-weight: 600;
+    .value {
+      font-weight: 600;
+      color: #333;
+
+      &.total-amount {
+        color: #2d8074;
+        font-size: 1.3rem;
+        font-weight: 800;
       }
 
-      .value {
-        display: block;
-        color: #333;
-        font-size: 1rem;
-        font-weight: 500;
+      &.status-pending {
+        color: #ff6b35;
+        font-weight: 700;
+      }
+
+      &.status-confirmed {
+        color: #007bff;
+        font-weight: 700;
+      }
+
+      &.status-delivered {
+        color: #28a745;
+        font-weight: 700;
+      }
+
+      &.status-cancelled {
+        color: #dc3545;
+        font-weight: 700;
+      }
+
+      &.payment-pending {
+        color: #ff6b35;
+        font-weight: 700;
+      }
+
+      &.payment-paid {
+        color: #28a745;
+        font-weight: 700;
+      }
+
+      &.payment-failed {
+        color: #dc3545;
+        font-weight: 700;
+      }
+
+      &.payment-cash {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #28a745;
+
+        i {
+          font-size: 1rem;
+        }
+      }
+
+      &.payment-momo {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #ff1493;
+
+        i {
+          font-size: 1rem;
+        }
+      }
+
+      &.payment-banking {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #007bff;
+
+        i {
+          font-size: 1rem;
+        }
       }
     }
   }
 }
 
-.payment-info {
+.order-products {
   h5 {
     color: #0d3d62;
-    margin-bottom: 20px;
-    font-size: 1.2rem;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
     font-weight: 700;
-    padding-bottom: 10px;
+    padding-bottom: 8px;
     border-bottom: 2px solid rgba(45, 128, 116, 0.2);
   }
 
-  .payment-details {
-    .payment-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 15px;
-      padding: 10px 0;
+  .product-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
 
-      .label {
+  .product-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 12px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 1);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .product-image {
+      width: 60px;
+      height: 60px;
+      border-radius: 8px;
+      object-fit: cover;
+      border: 2px solid rgba(45, 128, 116, 0.1);
+    }
+
+    .product-info {
+      flex: 1;
+
+      .product-name {
+        margin: 0 0 5px 0;
+        color: #333;
+        font-size: 1rem;
+        font-weight: 600;
+      }
+
+      .product-details {
+        margin: 0;
         color: #666;
-        font-weight: 600;
-        font-size: 0.95rem;
+        font-size: 0.85rem;
       }
+    }
 
-      .value {
-        font-weight: 600;
-
-        &.payment-method {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 6px 12px;
-          border-radius: 15px;
-          font-size: 0.9rem;
-
-          i {
-            font-size: 1rem;
-          }
-        }
-
-        &.payment-status {
-          padding: 5px 12px;
-          border-radius: 12px;
-          font-size: 0.85rem;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-        }
-
-        &.total-amount {
-          color: #2d8074;
-          font-size: 1.3rem;
-          font-weight: 800;
-        }
-      }
-
-      &.total {
-        border-top: 2px solid rgba(45, 128, 116, 0.2);
-        padding-top: 15px;
-        margin-top: 15px;
-      }
+    .product-total {
+      color: #2d8074;
+      font-weight: 700;
+      font-size: 1rem;
     }
   }
 }
@@ -316,7 +392,7 @@
   justify-content: flex-end;
 
   .btn {
-    padding: 10px 20px;
+    padding: 12px 24px;
     border-radius: 15px;
     font-weight: 600;
     font-size: 0.9rem;
@@ -324,6 +400,8 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    border: none;
+    cursor: pointer;
 
     i {
       font-size: 0.85rem;
@@ -333,35 +411,38 @@
       transform: translateY(-2px);
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
     }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
   }
 
-  .btn-outline-primary {
-    color: #2d8074;
-    border: 2px solid #2d8074;
-    background: transparent;
+  .btn-primary {
+    background: linear-gradient(135deg, #2d8074 0%, #0d3d62 100%);
+    color: white;
 
-    &:hover {
-      background: #2d8074;
-      color: white;
+    &:hover:not(:disabled) {
+      background: linear-gradient(135deg, #0d3d62 0%, #2d8074 100%);
     }
   }
 
   .btn-secondary {
     background: #6c757d;
-    border: none;
     color: white;
 
-    &:hover {
+    &:hover:not(:disabled) {
       background: #5a6268;
     }
   }
 
   .btn-success {
     background: #28a745;
-    border: none;
     color: white;
 
-    &:hover {
+    &:hover:not(:disabled) {
       background: #218838;
     }
   }
@@ -435,8 +516,31 @@
 
   .order-content {
     padding: 20px;
-    grid-template-columns: 1fr;
     gap: 20px;
+  }
+
+  .order-summary {
+    .summary-item {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 5px;
+    }
+  }
+
+  .order-products {
+    .product-item {
+      flex-direction: column;
+      text-align: center;
+      gap: 10px;
+
+      .product-image {
+        align-self: center;
+      }
+
+      .product-info {
+        text-align: center;
+      }
+    }
   }
 
   .order-actions {
@@ -447,12 +551,6 @@
       width: 100%;
       justify-content: center;
     }
-  }
-
-  .payment-details .payment-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 5px;
   }
 }
 

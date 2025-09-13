@@ -1,8 +1,9 @@
-package com.project.webbanhang.models;
+package com.project.webbanhang.models.orders;
 
+import com.project.webbanhang.models.BaseEntity;
+import com.project.webbanhang.models.ShippingProvider;
 import jakarta.persistence.*;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
 
@@ -13,7 +14,7 @@ import java.time.LocalDateTime;
 @Getter
 @Builder
 @Table(name = "order_shipments")
-public class OrderShipment extends BaseEntity{
+public class OrderShipment extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

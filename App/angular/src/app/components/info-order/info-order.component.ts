@@ -4,7 +4,7 @@ import { Router, RouterModule } from '@angular/router';
 import { OrderService } from '../../services/order.service';
 import { UserService } from '../../services/user.service';
 import { TokenService } from '../../services/token.service';
-import { OrderResponseDTO } from '../../dtos/order.dto';
+import { NewOrderResponseDTO } from '../../dtos/order.dto';
 
 @Component({
   selector: 'app-info-order',
@@ -14,11 +14,12 @@ import { OrderResponseDTO } from '../../dtos/order.dto';
 })
 export class InfoOrderComponent implements OnInit {
   userId: number | null = null;
-  orders: OrderResponseDTO[] = [];
+  orders: NewOrderResponseDTO[] = [];
   isLoading: boolean = false;
 
   orderStatus: { [key: string]: string } = {
     PENDING: 'Chờ xác nhận',
+    CONFIRMED: 'Đã xác nhận',
     PROCESSING: 'Đang xử lý',
     SHIPPING: 'Đang vận chuyển',
     DELIVERED: 'Đã giao hàng',
@@ -39,34 +40,54 @@ export class InfoOrderComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.loadUserProfile();
+    this.loadUserOrders();
   }
 
-  private loadOrderInfo(userId: number): void {
-    this.orderService.getOrdersByUserId(userId).subscribe({
-      next: (orderInfo) => {
-        // Sắp xếp theo ID giảm dần (mới nhất trước)
-        this.orders = orderInfo.sort((a: any, b: any) => b.id - a.id);
-        console.log('Order Info:', this.orders);
-        this.isLoading = false;
-      },
-      error: (error) => {
-        console.error('Error loading order info:', error);
-        this.isLoading = false;
-      },
-    });
-  }
-
-  private loadUserProfile() {
+  private loadUserOrders(): void {
     this.isLoading = true;
-    this.userService.getUser().subscribe({
-      next: (user) => {
-        this.userId = user.id;
-        this.loadOrderInfo(user.id);
+
+    // Kiểm tra token trước khi gọi API
+    const token = this.tokenService.getToken();
+    if (!token) {
+      console.error('No token found, redirecting to login');
+      this.router.navigate(['/login']);
+      this.isLoading = false;
+      return;
+    }
+
+    console.log(
+      'Loading user orders with token:',
+      token.substring(0, 20) + '...'
+    );
+
+    this.orderService.getUserOrders().subscribe({
+      next: (orders) => {
+        // Sắp xếp theo ngày tạo giảm dần (mới nhất trước)
+        this.orders = orders.sort(
+          (a, b) =>
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+        console.log('Orders loaded successfully:', this.orders);
+        this.isLoading = false;
       },
       error: (error) => {
-        console.error('Lỗi khi tải thông tin user:', error);
-        this.tokenService.removeToken();
+        console.error('Error loading orders:', error);
+
+        // Xử lý các loại lỗi cụ thể
+        if (error.status === 401) {
+          console.error('Token expired or invalid');
+          this.tokenService.removeToken();
+          this.router.navigate(['/login'], {
+            queryParams: {
+              message: 'Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại',
+            },
+          });
+        } else if (error.status === 0) {
+          console.error('Network error or server is down');
+        } else {
+          console.error('API error:', error.status, error.message);
+        }
+
         this.isLoading = false;
       },
     });
@@ -75,96 +96,96 @@ export class InfoOrderComponent implements OnInit {
   // Utility methods for status and payment
   getStatusClass(status: string): string {
     const statusMap: { [key: string]: string } = {
-      pending: 'status-pending',
-      confirmed: 'status-confirmed',
-      processing: 'status-processing',
-      shipping: 'status-shipping',
-      delivered: 'status-delivered',
-      cancelled: 'status-cancelled',
+      PENDING: 'status-pending',
+      CONFIRMED: 'status-confirmed',
+      PROCESSING: 'status-processing',
+      SHIPPING: 'status-shipping',
+      DELIVERED: 'status-delivered',
+      CANCELLED: 'status-cancelled',
     };
     return statusMap[status] || 'status-default';
   }
 
   getStatusText(status: string): string {
-    const statusMap: { [key: string]: string } = {
-      pending: 'Chờ xác nhận',
-      confirmed: 'Đã xác nhận',
-      processing: 'Đang xử lý',
-      shipping: 'Đang vận chuyển',
-      delivered: 'Đã giao hàng',
-      cancelled: 'Đã hủy',
-    };
-    return statusMap[status] || status;
+    return this.orderStatus[status] || status;
   }
 
   getPaymentMethodClass(method: string): string {
     const methodMap: { [key: string]: string } = {
-      cash: 'payment-cash',
-      momo: 'payment-momo',
-      banking: 'payment-banking',
+      CASH: 'payment-cash',
+      E_WALLET: 'payment-momo',
+      BANKING: 'payment-banking',
     };
     return methodMap[method] || 'payment-default';
   }
 
   getPaymentMethodIcon(method: string): string {
     const iconMap: { [key: string]: string } = {
-      cash: 'fas fa-money-bill-wave',
-      momo: 'fab fa-paypal',
-      banking: 'fas fa-credit-card',
+      CASH: 'fas fa-money-bill-wave',
+      E_WALLET: 'fab fa-paypal',
+      BANKING: 'fas fa-credit-card',
     };
     return iconMap[method] || 'fas fa-wallet';
   }
 
   getPaymentMethodText(method: string): string {
     const methodMap: { [key: string]: string } = {
-      cash: 'Thanh toán khi nhận hàng',
-      momo: 'Ví MoMo',
-      banking: 'Chuyển khoản ngân hàng',
+      CASH: 'Thanh toán khi nhận hàng',
+      E_WALLET: 'Ví điện tử',
+      BANKING: 'Chuyển khoản ngân hàng',
     };
     return methodMap[method] || method;
   }
 
   getPaymentStatusClass(status: string): string {
     const statusMap: { [key: string]: string } = {
-      paid: 'payment-paid',
-      unpaid: 'payment-unpaid',
-      refunded: 'payment-refunded',
+      PAID: 'payment-paid',
+      PENDING: 'payment-pending',
+      FAILED: 'payment-failed',
     };
     return statusMap[status] || 'payment-default';
   }
 
   getPaymentStatusText(status: string): string {
-    const statusMap: { [key: string]: string } = {
-      paid: 'Đã thanh toán',
-      unpaid: 'Chưa thanh toán',
-      refunded: 'Đã hoàn tiền',
-    };
-    return statusMap[status] || status;
+    return this.orderPaymentStatus[status] || status;
   }
 
   canCancelOrder(status: string): boolean {
-    return ['pending', 'confirmed'].includes(status);
+    return ['PENDING', 'CONFIRMED'].includes(status);
   }
 
   canReorder(status: string): boolean {
-    return ['delivered', 'cancelled'].includes(status);
+    return ['DELIVERED', 'CANCELLED'].includes(status);
   }
 
-  trackByOrderId(index: number, order: any): number {
-    return order.id;
+  trackByOrderUuid(index: number, order: NewOrderResponseDTO): string {
+    return order.order_uuid;
   }
 
-  cancelOrder(orderId: number): void {
+  // New methods for actions
+  viewOrderDetails(order: NewOrderResponseDTO): void {
+    console.log('Viewing order details:', order);
+    // Navigate to order details page with order_uuid
+    this.router.navigate(['/order-details', order.order_uuid]);
+  }
+
+  editOrder(order: NewOrderResponseDTO): void {
+    console.log('Editing order:', order);
+    // Navigate to edit order page
+    this.router.navigate(['/edit-order', order.order_uuid]);
+  }
+
+  cancelOrder(orderUuid: string): void {
     if (confirm('Bạn có chắc chắn muốn hủy đơn hàng này?')) {
       // Implement cancel order logic
-      console.log('Cancel order:', orderId);
+      console.log('Cancel order:', orderUuid);
     }
   }
 
-  reorder(orderId: number): void {
+  reorder(orderUuid: string): void {
     // Implement reorder logic
-    console.log('Reorder:', orderId);
-    this.router.navigate(['/order-details', orderId], {
+    console.log('Reorder:', orderUuid);
+    this.router.navigate(['/order-details', orderUuid], {
       queryParams: { reorder: true },
     });
   }

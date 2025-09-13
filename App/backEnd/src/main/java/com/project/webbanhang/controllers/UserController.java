@@ -93,7 +93,13 @@ public class UserController {
             return ResponseEntity.badRequest().body(localizationUtil.getLocalizedMessage(MessageKey.REGISTER_FAILED, e.getMessage()));
         }
     }
-    
+
+    /**
+     * TOP 10 OWASP 2023
+     * API1:2023 - Broken Object Level Authorization (BOLA)
+     * Hacker có thể lấy id của người dùng khác và truy cập vào thông tin cá nhân của họ
+     * Giải pháp: Sử dụng token để xác thực người dùng hiện tại và chỉ trả về thông tin của họ
+     * */
     @PostMapping("/profile")
     public ResponseEntity<?> getUserProfile(
     		@RequestHeader("Authorization") String token

@@ -202,6 +202,9 @@ export class OrderComponent implements OnInit, OnDestroy {
     console.log('OrderDTO: ', orderDTO);
     this.orderService.createOrder(orderDTO).subscribe({
       next: (response: any) => {
+        this.notificationService.showSuccess(
+          'Đơn hàng đã được tạo thành công!'
+        );
         console.log('Đơn hàng đã được tạo:', response);
         this.orderId = response.order_id;
         this.momoInfoOrderDTO = {
@@ -211,7 +214,9 @@ export class OrderComponent implements OnInit, OnDestroy {
         this.createOrderDetail(this.orderId);
       },
       error: (error) => {
-        console.error('Lỗi khi tạo đơn hàng:', error);
+        this.notificationService.showError(
+          'Lỗi khi tạo đơn hàng: ' + error.message
+        );
       },
     });
   }
@@ -238,8 +243,6 @@ export class OrderComponent implements OnInit, OnDestroy {
       });
     });
 
-    this.clearCart();
-
     if (this.momoInfoOrderDTO) {
       this.momoService.createQR(this.momoInfoOrderDTO).subscribe({
         next: (response: CreateMomoResponse) => {
@@ -256,6 +259,8 @@ export class OrderComponent implements OnInit, OnDestroy {
         },
       });
     }
+
+    this.clearCart();
 
     this.isLoading = false;
   }

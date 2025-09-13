@@ -1,5 +1,8 @@
-package com.project.webbanhang.models;
+package com.project.webbanhang.models.orders;
 
+import com.project.webbanhang.models.BaseEntity;
+import com.project.webbanhang.models.PaymentMethod;
+import com.project.webbanhang.models.PaymentStatus;
 import jakarta.persistence.*;
 import lombok.*;
 

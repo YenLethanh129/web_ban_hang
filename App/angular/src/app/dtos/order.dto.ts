@@ -25,6 +25,21 @@ export interface OrderResponseDTO {
   last_modified: string;
 }
 
+// New interface for the updated API response
+export interface NewOrderResponseDTO {
+  created_at: string;
+  last_modified: string;
+  order_uuid: string;
+  note: string;
+  status: string;
+  total_money: number;
+  order_date: string;
+  shipping_method: string;
+  payment_method: string;
+  payment_status: string;
+  order_details: OrderDetailResponseDTO[];
+}
+
 export interface OrderDetailDTO {
   order_id: number;
   product_id: number;

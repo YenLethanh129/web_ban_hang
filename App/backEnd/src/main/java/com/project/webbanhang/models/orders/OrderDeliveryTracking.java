@@ -1,8 +1,11 @@
-package com.project.webbanhang.models;
+package com.project.webbanhang.models.orders;
 
+import com.project.webbanhang.models.BaseEntity;
+import com.project.webbanhang.models.DeliveryStatus;
+import com.project.webbanhang.models.Employee;
+import com.project.webbanhang.models.ShippingProvider;
 import jakarta.persistence.*;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
 
