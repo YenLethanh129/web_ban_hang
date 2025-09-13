@@ -9,6 +9,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+import java.util.Date;
+
 @Builder
 @Getter
 @Setter
@@ -23,6 +26,9 @@ public class UserResponse {
     
     @JsonProperty("phone_number")
     private String phoneNumber;
+
+	@JsonProperty("date_of_birth")
+	private Date dateOfBirth;
     
     @JsonProperty("address")
     private String address;
@@ -32,6 +38,7 @@ public class UserResponse {
 				.userId(user.getId())
 				.fullName(user.getFullName())
 				.address(user.getAddress())
+				.dateOfBirth(user.getDateOfBirth())
 				.phoneNumber(user.getPhoneNumber())
 				.build();
 		return userResponse;

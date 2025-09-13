@@ -15,6 +15,7 @@ import { InfoOrderComponent } from './components/info-order/info-order.component
 import { SearchResultsComponent } from './components/search-results/search-results.component';
 import { UserProfileComponent } from './components/user-profile/user-profile.component';
 import { ChangePasswordComponent } from './components/change-password/change-password.component';
+import { ContractInfoComponent } from './components/contract-info/contract-info.component';
 
 export const routes: Routes = [
   {
@@ -70,6 +71,10 @@ export const routes: Routes = [
     path: 'change-password',
     component: ChangePasswordComponent,
     canActivate: [AuthGuard],
+  },
+  {
+    path: 'contract-info',
+    component: ContractInfoComponent,
   },
   { path: '**', redirectTo: 'home' },
 ];

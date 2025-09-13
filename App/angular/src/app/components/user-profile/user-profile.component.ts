@@ -51,6 +51,7 @@ export class UserProfileComponent implements OnInit {
   loadUserProfile(): void {
     this.userService.getUser().subscribe({
       next: (profile) => {
+        console.log('UserProfileComponent:', profile);
         this.profile = profile;
         // Initialize edit form with current data
         this.editData.fullname = profile.fullname;
@@ -110,8 +111,22 @@ export class UserProfileComponent implements OnInit {
   }
 
   formatDateForDisplay(date: Date): string {
+    console.log('Formatting date:', date);
     if (!date) return 'Chưa cập nhật';
-    return new Date(date).toLocaleDateString('vi-VN');
+    // Xử lý cả trường hợp date là string ISO hoặc Date object
+    let d: Date;
+    if (typeof date === 'string') {
+      d = new Date(date);
+    } else {
+      d = date;
+    }
+    // Nếu date không hợp lệ, trả về 'Chưa cập nhật'
+    if (isNaN(d.getTime())) return 'Chưa cập nhật';
+    // Hiển thị dạng dd/MM/yyyy
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
   }
 
   onAddressSelected(prediction: AddressPrediction): void {

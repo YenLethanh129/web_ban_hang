@@ -59,7 +59,7 @@ public class ProductController {
         			.totalPage(totalPages)
                     .totalItem((int)productPage.getTotalElements())
         			.build();
-        	
+
             return ResponseEntity.ok(productListResponse);
 		} catch (Exception e) {
 			return ResponseEntity.badRequest().body(e.getMessage());

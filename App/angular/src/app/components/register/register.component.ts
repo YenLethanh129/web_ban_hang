@@ -78,9 +78,6 @@ export class RegisterComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  /**
-   * Tự động điền thông tin từ profile user đã đăng nhập
-   */
   autofillFromProfile(): void {
     const addressInfo = this.userAddressService.getCurrentAddress();
     if (addressInfo) {
@@ -115,8 +112,31 @@ export class RegisterComponent implements OnInit, OnDestroy {
     this.registerData.phoneNumber = input.value;
   }
 
+  /**
+   * @requires Password length >= 12
+   * @requires At least one uppercase letter
+   * @requires At least one lowercase letter
+   * @requires At least one digit
+   * @requires At least one special character
+   * @returns message if invalid, empty string if valid
+   */
   validatePassword(): boolean {
-    return this.registerData.password.length >= 6;
+    const password = this.registerData.password;
+    const hasUppercase = /[A-Z]/.test(password);
+    const hasLowercase = /[a-z]/.test(password);
+    const hasNumber = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    return (
+      password.length >= 12 &&
+      hasUppercase &&
+      hasLowercase &&
+      hasNumber &&
+      hasSpecialChar
+    );
+  }
+
+  showPasswordRequirements(): string {
+    return `Mật khẩu phải có ít nhất 12 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt.`;
   }
 
   validateConfirmPassword(): boolean {
