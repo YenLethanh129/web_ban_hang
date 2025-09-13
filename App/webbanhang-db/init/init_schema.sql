@@ -86,6 +86,19 @@ CREATE TABLE [dbo].[roles] (
 );
 GO
 
+-- Employee Position
+-- Positions table
+CREATE TABLE [dbo].[positions] (
+    [id] BIGINT IDENTITY(1,1) NOT NULL,
+    [name] NVARCHAR(100) COLLATE Vietnamese_CI_AS NOT NULL,
+    [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [need_schedule] BIT NOT NULL DEFAULT 0,
+    CONSTRAINT [PK_positions] PRIMARY KEY ([id])
+);
+GO
+
+
 -- Permissions table
 CREATE TABLE [dbo].[permissions] (
     [id] bigint IDENTITY(1,1) NOT NULL,
@@ -239,16 +252,18 @@ CREATE TABLE [dbo].[employees] (
     [full_name] nvarchar(255) COLLATE Vietnamese_CI_AS NOT NULL,
     [phone] varchar(20),
     [email] varchar(255),
-    [position] nvarchar(100) COLLATE Vietnamese_CI_AS,
+    [position_id] bigint NOT NULL,
     [hire_date] datetime2,
+    [resign_date] datetime2,
     [status] varchar(20) DEFAULT 'ACTIVE',
     [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
     [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
     CONSTRAINT [PK_employees] PRIMARY KEY ([id]),
-    CONSTRAINT [FK_employees_branches] FOREIGN KEY ([branch_id]) REFERENCES [dbo].[branches]([id])
+    CONSTRAINT [FK_employees_branches] FOREIGN KEY ([branch_id]) REFERENCES [dbo].[branches]([id]),
+    CONSTRAINT [FK_employees_positions] FOREIGN KEY ([position_id]) REFERENCES [dbo].[positions]([id])
 );
-GO
 
+GO 
 -- Products table
 CREATE TABLE [dbo].[products] (
     [id] bigint IDENTITY(1,1) NOT NULL,
@@ -1053,7 +1068,7 @@ SELECT
     e.[id] as [employee_id],
     e.[full_name],
     b.[name] as [branch_name],
-    e.[position] as [position_name],
+    e.[position_id],
     s.[base_salary],
     s.[salary_type],
     s.[allowance] as [total_allowances],

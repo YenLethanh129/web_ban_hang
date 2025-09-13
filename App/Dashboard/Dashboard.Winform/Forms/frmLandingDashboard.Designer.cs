@@ -778,7 +778,7 @@ namespace Dashboard.Winform
             label13.Text = "Hàng sắp hết";
             label13.TextAlign = ContentAlignment.MiddleLeft;
             // 
-            // FrmLandingDashboard
+            // frmLandingDashboard
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
@@ -789,7 +789,7 @@ namespace Dashboard.Winform
             ForeColor = SystemColors.ControlText;
             FormBorderStyle = FormBorderStyle.None;
             MinimumSize = new Size(980, 640);
-            Name = "FrmLandingDashboard";
+            Name = "frmLandingDashboard";
             Text = "  ";
             Load += MainDashboardForm_Load;
             mainTableLayout.ResumeLayout(false);

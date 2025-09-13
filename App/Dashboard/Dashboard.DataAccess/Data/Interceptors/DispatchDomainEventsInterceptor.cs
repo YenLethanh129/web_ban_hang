@@ -1,7 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Dashboard.DataAccess.Models.Entities;
+using Dashboard.DataAccess.Models.Entities.Base;
 
 namespace Dashboard.DataAccess.Data.Interceptors;
 public class DispatchDomainEventsInterceptor(IMediator mediator) : SaveChangesInterceptor

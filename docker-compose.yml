@@ -77,7 +77,16 @@ services:
       - "traefik.http.middlewares.backend-ratelimit.ratelimit.average=10"
       - "traefik.http.middlewares.backend-ratelimit.ratelimit.burst=20"
       - "traefik.http.middlewares.backend-ratelimit.ratelimit.period=1s"
-      - "traefik.http.routers.backend.middlewares=backend-ratelimit@docker"
+      # IP strategy to prevent fake IPs
+      - "traefik.http.middlewares.backend-ip.ipstrategy.depth=1"
+      # Security headers to prevent common attacks
+      - "traefik.http.middlewares.backend-security.headers.customrequestheaders.X-Forwarded-Proto=https"
+      - "traefik.http.middlewares.backend-security.headers.customresponseheaders.X-Frame-Options=DENY"
+      - "traefik.http.middlewares.backend-security.headers.customresponseheaders.X-Content-Type-Options=nosniff"
+      - "traefik.http.middlewares.backend-security.headers.customresponseheaders.Content-Security-Policy=default-src 'self'"
+      # Compression to reduce bandwidth usage
+      - "traefik.http.middlewares.backend-compress.compress=true"
+      - "traefik.http.routers.backend.middlewares=backend-ratelimit@docker,backend-ip@docker,backend-security@docker,backend-compress@docker"
     ports:
       - "1609:1609"
     networks:
@@ -101,6 +110,20 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.frontend.rule=Host(`web.localhost`)"
       - "traefik.http.services.frontend.loadbalancer.server.port=4200"
+      # Rate limiting: 50 requests / 10s for frontend
+      - "traefik.http.middlewares.frontend-ratelimit.ratelimit.average=5"
+      - "traefik.http.middlewares.frontend-ratelimit.ratelimit.burst=10"
+      - "traefik.http.middlewares.frontend-ratelimit.ratelimit.period=1s"
+      # IP strategy to prevent fake IPs
+      - "traefik.http.middlewares.frontend-ip.ipstrategy.depth=1"
+      # Security headers to prevent common attacks
+      - "traefik.http.middlewares.frontend-security.headers.customrequestheaders.X-Forwarded-Proto=https"
+      - "traefik.http.middlewares.frontend-security.headers.customresponseheaders.X-Frame-Options=DENY"
+      - "traefik.http.middlewares.frontend-security.headers.customresponseheaders.X-Content-Type-Options=nosniff"
+      - "traefik.http.middlewares.frontend-security.headers.customresponseheaders.Content-Security-Policy=default-src 'self'"
+      # Compression to reduce bandwidth usage
+      - "traefik.http.middlewares.frontend-compress.compress=true"
+      - "traefik.http.routers.frontend.middlewares=frontend-ratelimit@docker,frontend-ip@docker,frontend-security@docker,frontend-compress@docker"
     networks:
       - app-network
 

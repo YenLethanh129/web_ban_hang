@@ -16,11 +16,13 @@ public interface IRepository<T> where T : class
     Task<T?> GetAsync(Guid id);
     Task<T?> AddAsync(T entity);
     Task<T?> AnyAsnc(Func<T, bool>? predicate = null);
+    IQueryable<T> GetQueryable(bool asNoTracking = false);
 
     void Add(T entity);
     void AddRange(IEnumerable<T> entities);
     void Remove(T entity);
     void RemoveRange(IEnumerable<T> entities);
+    void Update(T entity);
 
     Task<IEnumerable<T>> GetAllWithSpecAsync(ISpecification<T> spec, bool asNoTracking = false, int? skip = null, int? take = null, string? sortBy = null, OrderByEnum? orderBy = null);
     Task<T?> GetWithSpecAsync(ISpecification<T> spec, bool asNoTracking = false);
@@ -38,6 +40,9 @@ public class Repository<T> : IRepository<T> where T : class
         _dbSet = dbContext.Set<T>();
     }
 
+    public IQueryable<T> GetQueryable(bool asNoTracking = false) => asNoTracking ? _dbSet.AsNoTracking() : _dbSet;
+
+
     public async Task<IEnumerable<T>> GetAllAsync(bool asNoTracking = false)
     {
         if (asNoTracking)
@@ -50,6 +55,10 @@ public class Repository<T> : IRepository<T> where T : class
     public async Task<int> GetCountAsync()
     {
         return await _dbSet.CountAsync();
+    }
+    public void Update(T entity)
+    {
+        var updatedEntity = _dbSet.Update(entity);
     }
 
     public async Task<T?> GetAsync(int id)

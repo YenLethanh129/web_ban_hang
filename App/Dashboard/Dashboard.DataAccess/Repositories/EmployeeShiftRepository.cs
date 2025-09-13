@@ -1,7 +1,7 @@
-using Dashboard.DataAccess.Models.Entities;
 using Dashboard.DataAccess.Specification;
 using Dashboard.DataAccess.Context;
 using Microsoft.EntityFrameworkCore;
+using Dashboard.DataAccess.Models.Entities.Employees;
 
 namespace Dashboard.DataAccess.Repositories;
 

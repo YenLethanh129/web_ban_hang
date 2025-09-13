@@ -1,5 +1,5 @@
 using Dashboard.DataAccess.Context;
-using Dashboard.DataAccess.Models.Entities;
+using Dashboard.DataAccess.Models.Entities.GoodsIngredientsAndStock;
 using Microsoft.EntityFrameworkCore;
 
 namespace Dashboard.StockWorker.Services

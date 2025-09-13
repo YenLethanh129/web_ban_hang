@@ -1,5 +1,6 @@
 using Dashboard.BussinessLogic.Dtos.ExpenseDtos;
-using Dashboard.DataAccess.Models.Entities;
+using Dashboard.DataAccess.Models.Entities.Branches;
+using Dashboard.DataAccess.Models.Entities.FinacialAndReports;
 using Dashboard.DataAccess.Specification;
 using Sprache;
 using System.Linq.Expressions;

@@ -5,7 +5,7 @@ using Dashboard.BussinessLogic.Shared;
 using Dashboard.BussinessLogic.Specifications;
 using Dashboard.Common.Enums;
 using Dashboard.DataAccess.Data;
-using Dashboard.DataAccess.Models.Entities;
+using Dashboard.DataAccess.Models.Entities.Orders;
 using Dashboard.DataAccess.Repositories;
 using Dashboard.DataAccess.Specification;
 

@@ -3,6 +3,7 @@ using Dashboard.DataAccess.Context;
 using Dashboard.BussinessLogic; 
 using Microsoft.EntityFrameworkCore;
 using Dashboard.API.Middleware;
+using Dashboard.ServiceDefaults;
 
 var builder = WebApplication.CreateBuilder(args);
 

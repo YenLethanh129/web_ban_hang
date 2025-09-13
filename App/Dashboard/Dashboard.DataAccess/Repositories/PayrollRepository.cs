@@ -1,26 +1,26 @@
-using Dashboard.DataAccess.Models.Entities;
 using Dashboard.DataAccess.Specification;
 using Dashboard.DataAccess.Context;
 using Microsoft.EntityFrameworkCore;
+using Dashboard.DataAccess.Models.Entities.Employees;
 
 namespace Dashboard.DataAccess.Repositories;
 
-public interface IPayrollRepository : IRepository<Payroll>
+public interface IPayrollRepository : IRepository<EmployeePayroll>
 {
-    Task<List<Payroll>> GetPayrollsByMonthAsync(int month, int year, long? branchId = null);
-    Task<Payroll?> GetPayrollByEmployeeAndMonthAsync(long employeeId, int month, int year);
-    Task<List<Payroll>> GetPayrollsByEmployeeAsync(long employeeId, int? year = null);
+    Task<List<EmployeePayroll>> GetPayrollsByMonthAsync(int month, int year, long? branchId = null);
+    Task<EmployeePayroll?> GetPayrollByEmployeeAndMonthAsync(long employeeId, int month, int year);
+    Task<List<EmployeePayroll>> GetPayrollsByEmployeeAsync(long employeeId, int? year = null);
     Task<decimal> GetTotalSalaryByBranchAsync(long branchId, int month, int year);
     Task<bool> ExistsPayrollAsync(long employeeId, int month, int year);
 }
 
-public class PayrollRepository : Repository<Payroll>, IPayrollRepository
+public class PayrollRepository : Repository<EmployeePayroll>, IPayrollRepository
 {
     public PayrollRepository(WebbanhangDbContext context) : base(context)
     {
     }
 
-    public async Task<List<Payroll>> GetPayrollsByMonthAsync(int month, int year, long? branchId = null)
+    public async Task<List<EmployeePayroll>> GetPayrollsByMonthAsync(int month, int year, long? branchId = null)
     {
         var query = _context.Payrolls
             .Include(p => p.Employee)
@@ -35,7 +35,7 @@ public class PayrollRepository : Repository<Payroll>, IPayrollRepository
         return await query.OrderBy(p => p.Employee.FullName).ToListAsync();
     }
 
-    public async Task<Payroll?> GetPayrollByEmployeeAndMonthAsync(long employeeId, int month, int year)
+    public async Task<EmployeePayroll?> GetPayrollByEmployeeAndMonthAsync(long employeeId, int month, int year)
     {
         return await _context.Payrolls
             .Include(p => p.Employee)
@@ -43,7 +43,7 @@ public class PayrollRepository : Repository<Payroll>, IPayrollRepository
             .FirstOrDefaultAsync(p => p.EmployeeId == employeeId && p.Month == month && p.Year == year);
     }
 
-    public async Task<List<Payroll>> GetPayrollsByEmployeeAsync(long employeeId, int? year = null)
+    public async Task<List<EmployeePayroll>> GetPayrollsByEmployeeAsync(long employeeId, int? year = null)
     {
         var query = _context.Payrolls
             .Include(p => p.Employee)
@@ -77,6 +77,7 @@ public interface IEmployeeSalaryRepository : IRepository<EmployeeSalary>
     Task<EmployeeSalary?> GetCurrentSalaryAsync(long employeeId);
     Task<List<EmployeeSalary>> GetSalaryHistoryAsync(long employeeId);
     Task<EmployeeSalary?> GetSalaryByDateAsync(long employeeId, DateTime date);
+    Task UpdateSalaryAsync(EmployeeSalary salary);
 }
 
 public class EmployeeSalaryRepository : Repository<EmployeeSalary>, IEmployeeSalaryRepository
@@ -110,5 +111,12 @@ public class EmployeeSalaryRepository : Repository<EmployeeSalary>, IEmployeeSal
             .Where(s => s.EmployeeId == employeeId && s.EffectiveDate <= date)
             .OrderByDescending(s => s.EffectiveDate)
             .FirstOrDefaultAsync();
+    }
+    public async Task UpdateSalaryAsync(EmployeeSalary salary)
+    {
+        _ = await _context.EmployeeSalaries.FirstOrDefaultAsync(s => s.Id == salary.Id)
+            ?? throw new ArgumentException($"Salary record with ID {salary.Id} does not exist.");
+        _context.EmployeeSalaries.Update(salary);
+        await _context.SaveChangesAsync();
     }
 }

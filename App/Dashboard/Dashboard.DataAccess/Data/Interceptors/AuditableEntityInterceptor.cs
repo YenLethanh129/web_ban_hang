@@ -1,4 +1,4 @@
-﻿using Dashboard.DataAccess.Models.Entities;
+﻿using Dashboard.DataAccess.Models.Entities.Base;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;

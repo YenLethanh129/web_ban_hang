@@ -1,5 +1,5 @@
 ﻿using Dashboard.DataAccess.Context;
-using Dashboard.DataAccess.Models.Entities;
+using Dashboard.DataAccess.Models.Entities.Products;
 using Microsoft.EntityFrameworkCore;
 
 namespace Dashboard.DataAccess.Repositories;
@@ -10,8 +10,6 @@ public interface IProductRepository : IRepository<Product>
     Task<Product?> GetProductWithDetailsAsync(long id);
     Task<IEnumerable<Product>> GetProductsByCategoryAsync(long categoryId);
     Task<bool> IsProductNameExistsAsync(string name, long? excludeId = null);
-
-    void Update(Product product);
 }
 
 public class ProductRepository : Repository<Product>, IProductRepository
@@ -58,8 +56,4 @@ public class ProductRepository : Repository<Product>, IProductRepository
         return await query.AnyAsync();
     }
 
-    public void Update(Product product)
-    {
-        _context.Products.Update(product);
-    }
 }

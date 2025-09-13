@@ -1,5 +1,5 @@
 using Dashboard.BussinessLogic.Dtos.AuthDtos;
-using Dashboard.BussinessLogic.Services;
+using Dashboard.BussinessLogic.Services.RBACServices;
 using Dashboard.BussinessLogic.Shared;
 
 namespace Dashboard.Winform.Helpers;

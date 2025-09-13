@@ -3,7 +3,7 @@ using Dashboard.BussinessLogic.Dtos.ReportDtos;
 using Dashboard.DataAccess.Models.Entities;
 using Dashboard.Winform.ViewModels;
 
-namespace Dashboard.BussinessLogic.Mappings;
+namespace Dashboard.Winform.Mappings;
 
 public class ReportMappingProfile : Profile
 {

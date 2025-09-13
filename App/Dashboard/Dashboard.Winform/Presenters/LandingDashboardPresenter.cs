@@ -2,6 +2,9 @@
 using Dashboard.BussinessLogic.Dtos.ReportDtos;
 using Dashboard.BussinessLogic.Dtos.SupplierDtos;
 using Dashboard.BussinessLogic.Services;
+using Dashboard.BussinessLogic.Services.Customers;
+using Dashboard.BussinessLogic.Services.ReportServices;
+using Dashboard.BussinessLogic.Services.SupplierServices;
 using Dashboard.Winform.ViewModels;
 using System.ComponentModel;
 

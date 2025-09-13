@@ -1,6 +1,7 @@
 ﻿using Dashboard.BussinessLogic;
-using Dashboard.BussinessLogic.Mappings;
 using Dashboard.DataAccess;
+using Dashboard.Winform.Forms;
+using Dashboard.Winform.Mappings;
 using Dashboard.Winform.Presenters;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,10 +33,19 @@ namespace Dashboard.Winform
             builder.AddBussinessLogicServices();
 
             builder.Services.AddAutoMapper(typeof(ReportMappingProfile));
+            builder.Services.AddAutoMapper(typeof(BranchViewModelMappingProfile));
 
-            builder.Services.AddScoped<ILandingDashboardPresenter, LandingDashboardPresenter>();
+            builder.Services.AddTransient<ILandingDashboardPresenter, LandingDashboardPresenter>();
+            builder.Services.AddTransient<IEmployeeDetailsPresenter, EmployeeDetailsPresenter>();
+            builder.Services.AddScoped<EmployeeManagementPresenter>();
+            // Register Forms
             builder.Services.AddTransient<frmLandingDashboard>();
+            builder.Services.AddTransient<FrmEmployeeManagement>();
             builder.Services.AddTransient<FrmBaseMdiWithSidePanel>();
+            builder.Services.AddTransient<FrmProductManagement>();
+            builder.Services.AddTransient<FrmRecipeDetails>();
+            builder.Services.AddTransient<FrmProductDetails>();
+            builder.Services.AddTransient<FrmEmployeeDetails>();
 
             using var host = builder.Build();
 

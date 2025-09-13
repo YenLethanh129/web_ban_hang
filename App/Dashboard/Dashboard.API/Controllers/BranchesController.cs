@@ -1,5 +1,5 @@
 ﻿using Dashboard.BussinessLogic.Dtos.BranchDtos;
-using Dashboard.BussinessLogic.Services;
+using Dashboard.BussinessLogic.Services.BranchServices;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Dashboard.API.Controllers;

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Dashboard.BussinessLogic.Dtos.IngredientDtos;
-using Dashboard.DataAccess.Models.Entities;
+using Dashboard.DataAccess.Models.Entities.Branches;
+using Dashboard.DataAccess.Models.Entities.GoodsIngredientsAndStock;
 
 namespace Dashboard.BussinessLogic.Mappings;
 

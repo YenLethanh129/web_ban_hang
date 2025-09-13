@@ -1,6 +1,6 @@
 ﻿using Dashboard.Common.Utitlities;
 using Dashboard.DataAccess.Context;
-using Dashboard.DataAccess.Models.Entities;
+using Dashboard.DataAccess.Models.Entities.Orders;
 using Microsoft.EntityFrameworkCore;
 
 namespace Dashboard.DataAccess.Repositories;
@@ -8,7 +8,6 @@ namespace Dashboard.DataAccess.Repositories;
 public interface IOrderRepository : IRepository<Order>
 {
     new void Add(Order entity);
-    void Update(Order order);
     Task<Order?> GetOrderByCodeAsync(string orderCode);
     Task<Dictionary<long, decimal>> GetProductPricesAsync(List<long> productIds);
 }
@@ -20,11 +19,6 @@ public class OrderRepository(WebbanhangDbContext context) : Repository<Order>(co
         entity.OrderCode = GenerateOrderCodeAsync().Result;
         entity.OrderUuid = Guid.NewGuid().ToString();
         base.Add(entity);
-    }
-
-    public void Update(Order order)
-    {
-        _context.Orders.Update(order);
     }
 
     private async Task<string> GenerateOrderCodeAsync()

@@ -1,5 +1,5 @@
 ﻿using Dashboard.DataAccess.Context;
-using Dashboard.DataAccess.Models.Entities;
+using Dashboard.DataAccess.Models.Entities.Products;
 using Microsoft.EntityFrameworkCore;
 
 namespace Dashboard.DataAccess.Repositories; 

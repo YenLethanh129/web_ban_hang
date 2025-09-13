@@ -1,5 +1,5 @@
 using Dashboard.BussinessLogic.Dtos.IngredientDtos;
-using Dashboard.DataAccess.Models.Entities;
+using Dashboard.DataAccess.Models.Entities.GoodsIngredientsAndStock;
 using Dashboard.DataAccess.Specification;
 
 namespace Dashboard.BussinessLogic.Specifications;

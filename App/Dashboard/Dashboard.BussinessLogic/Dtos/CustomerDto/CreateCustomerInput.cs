@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Dashboard.BussinessLogic.Dtos.CustomerDtos;
+namespace Dashboard.BussinessLogic.Dtos.CustomerDto;
 
 public class CreateCustomerInput
 {

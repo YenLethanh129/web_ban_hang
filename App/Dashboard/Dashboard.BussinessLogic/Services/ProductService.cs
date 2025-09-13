@@ -4,6 +4,7 @@ using Dashboard.BussinessLogic.Dtos.ProductDtos;
 using Dashboard.Common.Enums;
 using Dashboard.DataAccess.Data;
 using Dashboard.DataAccess.Models.Entities;
+using Dashboard.DataAccess.Models.Entities.Products;
 using Dashboard.DataAccess.Repositories;
 using Dashboard.DataAccess.Specification;
 using Microsoft.Extensions.Logging;

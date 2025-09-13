@@ -1,3 +1,4 @@
+using Dashboard.DataAccess.Models.Entities.GoodsIngredientsAndStock;
 using Dashboard.StockWorker.Services;
 
 namespace Dashboard.StockWorker;
@@ -48,7 +49,7 @@ public class Worker : BackgroundService
         var lowStockAlerts = await stockCalculationService.GetLowStockAlertsAsync();
         var outOfStockAlerts = await stockCalculationService.GetOutOfStockAlertsAsync();
         
-        var allAlerts = new List<Dashboard.DataAccess.Models.Entities.InventoryThreshold>();
+        var allAlerts = new List<InventoryThreshold>();
         allAlerts.AddRange(lowStockAlerts);
         allAlerts.AddRange(outOfStockAlerts);
 

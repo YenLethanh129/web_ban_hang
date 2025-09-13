@@ -1,6 +1,6 @@
 using AutoMapper;
 using Dashboard.BussinessLogic.Dtos.AuthDtos;
-using Dashboard.DataAccess.Models.Entities;
+using Dashboard.DataAccess.Models.Entities.RBAC;
 
 namespace Dashboard.BussinessLogic.Mappings;
 
@@ -12,7 +12,7 @@ public class AuthMappingProfile : Profile
             .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.Fullname ?? ""))
             .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.Role.Name))
             .ForMember(dest => dest.EmployeeName, opt => opt.MapFrom(src => src.Employee != null ? src.Employee.FullName : null))
-            .ForMember(dest => dest.Position, opt => opt.MapFrom(src => src.Employee != null ? src.Employee.Position : null))
+            .ForMember(dest => dest.PositionId, opt => opt.MapFrom(src => src.Employee != null ? src.Employee.Position : null))
             .ForMember(dest => dest.BranchId, opt => opt.MapFrom(src => src.Employee != null ? (long?)src.Employee.BranchId : null))
             .ForMember(dest => dest.BranchName, opt => opt.MapFrom(src => src.Employee != null && src.Employee.Branch != null ? src.Employee.Branch.Name : null))
             .ForMember(dest => dest.Permissions, opt => opt.Ignore());

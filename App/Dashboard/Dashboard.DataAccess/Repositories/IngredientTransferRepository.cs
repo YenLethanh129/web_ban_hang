@@ -1,5 +1,7 @@
 using Dashboard.DataAccess.Context;
-using Dashboard.DataAccess.Models.Entities;
+using Dashboard.DataAccess.Models.Entities.Branches;
+using Dashboard.DataAccess.Models.Entities.EnumTypes;
+using Dashboard.DataAccess.Models.Entities.GoodsIngredientsAndStock;
 using Dashboard.DataAccess.Specification;
 using Microsoft.EntityFrameworkCore;
 

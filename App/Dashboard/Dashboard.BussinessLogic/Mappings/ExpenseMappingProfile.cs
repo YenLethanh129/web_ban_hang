@@ -1,6 +1,7 @@
 using AutoMapper;
 using Dashboard.BussinessLogic.Dtos.ExpenseDtos;
-using Dashboard.DataAccess.Models.Entities;
+using Dashboard.DataAccess.Models.Entities.Branches;
+using Dashboard.DataAccess.Models.Entities.FinacialAndReports;
 
 namespace Dashboard.BussinessLogic.Mappings;
 

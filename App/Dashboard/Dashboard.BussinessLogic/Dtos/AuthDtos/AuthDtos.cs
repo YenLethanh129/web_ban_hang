@@ -11,7 +11,7 @@ public class UserDto
     public string RoleName { get; set; } = string.Empty;
     public long? EmployeeId { get; set; }
     public string? EmployeeName { get; set; }
-    public string? Position { get; set; }
+    public long? PositionId { get; set; }
     public long? BranchId { get; set; }
     public string? BranchName { get; set; }
     public List<string> Permissions { get; set; } = new();
@@ -58,7 +58,7 @@ public class RoleDto
     public long Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
-    public List<PermissionDto> Permissions { get; set; } = new();
+    public List<PermissionDto> Permissions { get; set; } = [];
     public int UserCount { get; set; }
     public DateTime CreatedAt { get; set; }
 }
@@ -80,7 +80,7 @@ public class SessionDto
     public string FullName { get; set; } = string.Empty;
     public string RoleName { get; set; } = string.Empty;
     public long? EmployeeId { get; set; }
-    public string? Position { get; set; }
+    public long? PositionId { get; set; }
     public long? BranchId { get; set; }
     public string? BranchName { get; set; }
     public List<string> Permissions { get; set; } = new();

@@ -53,6 +53,7 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="$(Efcoreversion)" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="$(EfcoreVersion)" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="$(EfcoreVersion)" />
+    <PackageVersion Include="EntityFrameworkCore.EncryptColumn" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Data.SqlClient" Version="5.2.2" />
     <!-- AspNetCore -->
     <PackageVersion Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="$(EfcoreVersion)" />

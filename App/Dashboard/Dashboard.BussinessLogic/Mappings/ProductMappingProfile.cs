@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using Dashboard.BussinessLogic.Dtos.ProductDtos;
-using Dashboard.DataAccess.Models.Entities;
+using Dashboard.DataAccess.Models.Entities.Products;
 
 namespace Dashboard.BussinessLogic.Mappings;
 
