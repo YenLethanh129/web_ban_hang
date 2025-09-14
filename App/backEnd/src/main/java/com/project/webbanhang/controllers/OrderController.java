@@ -26,6 +26,7 @@ public class OrderController {
     @PostMapping("")
     public ResponseEntity<?> createOrder(
             @RequestBody @Valid OrderDTO orderDTO,
+            @RequestHeader("Authorization") String token,
             BindingResult result
     ) {
         try {
@@ -36,8 +37,9 @@ public class OrderController {
                         .toList();
                 return ResponseEntity.badRequest().body(errorMessages);
             }
+            String extractedToken = token.substring(7);
             
-            OrderResponse existingOrderResponse = orderService.createOrder(orderDTO);
+            OrderResponse existingOrderResponse = orderService.createOrder(extractedToken, orderDTO);
             
             return ResponseEntity.ok(existingOrderResponse);
         } catch (Exception e) {
@@ -59,6 +61,12 @@ public class OrderController {
 //    }
 
     // Done
+    /**
+     * TOP 10 OWASP 2023
+     * API1:2023 - Broken Object Level Authorization (BOLA)
+     * Hacker có thể lấy id của người dùng khác và truy cập vào thông tin cá nhân của họ
+     * Giải pháp: Sử dụng token để xác thực người dùng hiện tại và chỉ trả về thông tin của họ
+     * */
     @PostMapping("/user")
     public ResponseEntity<?> getOrdersByUserId(
             @RequestHeader("Authorization") String token

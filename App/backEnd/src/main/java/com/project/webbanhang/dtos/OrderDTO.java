@@ -13,10 +13,6 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 public class OrderDTO {
-    @JsonProperty("user_id")
-    @Min(value = 1, message = "User ID must be greater than 0")
-    private Long userId;
-
     @JsonProperty("full_name")
     private String fullName;
 

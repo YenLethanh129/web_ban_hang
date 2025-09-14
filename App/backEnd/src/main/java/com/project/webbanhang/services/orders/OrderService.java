@@ -32,15 +32,17 @@ public class OrderService implements IOrderService {
     private final OrderPaymentRepository orderPaymentRepository;
 
 	/**
-	 * create OrderDeliveryTracking
-	 * create OrderPayment
-	 * create OrderShipment
+	 * TOP 10 OWASP 2023
+	 * API1:2023 - Broken Object Level Authorization (BOLA)
+	 * Thay vì truyền userId từ client, ta sẽ lấy userId từ token
+	 * Điều này ngăn chặn việc hacker có thể lấy id của người dùng khác và truy cập vào thông tin cá nhân của họ
 	 * */
 	@Override
-	public OrderResponse createOrder(OrderDTO orderDTO) throws Exception {
+	public OrderResponse createOrder(String token, OrderDTO orderDTO) throws Exception {
 		// tim user
-		Customer customer = customerRepository.findById(orderDTO.getUserId())
-				.orElseThrow(() -> new DataNotFoundException("Can't not found user with id " + orderDTO.getUserId()));
+		User user = userService.getUserProfileFromToken(token);
+		Customer customer = customerRepository.findById(user.getId())
+				.orElseThrow(() -> new DataNotFoundException("Can't not found user with id " + user.getId()));
 		OrderStatus orderStatus = OrderStatus.builder()
 				.id(1L)
 				.name(OrderStatus.PENDING)
