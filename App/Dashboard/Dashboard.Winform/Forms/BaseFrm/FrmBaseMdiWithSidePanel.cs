@@ -1,5 +1,6 @@
 ﻿using Dashboard.Winform.Controls;
 using Dashboard.Winform.Forms;
+using Dashboard.Winform.Forms.GoodsFrms;
 using Dashboard.Winform.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -604,11 +605,35 @@ namespace Dashboard.Winform
             }, "Đang tải Dashboard...", true);
         }
 
-        private void LaunchGoodsForm(object sender, EventArgs e)
+        private async void LaunchGoodsForm(object sender, EventArgs e)
         {
-            FrmBaseManagement frmGoodsManagement = new FrmBaseManagement();
-            OpenChildForm(frmGoodsManagement);
+            //FrmBaseManagement frmGoodsManagement = new FrmBaseManagement();
+            //OpenChildForm(frmGoodsManagement);
 
+            await ExecuteWithLoadingInternalAsync(async () =>
+            {
+                FrmGoodsManagement frmGoodsManagement = null!;
+                await Task.Run(() =>
+                {
+                    if (InvokeRequired)
+                    {
+                        Invoke(new Action(() =>
+                        {
+                            frmGoodsManagement = _serviceProvider.GetRequiredService<FrmGoodsManagement>();
+                            OpenChildForm(frmGoodsManagement);
+                        }));
+                    }
+                    else
+                    {
+                        frmGoodsManagement = _serviceProvider.GetRequiredService<FrmGoodsManagement>();
+                        OpenChildForm(frmGoodsManagement);
+                    }
+                });
+                if (frmGoodsManagement != null)
+                {
+                    await frmGoodsManagement.WaitForDataLoadingComplete();
+                }
+            }, "Đang tải Dashboard...", true);
         }
 
         private async void LaunchProductForm(object sender, EventArgs e)
