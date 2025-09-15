@@ -1,5 +1,12 @@
 ﻿using Dashboard.BussinessLogic.Mappings;
 using Dashboard.BussinessLogic.Services;
+using Dashboard.BussinessLogic.Services.BranchServices;
+using Dashboard.BussinessLogic.Services.Customers;
+using Dashboard.BussinessLogic.Services.EmployeeServices;
+using Dashboard.BussinessLogic.Services.GoodsAndStockServcies;
+using Dashboard.BussinessLogic.Services.RBACServices;
+using Dashboard.BussinessLogic.Services.ReportServices;
+using Dashboard.BussinessLogic.Services.SupplierServices;
 using Dashboard.DataAccess.Data;
 using FluentValidation;
 using MediatR;
@@ -18,8 +25,8 @@ public static class DependencyInjection
         builder.Services.AddAutoMapper(typeof(BranchMappingProfile));
         builder.Services.AddAutoMapper(typeof(ExpenseMappingProfile));
         builder.Services.AddAutoMapper(typeof(SupplierMappingProfile));
-        builder.Services.AddAutoMapper(typeof(AuthMappingProfile));
-        builder.Services.AddAutoMapper(typeof(EmployeeShiftMappingProfile));
+        builder.Services.AddAutoMapper(typeof(RBACMappingProfile));
+        builder.Services.AddAutoMapper(typeof(EmployeeMappingProfile));
         builder.Services.AddAutoMapper(typeof(PayrollMappingProfile));
 
         builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
@@ -27,13 +34,15 @@ public static class DependencyInjection
         builder.Services.AddMediatR(Assembly.GetExecutingAssembly());
 
         builder.Services.AddScoped<IProductService, ProductService>();
+        builder.Services.AddScoped<ICategoryService, CategoryService>();
         builder.Services.AddScoped<IBranchService, BranchService>();
         builder.Services.AddScoped<IExpenseService, ExpenseService>();
         builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
         builder.Services.AddScoped<IOrderService, OrderService>();
         builder.Services.AddScoped<ICustomerService, CustomerService>();
         builder.Services.AddScoped<IReportingService, ReportingService>();
-        
+
+
         // Ingredient-related services
         builder.Services.AddScoped<IIngredientManagementService, IngredientManagementService>();
         builder.Services.AddScoped<IBranchInventoryService, BranchInventoryService>();
@@ -50,9 +59,14 @@ public static class DependencyInjection
         builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
         builder.Services.AddScoped<IAuthorizationService, AuthorizationService>();
         builder.Services.AddScoped<IUserManagementService, UserManagementService>();
-        
+
         // Employee Shift and Payroll services
         builder.Services.AddScoped<IEmployeeShiftService, EmployeeShiftService>();
         builder.Services.AddScoped<IPayrollService, PayrollService>();
+        builder.Services.AddScoped<IEmployeeManagementService, EmployeeManagementService>();
+
+        // Role management service
+        builder.Services.AddScoped<IRoleManagementService, RoleManagementService>();
+
     }
 }

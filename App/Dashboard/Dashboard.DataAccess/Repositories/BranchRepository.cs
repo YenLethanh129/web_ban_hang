@@ -1,11 +1,10 @@
 ﻿using Dashboard.DataAccess.Context;
-using Dashboard.DataAccess.Models.Entities;
+using Dashboard.DataAccess.Models.Entities.Branches;
 
 namespace Dashboard.DataAccess.Repositories;
 
 public interface IBranchRepository : IRepository<Branch>
 {
-    void Update(Branch branch);
 }
 
 public class BranchRepository : Repository<Branch>, IBranchRepository
@@ -14,8 +13,4 @@ public class BranchRepository : Repository<Branch>, IBranchRepository
     {
     }
 
-    public void Update(Branch branch)
-    {
-        _context.Update(branch);
-    }
 }

@@ -1,6 +1,6 @@
 using Dashboard.BussinessLogic.Dtos.OrderDtos;
 using Dashboard.Common.Enums;
-using Dashboard.DataAccess.Models.Entities;
+using Dashboard.DataAccess.Models.Entities.Orders;
 using Dashboard.DataAccess.Specification;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;

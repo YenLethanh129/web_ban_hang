@@ -1,16 +1,17 @@
 ﻿using Dashboard.DataAccess.Context;
-using Dashboard.DataAccess.Models.Entities;
+using Dashboard.DataAccess.Models.Entities.Branches;
+using Dashboard.DataAccess.Models.Entities.FinacialAndReports;
 using Microsoft.EntityFrameworkCore;
 
 namespace Dashboard.DataAccess.Repositories;
 
 public interface IExpenseRepository : IRepository<BranchExpense>
 {
-    Task<IEnumerable<VExpensesSummary>> GetExpensesSummaryAsync(DateOnly fromDate, DateOnly toDate, long? branchId = null);
+    Task<IEnumerable<VCogsSummary>> GetCogsSummaryByBranchAndDateAsync(DateTime fromDate, DateTime toDate, long? branchId = null);
 }
 public class ExpenseRepository(WebbanhangDbContext context) : Repository<BranchExpense>(context), IExpenseRepository
 {
-    public async Task<IEnumerable<VExpensesSummary>> GetExpensesSummaryAsync(DateOnly fromDate, DateOnly toDate, long? branchId = null)
+    public async Task<IEnumerable<VCogsSummary>> GetCogsSummaryByBranchAndDateAsync(DateTime fromDate, DateTime toDate, long? branchId = null)
     {
         var query = _context.VExpensesSummaries
             .Where(e => e.Month >= fromDate.Month && e.Year >= fromDate.Year &&
@@ -23,4 +24,5 @@ public class ExpenseRepository(WebbanhangDbContext context) : Repository<BranchE
 
         return await query.ToListAsync();
     }
+
 }

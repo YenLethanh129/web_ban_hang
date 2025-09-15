@@ -1,5 +1,5 @@
 using Dashboard.BussinessLogic.Dtos.SupplierDtos;
-using Dashboard.DataAccess.Models.Entities;
+using Dashboard.DataAccess.Models.Entities.Suppliers;
 using Dashboard.DataAccess.Specification;
 
 namespace Dashboard.BussinessLogic.Specifications;

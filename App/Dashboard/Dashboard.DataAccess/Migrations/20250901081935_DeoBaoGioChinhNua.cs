@@ -229,8 +229,8 @@ namespace Dashboard.DataAccess.Migrations
                     branch_id = table.Column<long>(type: "bigint", nullable: false),
                     expense_type = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    start_date = table.Column<DateOnly>(type: "date", nullable: false),
-                    end_date = table.Column<DateOnly>(type: "date", nullable: true),
+                    start_date = table.Column<DateTime>(type: "date", nullable: false),
+                    end_date = table.Column<DateTime>(type: "date", nullable: true),
                     payment_cycle = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true, defaultValue: "MONTHLY"),
                     note = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
                     created_at = table.Column<DateTime>(type: "datetime2(6)", precision: 6, nullable: false, defaultValueSql: "(getdate())"),
@@ -257,8 +257,8 @@ namespace Dashboard.DataAccess.Migrations
                     phone = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: true),
                     email = table.Column<string>(type: "varchar(100)", unicode: false, maxLength: 100, nullable: true),
                     position = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    hire_date = table.Column<DateOnly>(type: "date", nullable: false),
-                    resign_date = table.Column<DateOnly>(type: "date", nullable: true),
+                    hire_date = table.Column<DateTime>(type: "date", nullable: false),
+                    resign_date = table.Column<DateTime>(type: "date", nullable: true),
                     status = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: true, defaultValue: "ACTIVE"),
                     created_at = table.Column<DateTime>(type: "datetime2(6)", precision: 6, nullable: false, defaultValueSql: "(sysdatetime())"),
                     last_modified = table.Column<DateTime>(type: "datetime2(6)", precision: 6, nullable: false)
@@ -274,7 +274,7 @@ namespace Dashboard.DataAccess.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "expenses_summary",
+                name: "cogs_summary",
                 columns: table => new
                 {
                     id = table.Column<long>(type: "bigint", nullable: false)
@@ -294,7 +294,7 @@ namespace Dashboard.DataAccess.Migrations
                 {
                     table.PrimaryKey("PK__expenses__3213E83F27D3985C", x => x.id);
                     table.ForeignKey(
-                        name: "FK_expenses_summary_branches",
+                        name: "FK_cogs_summary_branches",
                         column: x => x.branch_id,
                         principalTable: "branches",
                         principalColumn: "id");
@@ -390,7 +390,7 @@ namespace Dashboard.DataAccess.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "v_expenses_summary",
+                name: "v_cogs_summary",
                 columns: table => new
                 {
                     branch_id = table.Column<long>(type: "bigint", nullable: true),
@@ -406,7 +406,7 @@ namespace Dashboard.DataAccess.Migrations
                 constraints: table =>
                 {
                     table.ForeignKey(
-                        name: "FK_v_expenses_summary_branches_branch_id",
+                        name: "FK_v_cogs_summary_branches_branch_id",
                         column: x => x.branch_id,
                         principalTable: "branches",
                         principalColumn: "id");
@@ -569,7 +569,7 @@ namespace Dashboard.DataAccess.Migrations
                     bonus = table.Column<decimal>(type: "decimal(18,2)", nullable: true, defaultValue: 0.0m),
                     penalty = table.Column<decimal>(type: "decimal(18,2)", nullable: true, defaultValue: 0.0m),
                     tax_rate = table.Column<decimal>(type: "decimal(18,2)", nullable: true, defaultValue: 0.1m),
-                    effective_date = table.Column<DateOnly>(type: "date", nullable: false),
+                    effective_date = table.Column<DateTime>(type: "date", nullable: false),
                     created_at = table.Column<DateTime>(type: "datetime2(6)", precision: 6, nullable: false, defaultValueSql: "(getdate())"),
                     last_modified = table.Column<DateTime>(type: "datetime2(6)", precision: 6, nullable: false)
                 },
@@ -590,7 +590,7 @@ namespace Dashboard.DataAccess.Migrations
                     id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     employee_id = table.Column<long>(type: "bigint", nullable: false),
-                    shift_date = table.Column<DateOnly>(type: "date", nullable: false),
+                    shift_date = table.Column<DateTime>(type: "date", nullable: false),
                     start_time = table.Column<TimeOnly>(type: "time", nullable: false),
                     end_time = table.Column<TimeOnly>(type: "time", nullable: false),
                     status = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: true, defaultValue: "PRESENT"),
@@ -691,7 +691,7 @@ namespace Dashboard.DataAccess.Migrations
                     id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     employee_id = table.Column<long>(type: "bigint", nullable: true),
-                    date_of_birth = table.Column<DateOnly>(type: "date", nullable: true),
+                    date_of_birth = table.Column<DateTime>(type: "date", nullable: true),
                     facebook_account_id = table.Column<long>(type: "bigint", nullable: true),
                     google_account_id = table.Column<long>(type: "bigint", nullable: true),
                     is_active = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
@@ -732,8 +732,8 @@ namespace Dashboard.DataAccess.Migrations
                     total_bonus = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     total_deductions = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     gross_salary = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    effective_date = table.Column<DateOnly>(type: "date", nullable: true),
-                    end_date = table.Column<DateOnly>(type: "date", nullable: true)
+                    effective_date = table.Column<DateTime>(type: "date", nullable: true),
+                    end_date = table.Column<DateTime>(type: "date", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -1347,7 +1347,7 @@ namespace Dashboard.DataAccess.Migrations
                     discount_rate = table.Column<decimal>(type: "decimal(5,2)", nullable: true, defaultValue: 0m),
                     discount_amount = table.Column<decimal>(type: "decimal(18,2)", nullable: true, defaultValue: 0m),
                     final_amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    expiry_date = table.Column<DateOnly>(type: "date", nullable: true),
+                    expiry_date = table.Column<DateTime>(type: "date", nullable: true),
                     batch_number = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
                     note = table.Column<string>(type: "varchar(255)", unicode: false, maxLength: 255, nullable: true),
                     created_at = table.Column<DateTime>(type: "datetime2(6)", precision: 6, nullable: false, defaultValueSql: "(getdate())"),
@@ -1419,7 +1419,7 @@ namespace Dashboard.DataAccess.Migrations
                     quality_status = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: true, defaultValue: "ACCEPTED"),
                     rejection_reason = table.Column<string>(type: "varchar(255)", unicode: false, maxLength: 255, nullable: true),
                     unit_price = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    expiry_date = table.Column<DateOnly>(type: "date", nullable: true),
+                    expiry_date = table.Column<DateTime>(type: "date", nullable: true),
                     batch_number = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
                     storage_location = table.Column<string>(type: "varchar(100)", unicode: false, maxLength: 100, nullable: true),
                     note = table.Column<string>(type: "varchar(255)", unicode: false, maxLength: 255, nullable: true),
@@ -1647,7 +1647,7 @@ namespace Dashboard.DataAccess.Migrations
                     return_amount = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
                     return_reason = table.Column<string>(type: "varchar(255)", unicode: false, maxLength: 255, nullable: true),
                     batch_number = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
-                    expiry_date = table.Column<DateOnly>(type: "date", nullable: true),
+                    expiry_date = table.Column<DateTime>(type: "date", nullable: true),
                     quality_issue = table.Column<string>(type: "varchar(255)", unicode: false, maxLength: 255, nullable: true),
                     note = table.Column<string>(type: "varchar(255)", unicode: false, maxLength: 255, nullable: true),
                     created_at = table.Column<DateTime>(type: "datetime2(6)", precision: 6, nullable: false, defaultValueSql: "(getdate())"),
@@ -1713,8 +1713,8 @@ namespace Dashboard.DataAccess.Migrations
                 column: "branch_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_expenses_summary_branch_id",
-                table: "expenses_summary",
+                name: "IX_cogs_summary_branch_id",
+                table: "cogs_summary",
                 column: "branch_id");
 
             migrationBuilder.CreateIndex(
@@ -2176,8 +2176,8 @@ namespace Dashboard.DataAccess.Migrations
                 column: "employee_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_v_expenses_summary_branch_id",
-                table: "v_expenses_summary",
+                name: "IX_v_cogs_summary_branch_id",
+                table: "v_cogs_summary",
                 column: "branch_id");
 
             migrationBuilder.CreateIndex(
@@ -2217,7 +2217,7 @@ namespace Dashboard.DataAccess.Migrations
                 name: "employee_shifts");
 
             migrationBuilder.DropTable(
-                name: "expenses_summary");
+                name: "cogs_summary");
 
             migrationBuilder.DropTable(
                 name: "goods_received_details");
@@ -2292,7 +2292,7 @@ namespace Dashboard.DataAccess.Migrations
                 name: "v_employee_payroll");
 
             migrationBuilder.DropTable(
-                name: "v_expenses_summary");
+                name: "v_cogs_summary");
 
             migrationBuilder.DropTable(
                 name: "v_inventory_status");

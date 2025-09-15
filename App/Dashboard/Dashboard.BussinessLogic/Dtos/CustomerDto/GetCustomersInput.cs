@@ -1,6 +1,6 @@
 ﻿using Dashboard.Common.Enums;
 
-namespace Dashboard.BussinessLogic.Dtos.CustomerDtos;
+namespace Dashboard.BussinessLogic.Dtos.CustomerDto;
 
 public class GetCustomersInput : DefaultInput
 {

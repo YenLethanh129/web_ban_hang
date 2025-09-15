@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using Dashboard.BussinessLogic.Dtos.CustomerDtos;
-using Dashboard.DataAccess.Models.Entities;
+using Dashboard.BussinessLogic.Dtos.CustomerDto;
+using Dashboard.DataAccess.Models.Entities.Customers;
 
 namespace Dashboard.BussinessLogic.Mappings;
 

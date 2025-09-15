@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using Dashboard.BussinessLogic.Dtos.BranchDtos;
-using Dashboard.DataAccess.Models.Entities;
+using Dashboard.DataAccess.Models.Entities.Branches;
 
 namespace Dashboard.BussinessLogic.Mappings;
 

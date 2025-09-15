@@ -1,6 +1,8 @@
-using Dashboard.DataAccess.Models.Entities;
-using Dashboard.DataAccess.Specification;
 using Dashboard.BussinessLogic.Dtos.ExpenseDtos;
+using Dashboard.DataAccess.Models.Entities.Branches;
+using Dashboard.DataAccess.Models.Entities.FinacialAndReports;
+using Dashboard.DataAccess.Specification;
+using Sprache;
 using System.Linq.Expressions;
 
 namespace Dashboard.BussinessLogic.Specifications;
@@ -10,7 +12,7 @@ namespace Dashboard.BussinessLogic.Specifications;
 /// </summary>
 public static class ExpenseSpecifications
 {
-    public static Specification<BranchExpense> ByBranch(long branchId, DateOnly? fromDate = null, DateOnly? toDate = null)
+    public static Specification<BranchExpense> ByBranch(long branchId, DateTime? fromDate = null, DateTime? toDate = null)
     {
         Expression<Func<BranchExpense, bool>> predicate = e => e.BranchId == branchId;
 
@@ -25,7 +27,7 @@ public static class ExpenseSpecifications
         return spec;
     }
 
-    public static Specification<BranchExpense> ByExpenseType(string expenseType, DateOnly? fromDate = null, DateOnly? toDate = null)
+    public static Specification<BranchExpense> ByExpenseType(string expenseType, DateTime? fromDate = null, DateTime? toDate = null)
     {
         Expression<Func<BranchExpense, bool>> predicate = e => e.ExpenseType == expenseType;
 
@@ -42,11 +44,11 @@ public static class ExpenseSpecifications
 
     public static Specification<BranchExpense> ByDateRange(DateTime fromDate, DateTime toDate, long? branchId = null)
     {
-        var fromDateOnly = DateOnly.FromDateTime(fromDate);
-        var toDateOnly = DateOnly.FromDateTime(toDate);
+        var fromDateTime = fromDate;
+        var toDateTime = toDate;
 
         Expression<Func<BranchExpense, bool>> predicate = e => 
-            e.StartDate <= toDateOnly && (e.EndDate ?? e.StartDate) >= fromDateOnly;
+            e.StartDate <= toDateTime && (e.EndDate ?? e.StartDate) >= fromDateTime;
 
         if (branchId.HasValue)
             predicate = CombinePredicates(predicate, e => e.BranchId == branchId.Value);
@@ -75,14 +77,14 @@ public static class ExpenseSpecifications
 
         if (input.FromDate.HasValue)
         {
-            var fromDateOnly = DateOnly.FromDateTime(input.FromDate.Value);
-            predicate = CombinePredicates(predicate, e => (e.EndDate ?? e.StartDate) >= fromDateOnly);
+            var fromDateTime = input.FromDate.Value;
+            predicate = CombinePredicates(predicate, e => (e.EndDate ?? e.StartDate) >= fromDateTime);
         }
 
         if (input.ToDate.HasValue)
         {
-            var toDateOnly = DateOnly.FromDateTime(input.ToDate.Value);
-            predicate = CombinePredicates(predicate, e => e.StartDate <= toDateOnly);
+            var toDateTime = input.ToDate.Value;
+            predicate = CombinePredicates(predicate, e => e.StartDate <= toDateTime);
         }
 
         if (input.BranchId.HasValue)
@@ -109,8 +111,32 @@ public static class ExpenseSpecifications
         spec.IncludeStrings.Add("Branch");
         return spec;
     }
+    public static Specification<VCogsSummary> CogsWithAdvancedFilter(GetExpensesInput input)
+    {
+        Expression<Func<VCogsSummary, bool>> predicate = e => true;
+        if (input.FromDate.HasValue)
+        {
+            var fromDate = input.FromDate.Value;
+            predicate = SpecificationHelper.CombinePredicates(predicate,
+                e => e.Year > fromDate.Year
+                  || (e.Year == fromDate.Year && e.Month >= fromDate.Month));
+        }
 
-    public static Specification<BranchExpense> ForTotalCalculation(long? branchId, DateOnly? fromDate, DateOnly? toDate)
+        if (input.ToDate.HasValue)
+        {
+            var toDate = input.ToDate.Value;
+            predicate = SpecificationHelper.CombinePredicates(predicate,
+                e => e.Year < toDate.Year
+                  || (e.Year == toDate.Year && e.Month <= toDate.Month));
+        }
+
+        if (input.BranchId.HasValue)
+        {
+            predicate = SpecificationHelper.CombinePredicates(predicate, e => e.BranchId == input.BranchId.Value);
+        }
+        return new Specification<VCogsSummary>(predicate);
+    }
+    public static Specification<BranchExpense> ForTotalCalculation(long? branchId, DateTime? fromDate, DateTime? toDate)
     {
         Expression<Func<BranchExpense, bool>> predicate = e => true;
 
