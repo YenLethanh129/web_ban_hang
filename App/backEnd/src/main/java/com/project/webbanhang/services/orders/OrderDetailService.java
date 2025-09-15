@@ -56,11 +56,11 @@ public class OrderDetailService implements IOrderDetailService {
 	@Override
 	public List<OrderDetailResponse> getOrderDetailsByOrderId(Long orderId) throws DataNotFoundException{
 		List<OrderDetail> existingOrderDetails = orderDetailRepository.findByOrder_Id(orderId);
-		if (existingOrderDetails.isEmpty()) {
-			throw new DataNotFoundException("Can't not found List Order ID");
+		List<OrderDetailResponse> listOrderDetailsResponse = new ArrayList<>();
+		if (existingOrderDetails == null) {
+			return listOrderDetailsResponse;
 		}
 
-		List<OrderDetailResponse> listOrderDetailsResponse = new ArrayList<>();
 		for (OrderDetail orderDetail : existingOrderDetails) {
 			OrderDetailResponse orderDetailResponse = OrderDetailResponse.builder()
 					.productName(orderDetail.getProduct().getName())

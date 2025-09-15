@@ -20,6 +20,9 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @NoArgsConstructor
 public class OrderResponse extends BaseResponse{
+    @JsonProperty("order_id")
+    private Long orderId;
+
     @JsonProperty("order_uuid")
     private String orderUUID;
 

@@ -19,13 +19,13 @@ export class OrderService {
   constructor(private http: HttpClient, private tokenService: TokenService) {}
 
   createOrder(orderDTO: OrderDTO): Observable<any> {
-    const token = this.tokenService.getToken();
-    const headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-      'Accept-Language': 'vi',
-      Authorization: `Bearer ${token}`,
+    return this.http.post(`${this.apiUrl}`, orderDTO, {
+      withCredentials: true,
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+      }),
     });
-    return this.http.post(`${this.apiUrl}`, orderDTO, { headers });
   }
 
   getUserOrders(): Observable<NewOrderResponseDTO[]> {

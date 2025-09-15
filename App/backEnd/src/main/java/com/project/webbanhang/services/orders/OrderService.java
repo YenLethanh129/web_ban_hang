@@ -115,11 +115,16 @@ public class OrderService implements IOrderService {
 		User user = userService.getUserProfileFromToken(token);
 
 		List<Order> existingOrder = orderRepository.findAllByCustomerId(user.getId());
+
+		existingOrder.sort((o1, o2) -> o2.getCreatedAt().compareTo(o1.getCreatedAt()));
 		List<OrderResponse> existingOrderResponses = new ArrayList<>();
 		for (Order order : existingOrder) {
 			OrderResponse orderResponse = mapOrderToOrderResponse(order);
+
 			List<OrderDetailResponse> existingOrderDetails = orderDetailService.getOrderDetailsByOrderId(order.getId());
-			orderResponse.setOrderDetails(existingOrderDetails);
+			if (!existingOrderDetails.isEmpty()) {
+				orderResponse.setOrderDetails(existingOrderDetails);
+			}
 
 			existingOrderResponses.add(orderResponse);
 			if (existingOrderResponses.size() >= 5) {
@@ -139,6 +144,7 @@ public class OrderService implements IOrderService {
         Optional<OrderPayment> existingOrderPayement = orderPaymentRepository.findByOrderId(order.getId());
 
         OrderResponse existingOrderResponse = OrderResponse.builder()
+				.orderId(order.getId())
 				.orderUUID(order.getOrderUUID())
                 .note(order.getNotes())
                 .totalMoney(order.getTotalMoney())
