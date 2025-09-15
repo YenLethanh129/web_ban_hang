@@ -3,7 +3,6 @@ import { Component, OnInit } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { OrderService } from '../../services/order.service';
 import { UserService } from '../../services/user.service';
-import { TokenService } from '../../services/token.service';
 import { NewOrderResponseDTO } from '../../dtos/order.dto';
 
 @Component({
@@ -35,8 +34,7 @@ export class InfoOrderComponent implements OnInit {
   constructor(
     private router: Router,
     private orderService: OrderService,
-    private userService: UserService,
-    private tokenService: TokenService
+    private userService: UserService
   ) {}
 
   ngOnInit(): void {
@@ -46,19 +44,23 @@ export class InfoOrderComponent implements OnInit {
   private loadUserOrders(): void {
     this.isLoading = true;
 
-    // Kiểm tra token trước khi gọi API
-    const token = this.tokenService.getToken();
-    if (!token) {
-      console.error('No token found, redirecting to login');
+    // Kiểm tra authentication với UserService thay vì TokenService
+    if (!this.userService.isAuthenticated()) {
+      console.error('User not authenticated, redirecting to login');
       this.router.navigate(['/login']);
       this.isLoading = false;
       return;
     }
 
-    console.log(
-      'Loading user orders with token:',
-      token.substring(0, 20) + '...'
-    );
+    const currentUser = this.userService.getCurrentUser();
+    if (!currentUser) {
+      console.error('No user info found, redirecting to login');
+      this.router.navigate(['/login']);
+      this.isLoading = false;
+      return;
+    }
+
+    console.log('Loading user orders for:', currentUser.fullname);
 
     this.orderService.getUserOrders().subscribe({
       next: (orders) => {
@@ -76,10 +78,22 @@ export class InfoOrderComponent implements OnInit {
         // Xử lý các loại lỗi cụ thể
         if (error.status === 401) {
           console.error('Token expired or invalid');
-          this.tokenService.removeToken();
-          this.router.navigate(['/login'], {
-            queryParams: {
-              message: 'Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại',
+          this.userService.logout().subscribe({
+            next: () => {
+              this.router.navigate(['/login'], {
+                queryParams: {
+                  message: 'Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại',
+                },
+              });
+            },
+            error: (logoutError) => {
+              console.error('Logout error:', logoutError);
+              // Vẫn redirect dù logout có lỗi
+              this.router.navigate(['/login'], {
+                queryParams: {
+                  message: 'Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại',
+                },
+              });
             },
           });
         } else if (error.status === 0) {

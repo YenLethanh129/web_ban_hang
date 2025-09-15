@@ -24,9 +24,7 @@ export class OrderDetailService {
     return this.http.post(`${this.apiUrl}`, orderDetailDTO, { headers });
   }
 
-  getOrderDetailsByOrderId(
-    orderId: number
-  ): Observable<OrderDetailResponseDTO[]> {
+  getOrderDetails(orderId: number): Observable<OrderDetailResponseDTO[]> {
     const token = this.tokenService.getToken();
     const headers = new HttpHeaders({
       'Accept-Language': 'vi',

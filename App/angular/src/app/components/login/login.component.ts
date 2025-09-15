@@ -69,7 +69,7 @@ export class LoginComponent {
   onSubmit() {
     if (!this.validateForm()) {
       this.showPhoneError = this.loginData.phoneNumber.length !== 10;
-      this.showPasswordError = this.loginData.password.length < 6;
+      this.showPasswordError = this.loginData.password.length < 12;
 
       if (this.showPhoneError) {
         this.notificationService.showError(
@@ -85,6 +85,7 @@ export class LoginComponent {
     }
 
     this.isLoading = true;
+    this.showErrorLoginMessage = false;
     this.notificationService.showInfo('⏳ Đang xử lý đăng nhập...');
 
     const loginDTO: LoginDTO = {
@@ -93,36 +94,29 @@ export class LoginComponent {
     };
 
     this.userService.login(loginDTO).subscribe({
-      next: (response: LoginResponse) => {
+      next: (response) => {
         console.log('Đăng nhập thành công:', response);
-        const { token } = response;
-        if (!token) {
-          console.log('Không nhận được token từ máy chủ');
-          this.notificationService.showError(
-            '❌ Đăng nhập thất bại: Không nhận được token từ máy chủ'
-          );
-          this.isLoading = false;
-          return;
-        }
-
-        this.tokenService.setToken(token);
         this.notificationService.showSuccess(
           '🎉 Đăng nhập thành công! Chào mừng bạn trở lại!'
         );
-        this.isLoading = false;
-
-        // Chuyển hướng sau khi hiển thị thông báo
         setTimeout(() => {
           this.router.navigate(['/']);
-        }, 1500);
+        }, 500);
       },
       error: (error) => {
         this.isLoading = false;
         console.error('Lỗi đăng nhập:', error);
+        if (error.status === 401) {
+          this.errorLoginMessage = 'Thông tin đăng nhập không chính xác';
+        } else if (error.status === 0) {
+          this.errorLoginMessage = 'Không thể kết nối đến máy chủ';
+        } else {
+          this.errorLoginMessage =
+            error.error?.message || 'Đăng nhập thất bại. Vui lòng thử lại.';
+        }
 
-        this.errorLoginMessage =
-          error.error?.message || 'Đăng nhập thất bại. Vui lòng thử lại.';
         this.showErrorLoginMessage = true;
+        this.notificationService.showError('❌ ' + this.errorLoginMessage);
       },
     });
   }

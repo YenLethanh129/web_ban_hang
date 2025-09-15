@@ -23,7 +23,7 @@
       >
         <div class="order-header">
           <div class="order-info">
-            <h4 class="order-uuid">{{ order.order_uuid }}</h4>
+            <h4 class="order-uuid">Đơn hàng {{ order.order_uuid.substring(0, 5) }}</h4>
             <p class="order-date">
               {{ order.order_date | date : "dd/MM/yyyy HH:mm" }}
             </p>

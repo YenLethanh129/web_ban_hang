@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule, NgForm } from '@angular/forms';
@@ -8,6 +8,7 @@ import { UpdateUserDTO } from '../../dtos/update-user.dto';
 import { NotificationService } from '../../services/notification.service';
 import { AddressAutocompleteComponent } from '../shared/address-autocomplete/address-autocomplete.component';
 import { AddressPrediction } from '../../dtos/address.dto';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-user-profile',
@@ -21,7 +22,7 @@ import { AddressPrediction } from '../../dtos/address.dto';
   templateUrl: './user-profile.component.html',
   styleUrl: './user-profile.component.scss',
 })
-export class UserProfileComponent implements OnInit {
+export class UserProfileComponent implements OnInit, OnDestroy {
   @ViewChild('updateForm') updateForm!: NgForm;
 
   profile: UserDTO | null = null;
@@ -38,6 +39,8 @@ export class UserProfileComponent implements OnInit {
     address: '',
   };
 
+  private destroy$ = new Subject<void>();
+
   constructor(
     private router: Router,
     private userService: UserService,
@@ -48,25 +51,54 @@ export class UserProfileComponent implements OnInit {
     this.loadUserProfile();
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   loadUserProfile(): void {
+    // First try to get current user if already loaded
+    const currentUser = this.userService.getCurrentUser();
+    if (currentUser) {
+      this.setProfileData(currentUser);
+      return;
+    }
+
+    // Subscribe to user changes for real-time updates
+    this.userService.user$.pipe(takeUntil(this.destroy$)).subscribe({
+      next: (user) => {
+        if (user) {
+          this.setProfileData(user);
+        }
+      },
+      error: (error) => {
+        console.error('Error in user subscription:', error);
+      },
+    });
+
+    // Load from server if not available
     this.userService.getUser().subscribe({
       next: (profile) => {
-        console.log('UserProfileComponent:', profile);
-        this.profile = profile;
-        // Initialize edit form with current data
-        this.editData.fullname = profile.fullname;
-        this.editData.dateOfBirth = this.formatDateForInput(
-          profile.date_of_birth
-        );
-        this.editData.address = profile.address;
+        console.log('UserProfileComponent loaded:', profile);
+        this.setProfileData(profile);
       },
       error: (error) => {
         console.error('Error fetching user profile:', error);
         this.notificationService.showError(
           'Không thể tải thông tin người dùng'
         );
+        // Redirect to login if unable to load profile
+        this.router.navigate(['/login']);
       },
     });
+  }
+
+  private setProfileData(profile: UserDTO): void {
+    this.profile = profile;
+    // Initialize edit form with current data
+    this.editData.fullname = profile.fullname;
+    this.editData.dateOfBirth = this.formatDateForInput(profile.date_of_birth);
+    this.editData.address = profile.address;
   }
 
   toggleEdit(): void {

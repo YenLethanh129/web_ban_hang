@@ -75,11 +75,22 @@ export class ChangePasswordComponent {
 
         // Auto logout after successful password change
         setTimeout(() => {
-          this.userService.logout();
-          this.router.navigate(['/login']);
-          this.notificationService.showInfo(
-            'Vui lòng đăng nhập lại với mật khẩu mới.'
-          );
+          this.userService.logout().subscribe({
+            next: () => {
+              this.router.navigate(['/login']);
+              this.notificationService.showInfo(
+                'Vui lòng đăng nhập lại với mật khẩu mới.'
+              );
+            },
+            error: (logoutError) => {
+              console.error('Logout error after password change:', logoutError);
+              // Vẫn redirect dù logout có lỗi
+              this.router.navigate(['/login']);
+              this.notificationService.showInfo(
+                'Vui lòng đăng nhập lại với mật khẩu mới.'
+              );
+            },
+          });
         }, 2000); // Wait 2 seconds to show success message
       },
       error: (error) => {

@@ -8,7 +8,7 @@ import { RegisterComponent } from './components/register/register.component';
 import { ForgotPasswordComponent } from './components/forgot-password/forgot-password.component';
 import { VerifyOtpComponent } from './components/verify-otp/verify-otp.component';
 import { AuthGuard } from './guards/auth.guard';
-import { LoginGuard } from './guards/login.guard';
+import { GuestGuard } from './guards/guest.guard';
 import { CartComponent } from './components/cart/cart.component';
 import { CategoryComponent } from './components/category/category.component';
 import { InfoOrderComponent } from './components/info-order/info-order.component';
@@ -31,25 +31,28 @@ export const routes: Routes = [
     path: 'register',
     component: RegisterComponent,
     data: { skipLocationChange: false },
-    canActivate: [LoginGuard],
+    canActivate: [GuestGuard],
   },
   { path: 'detail-product/:id', component: DetailProductComponent },
   { path: 'order', component: OrderComponent, canActivate: [AuthGuard] },
-  // { path: 'order', component: OrderComponent},
-  { path: 'order-confirm/:id', component: OrderConfirmComponent },
-  { path: 'login', component: LoginComponent, canActivate: [LoginGuard] },
+  {
+    path: 'order-confirm/:id',
+    component: OrderConfirmComponent,
+    canActivate: [AuthGuard],
+  },
+  { path: 'login', component: LoginComponent, canActivate: [GuestGuard] },
   {
     path: 'forgot-password',
     component: ForgotPasswordComponent,
-    canActivate: [LoginGuard],
+    canActivate: [GuestGuard],
   },
   {
     path: 'verify-otp',
     component: VerifyOtpComponent,
-    canActivate: [LoginGuard],
+    canActivate: [GuestGuard],
   },
   { path: 'product/:id', component: DetailProductComponent },
-  { path: 'cart', component: CartComponent },
+  { path: 'cart', component: CartComponent, canActivate: [AuthGuard] },
   { path: 'category/:id', component: CategoryComponent },
   { path: 'search', component: SearchResultsComponent },
   {

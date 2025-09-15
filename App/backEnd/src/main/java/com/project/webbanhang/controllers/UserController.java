@@ -9,9 +9,13 @@ import com.project.webbanhang.services.Interfaces.ICustomerService;
 import com.project.webbanhang.services.Interfaces.IUserService;
 import com.project.webbanhang.utils.MessageKey;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -27,27 +31,66 @@ public class UserController {
 	private final IUserService userService;
     private final ICustomerService customerService;
 	private final LocalizationUtil localizationUtil;
-	
+
+    /**
+     * TOP 10 OWASP 2023
+     * API2: 2023 - Cryptographic Failures
+     * Giải pháp: Sử dụng JWT để làm token và lưu trữ trong HttpOnly Cookie
+     * */
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(
+    public ResponseEntity<?> login(
             @Valid @RequestBody UserLoginDTO userLoginDTO
     ) {
         try {
             String token = userService.login(userLoginDTO.getPhoneNumber(), userLoginDTO.getPassword());
-            return ResponseEntity.ok(
-            		LoginResponse.builder()
-            			.message(localizationUtil.getLocalizedMessage(MessageKey.LOGIN_SUCCESSFULLY))
-            			.token(token)
-            			.build()
-            		);
+            ResponseCookie cookie = ResponseCookie.from("JWT_TOKEN", token)
+                    .httpOnly(true) // Chỉ cho phép truy cập cookie từ phía server
+                    .secure(false) // Chỉ gửi cookie qua kết nối HTTPS
+                    .path("/") // Cookie sẽ có hiệu lực trên toàn bộ ứng dụng
+                    .sameSite("Lax") // Ngăn chặn việc gửi cookie trong các yêu cầu bên thứ ba
+                    .maxAge(24 * 60 * 60) // Thời gian sống của cookie là 1 ngày)
+                    .build();
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                    .body(
+                        LoginResponse.builder()
+                            .message(localizationUtil.getLocalizedMessage(MessageKey.LOGIN_SUCCESSFULLY))
+                            .status(200)
+                            .build()
+                    );
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(
-            		LoginResponse.builder()
-            			.message(localizationUtil.getLocalizedMessage(MessageKey.LOGIN_FAILED, e.getMessage()))
-            			.build()
-            		);
+                    LoginResponse.builder()
+                            .message(localizationUtil.getLocalizedMessage(MessageKey.LOGIN_FAILED, e.getMessage()))
+                            .status(400)
+                            .build()
+            );
         }
-    }   
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout()
+    {
+        ResponseCookie cookie = ResponseCookie.from("JWT_TOKEN", "")
+                .httpOnly(true) // Chỉ cho phép truy cập cookie từ phía server
+                .secure(false) // Chỉ gửi cookie qua kết nối HTTPS
+                .path("/") // Cookie sẽ có hiệu lực trên toàn bộ ứng dụng
+                .sameSite("Strict") // Ngăn chặn việc gửi cookie trong các yêu cầu bên thứ ba
+                .maxAge(0) // Xóa cookie ngay lập tức
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(
+                        MessageResponse.builder()
+                                .message(localizationUtil.getLocalizedMessage(MessageKey.LOGOUT_SUCCESSFULLY))
+                                .build()
+                );
+    }
+
+//    @PostMapping("is_login")
+//    public ResponseEntity<?> isLogin(
 
     @PostMapping("/register")
     public ResponseEntity<?> createUser(
@@ -77,7 +120,6 @@ public class UserController {
             customerService.createCustomer(customer);
 
             UserResponse userResponse = UserResponse.builder()
-                    .userId(user.getId())
                     .phoneNumber(user.getPhoneNumber())
                     .fullName(user.getFullName())
                     .address(user.getAddress())
@@ -102,12 +144,26 @@ public class UserController {
      * */
     @PostMapping("/profile")
     public ResponseEntity<?> getUserProfile(
-    		@RequestHeader("Authorization") String token
+    		HttpServletRequest request
     ) {
     	try {
-    		String extractedToken = token.substring(7); // Loại bỏ "Bearer " từ chuỗi token
+            Cookie[] cookies = request.getCookies();
+            String extractedToken = null;
+            if (cookies != null) {
+                for (Cookie cookie : cookies) {
+                    if (cookie.getName().equals("JWT_TOKEN")) {
+                        extractedToken = cookie.getValue();
+                        break;
+                    }
+                }
+            }
     		User user = userService.getUserProfileFromToken(extractedToken);
-    		return ResponseEntity.ok(UserResponse.fromEntity(user));
+    		return ResponseEntity.ok(
+                    ProfleResponse.builder()
+                        .message(localizationUtil.getLocalizedMessage(MessageKey.PROFILE_SUCCESSFULLY))
+                        .userResponse(UserResponse.fromEntity(user))
+                        .build()
+            );
     	} catch (Exception e) {
     		return ResponseEntity.badRequest().body(localizationUtil.getLocalizedMessage(MessageKey.PROFILE_FAILED, e.getMessage()));
     	}
@@ -115,7 +171,7 @@ public class UserController {
 
     @PatchMapping("/update")
     public ResponseEntity<?> updateUserProfile(
-    		@RequestHeader("Authorization") String token,
+    		HttpServletRequest request,
     		@Valid @RequestBody UserUpdateDTO userUpdateDTODTO,
             BindingResult result
     ) {
@@ -128,7 +184,17 @@ public class UserController {
                 return ResponseEntity.badRequest().body(localizationUtil.getLocalizedMessage(MessageKey.UPDATE_PROFILE_FAILED, errorMessages));
             }
 
-            String extractedToken = token.substring(7); // Loại bỏ "Bearer " từ chuỗi token
+            Cookie[] cookies = request.getCookies();
+            String extractedToken = null;
+            if (cookies != null) {
+                for (Cookie cookie : cookies) {
+                    if (cookie.getName().equals("JWT_TOKEN")) {
+                        extractedToken = cookie.getValue();
+                        break;
+                    }
+                }
+            }
+
             User updatedUser = userService.updateUserFromToken(extractedToken, userUpdateDTODTO);
             return ResponseEntity.ok(
                     UserResponse.fromEntity(updatedUser)
@@ -140,7 +206,7 @@ public class UserController {
 
     @PostMapping("/update-password")
     public ResponseEntity<?> updatePassword(
-    		@RequestHeader("Authorization") String token,
+    		HttpServletRequest request,
     		@Valid @RequestBody ChangPasswordDTO changPasswordDTO,
             BindingResult result
     ) {
@@ -153,7 +219,16 @@ public class UserController {
                 return ResponseEntity.badRequest().body(localizationUtil.getLocalizedMessage(MessageKey.UPDATE_PROFILE_FAILED, errorMessages));
             }
 
-            String extractedToken = token.substring(7); // Loại bỏ "Bearer " từ chuỗi token
+            Cookie[] cookies = request.getCookies();
+            String extractedToken = null;
+            if (cookies != null) {
+                for (Cookie cookie : cookies) {
+                    if (cookie.getName().equals("JWT_TOKEN")) {
+                        extractedToken = cookie.getValue();
+                        break;
+                    }
+                }
+            }
             boolean isUpdated = userService.updatePassword(extractedToken, changPasswordDTO);
             if (!isUpdated) {
                 return ResponseEntity.badRequest().body(

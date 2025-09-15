@@ -11,10 +11,9 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
 
   // Danh sách API endpoints cần authentication
   const protectedEndpoints = [
-    '/users/profile',
     '/users/update',
     '/users/update-password',
-    '/orders',
+    '/orders', // Except /orders/user which uses session
     '/cart',
     '/products/create',
     '/products/update',
@@ -26,8 +25,11 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
   const publicEndpoints = [
     '/users/register',
     '/users/login',
+    '/users/logout', // Uses session cookie
     '/users/forgot-password',
     '/users/verify-otp',
+    '/users/profile', // Uses session cookie
+    '/orders/user', // Uses session cookie
     '/products/get-all',
     '/products/get-by-id',
     '/categories',
@@ -55,11 +57,24 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
     // Chỉ thêm token cho các API cần authentication
     if (needsAuth) {
       const token = tokenService.getToken();
+      console.log('🔐 JWT Interceptor: Need auth for', req.url);
+      console.log('🔐 JWT Interceptor: Token exists:', !!token);
+
       if (token && tokenService.isTokenValid(token)) {
+        console.log('🔐 JWT Interceptor: Adding valid token to request');
         finalRequest = req.clone({
           headers: req.headers.set('Authorization', `Bearer ${token}`),
         });
+      } else {
+        console.log('🔐 JWT Interceptor: No valid token available');
+        if (token) {
+          console.log('🔐 JWT Interceptor: Token exists but invalid');
+        } else {
+          console.log('🔐 JWT Interceptor: No token found');
+        }
       }
+    } else {
+      console.log('🔐 JWT Interceptor: No auth needed for', req.url);
     }
   }
 

@@ -37,23 +37,8 @@ export class OrderConfirmComponent implements OnInit {
     this.route.params.subscribe((params) => {
       const orderId = +params['id'];
       this.cleanUrl();
-      this.loadOrder(orderId);
       this.getOrderDetails(orderId);
       this.ipnHandler(orderId);
-    });
-  }
-
-  private loadOrder(orderId: number): void {
-    this.isLoading = true;
-    this.orderService.getOrderById(orderId).subscribe({
-      next: (response) => {
-        this.orderResponse = response;
-        this.isLoading = false;
-      },
-      error: (error) => {
-        console.error('Error loading order:', error);
-        this.isLoading = false;
-      },
     });
   }
 
@@ -62,7 +47,7 @@ export class OrderConfirmComponent implements OnInit {
   }
 
   getOrderDetails(orderId: number): void {
-    this.orderDetailService.getOrderDetailsByOrderId(orderId).subscribe({
+    this.orderDetailService.getOrderDetails(orderId).subscribe({
       next: (response: any) => {
         this.listOrderDetails = response;
         this.isLoading = false; // ← Kết thúc loading

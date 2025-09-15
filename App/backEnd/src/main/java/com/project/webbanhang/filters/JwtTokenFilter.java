@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import jakarta.servlet.http.Cookie;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.util.Pair;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -11,6 +12,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.project.webbanhang.components.JwtTokenUtil;
@@ -46,19 +48,22 @@ public class JwtTokenFilter extends OncePerRequestFilter{
 	            filterChain.doFilter(request, response);
 	            return;
 	        }
-	       
-			String authHeader = request.getHeader("Authorization");
-			if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-			    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized: Missing or invalid Authorization header");
-			    return;
+
+			// Lấy token từ cookie
+			String jwtToken = getJwtFromCookie(request);
+
+			if (jwtToken == null) {
+				String authHeader = request.getHeader("Authorization");
+				if (StringUtils.hasText(authHeader) && authHeader.startsWith("Bearer ")) {
+					jwtToken = authHeader.substring(7);
+				}
 			}
-			
-			final String token = authHeader.substring(7);
-	        String phoneNumber = jwtTokenUtil.extractPhoneNumber(token);
+
+	        String phoneNumber = jwtTokenUtil.extractPhoneNumber(jwtToken);
 				
 			if (phoneNumber != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 			User userDetails = (User) userDetailsService.loadUserByUsername(phoneNumber);
-				if (jwtTokenUtil.validateToken(token, userDetails)) {
+				if (jwtTokenUtil.validateToken(jwtToken, userDetails)) {
 					UsernamePasswordAuthenticationToken authenticationToken = 
 							new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 					authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
@@ -94,5 +99,17 @@ public class JwtTokenFilter extends OncePerRequestFilter{
 		    }
 		}
 		return false;
+	}
+
+	private String getJwtFromCookie(HttpServletRequest request) {
+		Cookie[] cookies = request.getCookies();
+		if (cookies != null) {
+			for (Cookie cookie : cookies) {
+				if ("JWT_TOKEN".equals(cookie.getName())) {
+					return cookie.getValue();
+				}
+			}
+		}
+		return null;
 	}
 }

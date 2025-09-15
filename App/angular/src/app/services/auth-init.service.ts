@@ -95,8 +95,16 @@ export class AuthInitService {
   private handleLogout(): void {
     // Chỉ logout nếu đang trong browser environment
     if (isPlatformBrowser(this.platformId)) {
-      this.userService.logout();
-      this.router.navigate(['/login']);
+      this.userService.logout().subscribe({
+        next: () => {
+          this.router.navigate(['/login']);
+        },
+        error: (error) => {
+          console.error('Auth-init logout error:', error);
+          // Vẫn redirect dù logout có lỗi
+          this.router.navigate(['/login']);
+        },
+      });
     }
   }
 
@@ -106,8 +114,16 @@ export class AuthInitService {
   private handleSilentLogout(): void {
     // Chỉ logout nếu đang trong browser environment
     if (isPlatformBrowser(this.platformId)) {
-      this.userService.logout();
-      // Không redirect - để auth guard xử lý
+      this.userService.logout().subscribe({
+        next: () => {
+          console.log('Silent logout completed');
+          // Không redirect - để auth guard xử lý
+        },
+        error: (error) => {
+          console.error('Silent logout error:', error);
+          // Không redirect - để auth guard xử lý
+        },
+      });
     }
   }
 

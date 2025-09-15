@@ -120,22 +120,49 @@ export class OrderComponent implements OnInit, OnDestroy {
   }
 
   private loadUserData() {
-    this.userService.getUser().subscribe({
+    // First try to get current user if already loaded
+    const currentUser = this.userService.getCurrentUser();
+    if (currentUser) {
+      this.setUserData(currentUser);
+      return;
+    }
+
+    // Subscribe to user changes for real-time updates
+    this.userService.user$.pipe(takeUntil(this.destroy$)).subscribe({
       next: (user) => {
-        this.user = user;
-        console.log('Thông tin người dùng:', this.user);
-        if (this.user) {
-          this.orderData.userId = this.user.id;
-          this.orderData.fullName = this.user.fullname;
-          this.orderData.phoneNumber = this.user.phone_number;
-          this.orderData.shippingAddress = this.user.address;
-          this.orderData.address = this.user.address;
+        if (user) {
+          this.setUserData(user);
         }
       },
       error: (error) => {
-        console.error('Lỗi khi tải thông tin người dùng:', error);
+        console.error('Error in user subscription:', error);
       },
     });
+
+    // Load from server if not available
+    this.userService.getUser().subscribe({
+      next: (user) => {
+        console.log('Order component - loaded user:', user);
+        this.setUserData(user);
+      },
+      error: (error) => {
+        console.error('Lỗi khi tải thông tin người dùng:', error);
+        this.notificationService.showError(
+          'Không thể tải thông tin người dùng'
+        );
+        this.router.navigate(['/login']);
+      },
+    });
+  }
+
+  private setUserData(user: UserDTO): void {
+    this.user = user;
+    // Note: UserDTO không có id field, có thể cần lấy từ token hoặc service khác
+    this.orderData.fullName = user.fullname;
+    this.orderData.phoneNumber = user.phone_number;
+    this.orderData.shippingAddress = user.address;
+    this.orderData.address = user.address;
+    console.log('Order data updated with user info:', this.orderData);
   }
 
   private async loadCartItems() {
@@ -185,7 +212,7 @@ export class OrderComponent implements OnInit, OnDestroy {
 
   createOrder(): void {
     const orderDTO: OrderDTO = {
-      user_id: this.orderData.userId,
+      // user_id: this.orderData.userId,
       full_name: this.orderData.fullName,
       email: this.orderData.email,
       phone_number: this.orderData.phoneNumber,

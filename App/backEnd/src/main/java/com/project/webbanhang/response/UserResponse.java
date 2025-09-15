@@ -18,9 +18,6 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserResponse {
-	@JsonProperty("id")
-    private Long userId;
-	
 	@JsonProperty("fullname")
     private String fullName;
     
@@ -35,7 +32,6 @@ public class UserResponse {
     
     public static UserResponse fromEntity(User user) {
 		UserResponse userResponse = UserResponse.builder()
-				.userId(user.getId())
 				.fullName(user.getFullName())
 				.address(user.getAddress())
 				.dateOfBirth(user.getDateOfBirth())

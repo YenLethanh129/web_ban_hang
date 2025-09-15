@@ -1,25 +1,51 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { AuthInitService } from '../services/auth-init.service';
+import { Observable, of, map, tap } from 'rxjs';
+import { UserService } from '../services/user.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class LoginGuard {
-  constructor(
-    private router: Router,
-    private authInitService: AuthInitService
-  ) {}
+  constructor(private router: Router, private userService: UserService) {}
 
-  canActivate(): boolean {
-    // Nếu user đã đăng nhập, không cho vào trang login/register
-    if (this.authInitService.quickTokenCheck()) {
-      console.log('🔄 User đã đăng nhập, redirect to home');
-      this.router.navigate(['/']);
-      return false;
+  canActivate(): Observable<boolean> {
+    console.log('🔍 LoginGuard: canActivate called');
+
+    // Kiểm tra sync trước
+    const isAuthenticated = this.userService.isAuthenticated();
+    const currentUser = this.userService.getCurrentUser();
+
+    console.log(
+      '🔍 LoginGuard: Sync check - isAuthenticated:',
+      isAuthenticated,
+      'user:',
+      currentUser
+    );
+
+    // Nếu đã authenticated và có user info, redirect ngay
+    if (isAuthenticated && currentUser) {
+      console.log('� LoginGuard: User đã đăng nhập, redirect to home');
+      this.router.navigate(['/home']);
+      return of(false);
     }
 
-    console.log('✅ User chưa đăng nhập, cho phép truy cập login/register');
-    return true;
+    // Nếu chưa authenticated hoặc chưa có user info, kiểm tra với server
+    return this.userService.checkAuthenticationStatus().pipe(
+      map((authStatus) => {
+        console.log('🔍 LoginGuard: Server auth check result:', authStatus);
+
+        if (authStatus) {
+          console.log('🔄 LoginGuard: Server confirmed auth, redirect to home');
+          this.router.navigate(['/home']);
+          return false;
+        } else {
+          console.log(
+            '✅ LoginGuard: User chưa đăng nhập, cho phép truy cập login/register'
+          );
+          return true;
+        }
+      })
+    );
   }
 }

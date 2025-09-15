@@ -5,6 +5,8 @@ import com.project.webbanhang.models.User;
 import com.project.webbanhang.response.OrderResponse;
 import com.project.webbanhang.services.Interfaces.IOrderService;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -26,7 +28,7 @@ public class OrderController {
     @PostMapping("")
     public ResponseEntity<?> createOrder(
             @RequestBody @Valid OrderDTO orderDTO,
-            @RequestHeader("Authorization") String token,
+            HttpServletRequest request,
             BindingResult result
     ) {
         try {
@@ -37,7 +39,16 @@ public class OrderController {
                         .toList();
                 return ResponseEntity.badRequest().body(errorMessages);
             }
-            String extractedToken = token.substring(7);
+            Cookie[] cookies = request.getCookies();
+            String extractedToken = null;
+            if (cookies != null) {
+                for (Cookie cookie : cookies) {
+                    if (cookie.getName().equals("JWT_TOKEN")) {
+                        extractedToken = cookie.getValue();
+                        break;
+                    }
+                }
+            }
             
             OrderResponse existingOrderResponse = orderService.createOrder(extractedToken, orderDTO);
             
@@ -69,10 +80,19 @@ public class OrderController {
      * */
     @PostMapping("/user")
     public ResponseEntity<?> getOrdersByUserId(
-            @RequestHeader("Authorization") String token
+            HttpServletRequest request
     ) {
         try {
-            String extractedToken = token.substring(7);
+            Cookie[] cookies = request.getCookies();
+            String extractedToken = null;
+            if (cookies != null) {
+                for (Cookie cookie : cookies) {
+                    if (cookie.getName().equals("JWT_TOKEN")) {
+                        extractedToken = cookie.getValue();
+                        break;
+                    }
+                }
+            }
         	List<OrderResponse> existingOrderResponses = orderService.findByCustomer(extractedToken);
 
             return ResponseEntity.ok(existingOrderResponses);
