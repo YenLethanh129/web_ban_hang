@@ -2,7 +2,7 @@
 
 namespace Dashboard.Winform.ViewModels
 {
-    public class LandingDashboardModel : INotifyPropertyChanged
+    public class LandingDashboardModel : IManagableModel
     {
         // Main financial data
         private decimal _totalRevenue;

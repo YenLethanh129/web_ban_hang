@@ -7,11 +7,11 @@ using Microsoft.Extensions.Logging;
 
 namespace Dashboard.Winform
 {
-    public partial class frmLandingDashboard : Form, IBlurLoadingServiceAware
+    public partial class FrmLandingDashboard : Form, IBlurLoadingServiceAware
     {
         private readonly ILandingDashboardPresenter _presenter;
         private readonly LandingDashboardModel _model;
-        private readonly ILogger<frmLandingDashboard>? _logger;
+        private readonly ILogger<FrmLandingDashboard>? _logger;
         private Button currentlySelectedButton = null!;
         
         private IBlurLoadingService? _blurLoadingService;
@@ -48,7 +48,7 @@ namespace Dashboard.Winform
         }
 
         #region Setup dashboard components
-        public frmLandingDashboard(ILogger<frmLandingDashboard> logger, ILandingDashboardPresenter presenter)
+        public FrmLandingDashboard(ILogger<FrmLandingDashboard> logger, ILandingDashboardPresenter presenter)
         {
             InitializeComponent();
             _logger = logger;

@@ -17,18 +17,15 @@ namespace Dashboard.Winform.Forms
     {
         #region Fields
         private readonly ProductManagementModel _model;
-        private readonly IServiceProvider _serviceProvider;
         #endregion
 
         #region Constructor
         public FrmProductManagement(
-            IServiceProvider serviceProvider,
             ILogger<FrmProductManagement> logger,
             ProductManagementPresenter productPresenter
         ) : base(logger, productPresenter)
         {
             _model = _presenter.Model;
-            _serviceProvider = serviceProvider;
 
             InitializeBaseComponents();
 

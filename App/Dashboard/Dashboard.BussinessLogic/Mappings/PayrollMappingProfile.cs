@@ -40,6 +40,6 @@ public class PayrollMappingProfile : Profile
             .ForMember(dest => dest.TaxRate, opt => opt.MapFrom(src => src.TaxRate ?? 0));
 
         CreateMap<UpdateEmployeeSalaryInput, EmployeeSalary>()
-            .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+            .ForAllOtherMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
     }
 }

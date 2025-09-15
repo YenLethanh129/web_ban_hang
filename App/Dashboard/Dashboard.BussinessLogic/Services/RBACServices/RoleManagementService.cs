@@ -1,4 +1,4 @@
-﻿using Dashboard.BussinessLogic.Dtos.AuthDtos;
+﻿using Dashboard.BussinessLogic.Dtos.RBACDtos;
 using Dashboard.DataAccess.Data;
 using Dashboard.DataAccess.Models.Entities;
 using Dashboard.DataAccess.Models.Entities.RBAC;
@@ -48,7 +48,7 @@ public class RoleManagementService : IRoleManagementService
             Description = description
         };
         await _roleRepository.AddAsync(newRole);
-        await _unitOfWork.SaveChangesAsync();
+        await _roleRepository.SaveChangesAsync();
         return true;
     }
     public async Task<bool> DeleteRoleAsync(long roleId)
@@ -59,7 +59,7 @@ public class RoleManagementService : IRoleManagementService
             return false;
         }
         _roleRepository.Remove(role);
-        await _unitOfWork.SaveChangesAsync();
+        await _roleRepository.SaveChangesAsync();
         return true;
     }
 
@@ -112,7 +112,7 @@ public class RoleManagementService : IRoleManagementService
         {
             role.Description = description;
         }
-        await _unitOfWork.SaveChangesAsync();
+        await _roleRepository.SaveChangesAsync();
         return true;
     }
 
@@ -143,7 +143,7 @@ public class RoleManagementService : IRoleManagementService
             });
         }
 
-        await _unitOfWork.SaveChangesAsync();
+        await _roleRepository.SaveChangesAsync();
         return true;
     }
 }

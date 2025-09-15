@@ -30,7 +30,7 @@ namespace Dashboard.Winform.Mappings
             CreateMap<UpdateEmployeeInput, Employee>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.EmployeeId))
                 .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.Phone))
-                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+                .ForAllOtherMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 
             // Entity -> ViewModel
             CreateMap<Employee, EmployeeViewModel>()

@@ -33,13 +33,18 @@ public partial class Customer : BaseAuditableEntity
     [StringLength(200)]
     public string? Address { get; set; }
 
-    [ForeignKey("Id")]
-    [InverseProperty("Customer")]
-    public virtual User IdNavigation { get; set; } = null!;
+    [ForeignKey(nameof(UserId))]
+    [InverseProperty(nameof(CustomerUser.Customer))]
+    public virtual CustomerUser? IdNavigation { get; set; }
 
-    [InverseProperty("Customer")]
-    public virtual ICollection<Order> Orders { get; set; } = [];
+    [InverseProperty(nameof(Order.Customer))]
+    public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
+
     public string FullInfo => $"{Fullname} - {PhoneNumber} - {Email}";
-    public bool IsActive() => IdNavigation.IsActive;
-    public void InverseActiveStatus() => IdNavigation.IsActive = !IdNavigation.IsActive;
+    public bool IsActive() => IdNavigation?.IsActive ?? false;
+    public void InverseActiveStatus()
+    {
+        if (IdNavigation != null)
+            IdNavigation.IsActive = !IdNavigation.IsActive;
+    }
 }

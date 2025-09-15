@@ -71,7 +71,7 @@ namespace Dashboard.Winform
             btnSBEmployee = new Button();
             pnSBCustomer = new Panel();
             iconSBCustomer = new PictureBox();
-            btnSBCustomer = new Button();
+            btnSBAccount = new Button();
             pnSBGoods = new Panel();
             iconSBGoods = new PictureBox();
             btnSBGoods = new Button();
@@ -260,7 +260,7 @@ namespace Dashboard.Winform
             btnSBUser.BackColor = Color.FromArgb(54, 58, 105);
             btnSBUser.Font = new Font("Microsoft Sans Serif", 11F);
             btnSBUser.ForeColor = Color.Gainsboro;
-            btnSBUser.Location = new Point(-101, -10);
+            btnSBUser.Location = new Point(-110, -10);
             btnSBUser.Name = "btnSBUser";
             btnSBUser.Size = new Size(400, 70);
             btnSBUser.TabIndex = 2;
@@ -304,7 +304,7 @@ namespace Dashboard.Winform
             // pnSBCustomer
             // 
             pnSBCustomer.Controls.Add(iconSBCustomer);
-            pnSBCustomer.Controls.Add(btnSBCustomer);
+            pnSBCustomer.Controls.Add(btnSBAccount);
             pnSBCustomer.Location = new Point(0, 100);
             pnSBCustomer.Margin = new Padding(0);
             pnSBCustomer.Name = "pnSBCustomer";
@@ -322,17 +322,17 @@ namespace Dashboard.Winform
             iconSBCustomer.TabIndex = 3;
             iconSBCustomer.TabStop = false;
             // 
-            // btnSBCustomer
+            // btnSBAccount
             // 
-            btnSBCustomer.BackColor = Color.FromArgb(54, 58, 105);
-            btnSBCustomer.Font = new Font("Microsoft Sans Serif", 11F);
-            btnSBCustomer.ForeColor = Color.Gainsboro;
-            btnSBCustomer.Location = new Point(-61, -7);
-            btnSBCustomer.Name = "btnSBCustomer";
-            btnSBCustomer.Size = new Size(384, 70);
-            btnSBCustomer.TabIndex = 2;
-            btnSBCustomer.Text = "Người dùng";
-            btnSBCustomer.UseVisualStyleBackColor = false;
+            btnSBAccount.BackColor = Color.FromArgb(54, 58, 105);
+            btnSBAccount.Font = new Font("Microsoft Sans Serif", 11F);
+            btnSBAccount.ForeColor = Color.Gainsboro;
+            btnSBAccount.Location = new Point(-66, -7);
+            btnSBAccount.Name = "btnSBAccount";
+            btnSBAccount.Size = new Size(384, 70);
+            btnSBAccount.TabIndex = 2;
+            btnSBAccount.Text = "Tài khoản";
+            btnSBAccount.UseVisualStyleBackColor = false;
             // 
             // pnSBGoods
             // 
@@ -592,7 +592,7 @@ namespace Dashboard.Winform
         private Button btnSBLanding;
         private Panel pnSBCustomer;
         private PictureBox iconSBCustomer;
-        private Button btnSBCustomer;
+        private Button btnSBAccount;
         private Panel pnSBGoods;
         private PictureBox iconSBGoods;
         private Button btnSBGoods;

@@ -27,6 +27,8 @@ public interface IRepository<T> where T : class
 
     Task<IEnumerable<T>> GetAllWithSpecAsync(ISpecification<T> spec, bool asNoTracking = false, int? skip = null, int? take = null, string? sortBy = null, OrderByEnum? orderBy = null);
     Task<T?> GetWithSpecAsync(ISpecification<T> spec, bool asNoTracking = false);
+
+    Task SaveChangesAsync();
 }
 
 public class Repository<T> : IRepository<T> where T : class
@@ -183,5 +185,10 @@ public class Repository<T> : IRepository<T> where T : class
         var lambda = Expression.Lambda<Func<T, bool>>(containsMethodExp, parameter);
         query = query.Where(lambda);
         return Task.FromResult(query.AsEnumerable());
+    }
+
+    public async Task SaveChangesAsync()
+    {
+        await _context.SaveChangesAsync();
     }
 }

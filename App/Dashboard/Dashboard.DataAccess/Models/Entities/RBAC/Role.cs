@@ -21,8 +21,12 @@ public partial class Role : BaseAuditableEntity
     public string? Description { get; set; }
 
     [InverseProperty("Role")]
-    public virtual ICollection<User> Users { get; set; } = new List<User>();
+    public virtual ICollection<EmployeeUserAccount> EmployeeUsers { get; set; } = new List<EmployeeUserAccount>();
 
     [InverseProperty("Role")]
     public virtual ICollection<RolePermission> RolePermissions { get; set; } = new List<RolePermission>();
+
+    [InverseProperty("Role")]
+    public virtual ICollection<CustomerUser> CustomerUsers { get; set; } = new List<CustomerUser>();
+
 }

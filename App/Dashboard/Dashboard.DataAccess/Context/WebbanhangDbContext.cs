@@ -9,6 +9,7 @@ using Dashboard.DataAccess.Models.Entities.Orders;
 using Dashboard.DataAccess.Models.Entities.Products;
 using Dashboard.DataAccess.Models.Entities.RBAC;
 using Dashboard.DataAccess.Models.Entities.Suppliers;
+using Dashboard.DataAccess.Models.Entities;
 using EntityFrameworkCore.EncryptColumn.Interfaces;
 using EntityFrameworkCore.EncryptColumn.Util;
 using Microsoft.EntityFrameworkCore;
@@ -128,7 +129,7 @@ public partial class WebbanhangDbContext : DbContext
 
     public virtual DbSet<Token> Tokens { get; set; }
 
-    public virtual DbSet<User> Users { get; set; }
+    public virtual DbSet<EmployeeUserAccount> Users { get; set; }
 
     public virtual DbSet<VEmployeePayroll> VEmployeePayrolls { get; set; }
 
@@ -711,8 +712,6 @@ public partial class WebbanhangDbContext : DbContext
         modelBuilder.Entity<SocialAccount>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__social_a__3213E83F4D3B725E");
-
-            entity.HasOne(d => d.User).WithMany(p => p.SocialAccounts).HasConstraintName("FK6rmxxiton5yuvu7ph2hcq2xn7");
         });
 
         modelBuilder.Entity<Supplier>(entity =>
@@ -761,23 +760,43 @@ public partial class WebbanhangDbContext : DbContext
         modelBuilder.Entity<Token>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__tokens__3213E83F23FD3269");
-
-            entity.HasOne(d => d.User).WithMany(p => p.Tokens).HasConstraintName("FK2dylsfo39lgjyqml2tbe0b0ss");
         });
 
-        modelBuilder.Entity<User>(entity =>
+        modelBuilder.Entity<EmployeeUserAccount>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__users__3213E83FDE9A3EE9");
+            entity.ToTable("employee_users");
 
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysdatetime())");
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.HasKey(e => e.Id).HasName("PK_employee_users");
 
-            entity.HasOne(d => d.Employee).WithMany(p => p.Users).HasConstraintName("FK_users_employees");
+            entity.Property(e => e.Username)
+                .IsRequired()
+                .HasMaxLength(100);
 
-            entity.HasOne(d => d.Role).WithMany(p => p.Users)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_users_roles");
+            entity.Property(e => e.Password)
+                .IsRequired()
+                .HasMaxLength(200);
+
+            entity.Property(e => e.IsActive)
+                .HasDefaultValue(true);
+
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("GETDATE()");
+
+            entity.Property(e => e.LastModified)
+                .HasDefaultValueSql("GETDATE()");
+
+            entity.HasOne(d => d.Role)
+                .WithMany(p => p.EmployeeUsers)
+                .HasForeignKey(d => d.RoleId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("FK_employee_users_roles");
         });
+
+        modelBuilder.Entity<Employee>()
+            .HasOne(e => e.EmployeeUserAccount) 
+            .WithOne(u => u.Employee)   
+            .HasForeignKey<EmployeeUserAccount>(u => u.EmployeeId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         OnModelCreatingPartial(modelBuilder);
     }

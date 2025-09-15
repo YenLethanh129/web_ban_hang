@@ -20,13 +20,18 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Text.Json" />
     <PackageReference Include="ReaLTaiizor" />
     <PackageReference Include="WinForms.DataVisualization" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Dashboard.BussinessLogic\Dashboard.BussinessLogic.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="GanttChart">
+      <HintPath>..\GanttChart.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>
@@ -42,6 +47,10 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Forms\RecipeFrm\" />
   </ItemGroup>
 
 </Project>

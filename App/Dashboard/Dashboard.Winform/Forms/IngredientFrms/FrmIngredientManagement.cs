@@ -536,32 +536,25 @@ namespace Dashboard.Winform.Forms
                     };
                 }
 
-                // TODO: Create FrmIngredientDetails form
-                // var detailForm = new FrmIngredientDetails(detailsPresenter, selectedIngredient?.Id, initialModel);
+                var detailForm = new FrmIngredientDetails(selectedIngredient?.Id, initialModel);
 
-                // For now, show a placeholder dialog
-                MessageBox.Show(selectedIngredient != null ?
-                    $"Sẽ mở dialog chi tiết cho nguyên liệu: {selectedIngredient.Name}" :
-                    "Sẽ mở dialog thêm nguyên liệu mới",
-                    "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-                // TODO: Implement when detail form is created
-                // var result = detailForm.ShowDialog(this);
-                // if (result == DialogResult.OK)
-                // {
-                //     var updatedIngredient = detailForm.Ingredient;
-                //     if (selectedIngredient != null)
-                //     {
-                //         await HandleIngredientUpdate(updatedIngredient);
-                //         ShowInfo("Cập nhật thông tin nguyên liệu thành công!");
-                //     }
-                //     else
-                //     {
-                //         await HandleIngredientAdd(updatedIngredient);
-                //         ShowInfo("Thêm nguyên liệu mới thành công!");
-                //     }
-                //     RefreshData();
-                // }
+                var result = detailForm.ShowDialog(this);
+                if (result == DialogResult.OK)
+                {
+                    var updatedIngredient = detailForm.Ingredient;
+                    if (selectedIngredient != null)
+                    {
+                        await HandleIngredientUpdate(updatedIngredient);
+                        ShowInfo("Cập nhật thông tin nguyên liệu thành công!");
+                    }
+                    else
+                    {
+                        await HandleIngredientAdd(updatedIngredient);
+                        ShowInfo("Thêm nguyên liệu mới thành công!");
+                    }
+                    RefreshData();
+                }
             }
             catch (Exception ex)
             {
@@ -573,8 +566,10 @@ namespace Dashboard.Winform.Forms
             }
         }
 
-        private async Task HandleIngredientAdd(IngredientDetailViewModel ingredient)
+        private async Task HandleIngredientAdd(IngredientDetailViewModel? ingredient)
         {
+            if (ingredient == null)
+                throw new ArgumentException("Ingredient cannot be null for addition.");
             await _presenter.AddIngredientAsync(
                 ingredient.Name,
                 ingredient.Unit,
@@ -588,8 +583,10 @@ namespace Dashboard.Winform.Forms
             Console.WriteLine(logInfo);
         }
 
-        private async Task HandleIngredientUpdate(IngredientDetailViewModel ingredient)
+        private async Task HandleIngredientUpdate(IngredientDetailViewModel? ingredient)
         {
+            if (ingredient == null)
+                throw new ArgumentException("Ingredient or Ingredient ID cannot be null for update.");
             await _presenter.UpdateIngredientAsync(
                 ingredient.Id,
                 ingredient.Name,

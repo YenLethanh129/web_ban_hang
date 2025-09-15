@@ -140,7 +140,7 @@ public class CustomerService : ICustomerService
         customer.CreatedAt = DateTime.Now;
 
         var createdCustomer = await _customerRepository.AddAsync(customer);
-        await _unitOfWork.SaveChangesAsync();
+        await _customerRepository.SaveChangesAsync();
 
         return _mapper.Map<CustomerDto>(createdCustomer);
     }
@@ -163,7 +163,7 @@ public class CustomerService : ICustomerService
         customer.LastModified = DateTime.Now;
 
         _customerRepository.Update(customer);
-        await _unitOfWork.SaveChangesAsync();
+        await _customerRepository.SaveChangesAsync();
 
         return _mapper.Map<CustomerDto>(customer);
     }
@@ -175,7 +175,7 @@ public class CustomerService : ICustomerService
         if (customer.IsActive())
         {
             customer.InverseActiveStatus();
-            await _unitOfWork.SaveChangesAsync();
+            await _customerRepository.SaveChangesAsync();
         }        
     }
 

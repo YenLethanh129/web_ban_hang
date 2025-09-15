@@ -168,7 +168,6 @@ namespace Dashboard.Winform.Presenters
                 Model.UpdatedAt = employeeDto.LastModified;
                 Model.BranchId = employeeDto.BranchId;
 
-                // Load branch info from cache instead of service call
                 var branchDto = _cachedBranches?.FirstOrDefault(b => b.Id == Model.BranchId);
                 var positionDto = _cachedPositions?.FirstOrDefault(p => p.Id == Model.PositionId);
 
@@ -203,8 +202,8 @@ namespace Dashboard.Winform.Presenters
                 if (userAccount != null)
                 {
                     Model.HasAccount = true;
-                    Model.PhoneAsUsername = userAccount.PhoneNumber;
-                    Model.Role = userAccount.RoleName;
+                    Model.Username = userAccount.Username ?? string.Empty;
+                    Model.Role = userAccount.RoleName ?? string.Empty;
                 }
                 else
                 {

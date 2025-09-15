@@ -1,7 +1,9 @@
 ﻿using Ardalis.GuardClauses;
+using Dashboard.Common.Options;
 using Dashboard.DataAccess.Context;
 using Dashboard.DataAccess.Data;
 using Dashboard.DataAccess.Data.Interceptors;
+using Dashboard.DataAccess.Helpers;
 using Dashboard.DataAccess.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -20,6 +22,9 @@ public static class DependencyInjection
         var encryptionKey = builder.Configuration["Encryption:Key"];
         Guard.Against.NullOrEmpty(encryptionKey, nameof(encryptionKey));
 
+        builder.Services.Configure<SecurityOptions>(builder.Configuration.GetSection("Security").Bind);
+
+        builder.Services.AddSingleton<DataEncryptionHelper>();
         builder.Services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
         builder.Services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
         builder.Services.AddScoped<IProductRepository, ProductRepository>();
@@ -39,6 +44,7 @@ public static class DependencyInjection
         builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         builder.Services.AddScoped<IRoleRepository, RoleRepository>();
         builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+        builder.Services.AddScoped<IUserRepository, UserRepository>();
 
         builder.Services.AddDbContext<WebbanhangDbContext>((sp, options) =>
         {

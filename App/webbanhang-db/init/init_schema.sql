@@ -253,6 +253,7 @@ CREATE TABLE [dbo].[employees] (
     [phone] varchar(20),
     [email] varchar(255),
     [position_id] bigint NOT NULL,
+    [address] VARCHAR(255) COLLATE Vietnamese_CI_AS,
     [hire_date] datetime2,
     [resign_date] datetime2,
     [status] varchar(20) DEFAULT 'ACTIVE',
@@ -325,6 +326,7 @@ CREATE TABLE [dbo].[ingredient_purchase_orders] (
 );
 GO
 
+-- TODO Migrate address and date of birth to employees table and customers table
 -- Users table
 CREATE TABLE [dbo].[users] (
     [id] bigint IDENTITY(1,1) NOT NULL,
@@ -345,6 +347,21 @@ CREATE TABLE [dbo].[users] (
     CONSTRAINT [FK_users_roles] FOREIGN KEY ([role_id]) REFERENCES [dbo].[roles]([id])
 );
 GO
+
+CREATE TABLE [dbo].[employee_users] (
+    [id] bigint IDENTITY(1,1) NOT NULL,
+    [username] varchar(100) NOT NULL, 
+    [password] varchar(200) NOT NULL,
+    [is_active] bit NOT NULL DEFAULT 1,
+    [employee_id] bigint NOT NULL,
+    [role_id] bigint NOT NULL,
+    [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT [PK_employee_users] PRIMARY KEY ([id]),
+    CONSTRAINT [FK_employee_users_roles] FOREIGN KEY ([role_id]) REFERENCES [dbo].[roles]([id])
+);
+GO 
+
 
 -- ====================================================================
 -- CREATE TABLES - LEVEL 3: TABLES WITH MULTIPLE DEPENDENCIES

@@ -1,330 +1,177 @@
-using AutoMapper;
-using Dashboard.BussinessLogic.Dtos.AuthDtos;
-using Dashboard.BussinessLogic.Shared;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Dashboard.BussinessLogic.Dtos.RBACDtos;
 using Dashboard.DataAccess.Data;
 using Dashboard.DataAccess.Models.Entities.RBAC;
+using Dashboard.DataAccess.Repositories;
 using Dashboard.DataAccess.Specification;
-using Microsoft.Extensions.Logging;
 
-namespace Dashboard.BussinessLogic.Services.RBACServices;
-
-public interface IAuthorizationService
+namespace Dashboard.BussinessLogic.Services.RBACServices
 {
-    Task<bool> HasPermissionAsync(long userId, string permission);
-    Task<bool> IsInRoleAsync(long userId, string roleName);
-    Task<List<string>> GetUserPermissionsAsync(long userId);
-    Task<List<RoleDto>> GetRolesAsync();
-    Task<List<PermissionDto>> GetPermissionsAsync();
-    Task<bool> AssignRoleToUserAsync(long userId, long roleId);
-    Task<List<UserDto>> GetUsersByRoleAsync(string roleName);
-    Task<bool> CanAccessResourceAsync(long userId, string resource, string action);
-    Task<UserDto?> GetUserWithPermissionsAsync(long userId);
-}
-
-public class AuthorizationService : BaseTransactionalService, IAuthorizationService
-{
-    private readonly IMapper _mapper;
-    private readonly ILogger<AuthorizationService> _logger;
-    private readonly IAuthenticationService _authenticationService;
-
-    public AuthorizationService(
-        IUnitOfWork unitOfWork, 
-        IMapper mapper, 
-        ILogger<AuthorizationService> logger,
-        IAuthenticationService authenticationService) : base(unitOfWork)
+    public interface IAuthorizationService
     {
-        _mapper = mapper;
-        _logger = logger;
-        _authenticationService = authenticationService;
+        Task<bool> HasPermissionAsync(string token, string permission);
+        Task<bool> IsInRoleAsync(string token, string roleName);
+        Task<List<string>> GetUserPermissionsAsync(string token);
+        Task<SessionDto?> GetUserFromTokenAsync(string token);
+        Task<bool> CanAccessResourceAsync(string token, string resource, string action);
     }
 
-    public async Task<bool> HasPermissionAsync(long userId, string permission)
+    public class AuthorizationService : IAuthorizationService
     {
-        try
-        {
-            return await _authenticationService.HasPermissionAsync(userId, permission);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error checking permission {Permission} for user: {UserId}", permission, userId);
-            return false;
-        }
-    }
+        private readonly IUserRepository _userRepository;
+        private readonly IRoleRepository _roleRepository;
+        private readonly IPermissionRepository _permissionRepository;
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IConfiguration _config;
+        private readonly ILogger<AuthorizationService> _logger;
 
-    public async Task<bool> IsInRoleAsync(long userId, string roleName)
-    {
-        try
+        public AuthorizationService(
+            IUserRepository userRepository,
+            IRoleRepository roleRepository,
+            IPermissionRepository permissionRepository,
+            IUnitOfWork unitOfWork,
+            IConfiguration config,
+            ILogger<AuthorizationService> logger)
         {
-            var session = await _authenticationService.GetCurrentSessionAsync(userId);
-            return session?.RoleName == roleName;
+            _userRepository = userRepository;
+            _roleRepository = roleRepository;
+            _permissionRepository = permissionRepository;
+            _unitOfWork = unitOfWork;
+            _config = config;
+            _logger = logger;
         }
-        catch (Exception ex)
+
+        private static string NormalizeToken(string token)
         {
-            _logger.LogError(ex, "Error checking role {Role} for user: {UserId}", roleName, userId);
-            return false;
+            if (string.IsNullOrWhiteSpace(token)) return string.Empty;
+            token = token.Trim();
+            const string bearer = "Bearer ";
+            if (token.StartsWith(bearer, StringComparison.OrdinalIgnoreCase))
+                return token.Substring(bearer.Length).Trim();
+            return token;
         }
-    }
 
-    public async Task<List<string>> GetUserPermissionsAsync(long userId)
-    {
-        try
+        public async Task<bool> HasPermissionAsync(string token, string permission)
         {
-            return await _authenticationService.GetUserPermissionsAsync(userId);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting permissions for user: {UserId}", userId);
-            return [];
-        }
-    }
-
-    public async Task<List<RoleDto>> GetRolesAsync()
-    {
-        try
-        {
-            // Only return WinForms relevant roles
-            var roleSpec = new Specification<Role>(r => 
-                r.Name == Roles.ADMIN || r.Name == Roles.MANAGER || r.Name == Roles.EMPLOYEE);
-            roleSpec.IncludeStrings.Add("RolePermissions");
-            roleSpec.IncludeStrings.Add("RolePermissions.Permission");
-            roleSpec.IncludeStrings.Add("Users");
-
-            var roles = await _unitOfWork.Repository<Role>().GetAllWithSpecAsync(roleSpec, true);
-
-            return [.. roles.Select(r => new RoleDto
+            try
             {
-                Id = r.Id,
-                Name = r.Name,
-                Description = r.Description,
-                CreatedAt = r.CreatedAt,
-                Permissions = [.. r.RolePermissions.Select(rp => new PermissionDto
+                var session = await GetUserFromTokenAsync(NormalizeToken(token));
+                if (session == null)
                 {
-                    Id = rp.Permission.Id,
-                    Name = rp.Permission.Name,
-                    Description = rp.Permission.Description,
-                    Resource = rp.Permission.Resource,
-                    Action = rp.Permission.Action,
-                    CreatedAt = rp.Permission.CreatedAt
-                })]
-            })];
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting roles");
-            return new List<RoleDto>();
-        }
-    }
+                    _logger.LogWarning("HasPermissionAsync: session null for token");
+                    return false;
+                }
 
-    public async Task<List<PermissionDto>> GetPermissionsAsync()
-    {
-        try
-        {
-            var permissions = await _unitOfWork.Repository<Permission>().GetAllAsync();
-            return _mapper.Map<List<PermissionDto>>(permissions);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting permissions");
-            return new List<PermissionDto>();
-        }
-    }
+                if (!string.IsNullOrEmpty(session.Role) && string.Equals(session.Role, "ADMIN", StringComparison.OrdinalIgnoreCase))
+                    return true;
 
-    public async Task<bool> AssignRoleToUserAsync(long userId, long roleId)
-    {
-        try
-        {
-            var userSpec = new Specification<User>(u => u.Id == userId);
-            var user = await _unitOfWork.Repository<User>().GetWithSpecAsync(userSpec);
-
-            if (user == null)
+                return session.Permissions?.Any(p => string.Equals(p, permission, StringComparison.OrdinalIgnoreCase)) ?? false;
+            }
+            catch (Exception ex)
             {
-                _logger.LogWarning("User not found: {UserId}", userId);
+                _logger.LogError(ex, "Error checking permission {Permission} for token", permission);
                 return false;
             }
+        }
 
-            var roleSpec = new Specification<Role>(r => r.Id == roleId);
-            var role = await _unitOfWork.Repository<Role>().GetWithSpecAsync(roleSpec);
-
-            if (role == null || !IsValidWinFormsRole(role.Name))
+        public async Task<bool> IsInRoleAsync(string token, string roleName)
+        {
+            try
             {
-                _logger.LogWarning("Invalid role for assignment: {RoleId}", roleId);
+                var session = await GetUserFromTokenAsync(NormalizeToken(token));
+                if (session == null) return false;
+                return !string.IsNullOrEmpty(session.Role) && string.Equals(session.Role, roleName, StringComparison.OrdinalIgnoreCase);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking role {Role} for token", roleName);
                 return false;
             }
-
-            user.RoleId = roleId;
-            user.LastModified = DateTime.Now;
-
-            await _unitOfWork.SaveChangesAsync();
-
-            _logger.LogInformation("Role {RoleId} assigned to user {UserId}", roleId, userId);
-            return true;
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error assigning role {RoleId} to user {UserId}", roleId, userId);
-            return false;
-        }
-    }
 
-    public async Task<List<UserDto>> GetUsersByRoleAsync(string roleName)
-    {
-        try
+        public async Task<List<string>> GetUserPermissionsAsync(string token)
         {
-            if (!IsValidWinFormsRole(roleName))
+            try
             {
-                return new List<UserDto>();
+                var session = await GetUserFromTokenAsync(NormalizeToken(token));
+                if (session == null) return new List<string>();
+                return session.Permissions ?? new List<string>();
             }
-
-            var userSpec = new Specification<User>(u => u.Role.Name == roleName && u.IsActive);
-            userSpec.IncludeStrings.Add("Role");
-            userSpec.IncludeStrings.Add("Employee");
-            userSpec.IncludeStrings.Add("Employee.Branch");
-
-            var users = await _unitOfWork.Repository<User>().GetAllWithSpecAsync(userSpec, true);
-
-            return users.Select(u => new UserDto
+            catch (Exception ex)
             {
-                Id = u.Id,
-                FullName = u.Fullname ?? "",
-                PhoneNumber = u.PhoneNumber,
-                Address = u.Address,
-                IsActive = u.IsActive,
-                RoleId = u.RoleId,
-                RoleName = u.Role.Name,
-                EmployeeId = u.EmployeeId,
-                EmployeeName = u.Employee?.FullName,
-                PositionId = u.Employee?.PositionId,
-                BranchId = u.Employee?.BranchId,
-                BranchName = u.Employee?.Branch?.Name,
-                CreatedAt = u.CreatedAt
-            }).ToList();
+                _logger.LogError(ex, "Error getting permissions for token");
+                return new List<string>();
+            }
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting users by role: {Role}", roleName);
-            return new List<UserDto>();
-        }
-    }
 
-    public async Task<bool> CanAccessResourceAsync(long userId, string resource, string action)
-    {
-        try
+        public async Task<SessionDto?> GetUserFromTokenAsync(string token)
         {
-            var session = await _authenticationService.GetCurrentSessionAsync(userId);
+            if (string.IsNullOrWhiteSpace(token)) return null;
+
+            try
+            {
+                var handler = new JwtSecurityTokenHandler();
+                var jwtToken = handler.ReadJwtToken(NormalizeToken(token));
+
+                var userIdClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
+                    return null;
+
+                var userSpec = new Specification<EmployeeUserAccount>(u => u.Id == userId && u.IsActive);
+                userSpec.IncludeStrings.Add("Role");
+                userSpec.IncludeStrings.Add("Role.RolePermissions");
+                userSpec.IncludeStrings.Add("Role.RolePermissions.Permission");
+
+                var user = await _userRepository.GetWithSpecAsync(userSpec);
+                if (user == null) return null;
+
+                var permissions = user.Role?.RolePermissions
+                    .Select(rp => rp.Permission?.Name ?? string.Empty)
+                    .Where(n => !string.IsNullOrEmpty(n))
+                    .ToList() ?? new List<string>();
+
+                return new SessionDto
+                {
+                    Token = token,
+                    UserId = user.Id,
+                    Username = user.Username,
+                    Role = user.Role?.Name ?? string.Empty,
+                    Permissions = permissions,
+                    Expiration = jwtToken.ValidTo
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error decoding token {Token}", token);
+                return null;
+            }
+        }
+
+        public async Task<bool> CanAccessResourceAsync(string token, string resource, string action)
+        {
+            var session = await GetUserFromTokenAsync(NormalizeToken(token));
             if (session == null) return false;
 
-            // Check specific permission for resource + action
-            var permissionName = $"{resource}_{action}";
-            if (session.Permissions.Contains(permissionName))
+            var requiredPermission = $"{resource}_{action}";
+            if (session.Permissions != null && session.Permissions.Contains(requiredPermission, StringComparer.OrdinalIgnoreCase))
                 return true;
 
-            // Check general permissions based on role
-            return session.RoleName switch
+            return session.Role?.ToUpperInvariant() switch
             {
-                Roles.ADMIN => true, // Admin has access to everything
-                Roles.MANAGER => IsManagerAllowed(resource, action),
-                Roles.EMPLOYEE => IsEmployeeAllowed(resource, action),
+                "ADMIN" => true,
+                "MANAGER" => !string.Equals(resource, "SYSTEM", StringComparison.OrdinalIgnoreCase),
+                "EMPLOYEE" => new[] { "INVENTORY", "ORDERS", "CUSTOMERS" }.Contains(resource?.ToUpperInvariant())
+                               && !string.Equals(action, "DELETE", StringComparison.OrdinalIgnoreCase)
+                               && !string.Equals(action, "MANAGE", StringComparison.OrdinalIgnoreCase),
                 _ => false
             };
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error checking resource access for user: {UserId}", userId);
-            return false;
-        }
-    }
-
-    public async Task<UserDto?> GetUserWithPermissionsAsync(long userId)
-    {
-        try
-        {
-            var userSpec = new Specification<User>(u => u.Id == userId);
-            userSpec.IncludeStrings.Add("Role");
-            userSpec.IncludeStrings.Add("Employee");
-            userSpec.IncludeStrings.Add("Employee.Branch");
-            userSpec.IncludeStrings.Add("Role.RolePermissions");
-            userSpec.IncludeStrings.Add("Role.RolePermissions.Permission");
-
-            var user = await _unitOfWork.Repository<User>().GetWithSpecAsync(userSpec);
-
-            if (user == null) return null;
-
-            var permissions = user.Role.RolePermissions
-                .Select(rp => rp.Permission.Name)
-                .ToList();
-
-            return new UserDto
-            {
-                Id = user.Id,
-                FullName = user.Fullname ?? "",
-                PhoneNumber = user.PhoneNumber,
-                Address = user.Address,
-                IsActive = user.IsActive,
-                RoleId = user.RoleId,
-                RoleName = user.Role.Name,
-                EmployeeId = user.EmployeeId,
-                EmployeeName = user.Employee?.FullName,
-                PositionId = user.Employee?.PositionId,
-                BranchId = user.Employee?.BranchId,
-                BranchName = user.Employee?.Branch?.Name,
-                Permissions = permissions,
-                CreatedAt = user.CreatedAt
-            };
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting user with permissions: {UserId}", userId);
-            return null;
-        }
-    }
-
-    private static bool IsValidWinFormsRole(string roleName)
-    {
-        return roleName == Roles.ADMIN || roleName == Roles.MANAGER || roleName == Roles.EMPLOYEE;
-    }
-
-    private static bool IsManagerAllowed(string resource, string action)
-    {
-        // Managers can access most resources except system management
-        return resource != Resources.SYSTEM;
-    }
-
-    private static bool IsEmployeeAllowed(string resource, string action)
-    {
-        // Employees have limited access
-        var allowedResources = new[] { Resources.INVENTORY, Resources.ORDERS, Resources.CUSTOMERS };
-        var restrictedActions = new[] { Actions.DELETE, Actions.MANAGE };
-
-        return allowedResources.Contains(resource) && !restrictedActions.Contains(action);
-    }
-
-    public async Task<bool> AssignPermissionToRoleAsync(long roleId, long permissionId)
-    {
-        var spec = new Specification<RolePermission>(rp => rp.RoleId == roleId && rp.PermissionId == permissionId);
-
-        var existingRolePermission = await _unitOfWork.Repository<RolePermission>().GetWithSpecAsync(spec, true);
-        if (existingRolePermission != null) return false;
-
-        var rolePermission = new RolePermission
-        {
-            RoleId = roleId,
-            PermissionId = permissionId
-        };
-
-        await _unitOfWork.Repository<RolePermission>().AddAsync(rolePermission);
-        await _unitOfWork.SaveChangesAsync();
-        return true;
-    }
-
-    public async Task<bool> RemovePermissionFromRoleAsync(long roleId, long permissionId)
-    {
-     var spec = new Specification<RolePermission>(rp => rp.RoleId == roleId && rp.PermissionId == permissionId);
-
-        var rolePermission = await _unitOfWork.Repository<RolePermission>().GetWithSpecAsync(spec);
-        if (rolePermission == null) return false;
-
-        _unitOfWork.Repository<RolePermission>().Remove(rolePermission);
-        await _unitOfWork.SaveChangesAsync();
-        return true;
     }
 }
+

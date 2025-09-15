@@ -9,7 +9,7 @@ using static System.Net.Mime.MediaTypeNames;
 
 namespace Dashboard.Winform.ViewModels
 {
-    public class ProductManagementModel : IManagableModel, INotifyPropertyChanged
+    public class ProductManagementModel : IManagableModel
     {
         #region Fields
         private string _searchText = string.Empty;
@@ -92,7 +92,7 @@ namespace Dashboard.Winform.ViewModels
         #endregion
     }
 
-    public class RecipeManagementModel : IManagableModel, INotifyPropertyChanged
+    public class RecipeManagementModel : IManagableModel
     {
         #region Fields
         private string _searchText = string.Empty;

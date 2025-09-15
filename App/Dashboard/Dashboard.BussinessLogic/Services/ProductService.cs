@@ -129,7 +129,7 @@ public class ProductService : IProductService
         }
             
         await _productRepository.AddAsync(product);
-        await _unitOfWork.SaveChangesAsync();
+        await _productRepository.SaveChangesAsync();
 
         return _mapper.Map<ProductDto>(product);
     }
@@ -171,7 +171,7 @@ public class ProductService : IProductService
         }
 
         _productRepository.Remove(product);
-        await _unitOfWork.SaveChangesAsync();
+        await _productRepository.SaveChangesAsync();
         return true;
 
     }

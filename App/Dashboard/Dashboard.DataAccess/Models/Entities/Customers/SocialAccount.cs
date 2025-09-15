@@ -35,5 +35,5 @@ public partial class SocialAccount : BaseAuditableEntity
 
     [ForeignKey("UserId")]
     [InverseProperty("SocialAccounts")]
-    public virtual User? User { get; set; }
+    public virtual CustomerUser? User { get; set; }
 }

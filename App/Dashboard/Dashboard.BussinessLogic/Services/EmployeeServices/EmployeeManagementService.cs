@@ -66,7 +66,7 @@ public class EmployeeManagementService : BaseTransactionalService, IEmployeeMana
         };
 
         var createdEmployee = await _employeeRepository.AddAsync(newEmployee);
-        await _unitOfWork.SaveChangesAsync();
+        await _employeeRepository.SaveChangesAsync();
         if (createdEmployee == null)
         {
             throw new Exception("Failed to create employee.");
@@ -81,7 +81,7 @@ public class EmployeeManagementService : BaseTransactionalService, IEmployeeMana
             throw new ArgumentException($"Employee with ID {id} does not exist.");
         }
         _employeeRepository.Remove(employee);
-        await _unitOfWork.SaveChangesAsync();
+        await _employeeRepository.SaveChangesAsync();
     }
 
     public async Task<PagedList<EmployeeDto>> GetEmployeesAsync(GetEmployeesInput? input)
@@ -183,7 +183,7 @@ public class EmployeeManagementService : BaseTransactionalService, IEmployeeMana
         });
 
 
-        await _unitOfWork.SaveChangesAsync();
+        await _employeeRepository.SaveChangesAsync();
 
     }
     public async Task<List<PositionDto>> GetAllPositionsAsync()

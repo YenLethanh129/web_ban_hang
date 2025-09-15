@@ -26,6 +26,10 @@ public partial class Employee : BaseAuditableEntity
     [Unicode(false)]
     public string? PhoneNumber { get; set; }
 
+    [Column("address")]
+    [StringLength(255)]
+    public string Address { get; set; } = null!;
+
     [Column("email")]
     [StringLength(255)]
     [Unicode(false)]
@@ -45,35 +49,37 @@ public partial class Employee : BaseAuditableEntity
     [Unicode(false)]
     public string? Status { get; set; } = "ACTIVE";
 
-    [ForeignKey("BranchId")]
-    [InverseProperty("Employees")]
+    [ForeignKey(nameof(BranchId))]
+    [InverseProperty(nameof(Branch.Employees))]
     public virtual Branch Branch { get; set; } = null!;
 
-    [ForeignKey("PositionId")]
-    [InverseProperty("Employees")]
+    [ForeignKey(nameof(PositionId))]
+    [InverseProperty(nameof(EmployeePosition.Employees))]
     public virtual EmployeePosition Position { get; set; } = null!;
 
-    [InverseProperty("Employee")]
+    // Quan hệ 1-1
+    [InverseProperty(nameof(EmployeeUserAccount.Employee))]
+    public virtual EmployeeUserAccount? EmployeeUserAccount { get; set; }
+
+    // Các quan hệ khác giữ nguyên
+    [InverseProperty(nameof(EmployeeSalary.Employee))]
     public virtual ICollection<EmployeeSalary> EmployeeSalaries { get; set; } = new List<EmployeeSalary>();
 
-    [InverseProperty("Employee")]
+    [InverseProperty(nameof(EmployeeShift.Employee))]
     public virtual ICollection<EmployeeShift> EmployeeShifts { get; set; } = new List<EmployeeShift>();
 
-    [InverseProperty("WarehouseStaff")]
+    [InverseProperty(nameof(GoodsReceivedNote.WarehouseStaff))]
     public virtual ICollection<GoodsReceivedNote> GoodsReceivedNotes { get; set; } = new List<GoodsReceivedNote>();
 
-    [InverseProperty("Employee")]
+    [InverseProperty(nameof(IngredientPurchaseOrder.Employee))]
     public virtual ICollection<IngredientPurchaseOrder> IngredientPurchaseOrders { get; set; } = new List<IngredientPurchaseOrder>();
 
-    [InverseProperty("DeliveryPerson")]
+    [InverseProperty(nameof(OrderDeliveryTracking.DeliveryPerson))]
     public virtual ICollection<OrderDeliveryTracking> OrderDeliveryTrackings { get; set; } = new List<OrderDeliveryTracking>();
 
-    [InverseProperty("Employee")]
+    [InverseProperty(nameof(EmployeePayroll.Employee))]
     public virtual ICollection<EmployeePayroll> Payrolls { get; set; } = new List<EmployeePayroll>();
 
-    [InverseProperty("ApprovedByNavigation")]
+    [InverseProperty(nameof(PurchaseReturn.ApprovedByNavigation))]
     public virtual ICollection<PurchaseReturn> PurchaseReturns { get; set; } = new List<PurchaseReturn>();
-
-    [InverseProperty("Employee")]
-    public virtual ICollection<User> Users { get; set; } = new List<User>();
 }

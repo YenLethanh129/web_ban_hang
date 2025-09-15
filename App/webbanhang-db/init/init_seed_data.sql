@@ -204,49 +204,49 @@ GO
 
 -- Positions (Job Titles / Chức danh nhân viên)
 -- Positions (chức vụ trong chuỗi cà phê)
-INSERT INTO [dbo].[employees] 
-([branch_id], [full_name], [phone], [email], [position_id], [hire_date], [resign_date], [status], [created_at], [last_modified])
+INSERT INTO [dbo].[employees]
+([branch_id], [full_name], [phone], [email], [position_id], [address], [hire_date], [resign_date], [status], [created_at], [last_modified])
 VALUES
-(1, N'Nguyễn Văn A', '0901000001', 'nva1@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, '2022-01-15', NULL, 'ACTIVE', GETDATE(), GETDATE()),
-(2, N'Trần Thị B', '0901000002', 'ttb2@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, '2022-02-20', NULL, 'ACTIVE', GETDATE(), GETDATE()),
-(3, N'Lê Văn C', '0901000003', 'lvc3@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, '2022-03-10', NULL, 'ACTIVE', GETDATE(), GETDATE()),
-(4, N'Phạm Thị D', '0901000004', 'ptd4@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, '2022-04-05', NULL, 'ACTIVE', GETDATE(), GETDATE()),
-(5, N'Hoàng Văn E', '0901000005', 'hve5@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, '2022-05-01', NULL, 'ACTIVE', GETDATE(), GETDATE()),
-(1, N'Đặng Thị F', '0901000006', 'dtf6@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, '2022-05-18', NULL, 'ACTIVE', GETDATE(), GETDATE()),
-(2, N'Ngô Văn G', '0901000007', 'nvg7@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, '2022-06-22', NULL, 'ACTIVE', GETDATE(), GETDATE()),
-(3, N'Bùi Thị H', '0901000008', 'bth8@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, '2022-07-11', NULL, 'ACTIVE', GETDATE(), GETDATE()),
-(4, N'Vũ Văn I', '0901000009', 'vvi9@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, '2022-07-29', NULL, 'ACTIVE', GETDATE(), GETDATE()),
-(5, N'Lý Thị J', '0901000010', 'ltj10@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, '2022-08-17', NULL, 'ACTIVE', GETDATE(), GETDATE()),
-(1, N'Tạ Văn K', '0901000011', 'tvk11@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, '2022-09-05', NULL, 'ACTIVE', GETDATE(), GETDATE()),
-(2, N'Cao Thị L', '0901000012', 'ctl12@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, '2022-09-30', NULL, 'ACTIVE', GETDATE(), GETDATE()),
-(3, N'Đoàn Văn M', '0901000013', 'dvm13@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, '2022-10-21', NULL, 'ACTIVE', GETDATE(), GETDATE()),
-(4, N'Trịnh Thị N', '0901000014', 'ttn14@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, '2022-11-15', NULL, 'ACTIVE', GETDATE(), GETDATE()),
-(5, N'Vương Văn O', '0901000015', 'vvo15@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, '2022-12-02', NULL, 'ACTIVE', GETDATE(), GETDATE()),
-(1, N'Phan Thị P', '0901000016', 'ptp16@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, '2023-01-09', NULL, 'ACTIVE', GETDATE(), GETDATE()),
-(2, N'Hồ Văn Q', '0901000017', 'hvq17@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, '2023-01-30', NULL, 'ACTIVE', GETDATE(), GETDATE()),
-(3, N'Nguyễn Thị R', '0901000018', 'ntr18@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, '2023-02-18', NULL, 'ACTIVE', GETDATE(), GETDATE()),
-(4, N'Lâm Văn S', '0901000019', 'lvs19@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, '2023-03-08', NULL, 'ACTIVE', GETDATE(), GETDATE()),
-(5, N'Huỳnh Thị T', '0901000020', 'htt20@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, '2023-03-27', NULL, 'ACTIVE', GETDATE(), GETDATE()),
-(1, N'Đinh Văn U', '0901000021', 'dvu21@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, '2023-04-15', NULL, 'ACTIVE', GETDATE(), GETDATE()),
-(2, N'Kiều Thị V', '0901000022', 'ktv22@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, '2023-05-02', NULL, 'ACTIVE', GETDATE(), GETDATE()),
-(3, N'Lương Văn W', '0901000023', 'lvw23@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, '2023-05-20', NULL, 'ACTIVE', GETDATE(), GETDATE()),
-(4, N'Đỗ Thị X', '0901000024', 'dtx24@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, '2023-06-07', NULL, 'ACTIVE', GETDATE(), GETDATE()),
-(5, N'Phùng Văn Y', '0901000025', 'pvy25@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, '2023-06-28', NULL, 'ACTIVE', GETDATE(), GETDATE()),
-(1, N'Nguyễn Thị Z', '0901000026', 'ntz26@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, '2023-07-12', NULL, 'ACTIVE', GETDATE(), GETDATE()),
-(2, N'Trần Văn AA', '0901000027', 'tvaa27@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, '2023-07-30', NULL, 'ACTIVE', GETDATE(), GETDATE()),
-(3, N'Phạm Thị BB', '0901000028', 'ptbb28@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, '2023-08-15', NULL, 'ACTIVE', GETDATE(), GETDATE()),
-(4, N'Lê Văn CC', '0901000029', 'lvcc29@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, '2023-09-01', NULL, 'ACTIVE', GETDATE(), GETDATE()),
-(5, N'Hoàng Thị DD', '0901000030', 'htdd30@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, '2023-09-18', NULL, 'ACTIVE', GETDATE(), GETDATE()),
-(1, N'Ngô Văn EE', '0901000031', 'nvee31@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, '2023-10-04', NULL, 'ACTIVE', GETDATE(), GETDATE()),
-(2, N'Bùi Thị FF', '0901000032', 'btff32@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, '2023-10-22', NULL, 'ACTIVE', GETDATE(), GETDATE()),
-(3, N'Vũ Văn GG', '0901000033', 'vvgg33@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, '2023-11-10', NULL, 'ACTIVE', GETDATE(), GETDATE()),
-(4, N'Lý Thị HH', '0901000034', 'lthh34@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, '2023-11-29', NULL, 'ACTIVE', GETDATE(), GETDATE()),
-(5, N'Tạ Văn II', '0901000035', 'tvii35@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, '2023-12-17', NULL, 'ACTIVE', GETDATE(), GETDATE()),
-(1, N'Cao Thị JJ', '0901000036', 'ctjj36@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, '2024-01-08', NULL, 'ACTIVE', GETDATE(), GETDATE()),
-(2, N'Đoàn Văn KK', '0901000037', 'dvkk37@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, '2024-01-25', NULL, 'ACTIVE', GETDATE(), GETDATE()),
-(3, N'Trịnh Thị LL', '0901000038', 'ttll38@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, '2024-02-14', NULL, 'ACTIVE', GETDATE(), GETDATE()),
-(4, N'Vương Văn MM', '0901000039', 'vvmm39@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, '2024-03-03', NULL, 'ACTIVE', GETDATE(), GETDATE()),
-(5, N'Phan Thị NN', '0901000040', 'ptnn40@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, '2024-03-22', NULL, 'ACTIVE', GETDATE(), GETDATE());
+(1, N'Nguyễn Văn A', '0901000001', 'nva1@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, N'123 Nguyễn Huệ, Quận 1, TP.HCM', '2022-01-15', NULL, 'ACTIVE', GETDATE(), GETDATE()),
+(2, N'Trần Thị B', '0901000002', 'ttb2@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, N'456 Võ Thị Sáu, Quận 3, TP.HCM', '2022-02-20', NULL, 'ACTIVE', GETDATE(), GETDATE()),
+(3, N'Lê Văn C', '0901000003', 'lvc3@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, N'789 Nguyễn Thị Thập, Quận 7, TP.HCM', '2022-03-10', NULL, 'ACTIVE', GETDATE(), GETDATE()),
+(4, N'Phạm Thị D', '0901000004', 'ptd4@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, N'321 Hoàn Kiếm, Hoàn Kiếm, Hà Nội', '2022-04-05', NULL, 'ACTIVE', GETDATE(), GETDATE()),
+(5, N'Hoàng Văn E', '0901000005', 'hve5@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, N'654 Hải Châu, Đà Nẵng', '2022-05-01', NULL, 'ACTIVE', GETDATE(), GETDATE()),
+(1, N'Đặng Thị F', '0901000006', 'dtf6@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, N'111 Nguyễn Du, Quận 1, TP.HCM', '2022-05-18', NULL, 'ACTIVE', GETDATE(), GETDATE()),
+(2, N'Ngô Văn G', '0901000007', 'nvg7@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, N'222 Lý Tự Trọng, Quận 1, TP.HCM', '2022-06-22', NULL, 'ACTIVE', GETDATE(), GETDATE()),
+(3, N'Bùi Thị H', '0901000008', 'bth8@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, N'333 Đồng Khởi, Quận 1, TP.HCM', '2022-07-11', NULL, 'ACTIVE', GETDATE(), GETDATE()),
+(4, N'Vũ Văn I', '0901000009', 'vvi9@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, N'147 3 Tháng 2, Quận 10, TP.HCM', '2022-07-29', NULL, 'ACTIVE', GETDATE(), GETDATE()),
+(5, N'Lý Thị J', '0901000010', 'ltj10@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, N'555 Hoàng Hoa Thám, Tân Bình, TP.HCM', '2022-08-17', NULL, 'ACTIVE', GETDATE(), GETDATE()),
+(1, N'Tạ Văn K', '0901000011', 'tvk11@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, N'666 Trần Hưng Đạo, Quận 1, TP.HCM', '2022-09-05', NULL, 'ACTIVE', GETDATE(), GETDATE()),
+(2, N'Cao Thị L', '0901000012', 'ctl12@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, N'777 Nguyễn Văn Cừ, Quận 5, TP.HCM', '2022-09-30', NULL, 'ACTIVE', GETDATE(), GETDATE()),
+(3, N'Đoàn Văn M', '0901000013', 'dvm13@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, N'888 Lê Lợi, Quận 1, TP.HCM', '2022-10-21', NULL, 'ACTIVE', GETDATE(), GETDATE()),
+(4, N'Trịnh Thị N', '0901000014', 'ttn14@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, N'987 Võ Văn Tần, Quận 3, TP.HCM', '2022-11-15', NULL, 'ACTIVE', GETDATE(), GETDATE()),
+(5, N'Vương Văn O', '0901000015', 'vvo15@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, N'147 Cách Mạng Tháng 8, Quận 10, TP.HCM', '2022-12-02', NULL, 'ACTIVE', GETDATE(), GETDATE()),
+(1, N'Phan Thị P', '0901000016', 'ptp16@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, N'111 Lê Văn Sỹ, Quận 3, TP.HCM', '2023-01-09', NULL, 'ACTIVE', GETDATE(), GETDATE()),
+(2, N'Hồ Văn Q', '0901000017', 'hvq17@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, N'222 Cách Mạng Tháng 8, Quận 10, TP.HCM', '2023-01-30', NULL, 'ACTIVE', GETDATE(), GETDATE()),
+(3, N'Nguyễn Thị R', '0901000018', 'ntr18@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, N'333 Nguyễn Trãi, Quận 5, TP.HCM', '2023-02-18', NULL, 'ACTIVE', GETDATE(), GETDATE()),        
+(4, N'Lâm Văn S', '0901000019', 'lvs19@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, N'444 Võ Văn Tần, Quận 3, TP.HCM', '2023-03-08', NULL, 'ACTIVE', GETDATE(), GETDATE()),
+(5, N'Huỳnh Thị T', '0901000020', 'htt20@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, N'555 Hoàng Hoa Thám, Tân Bình, TP.HCM', '2023-03-27', NULL, 'ACTIVE', GETDATE(), GETDATE()),
+(1, N'Đinh Văn U', '0901000021', 'dvu21@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, N'666 Trần Hưng Đạo, Quận 1, TP.HCM', '2023-04-15', NULL, 'ACTIVE', GETDATE(), GETDATE()),     
+(2, N'Kiều Thị V', '0901000022', 'ktv22@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, N'777 Nguyễn Văn Cừ, Quận 5, TP.HCM', '2023-05-02', NULL, 'ACTIVE', GETDATE(), GETDATE()),
+(3, N'Lương Văn W', '0901000023', 'lvw23@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, N'888 Lê Lợi, Quận 1, TP.HCM', '2023-05-20', NULL, 'ACTIVE', GETDATE(), GETDATE()),
+(4, N'Đỗ Thị X', '0901000024', 'dtx24@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, N'999 Nguyễn Huệ, Quận 1, TP.HCM', '2023-06-07', NULL, 'ACTIVE', GETDATE(), GETDATE()),
+(5, N'Phùng Văn Y', '0901000025', 'pvy25@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, N'101 Trần Phú, Quận 3, TP.HCM', '2023-06-28', NULL, 'ACTIVE', GETDATE(), GETDATE()),   
+(1, N'Nguyễn Thị Z', '0901000026', 'ntz26@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, N'111A Nguyễn Du, Quận 1, TP.HCM', '2023-07-12', NULL, 'ACTIVE', GETDATE(), GETDATE()),        
+(2, N'Trần Văn AA', '0901000027', 'tvaa27@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, N'222B Lý Thường Kiệt, Quận 10, TP.HCM', '2023-07-30', NULL, 'ACTIVE', GETDATE(), GETDATE()),        
+(3, N'Phạm Thị BB', '0901000028', 'ptbb28@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, N'333C Pasteur, Quận 1, TP.HCM', '2023-08-15', NULL, 'ACTIVE', GETDATE(), GETDATE()),        
+(4, N'Lê Văn CC', '0901000029', 'lvcc29@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, N'444D Trần Hưng Đạo, Quận 1, TP.HCM', '2023-09-01', NULL, 'ACTIVE', GETDATE(), GETDATE()),    
+(5, N'Hoàng Thị DD', '0901000030', 'htdd30@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, N'555E Cách Mạng Tháng 8, Quận 10, TP.HCM', '2023-09-18', NULL, 'ACTIVE', GETDATE(), GETDATE()),       
+(1, N'Ngô Văn EE', '0901000031', 'nvee31@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, N'666F Nguyễn Thị Minh Khai, Quận 3, TP.HCM', '2023-10-04', NULL, 'ACTIVE', GETDATE(), GETDATE()),
+(2, N'Bùi Thị FF', '0901000032', 'btff32@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, N'777G Võ Văn Tần, Quận 3, TP.HCM', '2023-10-22', NULL, 'ACTIVE', GETDATE(), GETDATE()),   
+(3, N'Vũ Văn GG', '0901000033', 'vvgg33@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, N'888H Lê Văn Sỹ, Quận 3, TP.HCM', '2023-11-10', NULL, 'ACTIVE', GETDATE(), GETDATE()),    
+(4, N'Lý Thị HH', '0901000034', 'lthh34@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, N'999I Nguyễn Văn Cừ, Quận 5, TP.HCM', '2023-11-29', NULL, 'ACTIVE', GETDATE(), GETDATE()),    
+(5, N'Tạ Văn II', '0901000035', 'tvii35@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, N'101J Hoàng Hoa Thám, Tân Bình, TP.HCM', '2023-12-17', NULL, 'ACTIVE', GETDATE(), GETDATE()),    
+(1, N'Cao Thị JJ', '0901000036', 'ctjj36@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, N'111K Trần Quang Khải, Quận 1, TP.HCM', '2024-01-08', NULL, 'ACTIVE', GETDATE(), GETDATE()),   
+(2, N'Đoàn Văn KK', '0901000037', 'dvkk37@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, N'222L Nguyễn Văn Trỗi, Quận Phú Nhuận, TP.HCM', '2024-01-25', NULL, 'ACTIVE', GETDATE(), GETDATE()),  
+(3, N'Trịnh Thị LL', '0901000038', 'ttll38@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, N'333M Hoàng Diệu, Quận 4, TP.HCM', '2024-02-14', NULL, 'ACTIVE', GETDATE(), GETDATE()),       
+(4, N'Vương Văn MM', '0901000039', 'vvmm39@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, N'444N Trần Hưng Đạo, Quận 1, TP.HCM', '2024-03-03', NULL, 'ACTIVE', GETDATE(), GETDATE()),       
+(5, N'Phan Thị NN', '0901000040', 'ptnn40@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, N'555O Phan Đình Phùng, Quận 3, TP.HCM', '2024-03-22', NULL, 'ACTIVE', GETDATE(), GETDATE());        
 GO
 -- Insert into product_images
 INSERT INTO [dbo].[product_images] ([product_id], [image_url]) VALUES
@@ -645,133 +645,172 @@ GO
 -- DELETE FROM [dbo].[permissions];
 -- GO
 
+-- Users
 INSERT INTO [dbo].[permissions] ([name], [description], [resource], [action], [created_at], [last_modified]) VALUES
--- User Management
-(N'USER_CREATE', N'Tạo người dùng mới', N'USER', N'CREATE', GETDATE(), GETDATE()),
-(N'USER_READ', N'Xem thông tin người dùng', N'USER', N'READ', GETDATE(), GETDATE()),
-(N'USER_UPDATE', N'Cập nhật thông tin người dùng', N'USER', N'UPDATE', GETDATE(), GETDATE()),
-(N'USER_DELETE', N'Xóa người dùng', N'USER', N'DELETE', GETDATE(), GETDATE()),
+(N'USERS_CREATE', N'Tạo người dùng mới', N'Users', N'Create', GETDATE(), GETDATE()),
+(N'USERS_READ', N'Xem thông tin người dùng', N'Users', N'Read', GETDATE(), GETDATE()),
+(N'USERS_UPDATE', N'Cập nhật thông tin người dùng', N'Users', N'Update', GETDATE(), GETDATE()),
+(N'USERS_DELETE', N'Xóa người dùng', N'Users', N'Delete', GETDATE(), GETDATE());
 
--- Product & Menu Management
-(N'PRODUCT_CREATE', N'Tạo sản phẩm/món mới', N'PRODUCT', N'CREATE', GETDATE(), GETDATE()),
-(N'PRODUCT_READ', N'Xem thông tin sản phẩm/món', N'PRODUCT', N'READ', GETDATE(), GETDATE()),
-(N'PRODUCT_UPDATE', N'Cập nhật sản phẩm/món', N'PRODUCT', N'UPDATE', GETDATE(), GETDATE()),
-(N'PRODUCT_DELETE', N'Xóa sản phẩm/món', N'PRODUCT', N'DELETE', GETDATE(), GETDATE()),
+-- Roles
+INSERT INTO [dbo].[permissions] ([name], [description], [resource], [action], [created_at], [last_modified]) VALUES
+(N'ROLES_CREATE', N'Tạo vai trò mới', N'Roles', N'Create', GETDATE(), GETDATE()),
+(N'ROLES_READ', N'Xem thông tin vai trò', N'Roles', N'Read', GETDATE(), GETDATE()),
+(N'ROLES_UPDATE', N'Cập nhật vai trò', N'Roles', N'Update', GETDATE(), GETDATE()),
+(N'ROLES_DELETE', N'Xóa vai trò', N'Roles', N'Delete', GETDATE(), GETDATE());
 
--- Order Management
-(N'ORDER_CREATE', N'Tạo đơn hàng', N'ORDER', N'CREATE', GETDATE(), GETDATE()),
-(N'ORDER_READ', N'Xem đơn hàng', N'ORDER', N'READ', GETDATE(), GETDATE()),
-(N'ORDER_UPDATE', N'Cập nhật đơn hàng', N'ORDER', N'UPDATE', GETDATE(), GETDATE()),
-(N'ORDER_DELETE', N'Hủy đơn hàng', N'ORDER', N'DELETE', GETDATE(), GETDATE()),
+-- Permissions
+INSERT INTO [dbo].[permissions] ([name], [description], [resource], [action], [created_at], [last_modified]) VALUES
+(N'PERMISSIONS_MANAGE', N'Quản lý phân quyền', N'Permissions', N'Manage', GETDATE(), GETDATE());
 
--- Branch Management
-(N'BRANCH_CREATE', N'Tạo chi nhánh mới', N'BRANCH', N'CREATE', GETDATE(), GETDATE()),
-(N'BRANCH_READ', N'Xem thông tin chi nhánh', N'BRANCH', N'READ', GETDATE(), GETDATE()),
-(N'BRANCH_UPDATE', N'Cập nhật thông tin chi nhánh', N'BRANCH', N'UPDATE', GETDATE(), GETDATE()),
-(N'BRANCH_DELETE', N'Xóa chi nhánh', N'BRANCH', N'DELETE', GETDATE(), GETDATE()),
+-- Products
+INSERT INTO [dbo].[permissions] ([name], [description], [resource], [action], [created_at], [last_modified]) VALUES
+(N'PRODUCTS_CREATE', N'Tạo sản phẩm/món mới', N'Products', N'Create', GETDATE(), GETDATE()),
+(N'PRODUCTS_READ', N'Xem thông tin sản phẩm/món', N'Products', N'Read', GETDATE(), GETDATE()),
+(N'PRODUCTS_UPDATE', N'Cập nhật sản phẩm/món', N'Products', N'Update', GETDATE(), GETDATE()),
+(N'PRODUCTS_DELETE', N'Xóa sản phẩm/món', N'Products', N'Delete', GETDATE(), GETDATE());
 
--- Inventory Management (CHI TIẾT HÓA)
-(N'INVENTORY_RECEIPT_CREATE', N'Tạo phiếu nhập kho', N'INVENTORY', N'CREATE_RECEIPT', GETDATE(), GETDATE()),
-(N'INVENTORY_DELIVERY_CREATE', N'Tạo phiếu xuất kho', N'INVENTORY', N'CREATE_DELIVERY', GETDATE(), GETDATE()),
-(N'INVENTORY_READ', N'Xem thông tin tồn kho', N'INVENTORY', N'READ', GETDATE(), GETDATE()),
-(N'INVENTORY_AUDIT', N'Thực hiện kiểm kê kho', N'INVENTORY', N'AUDIT', GETDATE(), GETDATE()),
-(N'INVENTORY_HISTORY_VIEW', N'Xem lịch sử xuất/nhập kho', N'INVENTORY', N'VIEW_HISTORY', GETDATE(), GETDATE()),
+-- Categories
+INSERT INTO [dbo].[permissions] ([name], [description], [resource], [action], [created_at], [last_modified]) VALUES
+(N'CATEGORIES_MANAGE', N'Quản lý danh mục', N'Categories', N'Manage', GETDATE(), GETDATE());
 
+-- Orders
+INSERT INTO [dbo].[permissions] ([name], [description], [resource], [action], [created_at], [last_modified]) VALUES
+(N'ORDERS_CREATE', N'Tạo đơn hàng', N'Orders', N'Create', GETDATE(), GETDATE()),
+(N'ORDERS_READ', N'Xem đơn hàng', N'Orders', N'Read', GETDATE(), GETDATE()),
+(N'ORDERS_UPDATE', N'Cập nhật đơn hàng', N'Orders', N'Update', GETDATE(), GETDATE()),
+(N'ORDERS_DELETE', N'Hủy đơn hàng', N'Orders', N'Delete', GETDATE(), GETDATE());
 
--- Report & Finance Management (BỔ SUNG)
-(N'REPORT_REVENUE_VIEW', N'Xem báo cáo doanh thu', N'REPORT', N'VIEW_REVENUE', GETDATE(), GETDATE()),
-(N'REPORT_INVENTORY_VIEW', N'Xem báo cáo kho', N'REPORT', N'VIEW_INVENTORY', GETDATE(), GETDATE()),
-(N'REPORT_FINANCIAL_VIEW', N'Xem báo cáo tài chính tổng hợp', N'REPORT', N'VIEW_FINANCIAL', GETDATE(), GETDATE()),
+-- Branchs
+INSERT INTO [dbo].[permissions] ([name], [description], [resource], [action], [created_at], [last_modified]) VALUES
+(N'BRANCHS_CREATE', N'Tạo chi nhánh mới', N'Branchs', N'Create', GETDATE(), GETDATE()),
+(N'BRANCHS_READ', N'Xem thông tin chi nhánh', N'Branchs', N'Read', GETDATE(), GETDATE()),
+(N'BRANCHS_UPDATE', N'Cập nhật thông tin chi nhánh', N'Branchs', N'Update', GETDATE(), GETDATE()),
+(N'BRANCHS_DELETE', N'Xóa chi nhánh', N'Branchs', N'Delete', GETDATE(), GETDATE());
 
--- Promotion Management (BỔ SUNG)
-(N'PROMOTION_MANAGE', N'Quản lý chương trình khuyến mãi', N'PROMOTION', N'MANAGE', GETDATE(), GETDATE());
+-- Employees
+INSERT INTO [dbo].[permissions] ([name], [description], [resource], [action], [created_at], [last_modified]) VALUES
+(N'EMPLOYEES_MANAGE', N'Quản lý nhân viên', N'Employees', N'Manage', GETDATE(), GETDATE());
+
+-- Suppliers
+INSERT INTO [dbo].[permissions] ([name], [description], [resource], [action], [created_at], [last_modified]) VALUES
+(N'SUPPLIERS_MANAGE', N'Quản lý nhà cung cấp', N'Suppliers', N'Manage', GETDATE(), GETDATE());
+
+-- Customers
+INSERT INTO [dbo].[permissions] ([name], [description], [resource], [action], [created_at], [last_modified]) VALUES
+(N'CUSTOMERS_MANAGE', N'Quản lý khách hàng', N'Customers', N'Manage', GETDATE(), GETDATE());
+
+-- Inventory
+INSERT INTO [dbo].[permissions] ([name], [description], [resource], [action], [created_at], [last_modified]) VALUES
+(N'INVENTORY_MANAGE', N'Quản lý kho hàng', N'Inventory', N'Manage', GETDATE(), GETDATE());
+
+-- Shipments
+INSERT INTO [dbo].[permissions] ([name], [description], [resource], [action], [created_at], [last_modified]) VALUES
+(N'SHIPMENTS_MANAGE', N'Quản lý giao hàng', N'Shipments', N'Manage', GETDATE(), GETDATE());
+
+-- Invoices
+INSERT INTO [dbo].[permissions] ([name], [description], [resource], [action], [created_at], [last_modified]) VALUES
+(N'INVOICES_MANAGE', N'Quản lý hóa đơn', N'Invoices', N'Manage', GETDATE(), GETDATE());
+
+-- Reviews
+INSERT INTO [dbo].[permissions] ([name], [description], [resource], [action], [created_at], [last_modified]) VALUES
+(N'REVIEWS_MANAGE', N'Quản lý đánh giá', N'Reviews', N'Manage', GETDATE(), GETDATE());
+
+-- Analytics
+INSERT INTO [dbo].[permissions] ([name], [description], [resource], [action], [created_at], [last_modified]) VALUES
+(N'ANALYTICS_MANAGE', N'Xem phân tích dữ liệu', N'Analytics', N'Manage', GETDATE(), GETDATE());
+
+-- FinancialReports
+INSERT INTO [dbo].[permissions] ([name], [description], [resource], [action], [created_at], [last_modified]) VALUES
+(N'FINANCIALREPORTS_MANAGE', N'Xem báo cáo tài chính', N'FinancialReports', N'Manage', GETDATE(), GETDATE());
 GO
+
 
 -- Insert into role_permissions
 INSERT INTO [dbo].[role_permissions] ([role_id], [permission_id], [created_at], [last_modified]) VALUES
--- ADMIN: Có toàn quyền
-((SELECT id FROM [dbo].[roles] WHERE name = 'ADMIN'), (SELECT id FROM [dbo].[permissions] WHERE name = 'USER_CREATE'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'ADMIN'), (SELECT id FROM [dbo].[permissions] WHERE name = 'USER_READ'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'ADMIN'), (SELECT id FROM [dbo].[permissions] WHERE name = 'USER_UPDATE'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'ADMIN'), (SELECT id FROM [dbo].[permissions] WHERE name = 'USER_DELETE'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'ADMIN'), (SELECT id FROM [dbo].[permissions] WHERE name = 'PRODUCT_CREATE'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'ADMIN'), (SELECT id FROM [dbo].[permissions] WHERE name = 'PRODUCT_READ'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'ADMIN'), (SELECT id FROM [dbo].[permissions] WHERE name = 'PRODUCT_UPDATE'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'ADMIN'), (SELECT id FROM [dbo].[permissions] WHERE name = 'PRODUCT_DELETE'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'ADMIN'), (SELECT id FROM [dbo].[permissions] WHERE name = 'ORDER_CREATE'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'ADMIN'), (SELECT id FROM [dbo].[permissions] WHERE name = 'ORDER_READ'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'ADMIN'), (SELECT id FROM [dbo].[permissions] WHERE name = 'ORDER_UPDATE'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'ADMIN'), (SELECT id FROM [dbo].[permissions] WHERE name = 'ORDER_DELETE'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'ADMIN'), (SELECT id FROM [dbo].[permissions] WHERE name = 'INVENTORY_READ'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'ADMIN'), (SELECT id FROM [dbo].[permissions] WHERE name = 'INVENTORY_IMPORT'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'ADMIN'), (SELECT id FROM [dbo].[permissions] WHERE name = 'INVENTORY_EXPORT'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'ADMIN'), (SELECT id FROM [dbo].[permissions] WHERE name = 'INVENTORY_UPDATE'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'ADMIN'), (SELECT id FROM [dbo].[permissions] WHERE name = 'FINANCE_READ'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'ADMIN'), (SELECT id FROM [dbo].[permissions] WHERE name = 'FINANCE_UPDATE'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'ADMIN'), (SELECT id FROM [dbo].[permissions] WHERE name = 'FINANCE_APPROVE'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'ADMIN'), (SELECT id FROM [dbo].[permissions] WHERE name = 'REPORT_VIEW'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'ADMIN'), (SELECT id FROM [dbo].[permissions] WHERE name = 'REPORT_EXPORT'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'ADMIN'), (SELECT id FROM [dbo].[permissions] WHERE name = 'BRANCH_READ'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'ADMIN'), (SELECT id FROM [dbo].[permissions] WHERE name = 'BRANCH_UPDATE'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'ADMIN'), (SELECT id FROM [dbo].[permissions] WHERE name = 'BRANCH_CREATE'), GETDATE(), GETDATE()),
+-- MANAGER
+((SELECT id FROM [dbo].[roles] WHERE name = 'MANAGER'),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'USERS_CREATE'), GETDATE(), GETDATE()),
+((SELECT id FROM [dbo].[roles] WHERE name = 'MANAGER'),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'USERS_READ'), GETDATE(), GETDATE()),
+((SELECT id FROM [dbo].[roles] WHERE name = 'MANAGER'),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'USERS_UPDATE'), GETDATE(), GETDATE()),
+((SELECT id FROM [dbo].[roles] WHERE name = 'MANAGER'),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'PRODUCTS_READ'), GETDATE(), GETDATE()),
+((SELECT id FROM [dbo].[roles] WHERE name = 'MANAGER'),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'PRODUCTS_UPDATE'), GETDATE(), GETDATE()),
+((SELECT id FROM [dbo].[roles] WHERE name = 'MANAGER'),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'ORDERS_CREATE'), GETDATE(), GETDATE()),
+((SELECT id FROM [dbo].[roles] WHERE name = 'MANAGER'),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'ORDERS_READ'), GETDATE(), GETDATE()),
+((SELECT id FROM [dbo].[roles] WHERE name = 'MANAGER'),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'ORDERS_UPDATE'), GETDATE(), GETDATE()),
+((SELECT id FROM [dbo].[roles] WHERE name = 'MANAGER'),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'ORDERS_DELETE'), GETDATE(), GETDATE()),
+((SELECT id FROM [dbo].[roles] WHERE name = 'MANAGER'),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'INVENTORY_MANAGE'), GETDATE(), GETDATE()),
+((SELECT id FROM [dbo].[roles] WHERE name = 'MANAGER'),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'FINANCIALREPORTS_MANAGE'), GETDATE(), GETDATE()),
+((SELECT id FROM [dbo].[roles] WHERE name = 'MANAGER'),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'BRANCHS_READ'), GETDATE(), GETDATE()),
+((SELECT id FROM [dbo].[roles] WHERE name = 'MANAGER'),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'BRANCHS_UPDATE'), GETDATE(), GETDATE()),
 
--- MANAGER: Quản lý chi nhánh, nhân viên, đơn hàng, kho, báo cáo
-((SELECT id FROM [dbo].[roles] WHERE name = 'MANAGER'), (SELECT id FROM [dbo].[permissions] WHERE name = 'USER_CREATE'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'MANAGER'), (SELECT id FROM [dbo].[permissions] WHERE name = 'USER_READ'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'MANAGER'), (SELECT id FROM [dbo].[permissions] WHERE name = 'USER_UPDATE'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'MANAGER'), (SELECT id FROM [dbo].[permissions] WHERE name = 'PRODUCT_READ'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'MANAGER'), (SELECT id FROM [dbo].[permissions] WHERE name = 'PRODUCT_UPDATE'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'MANAGER'), (SELECT id FROM [dbo].[permissions] WHERE name = 'ORDER_CREATE'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'MANAGER'), (SELECT id FROM [dbo].[permissions] WHERE name = 'ORDER_READ'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'MANAGER'), (SELECT id FROM [dbo].[permissions] WHERE name = 'ORDER_UPDATE'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'MANAGER'), (SELECT id FROM [dbo].[permissions] WHERE name = 'ORDER_DELETE'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'MANAGER'), (SELECT id FROM [dbo].[permissions] WHERE name = 'INVENTORY_READ'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'MANAGER'), (SELECT id FROM [dbo].[permissions] WHERE name = 'INVENTORY_UPDATE'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'MANAGER'), (SELECT id FROM [dbo].[permissions] WHERE name = 'REPORT_VIEW'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'MANAGER'), (SELECT id FROM [dbo].[permissions] WHERE name = 'REPORT_EXPORT'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'MANAGER'), (SELECT id FROM [dbo].[permissions] WHERE name = 'BRANCH_READ'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'MANAGER'), (SELECT id FROM [dbo].[permissions] WHERE name = 'BRANCH_UPDATE'), GETDATE(), GETDATE()),
+-- SUPERVISOR
+((SELECT id FROM [dbo].[roles] WHERE name = 'SUPERVISOR'),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'USERS_READ'), GETDATE(), GETDATE()),
+((SELECT id FROM [dbo].[roles] WHERE name = 'SUPERVISOR'),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'PRODUCTS_READ'), GETDATE(), GETDATE()),
+((SELECT id FROM [dbo].[roles] WHERE name = 'SUPERVISOR'),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'ORDERS_READ'), GETDATE(), GETDATE()),
+((SELECT id FROM [dbo].[roles] WHERE name = 'SUPERVISOR'),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'INVENTORY_MANAGE'), GETDATE(), GETDATE()),
+((SELECT id FROM [dbo].[roles] WHERE name = 'SUPERVISOR'),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'FINANCIALREPORTS_MANAGE'), GETDATE(), GETDATE()),
+((SELECT id FROM [dbo].[roles] WHERE name = 'SUPERVISOR'),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'BRANCHS_READ'), GETDATE(), GETDATE()),
 
--- SUPERVISOR: Theo dõi hoạt động, xem báo cáo
-((SELECT id FROM [dbo].[roles] WHERE name = 'SUPERVISOR'), (SELECT id FROM [dbo].[permissions] WHERE name = 'USER_READ'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'SUPERVISOR'), (SELECT id FROM [dbo].[permissions] WHERE name = 'PRODUCT_READ'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'SUPERVISOR'), (SELECT id FROM [dbo].[permissions] WHERE name = 'ORDER_READ'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'SUPERVISOR'), (SELECT id FROM [dbo].[permissions] WHERE name = 'INVENTORY_READ'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'SUPERVISOR'), (SELECT id FROM [dbo].[permissions] WHERE name = 'REPORT_VIEW'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'SUPERVISOR'), (SELECT id FROM [dbo].[permissions] WHERE name = 'BRANCH_READ'), GETDATE(), GETDATE()),
+-- EMPLOYEE
+((SELECT id FROM [dbo].[roles] WHERE name = 'EMPLOYEE'),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'PRODUCTS_READ'), GETDATE(), GETDATE()),
+((SELECT id FROM [dbo].[roles] WHERE name = 'EMPLOYEE'),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'ORDERS_CREATE'), GETDATE(), GETDATE()),
+((SELECT id FROM [dbo].[roles] WHERE name = 'EMPLOYEE'),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'ORDERS_READ'), GETDATE(), GETDATE()),
 
--- EMPLOYEE: Thực hiện tác vụ cơ bản
-((SELECT id FROM [dbo].[roles] WHERE name = 'EMPLOYEE'), (SELECT id FROM [dbo].[permissions] WHERE name = 'PRODUCT_READ'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'EMPLOYEE'), (SELECT id FROM [dbo].[permissions] WHERE name = 'ORDER_CREATE'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'EMPLOYEE'), (SELECT id FROM [dbo].[permissions] WHERE name = 'ORDER_READ'), GETDATE(), GETDATE()),
+-- CASHIER
+((SELECT id FROM [dbo].[roles] WHERE name = 'CASHIER'),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'PRODUCTS_READ'), GETDATE(), GETDATE()),
+((SELECT id FROM [dbo].[roles] WHERE name = 'CASHIER'),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'ORDERS_CREATE'), GETDATE(), GETDATE()),
+((SELECT id FROM [dbo].[roles] WHERE name = 'CASHIER'),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'ORDERS_READ'), GETDATE(), GETDATE()),
+((SELECT id FROM [dbo].[roles] WHERE name = 'CASHIER'),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'ORDERS_UPDATE'), GETDATE(), GETDATE()),
 
--- CASHIER: Xử lý thanh toán và đơn hàng
-((SELECT id FROM [dbo].[roles] WHERE name = 'CASHIER'), (SELECT id FROM [dbo].[permissions] WHERE name = 'PRODUCT_READ'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'CASHIER'), (SELECT id FROM [dbo].[permissions] WHERE name = 'ORDER_CREATE'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'CASHIER'), (SELECT id FROM [dbo].[permissions] WHERE name = 'ORDER_READ'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'CASHIER'), (SELECT id FROM [dbo].[permissions] WHERE name = 'ORDER_UPDATE'), GETDATE(), GETDATE()),
+-- WAREHOUSE_STAFF
+((SELECT id FROM [dbo].[roles] WHERE name = 'WAREHOUSE_STAFF'),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'PRODUCTS_READ'), GETDATE(), GETDATE()),
+((SELECT id FROM [dbo].[roles] WHERE name = 'WAREHOUSE_STAFF'),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'INVENTORY_MANAGE'), GETDATE(), GETDATE());
 
--- WAREHOUSE_STAFF: Quản lý kho
-((SELECT id FROM [dbo].[roles] WHERE name = 'WAREHOUSE_STAFF'), (SELECT id FROM [dbo].[permissions] WHERE name = 'PRODUCT_READ'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'WAREHOUSE_STAFF'), (SELECT id FROM [dbo].[permissions] WHERE name = 'INVENTORY_READ'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'WAREHOUSE_STAFF'), (SELECT id FROM [dbo].[permissions] WHERE name = 'INVENTORY_IMPORT'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'WAREHOUSE_STAFF'), (SELECT id FROM [dbo].[permissions] WHERE name = 'INVENTORY_EXPORT'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'WAREHOUSE_STAFF'), (SELECT id FROM [dbo].[permissions] WHERE name = 'INVENTORY_UPDATE'), GETDATE(), GETDATE()),
 
--- ACCOUNTANT: Quản lý tài chính
-((SELECT id FROM [dbo].[roles] WHERE name = 'ACCOUNTANT'), (SELECT id FROM [dbo].[permissions] WHERE name = 'FINANCE_READ'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'ACCOUNTANT'), (SELECT id FROM [dbo].[permissions] WHERE name = 'FINANCE_UPDATE'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'ACCOUNTANT'), (SELECT id FROM [dbo].[permissions] WHERE name = 'FINANCE_APPROVE'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'ACCOUNTANT'), (SELECT id FROM [dbo].[permissions] WHERE name = 'REPORT_VIEW'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'ACCOUNTANT'), (SELECT id FROM [dbo].[permissions] WHERE name = 'REPORT_EXPORT'), GETDATE(), GETDATE()),
+-- ADMIN
+INSERT INTO [dbo].[role_permissions] ([role_id], [permission_id], [created_at], [last_modified])
+SELECT 
+    r.id, 
+    p.id, 
+    GETDATE(), 
+    GETDATE()
+FROM [dbo].[roles] r
+INNER JOIN [dbo].[permissions] p ON 1 = 1
+WHERE r.name = 'ADMIN'
+  AND NOT EXISTS (
+      SELECT 1 
+      FROM [dbo].[role_permissions] rp
+      WHERE rp.role_id = r.id AND rp.permission_id = p.id
+  );
 
--- CUSTOMER: Đặt hàng, xem thông tin cơ bản
-((SELECT id FROM [dbo].[roles] WHERE name = 'CUSTOMER'), (SELECT id FROM [dbo].[permissions] WHERE name = 'PRODUCT_READ'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'CUSTOMER'), (SELECT id FROM [dbo].[permissions] WHERE name = 'ORDER_CREATE'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'CUSTOMER'), (SELECT id FROM [dbo].[permissions] WHERE name = 'ORDER_READ'), GETDATE(), GETDATE()),
-
--- GUEST: Chỉ xem thông tin cơ bản
-((SELECT id FROM [dbo].[roles] WHERE name = 'GUEST'), (SELECT id FROM [dbo].[permissions] WHERE name = 'PRODUCT_READ'), GETDATE(), GETDATE());
 
 -- Insert into recipes
 INSERT INTO [dbo].[recipes] ([name], [description], [product_id], [serving_size], [unit], [is_active], [notes], [created_at], [last_modified]) VALUES
@@ -1377,6 +1416,20 @@ INSERT INTO [dbo].[order_details] ([order_id], [product_id], [unit_price], [quan
 GO
 
 PRINT N'Order Details for 50 additional orders inserted successfully!';
+GO
+
+-- Insert into employee_users (system accounts for employees)
+INSERT INTO [dbo].[employee_users] ([username], [password], [is_active], [employee_id], [role_id], [created_at], [last_modified]) VALUES
+('admin', 'hashed_admin_password', 1, 1, 1, GETDATE(), GETDATE()), -- Nguyễn Văn A as ADMIN
+('manager_q3', 'hashed_manager_password', 1, 2, 2, GETDATE(), GETDATE()), -- Trần Thị B as MANAGER
+('supervisor_7', 'hashed_supervisor_password', 1, 3, 3, GETDATE(), GETDATE()), -- Lê Văn C as SUPERVISOR
+('warehouse_1', 'hashed_wh_password', 1, 4, 4, GETDATE(), GETDATE()), -- Phạm Thị D as WAREHOUSE_STAFF
+('cashier_1', 'hashed_cashier_password', 1, 5, 5, GETDATE(), GETDATE()), -- Hoàng Văn E as CASHIER
+('employee_6', 'hashed_emp_password', 1, 6, 6, GETDATE(), GETDATE()), -- Đặng Thị F as EMPLOYEE
+('employee_7', 'hashed_emp_password', 1, 7, 6, GETDATE(), GETDATE()), -- Ngô Văn G
+('employee_8', 'hashed_emp_password', 1, 8, 6, GETDATE(), GETDATE()), -- Bùi Thị H
+('employee_9', 'hashed_emp_password', 1, 9, 6, GETDATE(), GETDATE()), -- Vũ Văn I
+('employee_10', 'hashed_emp_password', 1, 10, 6, GETDATE(), GETDATE()); -- Lý Thị J
 GO
 
 -- Order Payments for the 50 additional orders

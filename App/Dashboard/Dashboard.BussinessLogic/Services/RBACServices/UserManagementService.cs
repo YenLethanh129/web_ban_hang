@@ -1,20 +1,26 @@
 using AutoMapper;
-using Dashboard.BussinessLogic.Dtos.AuthDtos;
+using Dashboard.BussinessLogic.Dtos.RBACDtos;
+using System.Linq.Expressions;
 using Dashboard.BussinessLogic.Shared;
 using Dashboard.DataAccess.Data;
+using Dashboard.DataAccess.Helpers;
 using Dashboard.DataAccess.Models.Entities.Employees;
 using Dashboard.DataAccess.Models.Entities.RBAC;
+using Dashboard.DataAccess.Repositories;
 using Dashboard.DataAccess.Specification;
 using Microsoft.Extensions.Logging;
-using System.Security.Cryptography;
-using System.Text;
+using Dashboard.DataAccess.Models.Entities;
+using Dashboard.BussinessLogic.Dtos.EmployeeDtos;
 
 namespace Dashboard.BussinessLogic.Services.RBACServices;
 
 public interface IUserManagementService
 {
+    void UpdateUserRole(UpdateUserInput input);
+    Task<bool> ValidateUserCredentialsAsync(string username, string password);
     Task<UserDto?> CreateUserAsync(CreateUserInput input);
     Task<UserDto?> UpdateUserAsync(UpdateUserInput input);
+    Task<UserDto?> ChangePasswordAsync(ChangePasswordInput input);
     Task<bool> DeleteUserAsync(long userId);
     Task<UserDto?> GetUserByIdAsync(long userId);
     Task<List<UserDto>> GetUsersAsync(GetUsersInput input);
@@ -24,149 +30,227 @@ public interface IUserManagementService
     Task<bool> AssignEmployeeToUserAsync(long userId, long employeeId);
     Task<List<UserDto>> GetUsersWithoutEmployeeAsync();
     Task<UserDto?> GetUserByEmployeeIdAsync(long employeeId);
+    Task<List<UserDto>> GetUsersByRoleAsync(string roleName);
 }
 
 public class UserManagementService : BaseTransactionalService, IUserManagementService
 {
     private readonly IMapper _mapper;
     private readonly ILogger<UserManagementService> _logger;
-
+    private readonly IUserRepository _userRepository;
+    private readonly IRoleRepository _roleRepository;
+    private readonly IEmployeeRepository _employeeRepository;
+    private readonly DataEncryptionHelper _dataEncryptionHelper;
     public UserManagementService(
-        IUnitOfWork unitOfWork, 
-        IMapper mapper, 
-        ILogger<UserManagementService> logger) : base(unitOfWork)
+        IUnitOfWork unitOfWork,
+        IMapper mapper,
+        ILogger<UserManagementService> logger,
+        IUserRepository userRepository,
+        IRoleRepository roleRepository,
+        DataEncryptionHelper dataEncryptionHelper,
+        IEmployeeRepository employeeRepository) : base(unitOfWork)
     {
         _mapper = mapper;
+        _dataEncryptionHelper = dataEncryptionHelper;
         _logger = logger;
+        _userRepository = userRepository;
+        _roleRepository = roleRepository;
+        _employeeRepository = employeeRepository;
     }
 
-    public async Task<UserDto?> CreateUserAsync(CreateUserInput input)
+    public async Task<bool> ValidateUserCredentialsAsync(string username, string password)
+    {
+        var userSpec = new Specification<EmployeeUserAccount>(u => u.Username == username && u.IsActive);
+        var user = await _userRepository.GetWithSpecAsync(userSpec);
+        if (user == null)
+            return false;
+        return _dataEncryptionHelper.VerifyPassword(password, user.Password);
+    }
+
+    public void UpdateUserRole(UpdateUserInput input)
+    {
+        var userSpec = new Specification<EmployeeUserAccount>(u => u.Username == input.Username);
+        var user = _userRepository.GetWithSpecAsync(userSpec).Result;
+        if (user != null)
+        {
+            user.RoleId = input.RoleId!.Value;
+            user.LastModified = DateTime.Now;
+            _unitOfWork.SaveChangesAsync().Wait();
+        }
+    }
+    public async Task<List<UserDto>> GetUsersByRoleAsync(string roleName)
     {
         try
         {
-            // Check if user with phone number already exists
-            var existingUserSpec = new Specification<User>(u => u.PhoneNumber == input.PhoneNumber);
-            var existingUser = await _unitOfWork.Repository<User>().GetWithSpecAsync(existingUserSpec);
-
-            if (existingUser != null)
-            {
-                _logger.LogWarning("User with phone number {PhoneNumber} already exists", input.PhoneNumber);
-                return null;
-            }
-
-            // Validate role
-            var roleSpec = new Specification<Role>(r => r.Id == input.RoleId);
-            var role = await _unitOfWork.Repository<Role>().GetWithSpecAsync(roleSpec);
-
-            if (role == null || !IsValidWinFormsRole(role.Name))
-            {
-                _logger.LogWarning("Invalid role for user creation: {RoleId}", input.RoleId);
-                return null;
-            }
-
-            // Hash password
-            var hashedPassword = HashPassword(input.Password);
-
-            var user = new User
-            {
-                Fullname = input.FullName,
-                PhoneNumber = input.PhoneNumber,
-                Address = input.Address,
-                Password = hashedPassword,
-                RoleId = input.RoleId,
-                EmployeeId = input.EmployeeId,
-                IsActive = true,
-                CreatedAt = DateTime.Now,
-                LastModified = DateTime.Now
-            };
-
-            var createdUser = await _unitOfWork.Repository<User>().AddAsync(user);
-            await _unitOfWork.SaveChangesAsync();
-
-            if (createdUser == null) return null;
-
-            _logger.LogInformation("User created successfully: {UserId}", createdUser.Id);
-
-            // Return user with role information
-            return await GetUserByIdAsync(createdUser.Id);
+            if (!IsValidWinFormsRole(roleName))
+                return new List<UserDto>();
+            var userSpec = new Specification<EmployeeUserAccount>(u => u.IsActive && u.Role.Name == roleName);
+            userSpec.IncludeStrings.Add("Role");
+            userSpec.IncludeStrings.Add("Employee");
+            userSpec.IncludeStrings.Add("Employee.Branch");
+            var users = await _userRepository.GetAllWithSpecAsync(userSpec, true);
+            return users.Select(u => _mapper.Map<UserDto>(u)).ToList();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error creating user");
-            return null;
+            _logger.LogError(ex, "Error getting users by role: {RoleName}", roleName);
+            return new List<UserDto>();
         }
     }
 
-    public async Task<UserDto?> UpdateUserAsync(UpdateUserInput input)
+    public async Task<UserDto?> ChangePasswordAsync(ChangePasswordInput input)
     {
         try
         {
-            var userSpec = new Specification<User>(u => u.Id == input.Id);
-            var user = await _unitOfWork.Repository<User>().GetWithSpecAsync(userSpec);
-
+            var userSpec = new Specification<EmployeeUserAccount>(u => u.Id == input.UserId);
+            var user = await _userRepository.GetWithSpecAsync(userSpec);
             if (user == null)
             {
-                _logger.LogWarning("User not found: {UserId}", input.Id);
+                _logger.LogWarning("User not found: {UserId}", input.UserId);
                 return null;
             }
-
-            // Check if phone number is being changed and if it already exists
-            if (input.PhoneNumber != user.PhoneNumber)
+            if (!_dataEncryptionHelper.VerifyPassword(input.CurrentPassword, user.Password))
             {
-                var existingUserSpec = new Specification<User>(u => u.PhoneNumber == input.PhoneNumber && u.Id != input.Id);
-                var existingUser = await _unitOfWork.Repository<User>().GetWithSpecAsync(existingUserSpec);
-
-                if (existingUser != null)
-                {
-                    _logger.LogWarning("Phone number {PhoneNumber} is already in use", input.PhoneNumber);
-                    return null;
-                }
+                _logger.LogWarning("Old password does not match for user: {UserId}", input.UserId);
+                return null;
             }
-
-            // Validate role if being changed
-            if (input.RoleId.HasValue && input.RoleId != user.RoleId)
-            {
-                var roleSpec = new Specification<Role>(r => r.Id == input.RoleId);
-                var role = await _unitOfWork.Repository<Role>().GetWithSpecAsync(roleSpec);
-
-                if (role == null || !IsValidWinFormsRole(role.Name))
-                {
-                    _logger.LogWarning("Invalid role for user update: {RoleId}", input.RoleId);
-                    return null;
-                }
-            }
-
-            // Update user properties
-            user.Fullname = input.FullName ?? user.Fullname;
-            user.PhoneNumber = input.PhoneNumber ?? user.PhoneNumber;
-            user.Address = input.Address;
+            var hashedPassword = _dataEncryptionHelper.HashPassword(input.NewPassword);
+            user.Password = hashedPassword;
             user.LastModified = DateTime.Now;
-
-            if (input.RoleId.HasValue)
-                user.RoleId = input.RoleId.Value;
-
-            if (input.EmployeeId.HasValue)
-                user.EmployeeId = input.EmployeeId.Value;
-
             await _unitOfWork.SaveChangesAsync();
-
-            _logger.LogInformation("User updated successfully: {UserId}", user.Id);
-
+            _logger.LogInformation("Password changed successfully for user: {UserId}", input.UserId);
             return await GetUserByIdAsync(user.Id);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error updating user: {UserId}", input.Id);
+            _logger.LogError(ex, "Error changing password for user: {UserId}", input.UserId);
             return null;
         }
+    }
+
+    public async Task<UserDto?> CreateUserAsync(CreateUserInput input)
+    {
+        return await ExecuteInTransactionAsync(async () =>
+        {
+            try
+            {
+                var existingUserSpec = new Specification<EmployeeUserAccount>(u => u.Username == input.Username);
+                var existingUser = await _userRepository.GetWithSpecAsync(existingUserSpec);
+
+                if (existingUser != null)
+                {
+                    throw new ArgumentException("User with username {Username} already exists", input.Username);
+                }
+
+                var existinEmployee = await _unitOfWork.Repository<Employee>().GetAsync(input.EmployeeId)
+                    ?? throw new ArgumentException($"Employee with ID {input.EmployeeId} does not exist");
+                var roleSpec = new Specification<Role>(r => r.Id == input.RoleId);
+                var role = await _roleRepository.GetWithSpecAsync(roleSpec);
+
+                if (role == null || !IsValidWinFormsRole(role.Name))
+                {
+                    _logger.LogWarning("Invalid role for user creation: {RoleId}", input.RoleId);
+                    return (UserDto?)null;
+                }
+
+                var hashedPassword = _dataEncryptionHelper.HashPassword(input.Password);
+
+                var user = _mapper.Map<EmployeeUserAccount>(input);
+                user.Password = hashedPassword;
+
+                var createdUser = await _userRepository.AddAsync(user);
+
+                await _unitOfWork.SaveChangesAsync();
+                if (createdUser == null)
+                {
+                    throw new Exception("Failed to create user");
+                }
+                return await GetUserByIdAsync(createdUser.Id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating user");
+                return null;
+            }
+        });
+    }
+
+    public async Task<UserDto?> UpdateUserAsync(UpdateUserInput input)
+    {
+        return await ExecuteInTransactionAsync(async () =>
+        {
+            try
+            {
+                var userSpec = new Specification<EmployeeUserAccount>(u => u.Id == input.Id);
+                var user = await _userRepository.GetWithSpecAsync(userSpec);
+
+                if (user == null)
+                {
+                    _logger.LogWarning("User not found: {UserId}", input.Id);
+                    return null;
+                }
+
+                if (input.Username != user.Username)
+                {
+                    var existingUserSpec = new Specification<EmployeeUserAccount>(u => u.Username == input.Username && u.Id != input.Id);
+                    var existingUser = await _userRepository.GetWithSpecAsync(existingUserSpec);
+
+                    if (existingUser != null)
+                    {
+                        _logger.LogWarning("Username {Username} is already in use", input.Username);
+                        return null;
+                    }
+                }
+
+                if (input.RoleId.HasValue && input.RoleId != user.RoleId)
+                {
+                    var roleSpec = new Specification<Role>(r => r.Id == input.RoleId);
+                    var role = await _roleRepository.GetWithSpecAsync(roleSpec);
+
+                    if (role == null || !IsValidWinFormsRole(role.Name))
+                    {
+                        _logger.LogWarning("Invalid role for user update: {RoleId}", input.RoleId);
+                        return null;
+                    }
+                    user.RoleId = input.RoleId.Value;
+
+                }
+
+                if (!string.IsNullOrEmpty(input.Password))
+                {
+                    var hashedPassword = _dataEncryptionHelper.HashPassword(input.Password);
+                    user.Password = hashedPassword;
+                }
+
+                user.Username = input.Username ?? user.Username;
+                user.LastModified = DateTime.Now;
+
+                if (input.RoleId.HasValue)
+                    user.RoleId = input.RoleId.Value;
+
+                _userRepository.Update(user);
+
+                await _unitOfWork.SaveChangesAsync();
+
+                _logger.LogInformation("User updated successfully: {UserId}", user.Id);
+
+                return await GetUserByIdAsync(user.Id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating user: {UserId}", input.Id);
+                return null;
+            }
+        });
+        
     }
 
     public async Task<bool> DeleteUserAsync(long userId)
     {
         try
         {
-            var userSpec = new Specification<User>(u => u.Id == userId);
-            var user = await _unitOfWork.Repository<User>().GetWithSpecAsync(userSpec);
+            var userSpec = new Specification<EmployeeUserAccount>(u => u.Id == userId);
+            var user = await _userRepository.GetWithSpecAsync(userSpec);
 
             if (user == null)
             {
@@ -174,7 +258,6 @@ public class UserManagementService : BaseTransactionalService, IUserManagementSe
                 return false;
             }
 
-            // Soft delete by deactivating the user
             user.IsActive = false;
             user.LastModified = DateTime.Now;
 
@@ -194,31 +277,16 @@ public class UserManagementService : BaseTransactionalService, IUserManagementSe
     {
         try
         {
-            var userSpec = new Specification<User>(u => u.Id == userId);
+            var userSpec = new Specification<EmployeeUserAccount>(u => u.Id == userId);
             userSpec.IncludeStrings.Add("Role");
             userSpec.IncludeStrings.Add("Employee");
             userSpec.IncludeStrings.Add("Employee.Branch");
 
-            var user = await _unitOfWork.Repository<User>().GetWithSpecAsync(userSpec);
+            var user = await _userRepository.GetWithSpecAsync(userSpec);
 
             if (user == null) return null;
 
-            return new UserDto
-            {
-                Id = user.Id,
-                FullName = user.Fullname ?? "",
-                PhoneNumber = user.PhoneNumber,
-                Address = user.Address,
-                IsActive = user.IsActive,
-                RoleId = user.RoleId,
-                RoleName = user.Role.Name,
-                EmployeeId = user.EmployeeId,
-                EmployeeName = user.Employee?.FullName,
-                PositionId = user.Employee?.PositionId,
-                BranchId = user.Employee?.BranchId,
-                BranchName = user.Employee?.Branch?.Name,
-                CreatedAt = user.CreatedAt
-            };
+            return _mapper.Map<UserDto>(user);
         }
         catch (Exception ex)
         {
@@ -231,54 +299,36 @@ public class UserManagementService : BaseTransactionalService, IUserManagementSe
     {
         try
         {
-            var userSpec = new Specification<User>(u => u.IsActive);
+            // Start with base predicate (active users)
+            Expression<Func<EmployeeUserAccount, bool>> predicate = u => u.IsActive;
 
-            // Apply filters
+            // Apply Role filter
             if (!string.IsNullOrEmpty(input.RoleName))
             {
                 if (!IsValidWinFormsRole(input.RoleName))
                     return new List<UserDto>();
 
-                userSpec = new Specification<User>(u => u.IsActive && u.Role.Name == input.RoleName);
+                Expression<Func<EmployeeUserAccount, bool>> rolePredicate = u => u.IsActive && u.Role.Name == input.RoleName;
+                predicate = Dashboard.BussinessLogic.Specifications.SpecificationHelper.CombinePredicates(predicate, rolePredicate);
             }
 
+            // Apply search filter
             if (!string.IsNullOrEmpty(input.SearchText))
             {
                 var searchText = input.SearchText.ToLower();
-                userSpec = new Specification<User>(u => u.IsActive && 
-                    (u.Fullname != null && u.Fullname.ToLower().Contains(searchText) ||
-                     u.PhoneNumber.Contains(searchText)));
+                Expression<Func<EmployeeUserAccount, bool>> searchPredicate = u => u.IsActive && (u.Username != null && u.Username.ToLower().Contains(searchText));
+                predicate = Dashboard.BussinessLogic.Specifications.SpecificationHelper.CombinePredicates(predicate, searchPredicate);
             }
 
-            if (input.BranchId.HasValue)
-            {
-                userSpec = new Specification<User>(u => u.IsActive && 
-                    u.Employee != null && u.Employee.BranchId == input.BranchId);
-            }
+            var userSpec = new Specification<EmployeeUserAccount>(predicate);
 
-            // Include related entities
             userSpec.IncludeStrings.Add("Role");
             userSpec.IncludeStrings.Add("Employee");
             userSpec.IncludeStrings.Add("Employee.Branch");
 
-            var users = await _unitOfWork.Repository<User>().GetAllWithSpecAsync(userSpec, true);
+            var users = await _userRepository.GetAllWithSpecAsync(userSpec, true);
 
-            return users.Select(u => new UserDto
-            {
-                Id = u.Id,
-                FullName = u.Fullname ?? "",
-                PhoneNumber = u.PhoneNumber,
-                Address = u.Address,
-                IsActive = u.IsActive,
-                RoleId = u.RoleId,
-                RoleName = u.Role.Name,
-                EmployeeId = u.EmployeeId,
-                EmployeeName = u.Employee?.FullName,
-                PositionId = u.Employee?.PositionId,
-                BranchId = u.Employee?.BranchId,
-                BranchName = u.Employee?.Branch?.Name,
-                CreatedAt = u.CreatedAt
-            }).ToList();
+            return _mapper.Map<List<UserDto>>(users);
         }
         catch (Exception ex)
         {
@@ -291,8 +341,8 @@ public class UserManagementService : BaseTransactionalService, IUserManagementSe
     {
         try
         {
-            var userSpec = new Specification<User>(u => u.Id == userId);
-            var user = await _unitOfWork.Repository<User>().GetWithSpecAsync(userSpec);
+            var userSpec = new Specification<EmployeeUserAccount>(u => u.Id == userId);
+            var user = await _userRepository.GetWithSpecAsync(userSpec);
 
             if (user == null)
             {
@@ -319,8 +369,8 @@ public class UserManagementService : BaseTransactionalService, IUserManagementSe
     {
         try
         {
-            var userSpec = new Specification<User>(u => u.Id == userId);
-            var user = await _unitOfWork.Repository<User>().GetWithSpecAsync(userSpec);
+            var userSpec = new Specification<EmployeeUserAccount>(u => u.Id == userId);
+            var user = await _userRepository.GetWithSpecAsync(userSpec);
 
             if (user == null)
             {
@@ -347,8 +397,8 @@ public class UserManagementService : BaseTransactionalService, IUserManagementSe
     {
         try
         {
-            var userSpec = new Specification<User>(u => u.Id == userId);
-            var user = await _unitOfWork.Repository<User>().GetWithSpecAsync(userSpec);
+            var userSpec = new Specification<EmployeeUserAccount>(u => u.Id == userId);
+            var user = await _userRepository.GetWithSpecAsync(userSpec);
 
             if (user == null)
             {
@@ -356,7 +406,7 @@ public class UserManagementService : BaseTransactionalService, IUserManagementSe
                 return false;
             }
 
-            var hashedPassword = HashPassword(newPassword);
+            var hashedPassword = _dataEncryptionHelper.HashPassword(newPassword);
 
             user.Password = hashedPassword;
             user.LastModified = DateTime.Now;
@@ -377,8 +427,8 @@ public class UserManagementService : BaseTransactionalService, IUserManagementSe
     {
         try
         {
-            var userSpec = new Specification<User>(u => u.Id == userId);
-            var user = await _unitOfWork.Repository<User>().GetWithSpecAsync(userSpec);
+            var userSpec = new Specification<EmployeeUserAccount>(u => u.Id == userId);
+            var user = await _userRepository.GetWithSpecAsync(userSpec);
 
             if (user == null)
             {
@@ -386,9 +436,8 @@ public class UserManagementService : BaseTransactionalService, IUserManagementSe
                 return false;
             }
 
-            // Check if employee exists
             var employeeSpec = new Specification<Employee>(e => e.Id == employeeId);
-            var employee = await _unitOfWork.Repository<Employee>().GetWithSpecAsync(employeeSpec);
+            var employee = await _employeeRepository.GetWithSpecAsync(employeeSpec);
 
             if (employee == null)
             {
@@ -396,20 +445,11 @@ public class UserManagementService : BaseTransactionalService, IUserManagementSe
                 return false;
             }
 
-            // Check if employee is already assigned to another user
-            var existingUserSpec = new Specification<User>(u => u.EmployeeId == employeeId && u.Id != userId);
-            var existingUser = await _unitOfWork.Repository<User>().GetWithSpecAsync(existingUserSpec);
-
-            if (existingUser != null)
-            {
-                _logger.LogWarning("Employee {EmployeeId} is already assigned to user {UserId}", employeeId, existingUser.Id);
-                return false;
-            }
-
             user.EmployeeId = employeeId;
             user.LastModified = DateTime.Now;
+            _employeeRepository.Update(employee);
 
-            await _unitOfWork.SaveChangesAsync();
+            await _employeeRepository.SaveChangesAsync();
 
             _logger.LogInformation("Employee {EmployeeId} assigned to user {UserId}", employeeId, userId);
             return true;
@@ -425,22 +465,12 @@ public class UserManagementService : BaseTransactionalService, IUserManagementSe
     {
         try
         {
-            var userSpec = new Specification<User>(u => u.IsActive && u.EmployeeId == null);
+            var userSpec = new Specification<EmployeeUserAccount>(u => u.IsActive && u.EmployeeId == 0);
             userSpec.IncludeStrings.Add("Role");
 
-            var users = await _unitOfWork.Repository<User>().GetAllWithSpecAsync(userSpec, true);
+            var users = await _userRepository.GetAllWithSpecAsync(userSpec, true);
 
-            return users.Select(u => new UserDto
-            {
-                Id = u.Id,
-                FullName = u.Fullname ?? "",
-                PhoneNumber = u.PhoneNumber,
-                Address = u.Address,
-                IsActive = u.IsActive,
-                RoleId = u.RoleId,
-                RoleName = u.Role.Name,
-                CreatedAt = u.CreatedAt
-            }).ToList();
+            return users.Select(u => _mapper.Map<UserDto>(u)).ToList();
         }
         catch (Exception ex)
         {
@@ -453,31 +483,16 @@ public class UserManagementService : BaseTransactionalService, IUserManagementSe
     {
         try
         {
-            var userSpec = new Specification<User>(u => u.EmployeeId == employeeId && u.IsActive);
+            var userSpec = new Specification<EmployeeUserAccount>(u => u.EmployeeId == employeeId && u.IsActive);
             userSpec.IncludeStrings.Add("Role");
             userSpec.IncludeStrings.Add("Employee");
             userSpec.IncludeStrings.Add("Employee.Branch");
 
-            var user = await _unitOfWork.Repository<User>().GetWithSpecAsync(userSpec);
+            var user = await _userRepository.GetWithSpecAsync(userSpec);
 
             if (user == null) return null;
 
-            return new UserDto
-            {
-                Id = user.Id,
-                FullName = user.Fullname ?? "",
-                PhoneNumber = user.PhoneNumber,
-                Address = user.Address,
-                IsActive = user.IsActive,
-                RoleId = user.RoleId,
-                RoleName = user.Role.Name,
-                EmployeeId = user.EmployeeId,
-                EmployeeName = user.Employee?.FullName,
-                PositionId = user.Employee?.PositionId,
-                BranchId = user.Employee?.BranchId,
-                BranchName = user.Employee?.Branch?.Name,
-                CreatedAt = user.CreatedAt
-            };
+            return _mapper.Map<UserDto>(user);
         }
         catch (Exception ex)
         {
@@ -488,13 +503,17 @@ public class UserManagementService : BaseTransactionalService, IUserManagementSe
 
     private static bool IsValidWinFormsRole(string roleName)
     {
-        return roleName == Roles.ADMIN || roleName == Roles.MANAGER || roleName == Roles.EMPLOYEE;
+        if (roleName == null)
+            return false;
+
+        var validRoles = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+            "guest",
+            "customer"
+        };
+        return !validRoles.Contains(roleName);
+
     }
 
-    private static string HashPassword(string password)
-    {
-        using var sha256 = SHA256.Create();
-        var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password + "CoffeeShop2024")); // Add salt
-        return Convert.ToBase64String(hashedBytes);
-    }
+    
 }

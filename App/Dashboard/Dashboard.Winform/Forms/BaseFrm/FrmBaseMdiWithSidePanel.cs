@@ -1,4 +1,5 @@
-﻿using Dashboard.Winform.Controls;
+﻿using Dashboard.Common.Constants;
+using Dashboard.Winform.Controls;
 using Dashboard.Winform.Forms;
 using Dashboard.Winform.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
@@ -52,7 +53,7 @@ namespace Dashboard.Winform
                 { btnSBLanding, iconSBlanding },
                 { btnSBUser, iconSBUser },
                 { btnSBEmployee, iconSBEmployee },
-                { btnSBCustomer, iconSBCustomer },
+                { btnSBAccount, iconSBCustomer },
                 { btnSBGoods, iconSBGoods },
                 { btnSBProduct, iconSBProduct },
                 { btnSBSupplier, iconSBSupplier },
@@ -83,7 +84,6 @@ namespace Dashboard.Winform
 
         private void EnableDoubleBuffering()
         {
-            // Enable double buffering để giảm flickering
             SetStyle(ControlStyles.AllPaintingInWmPaint | 
                      ControlStyles.UserPaint | 
                      ControlStyles.DoubleBuffer | 
@@ -427,14 +427,60 @@ namespace Dashboard.Winform
 
         }
 
+        protected override void OnLoad(EventArgs e)
+        {
+            base.OnLoad(e);
+
+            try
+            {
+                var authService = _serviceProvider?.GetService(typeof(Dashboard.BussinessLogic.Services.RBACServices.IAuthenticationService)) as Dashboard.BussinessLogic.Services.RBACServices.IAuthenticationService;
+
+                using var loginForm = authService != null ? new Dashboard.Winform.Forms.FrmLogin(authService) : new Dashboard.Winform.Forms.FrmLogin();
+
+                var dr = loginForm.ShowDialog(this);
+                if (dr != DialogResult.OK || !loginForm.LoginSucceeded)
+                {
+                    Application.Exit();
+                    return;
+                }
+
+                try
+                {
+                    var landing = _serviceProvider?.GetService(typeof(FrmLandingDashboard)) as FrmLandingDashboard;
+                    if (landing == null)
+                    {
+                        landing = _serviceProvider!.GetRequiredService<FrmLandingDashboard>();
+                    }
+
+                    landing.MdiParent = this;
+                    landing.Dock = DockStyle.Fill;
+                    landing.Show();
+                    activeForm = landing;
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogWarning(ex, "Failed to open FrmLandingDashboard after login.");
+                }
+            }
+            catch (Exception ex)
+            {
+                // If anything goes wrong, log and exit
+                _logger?.LogError(ex, "Error while showing login dialog");
+                Application.Exit();
+                return;
+            }
+        }
+
         #region events region
         private void InitializeEvents()
         {
             btnSBLanding.Click += (s, e) =>  LaunchLandingForm(s!, e);
-            btnSBGoods.Click += (s, e) => LaunchGoodsForm(s!,e);
+            btnSBGoods.Click += (s, e) => LaunchIngredientForm(s!,e);
             btnSBEmployee.Click += (s, e) => LaunchEmployeeForm(s!, e);
             btnSBExit.Click += (s, e) => Application.Exit();
             btnSBProduct.Click += (s, e) => LaunchProductForm(s!, e);
+            btnSBAccount.Click += (s, e) => LaunchUserForm(s!, e);
+            btnSBSupplier.Click += (s, e) => LaunchSupplierForm(s!, e);
             foreach (var kv in _buttonIconMap.Keys)
             {
                 kv.Click += (s, e) => SetSBButtonUI(s!);
@@ -578,7 +624,7 @@ namespace Dashboard.Winform
         {
             await ExecuteWithLoadingInternalAsync(async () =>
             {
-                frmLandingDashboard frmLandingDashboard = null!;
+                FrmLandingDashboard frmLandingDashboard = null!;
                 
                 await Task.Run(() =>
                 {
@@ -586,13 +632,13 @@ namespace Dashboard.Winform
                     {
                         Invoke(new Action(() =>
                         {
-                            frmLandingDashboard = _serviceProvider.GetRequiredService<frmLandingDashboard>();
+                            frmLandingDashboard = _serviceProvider.GetRequiredService<FrmLandingDashboard>();
                             OpenChildForm(frmLandingDashboard);
                         }));
                     }
                     else
                     {
-                        frmLandingDashboard = _serviceProvider.GetRequiredService<frmLandingDashboard>();
+                        frmLandingDashboard = _serviceProvider.GetRequiredService<FrmLandingDashboard>();
                         OpenChildForm(frmLandingDashboard);
                     }
                 });
@@ -603,14 +649,6 @@ namespace Dashboard.Winform
                 }
             }, "Đang tải Dashboard...", true);
         }
-
-        private void LaunchGoodsForm(object sender, EventArgs e)
-        {
-            FrmBaseManagement frmGoodsManagement = new FrmBaseManagement();
-            OpenChildForm(frmGoodsManagement);
-
-        }
-
         private async void LaunchProductForm(object sender, EventArgs e)
         {
             await ExecuteWithLoadingInternalAsync(async () =>
@@ -638,8 +676,33 @@ namespace Dashboard.Winform
                 }
             }, "Đang tải Dashboard...", true);
         }
-
-
+        private async void LaunchIngredientForm(object sender, EventArgs e)
+        {
+            await ExecuteWithLoadingInternalAsync(async () =>
+            {
+                FrmIngredientManagement frmIngredientManagement = null!;
+                await Task.Run(() =>
+                {
+                    if (InvokeRequired)
+                    {
+                        Invoke(new Action(() =>
+                        {
+                            frmIngredientManagement = _serviceProvider.GetRequiredService<FrmIngredientManagement>();
+                            OpenChildForm(frmIngredientManagement);
+                        }));
+                    }
+                    else
+                    {
+                        frmIngredientManagement = _serviceProvider.GetRequiredService<FrmIngredientManagement>();
+                        OpenChildForm(frmIngredientManagement);
+                    }
+                });
+                if (frmIngredientManagement != null)
+                {
+                    await frmIngredientManagement.WaitForDataLoadingComplete();
+                }
+            }, "Đang tải Dashboard...", true);
+        }
         private async void LaunchEmployeeForm(object sender, EventArgs e)
         {
             await ExecuteWithLoadingInternalAsync(async () =>
@@ -667,6 +730,90 @@ namespace Dashboard.Winform
                 {
                     await frmEmployeeManagement.WaitForDataLoadingComplete();
                 }
+            }, "Đang tải Dashboard...", true);
+        }
+        private async void LaunchUserManagementForm(object sender, EventArgs e)
+        {
+            await ExecuteWithLoadingInternalAsync(async () =>
+            {
+                FrmUserManagement frmUserManagement = null!;
+                await Task.Run(() =>
+                {
+                    if (InvokeRequired)
+                    {
+                        Invoke(new Action(() =>
+                        {
+                            frmUserManagement = _serviceProvider.GetRequiredService<FrmUserManagement>();
+                            OpenChildForm(frmUserManagement);
+                        }));
+                    }
+                    else
+                    {
+                        frmUserManagement = _serviceProvider.GetRequiredService<FrmUserManagement>();
+                        OpenChildForm(frmUserManagement);
+                    }
+                });
+                if (frmUserManagement != null)
+                {
+                    await frmUserManagement.WaitForDataLoadingComplete();
+                }
+            });
+
+        }
+        private void LaunchSupplierForm(object sender, EventArgs e)
+        {
+            FrmToastMessage frmToastMessage = new FrmToastMessage(ToastType.ERROR, "tapdeptrai");
+            frmToastMessage.Show();
+            //await ExecuteWithLoadingInternalAsync(async () =>
+            //{
+            //    FrmSupplierManagement frmSupplierManagement = null!;
+            //    await Task.Run(() =>
+            //    {
+            //        if (InvokeRequired)
+            //        {
+            //            Invoke(new Action(() =>
+            //            {
+            //                frmSupplierManagement = _serviceProvider.GetRequiredService<FrmSupplierManagement>();
+            //                OpenChildForm(frmSupplierManagement);
+            //            }));
+            //        }
+            //        else
+            //        {
+            //            frmSupplierManagement = _serviceProvider.GetRequiredService<FrmSupplierManagement>();
+            //            OpenChildForm(frmSupplierManagement);
+            //        }
+            //    });
+            //    if (frmSupplierManagement != null)
+            //    {
+            //        await frmSupplierManagement.WaitForDataLoadingComplete();
+            //    }
+            //}, "Đang tải Dashboard...", true);
+        }
+        private async void LaunchUserForm(object sender, EventArgs e)
+        {
+            await ExecuteWithLoadingInternalAsync(async () =>
+            {
+                FrmUserManagement frmUserManagement = null!;
+                await Task.Run(() =>
+                {
+                    if (InvokeRequired)
+                    {
+                        Invoke(new Action(() =>
+                        {
+                            frmUserManagement = _serviceProvider.GetRequiredService<FrmUserManagement>();
+                            OpenChildForm(frmUserManagement);
+                        }));
+                    }
+                    else
+                    {
+                        frmUserManagement = _serviceProvider.GetRequiredService<FrmUserManagement>();
+                        OpenChildForm(frmUserManagement);
+                    }
+                });
+                //if (frmUserManagement != null)
+                //{
+                //    await frmUserManagement.WaitForDataLoadingComplete();
+                //}
             }, "Đang tải Dashboard...", true);
         }
 

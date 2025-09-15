@@ -21,9 +21,6 @@ public partial class Token : BaseEntity
     [Precision(6)]
     public DateTime? ExpirationDate { get; set; }
 
-    [Column("user_id")]
-    public long? UserId { get; set; }
-
     [Column("token_type")]
     [StringLength(50)]
     [Unicode(false)]
@@ -32,9 +29,13 @@ public partial class Token : BaseEntity
     [Column("token")]
     [StringLength(255)]
     [Unicode(false)]
-    public string? Token1 { get; set; }
+    public string? TokenValue { get; set; }
+
+    [Column("user_id")]
+    public long? UserId { get; set; }
 
     [ForeignKey("UserId")]
-    [InverseProperty("Tokens")]
-    public virtual User? User { get; set; }
+    public virtual EmployeeUserAccount? User { get; set; }
+    [ForeignKey("UserId")]
+    public virtual CustomerUser? CustomerUser { get; set; }
 }

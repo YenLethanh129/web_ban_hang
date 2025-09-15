@@ -2,56 +2,64 @@
 //using Dashboard.Winform.Presenters;
 //using Dashboard.Winform.ViewModels.ScheduleModels;
 //using Dashboard.Winform.ViewModels;
-//using Dashboard.Winform.Controls;
+//using GanttChart;
 
 //namespace Dashboard.Winform.Forms
 //{
-//    public partial class FrmScheduleManagement : FrmBaseManagement
+//    public partial class FrmScheduleManagement : BaseCrudForm
 //    {
 //        private readonly IScheduleManagementPresenter _presenter;
 //        private DateTime _currentWeekStart;
 //        private bool _isWeekViewActive = false;
-//        private GanttChartControl? ganttChart;
-//        private bool _useGanttChart = true;     
+//        private bool _isGanttViewActive = false;
+//        private GanttControl _ganttChart;
+//        private List<GanttTaskViewModel> _currentGanttTasks = new();
 
-//        public FrmScheduleManagement(IScheduleManagementPresenter presenter) : base()
+//        public FrmScheduleManagement(IScheduleManagementPresenter presenter) : base("Quản lý lịch làm việc")
 //        {
 //            _presenter = presenter ?? throw new ArgumentNullException(nameof(presenter));
 //            _currentWeekStart = GetWeekStart(DateTime.Today);
 
 //            InitializeScheduleComponents();
-//            if (_useGanttChart)
-//            {
-//                InitializeGanttChart();
-//            }
+//            InitializeGanttChart();
 //            InitializeEventHandlers();
 //            SetupDataBindings();
 //        }
 
 //        private void InitializeGanttChart()
 //        {
-//            try
+//            _ganttChart = new GanttControl
 //            {
-//                ganttChart = new GanttChartControl
-//                {
-//                    Dock = DockStyle.Fill,
-//                    StartDate = _currentWeekStart,
-//                    EndDate = _currentWeekStart.AddDays(6),
-//                    Visible = false
-//                };
+//                Dock = DockStyle.Fill,
+//                BackColor = Color.FromArgb(42, 45, 86),
+//                ForeColor = Color.White,
+//                GridLineColor = Color.FromArgb(73, 75, 111),
+//                HeaderBackColor = Color.FromArgb(73, 75, 111),
+//                HeaderForeColor = Color.White,
+//                TimelineBackColor = Color.FromArgb(42, 45, 86),
+//                TimelineForeColor = Color.White,
+//                SelectionBackColor = Color.FromArgb(0, 120, 215),
+//                SelectionForeColor = Color.White,
+//                TaskBackColor = Color.FromArgb(0, 120, 215),
+//                TaskForeColor = Color.White,
+//                TaskCompletedBackColor = Color.FromArgb(76, 175, 80),
+//                RowHeaderWidth = 200,
+//                TimelineHeight = 60,
+//                ShowTaskNames = true,
+//                ShowProgressBars = true,
+//                ShowGrid = true,
+//                AllowTaskEdit = true,
+//                AllowTaskMove = true,
+//                AllowTaskResize = true
+//            };
 
-//                ganttChart.TaskClicked += (s, o) => OnGanttTaskClicked(s!,o);
-//                ganttChart.TimeSlotClicked += (s, o) => OnGanttTimeSlotClicked(s!,);
+//            // Add event handlers for Gantt chart
+//            _ganttChart.TaskClick += OnGanttTaskClick;
+//            _ganttChart.TaskDoubleClick += OnGanttTaskDoubleClick;
+//            _ganttChart.TaskMoved += OnGanttTaskMoved;
+//            _ganttChart.TaskResized += OnGanttTaskResized;
 
-//                // Add to week view panel
-//                pnlWeekView.Controls.Add(ganttChart);
-//                ganttChart.BringToFront();
-//            }
-//            catch (Exception ex)
-//            {
-//                _useGanttChart = false;
-//                ShowErrorMessage($"Không thể khởi tạo Gantt Chart: {ex.Message}");
-//            }
+//            pnlGanttView.Controls.Add(_ganttChart);
 //        }
 
 //        private void InitializeEventHandlers()
@@ -66,10 +74,13 @@
 //            btnAddSchedule.Click += async (s, e) => await ShowAddScheduleDialog();
 //            btnEditSchedule.Click += async (s, e) => await ShowEditScheduleDialog();
 //            btnDeleteSchedule.Click += async (s, e) => await DeleteSelectedSchedule();
+//            btnBulkEdit.Click += async (s, e) => await ShowBulkEditDialog();
+//            btnExportSchedule.Click += async (s, e) => await ExportSchedule();
 
 //            // View toggle events
 //            btnWeekView.Click += (s, e) => ToggleToWeekView();
 //            btnMonthView.Click += (s, e) => ToggleToMonthView();
+//            btnGanttView.Click += (s, e) => ToggleToGanttView();
 
 //            // Week navigation events
 //            btnPrevWeek.Click += async (s, e) => await NavigateToPreviousWeek();
@@ -116,6 +127,7 @@
 //                ShowLoading(true);
 //                await _presenter.LoadDataAsync();
 //                await _presenter.GetAvailableEmployeesAsync();
+//                await LoadStatistics();
 //            }
 //            catch (Exception ex)
 //            {
@@ -127,205 +139,245 @@
 //            }
 //        }
 
-//        private void SetupDataGridColumns()
-//        {
-//            dgvSchedules.Columns.Clear();
-
-//            dgvSchedules.Columns.Add(new DataGridViewTextBoxColumn
-//            {
-//                DataPropertyName = "EmployeeName",
-//                HeaderText = "Nhân viên",
-//                Name = "EmployeeName",
-//                Width = 150
-//            });
-
-//            dgvSchedules.Columns.Add(new DataGridViewTextBoxColumn
-//            {
-//                DataPropertyName = "PositionName",
-//                HeaderText = "Vị trí",
-//                Name = "PositionName",
-//                Width = 120
-//            });
-
-//            dgvSchedules.Columns.Add(new DataGridViewTextBoxColumn
-//            {
-//                DataPropertyName = "FormattedDate",
-//                HeaderText = "Ngày",
-//                Name = "FormattedDate",
-//                Width = 100
-//            });
-
-//            dgvSchedules.Columns.Add(new DataGridViewTextBoxColumn
-//            {
-//                DataPropertyName = "WeekDay",
-//                HeaderText = "Thứ",
-//                Name = "WeekDay",
-//                Width = 80
-//            });
-
-//            dgvSchedules.Columns.Add(new DataGridViewTextBoxColumn
-//            {
-//                DataPropertyName = "ShiftDuration",
-//                HeaderText = "Ca làm việc",
-//                Name = "ShiftDuration",
-//                Width = 120
-//            });
-
-//            dgvSchedules.Columns.Add(new DataGridViewTextBoxColumn
-//            {
-//                DataPropertyName = "Status",
-//                HeaderText = "Trạng thái",
-//                Name = "Status",
-//                Width = 100
-//            });
-
-//            // Hide ID columns
-//            if (dgvSchedules.Columns.Contains("Id"))
-//                dgvSchedules.Columns["Id"].Visible = false;
-//            if (dgvSchedules.Columns.Contains("EmployeeId"))
-//                dgvSchedules.Columns["EmployeeId"].Visible = false;
-//        }
-
-//        #region Event Handlers
-
-//        private async Task FilterByEmployee()
+//        private async Task LoadStatistics()
 //        {
 //            try
 //            {
-//                var employeeId = cbxEmployeeFilter.SelectedValue as long?;
-//                await _presenter.FilterByEmployeeAsync(employeeId);
+//                var stats = await _presenter.GetScheduleStatisticsAsync(dtpStartDate.Value, dtpEndDate.Value);
+//                UpdateStatisticsDisplay(stats);
 //            }
 //            catch (Exception ex)
 //            {
-//                ShowErrorMessage($"Lỗi khi lọc theo nhân viên: {ex.Message}");
+//                ShowErrorMessage($"Lỗi khi tải thống kê: {ex.Message}");
 //            }
 //        }
 
-//        private async Task FilterByStatus()
+//        private void UpdateStatisticsDisplay(ScheduleStatisticsViewModel stats)
 //        {
-//            try
-//            {
-//                var status = cbxStatusFilter.SelectedItem?.ToString();
-//                await _presenter.FilterByStatusAsync(status);
-//            }
-//            catch (Exception ex)
-//            {
-//                ShowErrorMessage($"Lỗi khi lọc theo trạng thái: {ex.Message}");
-//            }
+//            lblTotalSchedules.Text = $"Tổng ca: {stats.TotalSchedules}";
+//            lblScheduledCount.Text = $"Đã lên lịch: {stats.ScheduledCount}";
+//            lblCompletedCount.Text = $"Hoàn thành: {stats.CompletedCount}";
+//            lblAbsentCount.Text = $"Vắng mặt: {stats.AbsentCount}";
+//            lblTotalHours.Text = $"Tổng giờ: {stats.FormattedTotalHours}";
+//            lblAverageHours.Text = $"TB/ca: {stats.FormattedAverageShiftDuration}";
+
+//            // Update progress bars
+//            progressCompletion.Value = (int)stats.CompletionRate;
+//            progressAbsence.Value = (int)stats.AbsenceRate;
+//            lblCompletionRate.Text = stats.FormattedCompletionRate;
+//            lblAbsenceRate.Text = stats.FormattedAbsenceRate;
 //        }
-
-//        private async Task FilterByDateRange()
-//        {
-//            try
-//            {
-//                await _presenter.FilterByDateRangeAsync(dtpStartDate.Value.Date, dtpEndDate.Value.Date);
-//            }
-//            catch (Exception ex)
-//            {
-//                ShowErrorMessage($"Lỗi khi lọc theo ngày: {ex.Message}");
-//            }
-//        }
-
-//        private async Task OnCalendarDateSelected(DateTime selectedDate)
-//        {
-//            try
-//            {
-//                _currentWeekStart = GetWeekStart(selectedDate);
-//                dtpStartDate.Value = _currentWeekStart;
-//                dtpEndDate.Value = _currentWeekStart.AddDays(6);
-
-//                if (_isWeekViewActive)
-//                {
-//                    await LoadWeekView();
-//                }
-//                else
-//                {
-//                    await FilterByDateRange();
-//                }
-//            }
-//            catch (Exception ex)
-//            {
-//                ShowErrorMessage($"Lỗi khi chọn ngày: {ex.Message}");
-//            }
-//        }
-
-//        private void OnScheduleSelectionChanged(object sender, EventArgs e)
-//        {
-//            bool hasSelection = dgvSchedules.SelectedRows.Count > 0;
-//            btnEditSchedule.Enabled = hasSelection;
-//            btnDeleteSchedule.Enabled = hasSelection;
-//        }
-
-//        private void OnDataLoaded(object sender, EventArgs e)
-//        {
-//            UpdatePaginationInfo();
-//            if (_isWeekViewActive)
-//            {
-//                _ = Task.Run(LoadWeekView);
-//            }
-//        }
-
-//        private async void OnGanttTaskClicked(object sender, GanttTaskViewModel task)
-//        {
-//            await ShowEditScheduleDialog(ConvertGanttTaskToSchedule(task));
-//        }
-
-//        private void OnGanttTimeSlotClicked(object sender, DateTime dateTime)
-//        {
-//            var selectedTime = new TimeOnly(dateTime.Hour, dateTime.Minute);
-//            ShowAddScheduleDialog(dateTime.Date, selectedTime);
-//        }
-
-//        private EmployeeScheduleViewModel ConvertGanttTaskToSchedule(GanttTaskViewModel ganttTask)
-//        {
-//            return new EmployeeScheduleViewModel
-//            {
-//                Id = ganttTask.Id,
-//                EmployeeId = ganttTask.EmployeeId,
-//                EmployeeName = ganttTask.EmployeeName,
-//                ShiftDate = ganttTask.StartDate.Date,
-//                StartTime = TimeOnly.FromDateTime(ganttTask.StartDate),
-//                EndTime = TimeOnly.FromDateTime(ganttTask.EndDate),
-//                Status = ganttTask.Status
-//            };
-//        }
-
-//        #endregion
 
 //        #region View Toggle Methods
 
-//        private void ToggleToWeekView()
+//        private async void ToggleToWeekView()
 //        {
 //            _isWeekViewActive = true;
+//            _isGanttViewActive = false;
+
 //            pnlWeekView.Visible = true;
 //            dgvSchedules.Visible = false;
+//            pnlGanttView.Visible = false;
 
 //            btnWeekView.BackColor = Color.FromArgb(0, 120, 215);
 //            btnMonthView.BackColor = Color.FromArgb(73, 75, 111);
+//            btnGanttView.BackColor = Color.FromArgb(73, 75, 111);
 
-//            if (_useGanttChart && ganttChart != null)
-//            {
-//                ganttChart.Visible = true;
-//                tlpWeekView.Visible = false;
-//            }
-//            else
-//            {
-//                tlpWeekView.Visible = true;
-//                if (ganttChart != null)
-//                    ganttChart.Visible = false;
-//            }
-
-//            _ = Task.Run(LoadWeekView);
+//            await LoadWeekView();
 //        }
 
 //        private void ToggleToMonthView()
 //        {
 //            _isWeekViewActive = false;
+//            _isGanttViewActive = false;
+
 //            pnlWeekView.Visible = false;
 //            dgvSchedules.Visible = true;
+//            pnlGanttView.Visible = false;
 
 //            btnMonthView.BackColor = Color.FromArgb(0, 120, 215);
 //            btnWeekView.BackColor = Color.FromArgb(73, 75, 111);
+//            btnGanttView.BackColor = Color.FromArgb(73, 75, 111);
+//        }
+
+//        private async void ToggleToGanttView()
+//        {
+//            _isWeekViewActive = false;
+//            _isGanttViewActive = true;
+
+//            pnlWeekView.Visible = false;
+//            dgvSchedules.Visible = false;
+//            pnlGanttView.Visible = true;
+
+//            btnGanttView.BackColor = Color.FromArgb(0, 120, 215);
+//            btnWeekView.BackColor = Color.FromArgb(73, 75, 111);
+//            btnMonthView.BackColor = Color.FromArgb(73, 75, 111);
+
+//            await LoadGanttView();
+//        }
+
+//        #endregion
+
+//        #region Gantt Chart Methods
+
+//        private async Task LoadGanttView()
+//        {
+//            try
+//            {
+//                var ganttTasks = await _presenter.GetGanttDataAsync(dtpStartDate.Value, dtpEndDate.Value);
+//                _currentGanttTasks = ganttTasks;
+//                UpdateGanttChart(ganttTasks);
+//            }
+//            catch (Exception ex)
+//            {
+//                ShowErrorMessage($"Lỗi khi tải biểu đồ Gantt: {ex.Message}");
+//            }
+//        }
+
+//        private void UpdateGanttChart(List<GanttTaskViewModel> tasks)
+//        {
+//            if (InvokeRequired)
+//            {
+//                Invoke(() => UpdateGanttChart(tasks));
+//                return;
+//            }
+
+//            _ganttChart.ClearTasks();
+
+//            var groupedTasks = tasks.GroupBy(t => t.EmployeeId)
+//                                  .OrderBy(g => g.First().EmployeeName)
+//                                  .ToList();
+
+//            foreach (var employeeGroup in groupedTasks)
+//            {
+//                var employee = employeeGroup.First();
+//                var employeeTasks = employeeGroup.OrderBy(t => t.StartDate).ToList();
+
+//                // Add employee as a group
+//                var groupTask = new GanttTask
+//                {
+//                    Id = employee.EmployeeId,
+//                    Name = $"{employee.EmployeeName} ({employee.PositionName})",
+//                    StartDate = employeeTasks.Min(t => t.StartDate),
+//                    EndDate = employeeTasks.Max(t => t.EndDate),
+//                    IsGroup = true,
+//                    BackColor = Color.FromArgb(73, 75, 111),
+//                    ForeColor = Color.White
+//                };
+//                _ganttChart.AddTask(groupTask);
+
+//                // Add individual tasks
+//                foreach (var task in employeeTasks)
+//                {
+//                    var ganttTask = new GanttTask
+//                    {
+//                        Id = task.Id,
+//                        Name = task.TimeRange,
+//                        StartDate = task.StartDate,
+//                        EndDate = task.EndDate,
+//                        Progress = task.Progress,
+//                        BackColor = ColorTranslator.FromHtml(task.Color),
+//                        ForeColor = Color.White,
+//                        ParentId = employee.EmployeeId,
+//                        Tag = task
+//                    };
+//                    _ganttChart.AddTask(ganttTask);
+//                }
+//            }
+
+//            // Set timeline range
+//            if (tasks.Any())
+//            {
+//                _ganttChart.TimelineStart = tasks.Min(t => t.StartDate).Date;
+//                _ganttChart.TimelineEnd = tasks.Max(t => t.EndDate).Date.AddDays(1);
+//            }
+
+//            _ganttChart.Refresh();
+//        }
+
+//        private async void OnGanttTaskClick(object sender, GanttTaskEventArgs e)
+//        {
+//            if (e.Task.Tag is GanttTaskViewModel task)
+//            {
+//                // Highlight selected task
+//                await SelectScheduleInGrid(task.Id);
+//            }
+//        }
+
+//        private async void OnGanttTaskDoubleClick(object sender, GanttTaskEventArgs e)
+//        {
+//            if (e.Task.Tag is GanttTaskViewModel task)
+//            {
+//                var schedule = _presenter.Model.Schedules.FirstOrDefault(s => s.Id == task.Id);
+//                if (schedule != null)
+//                {
+//                    await ShowEditScheduleDialog(schedule);
+//                }
+//            }
+//        }
+
+//        private async void OnGanttTaskMoved(object sender, GanttTaskMovedEventArgs e)
+//        {
+//            if (e.Task.Tag is GanttTaskViewModel task)
+//            {
+//                try
+//                {
+//                    var newDate = e.NewStartDate.Date;
+//                    var startTime = TimeOnly.FromDateTime(e.NewStartDate);
+//                    var endTime = TimeOnly.FromDateTime(e.NewEndDate);
+
+//                    await _presenter.UpdateScheduleAsync(task.Id, newDate, startTime, endTime, task.Status);
+//                    ShowSuccessMessage("Cập nhật lịch làm việc thành công!");
+
+//                    if (_isGanttViewActive)
+//                        await LoadGanttView();
+//                }
+//                catch (Exception ex)
+//                {
+//                    ShowErrorMessage($"Lỗi khi cập nhật lịch: {ex.Message}");
+//                    // Revert the change
+//                    await LoadGanttView();
+//                }
+//            }
+//        }
+
+//        private async void OnGanttTaskResized(object sender, GanttTaskResizedEventArgs e)
+//        {
+//            if (e.Task.Tag is GanttTaskViewModel task)
+//            {
+//                try
+//                {
+//                    var newDate = e.NewStartDate.Date;
+//                    var startTime = TimeOnly.FromDateTime(e.NewStartDate);
+//                    var endTime = TimeOnly.FromDateTime(e.NewEndDate);
+
+//                    await _presenter.UpdateScheduleAsync(task.Id, newDate, startTime, endTime, task.Status);
+//                    ShowSuccessMessage("Cập nhật thời gian ca làm việc thành công!");
+
+//                    if (_isGanttViewActive)
+//                        await LoadGanttView();
+//                }
+//                catch (Exception ex)
+//                {
+//                    ShowErrorMessage($"Lỗi khi cập nhật thời gian: {ex.Message}");
+//                    // Revert the change
+//                    await LoadGanttView();
+//                }
+//            }
+//        }
+
+//        private async Task SelectScheduleInGrid(long scheduleId)
+//        {
+//            foreach (DataGridViewRow row in dgvSchedules.Rows)
+//            {
+//                if (row.DataBoundItem is EmployeeScheduleViewModel schedule && schedule.Id == scheduleId)
+//                {
+//                    dgvSchedules.ClearSelection();
+//                    row.Selected = true;
+//                    dgvSchedules.FirstDisplayedScrollingRowIndex = row.Index;
+//                    break;
+//                }
+//            }
 //        }
 
 //        #endregion
@@ -355,79 +407,16 @@
 
 //            lblWeekRange.Text = weeklySchedule.WeekRange;
 
-//            // Update Gantt Chart if it exists
-//            if (_useGanttChart && ganttChart != null)
-//            {
-//                _ = Task.Run(() => LoadGanttChart());
-//            }
-//            else
-//            {
-//                // Fallback to table layout view
-//                UpdateTableWeekView(weeklySchedule);
-//            }
-//        }
-
-//        private async Task LoadGanttChart()
-//        {
-//            try
-//            {
-//                var ganttData = await _presenter.GetGanttDataAsync(_currentWeekStart, _currentWeekStart.AddDays(6));
-
-//                if (InvokeRequired)
-//                {
-//                    Invoke(() => UpdateGanttChart(ganttData));
-//                }
-//                else
-//                {
-//                    UpdateGanttChart(ganttData);
-//                }
-//            }
-//            catch (Exception ex)
-//            {
-//                ShowErrorMessage($"Lỗi khi tải Gantt chart: {ex.Message}");
-//            }
-//        }
-
-//        private void UpdateGanttChart(List<GanttTaskViewModel> ganttData)
-//        {
-//            if (ganttChart != null)
-//            {
-//                ganttChart.StartDate = _currentWeekStart;
-//                ganttChart.EndDate = _currentWeekStart.AddDays(6);
-//                ganttChart.Tasks = ganttData;
-//            }
-//        }
-
-//        private void UpdateTableWeekView(WeeklyScheduleViewModel weeklySchedule)
-//        {
 //            // Clear existing controls
 //            tlpWeekView.Controls.Clear();
-//            tlpWeekView.RowStyles.Clear();
-//            tlpWeekView.ColumnStyles.Clear();
-
-//            // Setup column and row count
-//            tlpWeekView.ColumnCount = 8; // Time column + 7 days
-//            tlpWeekView.RowCount = 17; // Header + 16 hours (6 AM to 10 PM)
-
-//            // Setup column styles
-//            tlpWeekView.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 80)); // Time column
-//            for (int i = 1; i <= 7; i++)
-//            {
-//                tlpWeekView.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 14.28f)); // Day columns
-//            }
-
-//            // Setup row styles
-//            tlpWeekView.RowStyles.Add(new RowStyle(SizeType.Absolute, 40)); // Header row
-//            for (int i = 1; i <= 16; i++)
-//            {
-//                tlpWeekView.RowStyles.Add(new RowStyle(SizeType.Absolute, 30)); // Hour rows
-//            }
+//            tlpWeekView.RowCount = 18; // 17 hours (6 AM to 10 PM) + header
+//            tlpWeekView.ColumnCount = 8; // 7 days + time column
 
 //            // Add header row
 //            AddWeekViewHeader();
 
 //            // Add time slots and schedules
-//            for (int hour = 6; hour < 22; hour++) // 6 AM to 10 PM
+//            for (int hour = 6; hour < 23; hour++) // 6 AM to 10 PM
 //            {
 //                AddTimeSlotRow(hour, weeklySchedule.Days);
 //            }
@@ -510,7 +499,9 @@
 //                }
 
 //                // Add click event for adding new schedule
-//                dayPanel.Click += (s, e) => OnTimeSlotClick(dayIndex, hour);
+//                var selectedDate = _currentWeekStart.AddDays(dayIndex);
+//                var selectedHour = hour;
+//                dayPanel.Click += async (s, e) => await OnTimeSlotClick(selectedDate, selectedHour);
 //                dayPanel.Cursor = Cursors.Hand;
 
 //                tlpWeekView.Controls.Add(dayPanel, dayIndex + 1, row);
@@ -522,7 +513,7 @@
 //            var scheduleLabel = new Label
 //            {
 //                Text = $"{schedule.EmployeeName}\n{schedule.StartTime:HH:mm}-{schedule.EndTime:HH:mm}",
-//                BackColor = GetStatusColor(schedule.Status),
+//                BackColor = schedule.StatusColor,
 //                ForeColor = Color.White,
 //                Font = new Font("Segoe UI", 7F),
 //                TextAlign = ContentAlignment.MiddleCenter,
@@ -536,24 +527,10 @@
 //            timeSlotPanel.Controls.Add(scheduleLabel);
 //        }
 
-//        private Color GetStatusColor(string status)
+//        private async Task OnTimeSlotClick(DateTime selectedDate, int hour)
 //        {
-//            return status switch
-//            {
-//                "SCHEDULED" => Color.FromArgb(0, 120, 215),
-//                "COMPLETED" => Color.FromArgb(76, 175, 80),
-//                "ABSENT" => Color.FromArgb(244, 67, 54),
-//                "CANCELLED" => Color.FromArgb(158, 158, 158),
-//                _ => Color.FromArgb(73, 75, 111)
-//            };
-//        }
-
-//        private void OnTimeSlotClick(int dayIndex, int hour)
-//        {
-//            var selectedDate = _currentWeekStart.AddDays(dayIndex);
 //            var selectedTime = new TimeOnly(hour, 0);
-
-//            ShowAddScheduleDialog(selectedDate, selectedTime);
+//            await ShowAddScheduleDialog(selectedDate, selectedTime);
 //        }
 
 //        private async Task OnScheduleClick(EmployeeScheduleViewModel schedule)
@@ -566,7 +543,13 @@
 //            _currentWeekStart = _currentWeekStart.AddDays(-7);
 //            dtpStartDate.Value = _currentWeekStart;
 //            dtpEndDate.Value = _currentWeekStart.AddDays(6);
-//            await LoadWeekView();
+
+//            if (_isWeekViewActive)
+//                await LoadWeekView();
+//            else if (_isGanttViewActive)
+//                await LoadGanttView();
+
+//            await LoadStatistics();
 //        }
 
 //        private async Task NavigateToNextWeek()
@@ -574,7 +557,119 @@
 //            _currentWeekStart = _currentWeekStart.AddDays(7);
 //            dtpStartDate.Value = _currentWeekStart;
 //            dtpEndDate.Value = _currentWeekStart.AddDays(6);
-//            await LoadWeekView();
+
+//            if (_isWeekViewActive)
+//                await LoadWeekView();
+//            else if (_isGanttViewActive)
+//                await LoadGanttView();
+
+//            await LoadStatistics();
+//        }
+
+//        #endregion
+
+//        #region Event Handlers
+
+//        private async Task FilterByEmployee()
+//        {
+//            try
+//            {
+//                var employeeId = cbxEmployeeFilter.SelectedValue as long?;
+//                await _presenter.FilterByEmployeeAsync(employeeId);
+
+//                if (_isGanttViewActive)
+//                    await LoadGanttView();
+
+//                await LoadStatistics();
+//            }
+//            catch (Exception ex)
+//            {
+//                ShowErrorMessage($"Lỗi khi lọc theo nhân viên: {ex.Message}");
+//            }
+//        }
+
+//        private async Task FilterByStatus()
+//        {
+//            try
+//            {
+//                var status = cbxStatusFilter.SelectedItem?.ToString();
+//                await _presenter.FilterByStatusAsync(status);
+
+//                if (_isGanttViewActive)
+//                    await LoadGanttView();
+
+//                await LoadStatistics();
+//            }
+//            catch (Exception ex)
+//            {
+//                ShowErrorMessage($"Lỗi khi lọc theo trạng thái: {ex.Message}");
+//            }
+//        }
+
+//        private async Task FilterByDateRange()
+//        {
+//            try
+//            {
+//                await _presenter.FilterByDateRangeAsync(dtpStartDate.Value.Date, dtpEndDate.Value.Date);
+
+//                if (_isGanttViewActive)
+//                    await LoadGanttView();
+//                else if (_isWeekViewActive)
+//                {
+//                    _currentWeekStart = GetWeekStart(dtpStartDate.Value);
+//                    await LoadWeekView();
+//                }
+
+//                await LoadStatistics();
+//            }
+//            catch (Exception ex)
+//            {
+//                ShowErrorMessage($"Lỗi khi lọc theo ngày: {ex.Message}");
+//            }
+//        }
+
+//        private async Task OnCalendarDateSelected(DateTime selectedDate)
+//        {
+//            try
+//            {
+//                _currentWeekStart = GetWeekStart(selectedDate);
+//                dtpStartDate.Value = _currentWeekStart;
+//                dtpEndDate.Value = _currentWeekStart.AddDays(6);
+
+//                if (_isWeekViewActive)
+//                    await LoadWeekView();
+//                else if (_isGanttViewActive)
+//                    await LoadGanttView();
+//                else
+//                    await FilterByDateRange();
+
+//                await LoadStatistics();
+//            }
+//            catch (Exception ex)
+//            {
+//                ShowErrorMessage($"Lỗi khi chọn ngày: {ex.Message}");
+//            }
+//        }
+
+//        private void OnScheduleSelectionChanged(object sender, EventArgs e)
+//        {
+//            bool hasSelection = dgvSchedules.SelectedRows.Count > 0;
+//            btnEditSchedule.Enabled = hasSelection;
+//            btnDeleteSchedule.Enabled = hasSelection;
+//            btnBulkEdit.Enabled = dgvSchedules.SelectedRows.Count > 1;
+//        }
+
+//        private void OnDataLoaded(object sender, EventArgs e)
+//        {
+//            UpdatePaginationInfo();
+//            if (_isWeekViewActive)
+//            {
+//                _ = Task.Run(LoadWeekView);
+//            }
+//            else if (_isGanttViewActive)
+//            {
+//                _ = Task.Run(LoadGanttView);
+//            }
 //        }
 
 //        #endregion
@@ -593,7 +688,8 @@
 
 //                if (dialog.ShowDialog() == DialogResult.OK)
 //                {
-//                    await RefreshData();
+//                    await RefreshCurrentView();
+//                    await LoadStatistics();
 //                }
 //            }
 //            catch (Exception ex)
@@ -616,7 +712,8 @@
 //                var dialog = new FrmScheduleEditor(_presenter, schedule);
 //                if (dialog.ShowDialog() == DialogResult.OK)
 //                {
-//                    await RefreshData();
+//                    await RefreshCurrentView();
+//                    await LoadStatistics();
 //                }
 //            }
 //            catch (Exception ex)
@@ -645,7 +742,8 @@
 //                if (result == DialogResult.Yes)
 //                {
 //                    await _presenter.DeleteScheduleAsync(schedule.Id);
-//                    await RefreshData();
+//                    await RefreshCurrentView();
+//                    await LoadStatistics();
 //                    ShowSuccessMessage("Xóa lịch làm việc thành công!");
 //                }
 //            }
@@ -653,6 +751,88 @@
 //            {
 //                ShowErrorMessage($"Lỗi khi xóa lịch: {ex.Message}");
 //            }
+//        }
+
+//        private async Task ShowBulkEditDialog()
+//        {
+//            try
+//            {
+//                var selectedSchedules = GetSelectedSchedules();
+//                if (!selectedSchedules.Any())
+//                {
+//                    ShowWarningMessage("Vui lòng chọn ít nhất một lịch làm việc.");
+//                    return;
+//                }
+
+//                var dialog = new FrmBulkScheduleEditor(_presenter, selectedSchedules);
+//                if (dialog.ShowDialog() == DialogResult.OK)
+//                {
+//                    await RefreshCurrentView();
+//                    await LoadStatistics();
+//                }
+//            }
+//            catch (Exception ex)
+//            {
+//                ShowErrorMessage($"Lỗi khi chỉnh sửa hàng loạt: {ex.Message}");
+//            }
+//        }
+
+//        private async Task ExportSchedule()
+//        {
+//            try
+//            {
+//                var saveFileDialog = new SaveFileDialog
+//                {
+//                    Filter = "Excel Files|*.xlsx|CSV Files|*.csv",
+//                    DefaultExt = "xlsx",
+//                    FileName = $"LichLamViec_{DateTime.Now:yyyyMMdd}"
+//                };
+
+//                if (saveFileDialog.ShowDialog() == DialogResult.OK)
+//                {
+//                    var schedules = _presenter.Model.Schedules.ToList();
+//                    var filePath = saveFileDialog.FileName;
+
+//                    if (filePath.EndsWith(".xlsx"))
+//                    {
+//                        ExportToExcel(schedules, filePath);
+//                    }
+//                    else
+//                    {
+//                        ExportToCSV(schedules, filePath);
+//                    }
+
+//                    ShowSuccessMessage($"Xuất dữ liệu thành công: {filePath}");
+//                }
+//            }
+//            catch (Exception ex)
+//            {
+//                ShowErrorMessage($"Lỗi khi xuất dữ liệu: {ex.Message}");
+//            }
+//        }
+
+//        private void ExportToCSV(List<EmployeeScheduleViewModel> schedules, string filePath)
+//        {
+//            using var writer = new StreamWriter(filePath, false, System.Text.Encoding.UTF8);
+
+//            // Header
+//            writer.WriteLine("Nhân viên,Vị trí,Ngày,Thứ,Ca làm việc,Trạng thái,Giờ bắt đầu,Giờ kết thúc,Số giờ");
+
+//            // Data
+//            foreach (var schedule in schedules)
+//            {
+//                writer.WriteLine($"\"{schedule.EmployeeName}\",\"{schedule.PositionName}\"," +
+//                               $"\"{schedule.FormattedDate}\",\"{schedule.WeekDay}\"," +
+//                               $"\"{schedule.ShiftDuration}\",\"{schedule.StatusDisplayText}\"," +
+//                               $"{schedule.StartTime:HH:mm},{schedule.EndTime:HH:mm},{schedule.DurationInHours:F1}");
+//            }
+//        }
+
+//        private void ExportToExcel(List<EmployeeScheduleViewModel> schedules, string filePath)
+//        {
+//            // This would require a library like ClosedXML or EPPlus
+//            // For now, export as CSV with .xlsx extension
+//            ExportToCSV(schedules, filePath);
 //        }
 
 //        private EmployeeScheduleViewModel GetSelectedSchedule()
@@ -663,12 +843,101 @@
 //            return dgvSchedules.SelectedRows[0].DataBoundItem as EmployeeScheduleViewModel;
 //        }
 
-//        private async Task RefreshData()
+//        private List<EmployeeScheduleViewModel> GetSelectedSchedules()
 //        {
-//            await _presenter.FilterByDateRangeAsync(dtpStartDate.Value.Date, dtpEndDate.Value.Date);
+//            return dgvSchedules.SelectedRows
+//                .Cast<DataGridViewRow>()
+//                .Select(row => row.DataBoundItem as EmployeeScheduleViewModel)
+//                .Where(schedule => schedule != null)
+//                .ToList();
+//        }
+
+//        private async Task RefreshCurrentView()
+//        {
+//            if (_isWeekViewActive)
+//                await LoadWeekView();
+//            else if (_isGanttViewActive)
+//                await LoadGanttView();
+//            else
+//                await _presenter.FilterByDateRangeAsync(dtpStartDate.Value.Date, dtpEndDate.Value.Date);
 //        }
 
 //        #endregion
+
+//        private void SetupDataGridColumns()
+//        {
+//            dgvSchedules.Columns.Clear();
+
+//            dgvSchedules.Columns.Add(new DataGridViewTextBoxColumn
+//            {
+//                DataPropertyName = "EmployeeName",
+//                HeaderText = "Nhân viên",
+//                Name = "EmployeeName",
+//                Width = 150,
+//                ReadOnly = true
+//            });
+
+//            dgvSchedules.Columns.Add(new DataGridViewTextBoxColumn
+//            {
+//                DataPropertyName = "PositionName",
+//                HeaderText = "Vị trí",
+//                Name = "PositionName",
+//                Width = 120,
+//                ReadOnly = true
+//            });
+
+//            dgvSchedules.Columns.Add(new DataGridViewTextBoxColumn
+//            {
+//                DataPropertyName = "FormattedDate",
+//                HeaderText = "Ngày",
+//                Name = "FormattedDate",
+//                Width = 100,
+//                ReadOnly = true
+//            });
+
+//            dgvSchedules.Columns.Add(new DataGridViewTextBoxColumn
+//            {
+//                DataPropertyName = "WeekDay",
+//                HeaderText = "Thứ",
+//                Name = "WeekDay",
+//                Width = 80,
+//                ReadOnly = true
+//            });
+
+//            dgvSchedules.Columns.Add(new DataGridViewTextBoxColumn
+//            {
+//                DataPropertyName = "ShiftDuration",
+//                HeaderText = "Ca làm việc",
+//                Name = "ShiftDuration",
+//                Width = 120,
+//                ReadOnly = true
+//            });
+
+//            dgvSchedules.Columns.Add(new DataGridViewTextBoxColumn
+//            {
+//                DataPropertyName = "StatusDisplayText",
+//                HeaderText = "Trạng thái",
+//                Name = "StatusDisplayText",
+//                Width = 100,
+//                ReadOnly = true
+//            });
+
+//            dgvSchedules.Columns.Add(new DataGridViewTextBoxColumn
+//            {
+//                DataPropertyName = "DurationInHours",
+//                HeaderText = "Số giờ",
+//                Name = "DurationInHours",
+//                Width = 80,
+//                ReadOnly = true,
+//                DefaultCellStyle = new DataGridViewCellStyle { Format = "F1" }
+//            });
+
+//            // Hide ID columns
+//            if (dgvSchedules.Columns.Contains("Id"))
+//                dgvSchedules.Columns["Id"].Visible = false;
+//            if (dgvSchedules.Columns.Contains("EmployeeId"))
+//                dgvSchedules.Columns["EmployeeId"].Visible = false;
+//        }
 
 //        #region Helper Methods
 
@@ -684,30 +953,16 @@
 //            // This can be implemented based on your base form's pagination controls
 //        }
 
-//        private void ShowErrorMessage(string message)
-//        {
-//            MessageBox.Show(message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-//        }
-
-//        private void ShowWarningMessage(string message)
-//        {
-//            MessageBox.Show(message, "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-//        }
-
-//        private void ShowSuccessMessage(string message)
-//        {
-//            MessageBox.Show(message, "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
-//        }
-
 //        #endregion
 
 //        protected override void Dispose(bool disposing)
 //        {
 //            if (disposing)
 //            {
+//                _presenter?.Dispose();
+//                _ganttChart?.Dispose();
 //                components?.Dispose();
 //            }
 //            base.Dispose(disposing);
 //        }
 //    }
-//}

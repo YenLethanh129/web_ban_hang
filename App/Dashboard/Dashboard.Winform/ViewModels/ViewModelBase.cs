@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace Dashboard.Winform.ViewModels
 {
-    public abstract class ViewModelBase : INotifyPropertyChanged
+    public abstract class ViewModelBase : IManagableModel
     {
         public event PropertyChangedEventHandler? PropertyChanged;
 

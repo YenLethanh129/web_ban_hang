@@ -17,7 +17,7 @@ public class EmployeeMappingProfile : Profile
         CreateMap<CreateEmployeeShiftInput, EmployeeShift>();
         
         CreateMap<UpdateEmployeeShiftInput, EmployeeShift>()
-            .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+            .ForAllOtherMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 
         CreateMap<Employee, EmployeeDto>()
             .ForMember(dest => dest.Phone, opt => opt.MapFrom(src => src.PhoneNumber));

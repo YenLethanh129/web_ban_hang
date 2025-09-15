@@ -167,7 +167,7 @@ public class PayrollService : BaseTransactionalService, IPayrollService
             };
 
             await _payrollRepository.AddAsync(payroll);
-            await _unitOfWork.SaveChangesAsync();
+            await _payrollRepository.SaveChangesAsync();
 
             _logger.LogInformation("Created payroll for employee {EmployeeId} for {Month}/{Year}", 
                 input.EmployeeId, input.Month, input.Year);
@@ -277,7 +277,7 @@ public class PayrollService : BaseTransactionalService, IPayrollService
             }
 
             _payrollRepository.Remove(payroll);
-            await _unitOfWork.SaveChangesAsync();
+            await _payrollRepository.SaveChangesAsync();
 
             _logger.LogInformation("Deleted payroll {PayrollId}", id);
             return true;
@@ -346,7 +346,7 @@ public class PayrollService : BaseTransactionalService, IPayrollService
 
             var salary = _mapper.Map<EmployeeSalary>(input);
             await _salaryRepository.AddAsync(salary);
-            await _unitOfWork.SaveChangesAsync();
+            await _payrollRepository.SaveChangesAsync();
 
             _logger.LogInformation("Created salary for employee {EmployeeId}", input.EmployeeId);
 
@@ -370,7 +370,7 @@ public class PayrollService : BaseTransactionalService, IPayrollService
             }
 
             _mapper.Map(input, salary);
-            await _unitOfWork.SaveChangesAsync();
+            await _payrollRepository.SaveChangesAsync();
 
             _logger.LogInformation("Updated salary {SalaryId}", input.Id);
 
@@ -501,7 +501,7 @@ public class PayrollService : BaseTransactionalService, IPayrollService
                 payroll.NetSalary = calculations.NetSalary;
             }
 
-            await _unitOfWork.SaveChangesAsync();
+            await _payrollRepository.SaveChangesAsync();
 
             _logger.LogInformation("Updated payroll {PayrollId}", input.Id);
             return _mapper.Map<PayrollDto>(payroll);

@@ -128,7 +128,7 @@ public class EmployeeShiftService : BaseTransactionalService, IEmployeeShiftServ
 
             var shift = _mapper.Map<EmployeeShift>(input);
             await _shiftRepository.AddAsync(shift);
-            await _unitOfWork.SaveChangesAsync();
+            await _shiftRepository.SaveChangesAsync();
 
             _logger.LogInformation("Created shift for employee {EmployeeId} on {Date}", input.EmployeeId, input.ShiftDate);
 
@@ -173,7 +173,7 @@ public class EmployeeShiftService : BaseTransactionalService, IEmployeeShiftServ
             }
 
             _mapper.Map(input, shift);
-            await _unitOfWork.SaveChangesAsync();
+            await _shiftRepository.SaveChangesAsync();
 
             _logger.LogInformation("Updated shift {ShiftId}", input.Id);
 
@@ -203,7 +203,7 @@ public class EmployeeShiftService : BaseTransactionalService, IEmployeeShiftServ
             }
 
             _shiftRepository.Remove(shift);
-            await _unitOfWork.SaveChangesAsync();
+            await _shiftRepository.SaveChangesAsync();
 
             _logger.LogInformation("Deleted shift {ShiftId}", id);
             return true;
@@ -293,7 +293,7 @@ public class EmployeeShiftService : BaseTransactionalService, IEmployeeShiftServ
             }
 
             shift.Status = "CHECKED_IN";
-            await _unitOfWork.SaveChangesAsync();
+            await _shiftRepository.SaveChangesAsync();
 
             _logger.LogInformation("Employee checked in for shift {ShiftId}", shiftId);
             return true;
@@ -321,7 +321,7 @@ public class EmployeeShiftService : BaseTransactionalService, IEmployeeShiftServ
             }
 
             shift.Status = "CHECKED_OUT";
-            await _unitOfWork.SaveChangesAsync();
+            await _shiftRepository.SaveChangesAsync();
 
             _logger.LogInformation("Employee checked out for shift {ShiftId}", shiftId);
             return true;
