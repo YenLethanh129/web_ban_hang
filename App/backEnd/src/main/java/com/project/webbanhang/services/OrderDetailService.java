@@ -3,6 +3,7 @@ package com.project.webbanhang.services;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.project.webbanhang.services.Interfaces.IOrderDetailService;
 import org.springframework.stereotype.Service;
 
 import com.project.webbanhang.dtos.OrderDetailDTO;
@@ -19,11 +20,10 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class OrderDetailService implements IOrderDetailService{
+public class OrderDetailService implements IOrderDetailService {
 	private final OrderDetailRepository orderDetailRepository;
 	private final OrderRepository orderRepository;
 	private final ProductRepository productRepository;
-	//private final ModelMapper modelMapper;
 	
 	@Override
 	public OrderDetailResponse createOrderDetail(OrderDetailDTO orderDetailDTO) {
@@ -54,10 +54,26 @@ public class OrderDetailService implements IOrderDetailService{
 	}
 
 	@Override
-	public OrderDetailResponse getOrderDetailByOrderId(Long orderId) {
-		
-		OrderDetail existingOrderDetail = orderDetailRepository.findByOrder_Id(orderId);
-		return OrderDetailResponse.fromEntity(existingOrderDetail);
+	public List<OrderDetailResponse> getOrderDetailsByOrderId(Long orderId) throws DataNotFoundException{
+		List<OrderDetail> existingOrderDetails = orderDetailRepository.findByOrder_Id(orderId);
+		if (existingOrderDetails.isEmpty()) {
+			throw new DataNotFoundException("Can't not found List Order ID");
+		}
+
+		List<OrderDetailResponse> listOrderDetailsResponse = new ArrayList<>();
+		for (OrderDetail orderDetail : existingOrderDetails) {
+			OrderDetailResponse orderDetailResponse = OrderDetailResponse.builder()
+					.productName(orderDetail.getProduct().getName())
+					.productThumbnail(orderDetail.getProduct().getThumbnail())
+					.size(orderDetail.getSize())
+					.quantity(orderDetail.getQuantity())
+					.totalAmount(orderDetail.getTotalAmount())
+					.unitPrice(orderDetail.getUnitPrice())
+					.build();
+			listOrderDetailsResponse.add(orderDetailResponse);
+		}
+
+		return listOrderDetailsResponse;
 	}
 
 	@Override
@@ -78,28 +94,19 @@ public class OrderDetailService implements IOrderDetailService{
 	}
 	
 	private OrderDetail mapOrderDetailDTOToOrderDetail(OrderDetailDTO orderDetailDTO) {
-//		modelMapper.typeMap(OrderDetailDTO.class, OrderDetail.class)
-//	    	.addMappings(mapper -> {
-//	    		mapper.skip(OrderDetail::setId); // Bỏ qua thuộc tính ID
-//	    		mapper.skip(OrderDetail::setOrder); // Bỏ qua ánh xạ Order
-//	    		mapper.skip(OrderDetail::setProduct); // Bỏ qua ánh xạ Product
-//	    });
-
-//		modelMapper.map(orderDetailDTO, existingOrderDetail);
-		
-		Order order = orderRepository.findById(orderDetailDTO.getOrderId())
+		Order existingOrder = orderRepository.findById(orderDetailDTO.getOrderId())
 				.orElse(null);
-		Product product = productRepository.findById(orderDetailDTO.getProductId())
+		Product existingProduct = productRepository.findById(orderDetailDTO.getProductId())
 				.orElse(null);
-		OrderDetail existingOrderDetail = new OrderDetail();
-		
-		existingOrderDetail.setOrder(order);
-		existingOrderDetail.setProduct(product);
-		existingOrderDetail.setColor(orderDetailDTO.getColor());
-		existingOrderDetail.setNumberOfProducts(orderDetailDTO.getNumberOfProduct());
-		existingOrderDetail.setPrice(orderDetailDTO.getPrice());
-		existingOrderDetail.setTotalMoney(orderDetailDTO.getTotalMoney());
-		
+		OrderDetail existingOrderDetail = OrderDetail.builder()
+				.order(existingOrder)
+				.quantity(orderDetailDTO.getQuantity())
+				.product(existingProduct)
+				.size(orderDetailDTO.getSize())
+				.note(null)
+				.totalAmount(orderDetailDTO.getTotalMoney())
+				.unitPrice(orderDetailDTO.getUnitPrice())
+				.build();
 		return existingOrderDetail;
 	};
 

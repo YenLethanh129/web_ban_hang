@@ -3,6 +3,13 @@ package com.project.webbanhang.models;
 import jakarta.persistence.*;
 import lombok.*;
 
+/**
+ * 1 ADMIN
+ * 2 MANAGER
+ * 3 EMPLOYEE
+ * 4 CUSTOMER
+ * 5 GUEST
+ */
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
@@ -10,7 +17,7 @@ import lombok.*;
 @Getter
 @Builder
 @Table(name = "roles")
-public class Role {
+public class Role extends BaseEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -20,5 +27,5 @@ public class Role {
     
     public static String ADMIN = "ADMIN";
     
-    public static String USER = "USER";
+    public static String CUSTOMER = "CUSTOMER";
 }

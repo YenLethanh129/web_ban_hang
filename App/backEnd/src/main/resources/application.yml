@@ -1,34 +1,55 @@
 spring:
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:sqlserver://webbanhang-db:1433;databaseName=webbanhang?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
-    driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:com.microsoft.sqlserver.jdbc.SQLServerDriver}
-    username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD:mysql}
-
+    url: ${SPRING_DATASOURCE_URL}
+    driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     show-sql: true
     properties:
       hibernate:
-        dialect: ${SPRING_JPA_HIBERNATE_PROPERTIES_DIALECT:org.hibernate.dialect.SQLServerDialect}
         format_sql: true
-  init:
-      mode: always
-
+  messages:
+    basename: i18n/messages
+    encoding: UTF-8
   application:
-    name: webbanhang  
+    name: webbanhang
   servlet:
     multipart:
       max-file-size: 10MB
       max-request-size: 10MB
+  cache:
+    type: REDIS
+  redis:
+    host: ${REDIS_HOST}
+    port: ${REDIS_PORT}
 
 server:
-  port: ${SERVER_PORT:1609}
+  port: ${SERVER_PORT}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
 
 api:
-  prefix: api/v1
+  prefix: ${API_PREFIX}
 jwt:
-  expiration: ${JWT_EXPIRATION:2592000}
-  secretKey: ${JWT_SECRET:euv8p8iSXxKqR6MFGpOkUHd0UZDQFssKjB6JXM8OPVo}
+  expiration: ${JWT_EXPIRATION}
+  secretKey: ${JWT_SECRET}
   #30 days = 30 * 24 * 60 * 60w
+momo:
+  endpoint: ${MOMO_ENDPOINT}
+  partnerCode: ${MOMO_PARTNER_CODE}
+  accessKey: ${MOMO_ACCESS_KEY}
+  secretKey: ${MOMO_SECRET_KEY}
+  redirectUrl: ${MOMO_REDIRECT_URL}
+  ipnUrl: ${MOMO_IPN_URL}
+  requestType: ${MOMO_REQUEST_TYPE}
+
+goong:
+  endpoint: ${GOONG_ENDPOINT}
+  apiKey: ${GOONG_API_KEY}

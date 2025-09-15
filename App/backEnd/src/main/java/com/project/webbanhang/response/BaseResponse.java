@@ -10,17 +10,19 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
 @Data
 @Getter
 @Setter
+@SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
 @MappedSuperclass
 public class BaseResponse {
 	@JsonProperty("created_at")
 	private LocalDateTime createdAt;
-	
-	@JsonProperty("updated_at")
-	private LocalDateTime updatedAt;
+
+	@JsonProperty("last_modified")
+	private LocalDateTime lastModified;
 }

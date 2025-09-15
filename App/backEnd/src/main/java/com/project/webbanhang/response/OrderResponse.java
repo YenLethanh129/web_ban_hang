@@ -1,5 +1,6 @@
 package com.project.webbanhang.response;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -10,58 +11,35 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
-@Builder
+@SuperBuilder
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class OrderResponse extends BaseResponse{
-    @JsonProperty("user_id")
-    private Long userId;
-    
-    @JsonProperty("fullname")
-    private String fullName;
-    
-    @JsonProperty("email")
-    private String email;
-    
-    @JsonProperty("phone_number")
-    private String phoneNumber;
-    
-    @JsonProperty("address")
-    private String address;
-    
-    @Column(name = "note")
+    @JsonProperty("order_id")
+    private Long orderId;
+
+    @JsonProperty("note")
     private String note;
-    
-    @Column(name = "status")
+
+    @JsonProperty("status")
     private String status;
-    
-    @Column(name = "total_money")
-    private Float totalMoney;
-    
-    @Column(name = "order_date")
-    private Date orderDate;
-    
-    @Column(name = "shipping_method")
+
+    @JsonProperty("total_money")
+    private Long totalMoney;
+
+    @JsonProperty("order_date")
+    private LocalDateTime orderDate;
+
+    @JsonProperty("shipping_method")
     private String shippingMethod;
-    
-    @Column(name = "shipping_address")
-    private String shippingAddress;
-    
-    @Column(name = "shipping_date")
-    private Date shippingDate;
-    
-    @Column(name = "tracking_number")
-    private String trackingNumber;
-    
-    @Column(name = "payment_method")
+
+    @JsonProperty("payment_method")
     private String paymentMethod;
-    
-    @Column(name = "payment_status")
+
+    @JsonProperty("payment_status")
     private String paymentStatus;
-    
-    @Column(name = "is_active")
-    private Boolean isActive;
 }

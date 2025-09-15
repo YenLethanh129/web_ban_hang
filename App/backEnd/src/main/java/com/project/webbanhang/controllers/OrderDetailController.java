@@ -2,7 +2,7 @@ package com.project.webbanhang.controllers;
 
 import com.project.webbanhang.dtos.OrderDetailDTO;
 import com.project.webbanhang.response.OrderDetailResponse;
-import com.project.webbanhang.services.IOrderDetailService;
+import com.project.webbanhang.services.Interfaces.IOrderDetailService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -59,14 +59,13 @@ public class OrderDetailController {
 
     // Done
     @GetMapping("/order/{order_id}")
-    public ResponseEntity<?> getOrderDetailByOrderId(@Valid @PathVariable("order_id") Long orderId) {
+    public ResponseEntity<?> getOrderDetailsByOrderId(@Valid @PathVariable("order_id") Long orderId) {
         try {
-        	
-        	OrderDetailResponse existingOrderDetailResponse = orderDetailService.getOrderDetailByOrderId(orderId);
+        	List<OrderDetailResponse> existingOrderDetailResponse = orderDetailService.getOrderDetailsByOrderId(orderId);
         	
             return ResponseEntity.ok(existingOrderDetailResponse);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Get order details failed");
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
     

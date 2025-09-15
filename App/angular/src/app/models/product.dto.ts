@@ -7,10 +7,11 @@ export interface ProductDTO {
   created_at: string;
   updated_at: string;
   category_id: number;
-  images: string[]; 
+  images: string[];
 }
 
 export interface ProductResponse {
   products: ProductDTO[];
   totalPage: number;
+  totalItem: number;
 }

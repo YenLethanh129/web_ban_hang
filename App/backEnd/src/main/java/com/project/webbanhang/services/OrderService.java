@@ -1,47 +1,67 @@
 package com.project.webbanhang.services;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
-import org.modelmapper.ModelMapper;
+import com.project.webbanhang.models.*;
+import com.project.webbanhang.repositories.*;
+import com.project.webbanhang.services.Interfaces.IOrderDeliveryTrackingService;
+import com.project.webbanhang.services.Interfaces.IOrderPaymentService;
+import com.project.webbanhang.services.Interfaces.IOrderService;
+import com.project.webbanhang.services.Interfaces.IOrderShipmentService;
+import com.project.webbanhang.utils.TrackingNumberGenerator;
 import org.springframework.stereotype.Service;
 
 import com.project.webbanhang.dtos.OrderDTO;
 import com.project.webbanhang.exceptions.DataNotFoundException;
-import com.project.webbanhang.models.Order;
-import com.project.webbanhang.models.User;
-import com.project.webbanhang.repositories.OrderRepository;
-import com.project.webbanhang.repositories.UserRepository;
 import com.project.webbanhang.response.OrderResponse;
 
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class OrderService implements IOrderService{
+public class OrderService implements IOrderService {
+	private final IOrderPaymentService orderPaymentService;
+	private final IOrderDeliveryTrackingService orderDeliveryTrackingService;
+	private final IOrderShipmentService orderShipmentService;
+
 	private final OrderRepository orderRepository;
-	private final UserRepository userRepository;
-	private final ModelMapper modelMapper;
-	
+	private final CustomerRepository customerRepository;
+    private final OrderPaymentRepository orderPaymentRepository;
+
+	/**
+	 * create OrderDeliveryTracking
+	 * create OrderPayment
+	 * create OrderShipment
+	 * */
 	@Override
-	public OrderResponse createOrder(OrderDTO orderDTO) throws DataNotFoundException {
+	public OrderResponse createOrder(OrderDTO orderDTO) throws Exception {
 		// tim user
-		User user = userRepository.findById(orderDTO.getUserId())
+		Customer customer = customerRepository.findById(orderDTO.getUserId())
 				.orElseThrow(() -> new DataNotFoundException("Can't not found user with id " + orderDTO.getUserId()));
-		
-		// Dùng thư viện Model Maper để chuyển đổi
-		modelMapper.typeMap(OrderDTO.class, Order.class)
-			.addMappings(mapper -> mapper.skip(Order::setId));
-		Order order = new Order();
-		modelMapper.map(orderDTO, order);
-		order.setUser(user);
-		order.setOrderDate(new Date());
-		order.setStatus("PENDING");
-		order.setIsActive(true);
-		orderRepository.save(order);
-		
-		return mapOrderToOrderResponse(order);
+		OrderStatus orderStatus = OrderStatus.builder()
+				.id(1L)
+				.name(OrderStatus.PENDING)
+				.build();
+		String orderUUID = UUID.randomUUID().toString();
+		String orderCode = "ORD" + TrackingNumberGenerator.generateRandomTrackingNumber(3);
+
+		Order order = Order.builder()
+				.orderUUID(orderUUID)
+				.orderCode(orderCode)
+				.customer(customer)
+				.notes(orderDTO.getNote())
+				.branch(null)
+				.totalMoney((long) orderDTO.getTotalMoney())
+				.status(orderStatus)
+				.build();
+
+		Order existsOrderRepository = orderRepository.save(order);
+
+		orderDeliveryTrackingService.createOrderDeliveryTrackingService(existsOrderRepository);
+		orderPaymentService.createOrderPayment(existsOrderRepository, orderDTO.getPaymentMethod());
+		orderShipmentService.createOrderShipment(existsOrderRepository, orderDTO.getAddress());
+
+		return mapOrderToOrderResponse(existsOrderRepository);
 	}
 
 	@Override
@@ -58,16 +78,16 @@ public class OrderService implements IOrderService{
 		Order existingOrder = orderRepository.findById(orderId)
 				.orElseThrow(() -> new DataNotFoundException("Can't found order with id: " + orderId));
 		
-		existingOrder.setFullName(orderDTO.getFullName());
-		existingOrder.setEmail(orderDTO.getEmail());
-		existingOrder.setPhoneNumber(orderDTO.getPhoneNumber());
-		existingOrder.setAddress(orderDTO.getAddress());
-		existingOrder.setNote(orderDTO.getNote());
-		existingOrder.setTotalMoney(orderDTO.getTotalMoney());
-		existingOrder.setShippingMethod(orderDTO.getShippingMethod());
-		existingOrder.setShippingDate(orderDTO.getShippingDate());
-		existingOrder.setShippingAddress(orderDTO.getShippingAddress());
-		existingOrder.setPaymentMethod(orderDTO.getPaymentMethod());
+//		existingOrder.setFullName(orderDTO.getFullName());
+//		existingOrder.setEmail(orderDTO.getEmail());
+//		existingOrder.setPhoneNumber(orderDTO.getPhoneNumber());
+//		existingOrder.setAddress(orderDTO.getAddress());
+//		existingOrder.setNote(orderDTO.getNote());
+//		existingOrder.setTotalMoney(orderDTO.getTotalMoney());
+//		existingOrder.setShippingMethod(orderDTO.getShippingMethod());
+//		existingOrder.setShippingDate(orderDTO.getShippingDate());
+//		existingOrder.setShippingAddress(orderDTO.getShippingAddress());
+//		existingOrder.setPaymentMethod(orderDTO.getPaymentMethod());
 		orderRepository.save(existingOrder);
 
 		return mapOrderToOrderResponse(existingOrder);
@@ -92,30 +112,43 @@ public class OrderService implements IOrderService{
 	public void deleteOrder(Long orderId) throws DataNotFoundException {
 		Order existingOrder = orderRepository.findById(orderId)
 				.orElseThrow(() -> new DataNotFoundException("Can't found order with id: " + orderId));
-		existingOrder.setIsActive(false);
+//		existingOrder.setIsActive(false);
 		orderRepository.save(existingOrder);
 	}
 
 	@Override
-	public List<OrderResponse> findByUserId(Long userId) {
-		
-		List<Order> existingOrders = orderRepository.findByUser_Id(userId);
+	public List<OrderResponse> findAllByCustomerId(Long userId) {
+		List<Order> existingOrder = orderRepository.findAllByCustomerId(userId);
 		List<OrderResponse> existingOrderResponses = new ArrayList<>();
-		
-		for (Order order : existingOrders) {
-			existingOrderResponses.add(mapOrderToOrderResponse(order));
+		for (Order order : existingOrder) {
+			OrderResponse orderResponse = mapOrderToOrderResponse(order);
+			existingOrderResponses.add(orderResponse);
 		}
-		
 		return existingOrderResponses;
 	}
 
-	private OrderResponse mapOrderToOrderResponse(Order order) {
-		modelMapper.typeMap(Order.class, OrderResponse.class)
-			.addMappings(mapper -> mapper.skip(OrderResponse::setUserId));
-		OrderResponse existingOrderResponse = new OrderResponse();
-		modelMapper.map(order, existingOrderResponse);
-    	existingOrderResponse.setUserId(order.getUser().getId());
-    	
+    /**
+     * @param order
+     * getShippingMethod()
+     * getOrderPayment()
+     * @return orderResponse
+     */
+	public OrderResponse mapOrderToOrderResponse(Order order) {
+        Optional<OrderPayment> existingOrderPayement = orderPaymentRepository.findByOrderId(order.getId());
+
+        OrderResponse existingOrderResponse = OrderResponse.builder()
+                .orderId(order.getId())
+                .note(order.getNotes())
+                .totalMoney(order.getTotalMoney())
+                .status(order.getStatus().getName())
+                .orderDate(order.getCreatedAt())
+                .shippingMethod("STANDARD")
+                .paymentMethod(existingOrderPayement.get().getPaymentMethod().getName())
+                .paymentStatus(existingOrderPayement.get().getPaymentStatus().getName())
+                .createdAt(order.getCreatedAt())
+                .lastModified(order.getLastModified())
+                .build();
+
 		return existingOrderResponse;
 	}
 }

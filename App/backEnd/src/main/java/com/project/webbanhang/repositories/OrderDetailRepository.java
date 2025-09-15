@@ -4,7 +4,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.project.webbanhang.models.OrderDetail;
 
+import java.util.List;
+
 public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long>{
 
-	OrderDetail findByOrder_Id(Long orderId);
+	List<OrderDetail> findByOrder_Id(Long orderId);
 }

@@ -47,10 +47,13 @@ services:
       rm -f /tmp/*_parsed.sql && echo "All done!"'
     networks:
       - app-network
+
   backend:
     build:
       context: ./App/backend
-      dockerfile: Dockerfile    
+      dockerfile: Dockerfile
+    env_file:
+      - .env
     depends_on:
       webbanhang-db:
         condition: service_healthy
@@ -63,12 +66,12 @@ services:
       SERVER_PORT: ${SERVER_PORT}
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
       SPRING_JPA_DATABASE_PLATFORM: ${SPRING_JPA_HIBERNATE_PROPERTIES_DIALECT}
-      SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
+      SPRING_JPA_HIBERNATE_DDL_AUTO: none
+      MAVEN_OPTS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
     volumes:
       - ./App/backend:/app
-      - maven-repo:/root/.m2
+      - ~/.m2:/root/.m2
     working_dir: /app
-    command: sh -c "mvn spring-boot:run"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.backend.rule=Host(`api.localhost`)"
@@ -87,8 +90,16 @@ services:
       # Compression to reduce bandwidth usage
       - "traefik.http.middlewares.backend-compress.compress=true"
       - "traefik.http.routers.backend.middlewares=backend-ratelimit@docker,backend-ip@docker,backend-security@docker,backend-compress@docker"
+    # command: sh -c "mvn spring-boot:run -Dspring-boot.run.fork=false -DskipTests"
+    command: >
+      mvn spring-boot:run
+      -Dspring-boot.run.fork=false
+      -DskipTests
+      -Djava.security.egd=file:/dev/./urandom
+      -Dagentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
     ports:
       - "1609:1609"
+      - "5005:5005" #Port Debug
     networks:
       - app-network
 

@@ -2,6 +2,7 @@ package com.project.webbanhang.services;
 
 import java.util.Optional;
 
+import com.project.webbanhang.services.Interfaces.IProductImageService;
 import org.springframework.stereotype.Service;
 
 import com.project.webbanhang.dtos.ProductImageDTO;
@@ -15,7 +16,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class ProductImageService implements IProductImageService{
+public class ProductImageService implements IProductImageService {
 
 	private final ProductRepository productRepository;
 	private final ProductImageRepository productImageRepository;
@@ -45,7 +46,6 @@ public class ProductImageService implements IProductImageService{
 	@Override
 	public void deleteProductImages(Long id) {
 		// TODO Auto-generated method stub
-		
 	}
 
 }

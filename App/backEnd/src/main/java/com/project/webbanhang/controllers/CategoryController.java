@@ -2,7 +2,7 @@ package com.project.webbanhang.controllers;
 
 import com.project.webbanhang.dtos.CategoryDTO;
 import com.project.webbanhang.models.Category;
-import com.project.webbanhang.services.ICategoryService;
+import com.project.webbanhang.services.Interfaces.ICategoryService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +16,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("${api.prefix}/categories")
-//@Validated
 @RequiredArgsConstructor
 public class CategoryController {
 	

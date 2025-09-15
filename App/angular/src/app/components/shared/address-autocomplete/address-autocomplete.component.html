@@ -1,0 +1,79 @@
+<div class="address-autocomplete">
+  <!-- Label -->
+  <label *ngIf="showLabel" class="form-label">
+    <i [class]="icon"></i>
+    {{ label }}
+    <span *ngIf="required" class="required-asterisk">*</span>
+  </label>
+
+  <!-- Input Container -->
+  <div class="input-container">
+    <div class="input-wrapper">
+      <input
+        #addressInput
+        type="text"
+        class="form-control"
+        [placeholder]="placeholder"
+        [disabled]="disabled"
+        [required]="required"
+        [(ngModel)]="value"
+        (input)="onInput($event)"
+        (focus)="onFocus()"
+        (blur)="onBlur()"
+        (keydown)="onKeyDown($event)"
+        autocomplete="off"
+      />
+
+      <!-- Input Icon -->
+      <i [class]="icon + ' input-icon'"></i>
+
+      <!-- Loading Spinner -->
+      <div *ngIf="isLoading" class="loading-spinner">
+        <i class="fas fa-spinner fa-spin"></i>
+      </div>
+
+      <!-- Clear Button -->
+      <button
+        *ngIf="value && !disabled"
+        type="button"
+        class="clear-button"
+        (click)="clearInput()"
+        tabindex="-1"
+      >
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <!-- Suggestions Dropdown -->
+    <div
+      *ngIf="showSuggestions && predictions.length > 0"
+      class="suggestions-dropdown"
+    >
+      <div class="suggestions-list">
+        <div
+          *ngFor="let prediction of predictions; let i = index"
+          class="suggestion-item"
+          [class.selected]="i === selectedIndex"
+          (click)="selectPrediction(prediction)"
+          (mouseenter)="selectedIndex = i"
+        >
+          <div class="suggestion-content">
+            <div class="main-text">
+              <i class="fas fa-map-marker-alt suggestion-icon"></i>
+              {{ prediction.structured_formatting.main_text }}
+            </div>
+            <div class="secondary-text">
+              {{ prediction.structured_formatting.secondary_text }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- No Results -->
+      <div *ngIf="predictions.length === 0 && !isLoading" class="no-results">
+        <i class="fas fa-search"></i>
+        <span>Không tìm thấy địa chỉ phù hợp</span>
+      </div>
+    </div>
+  </div>
+</div>

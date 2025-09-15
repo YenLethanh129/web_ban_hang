@@ -1,21 +1,21 @@
 package com.project.webbanhang.controllers;
 
-import com.github.javafaker.Faker;
+import com.project.webbanhang.components.LocalizationUtil;
 import com.project.webbanhang.dtos.ProductDTO;
 import com.project.webbanhang.dtos.ProductImageDTO;
 import com.project.webbanhang.exceptions.DataNotFoundException;
 import com.project.webbanhang.exceptions.InvalidParamException;
 import com.project.webbanhang.models.Product;
 import com.project.webbanhang.models.ProductImage;
+import com.project.webbanhang.response.CacheablePageResponse;
 import com.project.webbanhang.response.ProductListResponse;
 import com.project.webbanhang.response.ProductResponse;
-import com.project.webbanhang.services.IProductImageService;
-import com.project.webbanhang.services.IProductService;
+import com.project.webbanhang.services.Interfaces.IProductService;
 
+import com.project.webbanhang.utils.MessageKey;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
@@ -42,25 +42,22 @@ import java.util.UUID;
 public class ProductController {
 	
 	private final IProductService productService;
-	//private final IProductImageService productImageService;
+    private final LocalizationUtil localizationUtil;
 
-	// Done
     @GetMapping("")
     public ResponseEntity<?> getProducts(
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "limit", defaultValue = "10") int limit
     ) {
     	try {
-    		//PageRequest pageRequest = PageRequest.of(page, limit, Sort.by("createdAt").descending());
-    		PageRequest pageRequest = PageRequest.of(page, limit);
-        	Page<ProductResponse> productPage = productService.getAllProducts(pageRequest);
-        	List<ProductResponse> products = productPage.getContent();
-        	
+    		PageRequest pageRequest = PageRequest.of(page - 1, limit, Sort.by("categoryId"));
+        	CacheablePageResponse<ProductResponse> productPage = productService.getAllProducts(pageRequest);
         	int totalPages = productPage.getTotalPages();
         	
         	ProductListResponse productListResponse = ProductListResponse.builder()
-        			.products(products)
+        			.products(productPage.getContent())
         			.totalPage(totalPages)
+                    .totalItem((int)productPage.getTotalElements())
         			.build();
         	
             return ResponseEntity.ok(productListResponse);
@@ -77,18 +74,18 @@ public class ProductController {
     ) {
         try {
             // Lưu ý: Page index bắt đầu từ 0 trong Spring Data
-            PageRequest pageRequest = PageRequest.of(page - 1, limit); 
-            
-            Page<ProductResponse> productPage = productService.getProductsByCategoryId(categoryId, pageRequest);
-            List<ProductResponse> products = productPage.getContent();
-            int totalPages = productPage.getTotalPages();
-
+            PageRequest pageRequest = PageRequest.of(page - 1, limit);
+            CacheablePageResponse<ProductResponse> cachedPage = productService.getProductsByCategoryId(categoryId, pageRequest);
             ProductListResponse productListResponse = ProductListResponse.builder()
-                    .products(products)
-                    .totalPage(totalPages)
+                    .products(cachedPage.getContent())
+                    .totalPage(cachedPage.getTotalPages())
+                    .totalItem((int)cachedPage.getTotalElements())
                     .build();
 
             return ResponseEntity.ok(productListResponse);
+//            return ResponseEntity.ok(cachedPage);
+        } catch (DataNotFoundException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -127,7 +124,7 @@ public class ProductController {
             
             productService.createProduct(productDTO);
 
-            return ResponseEntity.ok("Insert product successfully");
+            return ResponseEntity.ok(localizationUtil.getLocalizedMessage(MessageKey.CREATE_PRODUCT_SUCCESSFULLY));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -143,10 +140,10 @@ public class ProductController {
     	try {
     		Product existingProduct = productService.getProductById(productId);
     		if (files == null || files.isEmpty() || (files.size() == 1 && files.get(0).getOriginalFilename().isEmpty())) { 
-    			return ResponseEntity.badRequest().body("No image is selected!"); 
+    			return ResponseEntity.badRequest().body(localizationUtil.getLocalizedMessage(MessageKey.IMAGE_NOT_EMPTY));
     		}
             if (files.size() > 5) { 
-            	return ResponseEntity.badRequest().body("You can only upload maximun 5 images!");
+            	return ResponseEntity.badRequest().body(localizationUtil.getLocalizedMessage(MessageKey.MAX_IMAGE_UPLOAD));
             }
             List<ProductImage> productImages = new ArrayList<>();
             for (MultipartFile file : files) {
@@ -154,11 +151,11 @@ public class ProductController {
                     continue;
                 }
                 if (file.getSize() > 10 * 1024 * 1024) { // 10Mb
-                    return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body("File size is too large > 10Mb");
+                    return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(localizationUtil.getLocalizedMessage(MessageKey.FILE_OVER_SIZE));
                 }
                 String contentType = file.getContentType();
                 if (contentType != null && !contentType.startsWith("image/")) {
-                    return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body("File type is not supported");
+                    return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body(localizationUtil.getLocalizedMessage(MessageKey.FILE_NOT_SUPPORTED));
                 }
                 String fileName = storeFile(file);
                 

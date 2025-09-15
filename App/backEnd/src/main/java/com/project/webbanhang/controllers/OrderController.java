@@ -2,7 +2,7 @@ package com.project.webbanhang.controllers;
 
 import com.project.webbanhang.dtos.OrderDTO;
 import com.project.webbanhang.response.OrderResponse;
-import com.project.webbanhang.services.IOrderService;
+import com.project.webbanhang.services.Interfaces.IOrderService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -40,7 +40,7 @@ public class OrderController {
             
             return ResponseEntity.ok(existingOrderResponse);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Create order failed");
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
@@ -50,12 +50,10 @@ public class OrderController {
     		@Valid @PathVariable("order_id") Long orderId
     ) {
         try {
-        	
         	 OrderResponse existingOrderResponse = orderService.getOrderById(orderId);
-        	
             return ResponseEntity.ok(existingOrderResponse);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Get orders failed");
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
     
@@ -79,9 +77,8 @@ public class OrderController {
     		@Valid @PathVariable("user_id") Long userId
     ) {
         try {
-        	
-        	List<OrderResponse> existingOrderResponses = orderService.findByUserId(userId);
-        	
+        	List<OrderResponse> existingOrderResponses = orderService.findAllByCustomerId(userId);
+
             return ResponseEntity.ok(existingOrderResponses);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Get orders failed");
