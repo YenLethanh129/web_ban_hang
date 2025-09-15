@@ -1,5 +1,6 @@
 using Dashboard.DataAccess.Models.Entities.GoodsIngredientsAndStock;
 using Dashboard.StockWorker.Services;
+using Dashboard.StockWorker.Models;
 
 namespace Dashboard.StockWorker;
 
@@ -35,8 +36,8 @@ public class Worker : BackgroundService
     private async Task ProcessStockMonitoringAsync()
     {
         using var scope = _serviceProvider.CreateScope();
-        var stockCalculationService = scope.ServiceProvider.GetRequiredService<StockCalculationService>();
-        var notificationService = scope.ServiceProvider.GetRequiredService<EmailNotificationService>();
+    var stockCalculationService = scope.ServiceProvider.GetRequiredService<StockCalculationService>();
+    var notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
 
         _logger.LogInformation("Starting stock monitoring process at {Time}", DateTime.UtcNow);
 
@@ -48,25 +49,23 @@ public class Worker : BackgroundService
         _logger.LogInformation("Checking for stock alerts");
         var lowStockAlerts = await stockCalculationService.GetLowStockAlertsAsync();
         var outOfStockAlerts = await stockCalculationService.GetOutOfStockAlertsAsync();
-        
-        var allAlerts = new List<InventoryThreshold>();
+
+        var allAlerts = new List<StockAlert>();
         allAlerts.AddRange(lowStockAlerts);
         allAlerts.AddRange(outOfStockAlerts);
 
         if (allAlerts.Any())
         {
             _logger.LogWarning("Found {Count} stock alerts", allAlerts.Count);
-            
+
             foreach (var alert in allAlerts)
             {
-                _logger.LogWarning("Stock Alert - {IngredientName} in Branch {BranchId} - Current Stock vs ROP: {ROP}", 
-                    alert.Ingredient?.Name ?? "Unknown", alert.BranchId, alert.ReorderPoint);
+                _logger.LogWarning("Stock Alert - {IngredientName} in Branch {BranchId} - Current Stock: {Current} ROP: {ROP}",
+                    alert.IngredientName ?? "Unknown", alert.BranchId, alert.CurrentStock, alert.ReorderPoint);
             }
 
-            // 3. Gửi thông báo nếu có alerts (tạm thời comment để tránh lỗi)
-            _logger.LogInformation("Stock alerts found but email notifications temporarily disabled");
-            // TODO: Convert InventoryThreshold to StockAlert for email notifications
-            // await notificationService.SendStockAlertsAsync(alerts);
+            // 3. Gửi thông báo nếu có alerts
+            await notificationService.SendStockAlertsAsync(allAlerts);
         }
         else
         {

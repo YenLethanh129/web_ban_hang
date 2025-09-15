@@ -547,6 +547,7 @@ namespace Dashboard.Winform
             Controls.Add(pnMainDisplayRegion);
             Controls.Add(fpnSideBar);
             FormBorderStyle = FormBorderStyle.None;
+            Icon = (Icon)resources.GetObject("$this.Icon");
             MinimumSize = new Size(1240, 764);
             Name = "FrmBaseMdiWithSidePanel";
             Text = "Form1";

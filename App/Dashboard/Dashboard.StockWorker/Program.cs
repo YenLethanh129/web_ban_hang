@@ -6,7 +6,10 @@ using Microsoft.EntityFrameworkCore;
 // Check if running in test mode
 if (args.Length > 0 && args[0].ToLower() == "test")
 {
-    await TestRunner.RunTestAsync();
+    // Support optional flags: --no-seed and --send-email-test
+    var skipSeed = args.Contains("--no-seed");
+    var sendEmailTest = args.Contains("--send-email-test");
+    await TestRunner.RunTestAsync(skipSeed, sendEmailTest);
     return;
 }
 
@@ -36,9 +39,14 @@ builder.Services.AddScoped<StockCalculationService>();
 builder.Services.AddScoped<EmailNotificationService>();
 builder.Services.AddScoped<InventoryMovementService>();
 builder.Services.AddScoped<DataSeedService>();
+builder.Services.AddScoped<PurchaseEnrichmentService>();
+// register notification interface
+builder.Services.AddScoped<INotificationService, EmailNotificationService>();
 
 // Add the worker service
 builder.Services.AddHostedService<Worker>();
+// register low stock alert background worker
+builder.Services.AddHostedService<LowStockAlertWorker>();
 
 // Add logging
 builder.Services.AddLogging(logging =>
@@ -65,7 +73,7 @@ using (var scope = host.Services.CreateScope())
         await context.Database.EnsureCreatedAsync();
         logger.LogInformation("Database connection verified successfully");
         
-        await dataSeeder.SeedDataAsync();
+        // await dataSeeder.SeedDataAsync();
         logger.LogInformation("Initial data seeding completed");
     }
     else

@@ -92,8 +92,8 @@ namespace Dashboard.Winform
 
             ApplicationConfiguration.Initialize();
 
-            var testForm = host.Services.GetRequiredService<FrmBaseMdiWithSidePanel>();
-            Application.Run(testForm);
+            var MainForm = host.Services.GetRequiredService<FrmBaseMdiWithSidePanel>();
+            Application.Run(MainForm);
         }
     }
 }

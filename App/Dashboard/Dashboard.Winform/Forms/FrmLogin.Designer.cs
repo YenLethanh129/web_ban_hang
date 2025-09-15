@@ -233,6 +233,7 @@
             ClientSize = new Size(736, 554);
             Controls.Add(panel1);
             FormBorderStyle = FormBorderStyle.None;
+            Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "FrmLogin";
             Text = "Đăng nhập";
             panel1.ResumeLayout(false);

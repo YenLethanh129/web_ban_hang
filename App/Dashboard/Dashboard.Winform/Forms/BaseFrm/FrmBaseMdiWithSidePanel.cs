@@ -46,6 +46,9 @@ namespace Dashboard.Winform
         {
             InitializeComponent();
 
+            // Ensure base MDI starts centered on the screen
+            this.StartPosition = FormStartPosition.CenterScreen;
+
             _serviceProvider = serviceProvider;
             _logger = serviceProvider.GetService<ILogger<FrmBaseMdiWithSidePanel>>();
             _buttonIconMap = new Dictionary<Button, PictureBox>
@@ -437,7 +440,9 @@ namespace Dashboard.Winform
 
                 using var loginForm = authService != null ? new Dashboard.Winform.Forms.FrmLogin(authService) : new Dashboard.Winform.Forms.FrmLogin();
 
+                // Show login as a modal dialog with this form as owner so it centers relative to this form
                 var dr = loginForm.ShowDialog(this);
+
                 if (dr != DialogResult.OK || !loginForm.LoginSucceeded)
                 {
                     Application.Exit();
