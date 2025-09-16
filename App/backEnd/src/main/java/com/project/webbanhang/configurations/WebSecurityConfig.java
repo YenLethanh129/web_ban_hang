@@ -67,6 +67,12 @@ public class WebSecurityConfig {
 					.requestMatchers(HttpMethod.POST, String.format("%s/users/forgot-password", apiPrefix)).permitAll()
 					.requestMatchers(HttpMethod.POST, String.format("%s/users/verify-otp", apiPrefix)).permitAll()
 
+					/**
+					 * TOP 10 OWASP 2023
+					 * API5:2023 - Broken Function Level Authorization
+					 * Hacker có thể thực hiện các hành động mà họ không được phép
+					 * Giải pháp: Sử dụng vai trò (Role) để kiểm soát quyền truy cập
+					 * */
 					.requestMatchers(HttpMethod.POST, String.format("%s/users/profile", apiPrefix)).hasAnyRole(Role.ADMIN, Role.CUSTOMER)
 					.requestMatchers(HttpMethod.PATCH, String.format("%s/users/update", apiPrefix)).hasAnyRole(Role.ADMIN, Role.CUSTOMER)
 

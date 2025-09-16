@@ -47,9 +47,14 @@ public class MomoService implements IMomoService {
     private final OrderPaymentRepository orderPaymentRepository;
     private final OrderService orderService;
 
+    /**
+     * TOP 10 OWASP 2023
+     * API10:2023 - Unsafe Consumption of APIs
+     * Hacker có thể khai thác các lỗ hổng trong API của bên thứ ba như Momo
+     * Giải pháp: Kiểm tra và xác thực dữ liệu trả về từ API của bên thứ ba
+     * */
     @Override
     public CreateMomoResponse createQR(MomoInfoOrderDTO momoInfoOrderDTO){
-
         // Lay thong tin don thanh toan
         String orderId = momoInfoOrderDTO.getOrderId().toString();
 

@@ -1,3 +1,9 @@
+# TOP 10 OWASP 2023
+# API8:2023 - Security Misconfiguration
+# Hacker có thể khai thác các cấu hình mặc định không an toàn,
+# cấu hình sai hoặc cấu hình lỏng lẻo trong ứng dụng,
+# framework, máy chủ web, máy chủ ứng dụng, cơ sở dữ liệu và nền tảng.
+#
 spring:
   datasource:
     url: ${SPRING_DATASOURCE_URL}
