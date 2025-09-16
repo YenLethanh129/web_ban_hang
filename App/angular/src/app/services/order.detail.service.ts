@@ -25,15 +25,14 @@ export class OrderDetailService {
   }
 
   getOrderDetails(orderId: number): Observable<OrderDetailResponseDTO[]> {
-    const token = this.tokenService.getToken();
-    const headers = new HttpHeaders({
-      'Accept-Language': 'vi',
-      Authorization: `Bearer ${token}`,
-    });
     return this.http.get<OrderDetailResponseDTO[]>(
       `${this.apiUrl}/order/${orderId}`,
       {
-        headers,
+        withCredentials: true,
+        headers: new HttpHeaders({
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+        }),
       }
     );
   }

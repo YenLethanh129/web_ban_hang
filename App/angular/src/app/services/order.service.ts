@@ -5,6 +5,7 @@ import {
   OrderDTO,
   OrderResponseDTO,
   NewOrderResponseDTO,
+  OrderConfirmResponseDTO,
 } from '../dtos/order.dto';
 import { Observable } from 'rxjs';
 import { TokenService } from './token.service';
@@ -40,5 +41,15 @@ export class OrderService {
         }),
       }
     );
+  }
+
+  getOrderConfirm(orderId: number): Observable<OrderConfirmResponseDTO> {
+    return this.http.get<OrderConfirmResponseDTO>(`${this.apiUrl}/${orderId}`, {
+      withCredentials: true,
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+      }),
+    });
   }
 }

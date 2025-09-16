@@ -61,3 +61,18 @@ export interface MomoInfoOrderDTO {
   order_id: number;
   amount: number;
 }
+
+export interface OrderConfirmResponseDTO {
+  order_id: number;
+  order_uuid: string;
+  created_at: string;
+  last_modified: string;
+  note: string;
+  status: string;
+  total_money: number;
+  order_date: string;
+  shipping_method: string;
+  payment_method: string;
+  payment_status: string;
+  order_details: OrderDetailResponseDTO[];
+}

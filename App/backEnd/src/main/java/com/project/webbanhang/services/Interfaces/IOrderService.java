@@ -10,7 +10,7 @@ public interface IOrderService {
 
 	OrderResponse createOrder(String token, OrderDTO orderDTO) throws Exception;
 	
-	OrderResponse getOrderById(Long orderId) throws DataNotFoundException;
+	OrderResponse getOrderById(String extractedToken, Long orderId) throws Exception;
 	
 	List<OrderResponse> findByCustomer(String token) throws Exception;
 	

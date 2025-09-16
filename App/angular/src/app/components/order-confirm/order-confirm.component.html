@@ -13,7 +13,9 @@
         <h2 class="success-title">Đặt hàng thành công!</h2>
         <p class="order-id">
           Mã đơn hàng:
-          <span class="order-code">{{ orderResponse?.order_id }}</span>
+          <span class="order-code">{{
+            orderResponse?.order_uuid.substring(0, 5)
+          }}</span>
         </p>
       </div>
 

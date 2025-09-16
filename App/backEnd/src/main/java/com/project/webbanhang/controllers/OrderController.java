@@ -5,6 +5,7 @@ import com.project.webbanhang.models.User;
 import com.project.webbanhang.response.OrderResponse;
 import com.project.webbanhang.services.Interfaces.IOrderService;
 
+import com.project.webbanhang.utils.CookieToken;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -23,6 +24,21 @@ import java.util.List;
 public class OrderController {
 	
 	private final IOrderService orderService;
+
+    @GetMapping("/{order_id}")
+    public ResponseEntity<?> getOrderById(
+            @PathVariable("order_id") Long orderId,
+            HttpServletRequest request
+    ) {
+        try {
+            String extractedToken = CookieToken.extractTokenFromCookies(request);
+            OrderResponse existingOrderResponse = orderService.getOrderById(extractedToken, orderId);
+
+            return ResponseEntity.ok(existingOrderResponse);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 
 	// Done
     @PostMapping("")
@@ -57,19 +73,6 @@ public class OrderController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
-    
-    // Done
-//    @GetMapping("")
-//    public ResponseEntity<?> getAllOrders(
-//    ) {
-//        try {
-//        	List<OrderResponse> existingOrderResponses = orderService.getAllOrders();
-//
-//            return ResponseEntity.ok(existingOrderResponses);
-//        } catch (Exception e) {
-//            return ResponseEntity.badRequest().body("Get orders failed");
-//        }
-//    }
 
     // Done
     /**

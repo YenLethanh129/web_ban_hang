@@ -157,7 +157,6 @@ export class OrderComponent implements OnInit, OnDestroy {
 
   private setUserData(user: UserDTO): void {
     this.user = user;
-    // Note: UserDTO không có id field, có thể cần lấy từ token hoặc service khác
     this.orderData.fullName = user.fullname;
     this.orderData.phoneNumber = user.phone_number;
     this.orderData.shippingAddress = user.address;
@@ -270,6 +269,7 @@ export class OrderComponent implements OnInit, OnDestroy {
       });
     });
 
+    debugger;
     if (this.momoInfoOrderDTO) {
       this.momoService.createQR(this.momoInfoOrderDTO).subscribe({
         next: (response: CreateMomoResponse) => {

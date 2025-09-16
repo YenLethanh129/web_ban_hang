@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import {
+  OrderConfirmResponseDTO,
   OrderDetailDTO,
   OrderDetailResponseDTO,
   OrderResponseDTO,
@@ -47,9 +48,10 @@ export class OrderConfirmComponent implements OnInit {
   }
 
   getOrderDetails(orderId: number): void {
-    this.orderDetailService.getOrderDetails(orderId).subscribe({
-      next: (response: any) => {
-        this.listOrderDetails = response;
+    this.orderService.getOrderConfirm(orderId).subscribe({
+      next: (response: OrderConfirmResponseDTO) => {
+        this.listOrderDetails = response.order_details;
+        this.orderResponse = response;
         this.isLoading = false; // ← Kết thúc loading
       },
       error: (error) => {

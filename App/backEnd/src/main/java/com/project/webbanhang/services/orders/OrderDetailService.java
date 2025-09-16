@@ -4,7 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.project.webbanhang.annotations.RateLimited;
+import com.project.webbanhang.models.User;
 import com.project.webbanhang.services.Interfaces.IOrderDetailService;
+import com.project.webbanhang.services.Interfaces.IUserService;
+import com.project.webbanhang.services.UserService;
 import org.springframework.stereotype.Service;
 
 import com.project.webbanhang.dtos.OrderDetailDTO;
@@ -22,18 +25,13 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class OrderDetailService implements IOrderDetailService {
+	private final IUserService userService;
+
 	private final OrderDetailRepository orderDetailRepository;
 	private final OrderRepository orderRepository;
 	private final ProductRepository productRepository;
 
-	/**
-	 * TOP 10 OWASP 2023
-	 * API6:2023 - Unrestricted Access to Sensitive Business Flows
-	 * Hacker có thể tấn công vào các luồng nghiệp vụ nhạy cảm như tạo đơn hàng, thanh toán, hoàn tiền
-	 * Giải pháp: Giới hạn số lần thực hiện các hành động nhạy cảm trong một khoảng thời gian
-	 * */
 	@Override
-	@RateLimited(maxAttempts = 5, window = "1 hour")
 	public OrderDetailResponse createOrderDetail(OrderDetailDTO orderDetailDTO) {
 		OrderDetail orderDetail = mapOrderDetailDTOToOrderDetail(orderDetailDTO);
 		orderDetailRepository.save(orderDetail);
@@ -42,7 +40,8 @@ public class OrderDetailService implements IOrderDetailService {
 	}
 
 	@Override
-	public OrderDetailResponse getOrderDetail(Long orderDetailId) {
+	public OrderDetailResponse getOrderDetail(String extractedToken,Long orderDetailId) throws Exception{
+		User user = userService.getUserProfileFromToken(extractedToken);
 		
 		OrderDetail existingOrderDetail = orderDetailRepository.findById(orderDetailId)
 				.orElse(null);

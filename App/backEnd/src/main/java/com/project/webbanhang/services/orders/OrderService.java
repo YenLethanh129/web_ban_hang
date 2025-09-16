@@ -2,6 +2,7 @@ package com.project.webbanhang.services.orders;
 
 import java.util.*;
 
+import com.project.webbanhang.annotations.RateLimited;
 import com.project.webbanhang.models.*;
 import com.project.webbanhang.models.orders.Order;
 import com.project.webbanhang.models.orders.OrderPayment;
@@ -43,7 +44,14 @@ public class OrderService implements IOrderService {
 	 * Hacker có thể truy cập vào các thuộc tính nhạy cảm của người dùng khác
 	 * Giải pháp: Sử dụng Response để chỉ trả về các thuộc tính cần thiết
 	 * */
+	/**
+	 * TOP 10 OWASP 2023
+	 * API6:2023 - Unrestricted Access to Sensitive Business Flows
+	 * Hacker có thể tấn công vào các luồng nghiệp vụ nhạy cảm như tạo đơn hàng, thanh toán, hoàn tiền
+	 * Giải pháp: Giới hạn số lần thực hiện các hành động nhạy cảm trong một khoảng thời gian
+	 * */
 	@Override
+//	@RateLimited(maxAttempts = 5, window = "1 hour")
 	public OrderResponse createOrder(String token, OrderDTO orderDTO) throws Exception {
 		// tim user
 		User user = userService.getUserProfileFromToken(token);
@@ -76,12 +84,22 @@ public class OrderService implements IOrderService {
 	}
 
 	@Override
-	public OrderResponse getOrderById(Long orderId) throws DataNotFoundException {
-		
-		Order existingOrder = orderRepository.findById(orderId)
-				.orElseThrow(() -> new DataNotFoundException("Can't found order with id: " + orderId));
-		
-		return mapOrderToOrderResponse(existingOrder);
+	public OrderResponse getOrderById(String extractedToken, Long orderId) throws Exception {
+		User user = userService.getUserProfileFromToken(extractedToken);
+		List<Order> existingOrder = orderRepository.findAllByCustomerId(user.getId());
+		for (Order order : existingOrder) {
+			if (order.getId().equals(orderId)) {
+				OrderResponse orderResponse = mapOrderToOrderResponse(order);
+
+				List<OrderDetailResponse> existingOrderDetails = orderDetailService.getOrderDetailsByOrderId(order.getId());
+				if (!existingOrderDetails.isEmpty()) {
+					orderResponse.setOrderDetails(existingOrderDetails);
+				}
+
+				return orderResponse;
+			}
+		}
+		throw new DataNotFoundException("Can't found order with id: " + orderId);
 	}
 
 	@Override
@@ -131,7 +149,6 @@ public class OrderService implements IOrderService {
 	@Override
 	public List<OrderResponse> findByCustomer(String token) throws Exception {
 		User user = userService.getUserProfileFromToken(token);
-
 		List<Order> existingOrder = orderRepository.findAllByCustomerId(user.getId());
 
 		existingOrder.sort((o1, o2) -> o2.getCreatedAt().compareTo(o1.getCreatedAt()));
