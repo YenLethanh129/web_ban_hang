@@ -23,14 +23,18 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+
 @RestController
 @RequestMapping("${api.prefix}/users")
 @RequiredArgsConstructor
 public class UserController {
-	
+
 	private final IUserService userService;
     private final ICustomerService customerService;
 	private final LocalizationUtil localizationUtil;
+
+// TODO : Xem lại các exception
+// TODO : Test lại chức năng update
 
     /**
      * TOP 10 OWASP 2023

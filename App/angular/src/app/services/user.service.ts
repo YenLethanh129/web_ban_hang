@@ -165,8 +165,6 @@ export class UserService {
   // Xóa trạng thái xác thực và dữ liệu người dùng
   private clearAuthenticationState(): void {
     console.log('🧹 Clearing authentication state...');
-
-    // Gọi performLocalCleanup để đảm bảo cleanup toàn diện
     this.performLocalCleanup();
   }
 
@@ -180,6 +178,13 @@ export class UserService {
     return this.getUserFromServer().pipe(
       tap((user) => this.setCurrentUser(user))
     );
+  }
+
+  // Force refresh user from server
+  refreshUserSync(): void {
+    this.getUserFromServer()
+      .pipe(tap((user) => this.setCurrentUser(user)))
+      .subscribe();
   }
 
   private getUserFromServer(): Observable<UserDTO> {
@@ -198,8 +203,6 @@ export class UserService {
       .pipe(
         map((response) => {
           console.log('🔍 getUserFromServer response:', response);
-
-          // Backend trả về { message, userResponse }
           if (response && response.user) {
             return response.user as UserDTO;
           }
@@ -429,12 +432,13 @@ export class UserService {
 
   // Update user profile
   updateUser(updateDTO: UpdateUserDTO): Observable<any> {
-    const headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${this.tokenService.getToken()}`,
+    return this.http.patch(`${this.apiUrl}/update`, updateDTO, {
+      withCredentials: true,
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+      }),
     });
-
-    return this.http.patch(`${this.apiUrl}/update`, updateDTO, { headers });
   }
 
   // Update user password
@@ -442,13 +446,12 @@ export class UserService {
     old_password: string;
     new_password: string;
   }): Observable<any> {
-    const headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${this.tokenService.getToken()}`,
-    });
-
     return this.http.post(`${this.apiUrl}/update-password`, passwordData, {
-      headers,
+      withCredentials: true,
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+      }),
     });
   }
 }

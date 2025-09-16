@@ -38,7 +38,7 @@ public class WebSecurityConfig {
 	public CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration configuration = new CorsConfiguration();
 		configuration.setAllowedOriginPatterns(List.of("http://localhost:4200"));
-		configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+		configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
 		configuration.setAllowedHeaders(List.of("*"));
 		configuration.setAllowCredentials(true);
 
@@ -61,7 +61,15 @@ public class WebSecurityConfig {
 					// Goong
 					.requestMatchers(HttpMethod.GET, String.format("%s/location/**", apiPrefix)).permitAll()
 					// User
-					.requestMatchers(String.format("%s/users/**", apiPrefix)).permitAll()
+//					.requestMatchers(HttpMethod.OPTIONS, String.format("%s/users/login", apiPrefix)).permitAll()
+					.requestMatchers(HttpMethod.POST, String.format("%s/users/login", apiPrefix)).permitAll()
+					.requestMatchers(HttpMethod.POST, String.format("%s/users/register", apiPrefix)).permitAll()
+					.requestMatchers(HttpMethod.POST, String.format("%s/users/forgot-password", apiPrefix)).permitAll()
+					.requestMatchers(HttpMethod.POST, String.format("%s/users/verify-otp", apiPrefix)).permitAll()
+
+					.requestMatchers(HttpMethod.POST, String.format("%s/users/profile", apiPrefix)).hasAnyRole(Role.ADMIN, Role.CUSTOMER)
+					.requestMatchers(HttpMethod.PATCH, String.format("%s/users/update", apiPrefix)).hasAnyRole(Role.ADMIN, Role.CUSTOMER)
+
 					// Product
 					.requestMatchers(HttpMethod.GET, String.format("%s/products", apiPrefix)).permitAll()
 					.requestMatchers(HttpMethod.GET, String.format("%s/products/**", apiPrefix)).permitAll()

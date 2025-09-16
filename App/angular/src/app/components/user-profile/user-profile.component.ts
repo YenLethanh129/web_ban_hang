@@ -57,14 +57,12 @@ export class UserProfileComponent implements OnInit, OnDestroy {
   }
 
   loadUserProfile(): void {
-    // First try to get current user if already loaded
     const currentUser = this.userService.getCurrentUser();
     if (currentUser) {
       this.setProfileData(currentUser);
       return;
     }
 
-    // Subscribe to user changes for real-time updates
     this.userService.user$.pipe(takeUntil(this.destroy$)).subscribe({
       next: (user) => {
         if (user) {
@@ -211,8 +209,11 @@ export class UserProfileComponent implements OnInit, OnDestroy {
         this.isEditing = false;
         this.notificationService.showSuccess('Cập nhật thông tin thành công!');
 
-        // Reload profile
+        this.userService.refreshUserSync();
         this.loadUserProfile();
+
+        // Reload website to reflect changes in header
+        window.location.reload();
       },
       error: (error) => {
         this.isLoading = false;

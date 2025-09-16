@@ -265,7 +265,6 @@ export class VerifyOtpComponent implements OnInit, OnDestroy {
       return;
     }
 
-    debugger;
     console.log('Submitting OTP:', {
       phone_number: this.phoneNumber,
       otp_code: this.otpDigits.join(''),

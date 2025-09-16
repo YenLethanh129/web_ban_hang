@@ -15,3 +15,5 @@ public class ChangPasswordDTO {
     @JsonProperty("new_password")
     private String newPassword;
 }
+
+// TODO tạo validate cho DTO
