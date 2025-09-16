@@ -33,7 +33,7 @@ namespace Dashboard.Winform
                 catch (Exception ex)
                 {
                     _logger?.LogError(ex, "Error during disposal");
-                    
+
                     // Still dispose components even if custom disposal fails
                     if (components != null)
                     {
@@ -77,6 +77,18 @@ namespace Dashboard.Winform
             btnSBGoods = new Button();
             pnSBProduct = new Panel();
             iconSBProduct = new PictureBox();
+
+            fpnImportExportContainer = new FlowLayoutPanel();
+            btnImportExportGoods = new Button();
+            pnImportExport = new Panel();
+            iconImportExport = new PictureBox();
+            btnImport = new Button();
+            pnImport = new Panel();
+            iconImport = new PictureBox();
+            btnExport = new Button();
+            pnExport = new Panel();
+            iconExport = new PictureBox();
+
             btnSBProduct = new Button();
             pnSBSupplier = new Panel();
             iconSBSupplier = new PictureBox();
@@ -106,6 +118,16 @@ namespace Dashboard.Winform
             pnSBGoods.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)iconSBGoods).BeginInit();
             pnSBProduct.SuspendLayout();
+
+            ((System.ComponentModel.ISupportInitialize)iconSBlanding).BeginInit();
+            fpnImportExportContainer.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(iconImportExport)).BeginInit();
+            pnImportExport.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(iconImport)).BeginInit();
+            pnImport.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(iconExport)).BeginInit();
+            pnExport.SuspendLayout();
+
             ((System.ComponentModel.ISupportInitialize)iconSBProduct).BeginInit();
             pnSBSupplier.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)iconSBSupplier).BeginInit();
@@ -121,6 +143,7 @@ namespace Dashboard.Winform
             fpnSideBar.Controls.Add(pnSBHeader);
             fpnSideBar.Controls.Add(pnSBLanding);
             fpnSideBar.Controls.Add(fpnUserManagementContainer);
+            fpnSideBar.Controls.Add(fpnImportExportContainer);
             fpnSideBar.Controls.Add(pnSBGoods);
             fpnSideBar.Controls.Add(pnSBProduct);
             fpnSideBar.Controls.Add(pnSBSupplier);
@@ -367,6 +390,125 @@ namespace Dashboard.Winform
             btnSBGoods.TabIndex = 2;
             btnSBGoods.Text = "Hàng hóa";
             btnSBGoods.UseVisualStyleBackColor = false;
+
+            // 
+            // fpnImportExportContainer
+            // 
+            fpnImportExportContainer = new FlowLayoutPanel();
+            fpnImportExportContainer.BackColor = Color.FromArgb(54, 58, 105);
+            fpnImportExportContainer.Location = new Point(0, 206); // tùy chỉnh vị trí phù hợp
+            fpnImportExportContainer.Margin = new Padding(0);
+            fpnImportExportContainer.Name = "fpnImportExportContainer";
+            fpnImportExportContainer.Size = new Size(246, 50); // sẽ tự động resize khi expand
+            fpnImportExportContainer.TabIndex = 11;
+            fpnImportExportContainer.Controls.Add(pnImportExport);
+            fpnImportExportContainer.Controls.Add(pnImport);
+            fpnImportExportContainer.Controls.Add(pnExport);
+
+            // 
+            // pnImportExport
+            // 
+            pnImportExport = new Panel();
+            pnImportExport.BackColor = Color.FromArgb(54, 58, 105);
+            //pnImportExport.BackColor = Color.Red;
+            pnImportExport.Size = new Size(246, 50);
+            pnImportExport.Controls.Add(iconImportExport);
+            pnImportExport.Controls.Add(btnImportExportGoods);
+
+            // 
+            // iconImportExport
+            // 
+            iconImportExport = new PictureBox();
+            iconImportExport.BackColor = Color.FromArgb(54, 58, 105);
+            iconImportExport.Image = (Image)resources.GetObject("iconSBGoods.Image"); // dùng tạm icon Hàng hóa
+            iconImportExport.Location = new Point(14, 16);
+            iconImportExport.Size = new Size(28, 25);
+            iconImportExport.SizeMode = PictureBoxSizeMode.StretchImage;
+            iconImportExport.TabStop = false;
+
+            // 
+            // btnImportExportGoods
+            // 
+            btnImportExportGoods.Anchor = AnchorStyles.None;
+            btnImportExportGoods.BackColor = Color.FromArgb(54, 58, 105);
+            btnImportExportGoods.Font = new Font("Microsoft Sans Serif", 11F);
+            btnImportExportGoods.ForeColor = Color.Gainsboro;
+            btnImportExportGoods.Location = new Point(-110, -10);
+            btnImportExportGoods.Name = "btnImportExport";
+            btnImportExportGoods.Size = new Size(400, 70);
+            btnImportExportGoods.TabIndex = 3;
+            btnImportExportGoods.Text = "Nhập/Xuất hàng hóa";
+            btnImportExportGoods.UseVisualStyleBackColor = false;
+            btnImportExportGoods.Click += OpenImportExportContainer; // tạo sự kiện toggle
+
+            // 
+            // pnImport
+            // 
+            pnImport = new Panel();
+            pnImport.BackColor = Color.FromArgb(54, 58, 105);
+            pnImport.Size = new Size(246, 50);
+            pnImport.Controls.Add(iconImport);
+            pnImport.Controls.Add(btnImport);
+
+            // 
+            // iconImport
+            // 
+            iconImport = new PictureBox();
+            iconImport.BackColor = Color.FromArgb(54, 58, 105);
+            iconImport.Image = (Image)resources.GetObject("iconSBEmployee.Image"); // dùng icon tạm
+            iconImport.Location = new Point(44, 16);
+            iconImport.Size = new Size(28, 25);
+            iconImport.SizeMode = PictureBoxSizeMode.StretchImage;
+            iconImport.TabStop = false;
+
+            // 
+            // btnImport
+            // 
+            btnImport.BackColor = Color.FromArgb(54, 58, 105);
+            btnImport.Font = new Font("Microsoft Sans Serif", 11F);
+            btnImport.ForeColor = Color.Gainsboro;
+            btnImport.Location = new Point(-48, -7);
+            btnImport.Name = "btnImport";
+            btnImport.Size = new Size(336, 70);
+            btnImport.TabIndex = 2;
+            btnImport.Text = "Nhập hàng";
+            btnImport.UseVisualStyleBackColor = false;
+            btnImport.Click += BtnImport_Click; // TODO: xử lý logic mở giao diện nhập hàng
+
+            // 
+            // pnExport
+            // 
+            pnExport = new Panel();
+            pnExport.BackColor = Color.FromArgb(54, 58, 105);
+            pnExport.Size = new Size(246, 50);
+            pnExport.Controls.Add(iconExport);
+            pnExport.Controls.Add(btnExport);
+
+            // 
+            // iconExport
+            // 
+            iconExport = new PictureBox();
+            iconExport.BackColor = Color.FromArgb(54, 58, 105);
+            iconExport.Image = (Image)resources.GetObject("iconSBAccount.Image"); // dùng icon tạm
+            iconExport.Location = new Point(44, 16);
+            iconExport.Size = new Size(28, 25);
+            iconExport.SizeMode = PictureBoxSizeMode.StretchImage;
+            iconExport.TabStop = false;
+
+            // 
+            // btnExport
+            // 
+            btnExport.BackColor = Color.FromArgb(54, 58, 105);
+            btnExport.Font = new Font("Microsoft Sans Serif", 11F);
+            btnExport.ForeColor = Color.Gainsboro;
+            btnExport.Location = new Point(-48, -7);
+            btnExport.Name = "btnExport";
+            btnExport.Size = new Size(336, 70);
+            btnExport.TabIndex = 2;
+            btnExport.Text = "Xuất hàng";
+            btnExport.UseVisualStyleBackColor = false;
+            btnExport.Click += BtnExport_Click; // TODO: xử lý logic mở giao diện xuất hàng
+
             // 
             // pnSBProduct
             // 
@@ -568,6 +710,16 @@ namespace Dashboard.Winform
             pnSBGoods.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)iconSBGoods).EndInit();
             pnSBProduct.ResumeLayout(false);
+
+            ((System.ComponentModel.ISupportInitialize)iconSBlanding).BeginInit();
+            fpnImportExportContainer.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)iconImportExport).EndInit();
+            pnImportExport.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)iconImport).EndInit();
+            pnImport.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)iconExport).EndInit();
+            pnExport.ResumeLayout(false);
+
             ((System.ComponentModel.ISupportInitialize)iconSBProduct).EndInit();
             pnSBSupplier.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)iconSBSupplier).EndInit();
@@ -614,6 +766,18 @@ namespace Dashboard.Winform
         private Panel pnMainDisplayRegion;
         private Panel pnMainContainer;
         private Panel pnHeaderTitle;
+
+        private FlowLayoutPanel fpnImportExportContainer;
+        private Panel pnImportExport;
+        private PictureBox iconImportExport;
+        private Button btnImportExportGoods;
+        private Panel pnImport;
+        private PictureBox iconImport;
+        private Button btnImport;
+        private Panel pnExport;
+        private PictureBox iconExport;
+        private Button btnExport;
+
         private ReaLTaiizor.Controls.MetroControlBox metroControlBox1;
     }
 }

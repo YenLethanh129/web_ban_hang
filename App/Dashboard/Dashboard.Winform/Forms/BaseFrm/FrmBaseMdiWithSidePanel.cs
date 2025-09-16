@@ -27,6 +27,8 @@ namespace Dashboard.Winform
         private bool SidebarTransitionActive = true;
         private bool _isLoading = false;
 
+        //private bool isImportExportExpanded = false;
+
         private Form? activeForm = null;
 
         private Button? CurrentSelectedSidebarButton = null;
@@ -424,7 +426,8 @@ namespace Dashboard.Winform
         #endregion
         private void FrmBaseManagement_Load(object sender, EventArgs e)
         {
-
+            //pnImport.Visible = true;
+            //pnExport.Visible = true;
         }
 
         protected override void OnLoad(EventArgs e)
@@ -435,14 +438,14 @@ namespace Dashboard.Winform
             {
                 var authService = _serviceProvider?.GetService(typeof(Dashboard.BussinessLogic.Services.RBACServices.IAuthenticationService)) as Dashboard.BussinessLogic.Services.RBACServices.IAuthenticationService;
 
-                using var loginForm = authService != null ? new Dashboard.Winform.Forms.FrmLogin(authService) : new Dashboard.Winform.Forms.FrmLogin();
+                //using var loginForm = authService != null ? new Dashboard.Winform.Forms.FrmLogin(authService) : new Dashboard.Winform.Forms.FrmLogin();
 
-                var dr = loginForm.ShowDialog(this);
-                if (dr != DialogResult.OK || !loginForm.LoginSucceeded)
-                {
-                    Application.Exit();
-                    return;
-                }
+                //var dr = loginForm.ShowDialog(this);
+                //if (dr != DialogResult.OK || !loginForm.LoginSucceeded)
+                //{
+                //    Application.Exit();
+                //    return;
+                //}
 
                 try
                 {
@@ -488,6 +491,7 @@ namespace Dashboard.Winform
 
             picSideBarIcon.Click += (s, e) => OpenAndClosedSideBar(s!, e);
             btnSBUser.Click += (s, e) => OpenUserManagementContainer(s!, e);
+            btnImportExportGoods.Click += (s, e) => OpenImportExportContainer(s!, e);
 
             pnHeaderTitle.MouseDown += pnHeaderTitle_MouseDown;
         }
@@ -546,6 +550,20 @@ namespace Dashboard.Winform
         }
 
         private void OpenUserManagementContainer(object sender, EventArgs e)
+        {
+            try
+            {
+                if (SidebarTransitionActive)
+                    SBUserManagementTransition.Start();
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error in BtnSBUser_Click");
+                MessageBox.Show("Không thể thực hiện animation", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        private void OpenImportExportContainer(object sender, EventArgs e)
         {
             try
             {
@@ -849,6 +867,36 @@ namespace Dashboard.Winform
                 _logger?.LogError(ex, $"Error opening child form: {childForm?.GetType().Name}");
                 MessageBox.Show($"Không thể mở form: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private void BtnImportExport_Click(object sender, EventArgs e)
+        {
+            //isImportExportExpanded = !isImportExportExpanded;
+
+            //pnImport.Visible = isImportExportExpanded;
+            //pnExport.Visible = isImportExportExpanded;
+
+            //fpnImportExportContainer.Height = isImportExportExpanded ? 150 : 50;
+            try
+            {
+                if (SidebarTransitionActive)
+                    SBUserManagementTransition.Start();
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error in BtnImportExport_Click");
+                MessageBox.Show("Không thể thực hiện animation", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+        private void BtnImport_Click(object sender, EventArgs e)
+        {
+            // TODO: Load giao diện nhập hàng
+            MessageBox.Show("Chuyển đến chức năng Nhập hàng");
+        }
+        private void BtnExport_Click(object sender, EventArgs e)
+        {
+            // TODO: Load giao diện xuất hàng
+            MessageBox.Show("Chuyển đến chức năng Xuất hàng");
         }
         #endregion
     }
