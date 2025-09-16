@@ -94,6 +94,12 @@ public class MomoService implements IMomoService {
         return momoApi.createMomoQR(requestDTO);
     }
 
+    /**
+     * TOP 10 OWASP 2023
+     * API3: 2023 - Broken Object Property Level Authorization
+     * Hacker có thể truy cập vào các thuộc tính nhạy cảm của người dùng khác
+     * Giải pháp: Sử dụng Response để chỉ trả về các thuộc tính cần thiết
+     * */
     @Override
     public OrderResponse ipnHandler(MomoIpnRequestDTO momoIpnRequestDTO) {
         Optional<Order> existingOrder = orderRepository.findById(Long.parseLong(momoIpnRequestDTO.getOrderId()));

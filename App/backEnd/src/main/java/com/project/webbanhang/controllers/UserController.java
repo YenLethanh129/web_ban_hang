@@ -33,9 +33,6 @@ public class UserController {
     private final ICustomerService customerService;
 	private final LocalizationUtil localizationUtil;
 
-// TODO : Xem lại các exception
-// TODO : Test lại chức năng update
-
     /**
      * TOP 10 OWASP 2023
      * API2: 2023 - Cryptographic Failures
@@ -96,6 +93,12 @@ public class UserController {
 //    @PostMapping("is_login")
 //    public ResponseEntity<?> isLogin(
 
+    /**
+     * TOP 10 OWASP 2023
+     * API3: 2023 - Broken Object Property Level Authorization
+     * Hacker có thể truy cập vào các thuộc tính nhạy cảm của người dùng khác
+     * Giải pháp: Sử dụng Response để chỉ trả về các thuộc tính cần thiết
+     * */
     @PostMapping("/register")
     public ResponseEntity<?> createUser(
             @Valid @RequestBody UserDTO userDTO,
@@ -145,6 +148,12 @@ public class UserController {
      * API1:2023 - Broken Object Level Authorization (BOLA)
      * Hacker có thể lấy id của người dùng khác và truy cập vào thông tin cá nhân của họ
      * Giải pháp: Sử dụng token để xác thực người dùng hiện tại và chỉ trả về thông tin của họ
+     * */
+    /**
+     * TOP 10 OWASP 2023
+     * API3: 2023 - Broken Object Property Level Authorization
+     * Hacker có thể truy cập vào các thuộc tính nhạy cảm của người dùng khác
+     * Giải pháp: Sử dụng Response để chỉ trả về các thuộc tính cần thiết
      * */
     @PostMapping("/profile")
     public ResponseEntity<?> getUserProfile(
@@ -291,6 +300,12 @@ public class UserController {
         }
     }
 
+    /**
+     * TOP 10 OWASP 2023
+     * API3: 2023 - Broken Object Property Level Authorization
+     * Hacker có thể truy cập vào các thuộc tính nhạy cảm của người dùng khác
+     * Giải pháp: Sử dụng Response để chỉ trả về các thuộc tính cần thiết
+     * */
     @PostMapping("verify-otp")
     public ResponseEntity<?> verifyOtp(
     		@Valid @RequestBody ForgotPasswordDTO forgotPasswordDTO,

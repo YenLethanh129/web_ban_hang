@@ -37,6 +37,12 @@ public class OrderService implements IOrderService {
 	 * Thay vì truyền userId từ client, ta sẽ lấy userId từ token
 	 * Điều này ngăn chặn việc hacker có thể lấy id của người dùng khác và truy cập vào thông tin cá nhân của họ
 	 * */
+	/**
+	 * TOP 10 OWASP 2023
+	 * API3: 2023 - Broken Object Property Level Authorization
+	 * Hacker có thể truy cập vào các thuộc tính nhạy cảm của người dùng khác
+	 * Giải pháp: Sử dụng Response để chỉ trả về các thuộc tính cần thiết
+	 * */
 	@Override
 	public OrderResponse createOrder(String token, OrderDTO orderDTO) throws Exception {
 		// tim user
@@ -87,6 +93,12 @@ public class OrderService implements IOrderService {
 		return mapOrderToOrderResponse(existingOrder);
 	}
 
+	/**
+	 * TOP 10 OWASP 2023
+	 * API3: 2023 - Broken Object Property Level Authorization
+	 * Hacker có thể truy cập vào các thuộc tính nhạy cảm của người dùng khác
+	 * Giải pháp: Sử dụng Response để chỉ trả về các thuộc tính cần thiết
+	 * */
 	@Override
 	public List<OrderResponse> getAllOrders() {
 		
@@ -110,6 +122,12 @@ public class OrderService implements IOrderService {
 		orderRepository.save(existingOrder);
 	}
 
+	/**
+	 * TOP 10 OWASP 2023
+	 * API3: 2023 - Broken Object Property Level Authorization
+	 * Hacker có thể truy cập vào các thuộc tính nhạy cảm của người dùng khác
+	 * Giải pháp: Sử dụng Response để chỉ trả về các thuộc tính cần thiết
+	 * */
 	@Override
 	public List<OrderResponse> findByCustomer(String token) throws Exception {
 		User user = userService.getUserProfileFromToken(token);

@@ -44,6 +44,12 @@ public class ProductController {
 	private final IProductService productService;
     private final LocalizationUtil localizationUtil;
 
+    /**
+     * TOP 10 OWASP 2023
+     * API3: 2023 - Broken Object Property Level Authorization
+     * Hacker có thể truy cập vào các thuộc tính nhạy cảm của người dùng khác
+     * Giải pháp: Sử dụng Response để chỉ trả về các thuộc tính cần thiết
+     * */
     @GetMapping("")
     public ResponseEntity<?> getProducts(
             @RequestParam(value = "page", defaultValue = "1") int page,
@@ -65,7 +71,13 @@ public class ProductController {
 			return ResponseEntity.badRequest().body(e.getMessage());
 		}
     }
-    
+
+    /**
+     * TOP 10 OWASP 2023
+     * API3: 2023 - Broken Object Property Level Authorization
+     * Hacker có thể truy cập vào các thuộc tính nhạy cảm của người dùng khác
+     * Giải pháp: Sử dụng Response để chỉ trả về các thuộc tính cần thiết
+     * */
     @GetMapping("/category/{id}")
     public ResponseEntity<?> getProductsByCategoryId(
             @PathVariable("id") Long categoryId,

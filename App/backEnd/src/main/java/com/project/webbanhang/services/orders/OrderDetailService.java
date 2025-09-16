@@ -53,6 +53,12 @@ public class OrderDetailService implements IOrderDetailService {
 		return existingOrderDetailResponses;
 	}
 
+	/**
+	 * TOP 10 OWASP 2023
+	 * API3: 2023 - Broken Object Property Level Authorization
+	 * Hacker có thể truy cập vào các thuộc tính nhạy cảm của người dùng khác
+	 * Giải pháp: Sử dụng Response để chỉ trả về các thuộc tính cần thiết
+	 * */
 	@Override
 	public List<OrderDetailResponse> getOrderDetailsByOrderId(Long orderId) throws DataNotFoundException{
 		List<OrderDetail> existingOrderDetails = orderDetailRepository.findByOrder_Id(orderId);
