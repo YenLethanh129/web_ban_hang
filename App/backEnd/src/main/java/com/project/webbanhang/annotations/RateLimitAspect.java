@@ -1,5 +1,6 @@
 package com.project.webbanhang.annotations;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -8,6 +9,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.time.Duration;
 
@@ -36,10 +38,30 @@ public class RateLimitAspect {
     }
 
     private String buildKey(ProceedingJoinPoint pjp) {
-        // Lấy IP từ RequestContextHolder hoặc username từ SecurityContext
-        String ip = RequestContextHolder.currentRequestAttributes()
-                .getAttribute("REMOTE_ADDR", RequestAttributes.SCOPE_REQUEST).toString();
+        // Lấy IP từ HttpServletRequest
+        String ip = "unknown";
+        try {
+            RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
+            if (requestAttributes != null) {
+                HttpServletRequest request = ((ServletRequestAttributes) requestAttributes).getRequest();
+                ip = getClientIpAddress(request);
+            }
+        } catch (Exception e) {
+            ip = "fallback";
+        }
         return ip + ":" + pjp.getSignature().toShortString();
+    }
+
+    private String getClientIpAddress(HttpServletRequest request) {
+        String xForwardedFor = request.getHeader("X-Forwarded-For");
+        if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
+            return xForwardedFor.split(",")[0].trim();
+        }
+        String xRealIP = request.getHeader("X-Real-IP");
+        if (xRealIP != null && !xRealIP.isEmpty()) {
+            return xRealIP;
+        }
+        return request.getRemoteAddr();
     }
 
     private Duration parseDuration(String window) {

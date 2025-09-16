@@ -12,7 +12,7 @@ import {
 } from 'rxjs';
 import { RegisterDTO } from '../dtos/register.dto';
 import { LoginDTO } from '../dtos/login.dto';
-import { ProfileUserDTO, UserDTO } from '../dtos/user.dto';
+import { UserDTO } from '../dtos/user.dto';
 import { TokenService } from './token.service';
 import { WebEnvironment } from '../environments/WebEnvironment';
 import { LoginResponse } from '../response/login.response';
@@ -243,30 +243,6 @@ export class UserService {
     return user;
   }
 
-  getUserName(): string {
-    // Try to get from cache first, then from current user
-    const cachedUser = this.cacheService.getUser();
-    return cachedUser?.fullname || this.currentUser?.fullname || '';
-  }
-
-  // Get user as Observable for real-time updates
-  getUserObservable(): Observable<UserDTO | null> {
-    return this.cacheService.getUserObservable();
-  }
-
-  // Check if user is cached
-  isUserCached(): boolean {
-    return this.cacheService.isUserCached();
-  }
-
-  // Load user from cache on service initialization
-  private loadUserFromCache(): void {
-    const cachedUser = this.cacheService.getUser();
-    if (cachedUser) {
-      this.currentUser = cachedUser;
-    }
-  }
-
   // Clear user cache on logout
   logout(): Observable<any> {
     console.log('🚪 Starting logout process...');
@@ -292,19 +268,6 @@ export class UserService {
         this.performLocalCleanup();
       })
     );
-  }
-
-  // Logout đồng bộ cho compatibility với các component cũ
-  logoutSync(): void {
-    console.log('🚪 Sync logout called...');
-    this.logout().subscribe({
-      next: (response) => {
-        console.log('✅ Sync logout completed:', response);
-      },
-      error: (error) => {
-        console.error('❌ Sync logout error:', error);
-      },
-    });
   }
 
   // Gọi API logout từ server
@@ -334,9 +297,6 @@ export class UserService {
     // Clear all cache services
     this.cacheService.clearUser();
     this.cacheService.clearAll();
-
-    // Clear token service
-    this.tokenService.removeToken();
 
     // Clear user address cache - chỉ trong browser environment
     if (isPlatformBrowser(this.platformId)) {

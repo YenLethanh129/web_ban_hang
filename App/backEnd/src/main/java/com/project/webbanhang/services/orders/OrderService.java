@@ -51,7 +51,7 @@ public class OrderService implements IOrderService {
 	 * Giải pháp: Giới hạn số lần thực hiện các hành động nhạy cảm trong một khoảng thời gian
 	 * */
 	@Override
-//	@RateLimited(maxAttempts = 5, window = "1 hour")
+	@RateLimited(maxAttempts = 15, window = "1h")
 	public OrderResponse createOrder(String token, OrderDTO orderDTO) throws Exception {
 		// tim user
 		User user = userService.getUserProfileFromToken(token);
