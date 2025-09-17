@@ -38,23 +38,24 @@
               required
               #fullName="ngModel"
               class="form-control"
+              [class.is-invalid]="!validateFullNameDTO.isValid"
               placeholder="Nhập họ và tên đầy đủ"
+              (input)="validateFullName($event)"
             />
             <i class="fas fa-user input-icon"></i>
           </div>
-          <div
-            *ngIf="fullName.touched && fullName.invalid"
-            class="error-message"
-          >
+          <div *ngIf="!validateFullNameDTO.isValid" class="error-message">
             <i class="fas fa-exclamation-circle"></i>
-            Vui lòng nhập họ và tên
+            <div *ngFor="let error of validateFullNameDTO.errors">
+              {{ error }}
+            </div>
           </div>
         </div>
 
         <div class="form-group">
           <label for="email" class="form-label">
             <i class="fas fa-envelope"></i>
-            Email
+            Email (tùy chọn)
           </label>
           <div class="input-wrapper">
             <input
@@ -62,16 +63,19 @@
               class="form-control"
               id="email"
               name="email"
-              required
               [(ngModel)]="orderData.email"
               #email="ngModel"
+              [class.is-invalid]="!validateEmailDTO.isValid"
               placeholder="Nhập địa chỉ email"
+              (input)="validateEmail($event)"
             />
             <i class="fas fa-envelope input-icon"></i>
           </div>
-          <div *ngIf="email.touched && email.invalid" class="error-message">
+          <div *ngIf="!validateEmailDTO.isValid" class="error-message">
             <i class="fas fa-exclamation-circle"></i>
-            Vui lòng nhập email hợp lệ
+            <div *ngFor="let error of validateEmailDTO.errors">
+              {{ error }}
+            </div>
           </div>
         </div>
 
@@ -89,16 +93,17 @@
               required
               [(ngModel)]="orderData.phoneNumber"
               #phoneNumber="ngModel"
+              [class.is-invalid]="!validatePhoneNumberDTO.isValid"
               placeholder="Nhập số điện thoại"
+              (input)="validatePhoneNumber($event)"
             />
             <i class="fas fa-phone input-icon"></i>
           </div>
-          <div
-            *ngIf="phoneNumber.touched && phoneNumber.invalid"
-            class="error-message"
-          >
+          <div *ngIf="!validatePhoneNumberDTO.isValid" class="error-message">
             <i class="fas fa-exclamation-circle"></i>
-            Vui lòng nhập số điện thoại
+            <div *ngFor="let error of validatePhoneNumberDTO.errors">
+              {{ error }}
+            </div>
           </div>
         </div>
 
@@ -115,15 +120,13 @@
             (inputFocus)="onAddressFocus()"
           ></app-address-autocomplete>
           <div
-            *ngIf="
-              showAddressError &&
-              shippingAddress.touched &&
-              !orderData.shippingAddress
-            "
+            *ngIf="!validateShippingAddressDTO.isValid"
             class="error-message"
           >
             <i class="fas fa-exclamation-circle"></i>
-            Vui lòng nhập địa chỉ giao hàng
+            <div *ngFor="let error of validateShippingAddressDTO.errors">
+              {{ error }}
+            </div>
           </div>
         </div>
 

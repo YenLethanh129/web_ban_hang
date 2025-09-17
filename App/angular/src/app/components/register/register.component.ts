@@ -71,14 +71,6 @@ export class RegisterComponent implements OnInit, OnDestroy {
   showConfirmPassword = false;
   agreeToTerms = false;
   showAgreeToTermsError = false;
-  showPhoneError = false;
-  showFullNameError = false;
-  showDateOfBirthError = false;
-  showPasswordError = false;
-  showConfirmPasswordError = false;
-  showAddressError = false;
-  showAutofillButton = false;
-
   isLoading = false;
 
   constructor(
@@ -91,9 +83,7 @@ export class RegisterComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.userAddressService.userAddress$
       .pipe(takeUntil(this.destroy$))
-      .subscribe((addressInfo) => {
-        this.showAutofillButton = !!addressInfo;
-      });
+      .subscribe((addressInfo) => {});
   }
 
   ngOnDestroy(): void {
@@ -172,7 +162,7 @@ export class RegisterComponent implements OnInit, OnDestroy {
       this.validateConfirmPasswordDTO.isValid &&
       this.validateAddressDTO.isValid &&
       this.validateDateOfBirthDTO.isValid;
-    
+
     this.notificationService.showInfo('📝 Đang kiểm tra thông tin đăng ký...');
     return isValid;
   }

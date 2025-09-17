@@ -27,6 +27,7 @@ export class ValidateService {
 
   // Mật khẩu tối thiểu 12 ký tự
   // Chứa ít một chữ hoa, một chữ thường, một số và một ký tự đặc biệt
+  // Không chứa khoảng trắng
   static validatePassword(password: string): ValidateDTO {
     const validate: ValidateDTO = { isValid: true, errors: [] };
     if (!password || password.trim().length === 0) {
@@ -40,6 +41,8 @@ export class ValidateService {
     const lowercaseValid = /[a-z]/.test(password);
     const numberValid = /\d/.test(password);
     const specialCharValid = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    const hasSpace = /\s/.test(password);
+
     if (!lengthValid) {
       validate.isValid = false;
       validate.errors.push('Mật khẩu phải có ít nhất 12 ký tự');
@@ -59,6 +62,10 @@ export class ValidateService {
     if (!specialCharValid) {
       validate.isValid = false;
       validate.errors.push('Mật khẩu phải chứa ít nhất một ký tự đặc biệt');
+    }
+    if (hasSpace) {
+      validate.isValid = false;
+      validate.errors.push('Mật khẩu không được chứa khoảng trắng');
     }
     return validate;
   }

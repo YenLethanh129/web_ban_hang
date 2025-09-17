@@ -9,6 +9,8 @@ import { NotificationService } from '../../services/notification.service';
 import { AddressAutocompleteComponent } from '../shared/address-autocomplete/address-autocomplete.component';
 import { AddressPrediction } from '../../dtos/address.dto';
 import { Subject, takeUntil } from 'rxjs';
+import { ValidateDTO } from '../../dtos/validate.dto';
+import { ValidateService } from '../../services/validate.service';
 
 @Component({
   selector: 'app-user-profile',
@@ -31,6 +33,20 @@ export class UserProfileComponent implements OnInit, OnDestroy {
   showFullNameError = false;
   showDateOfBirthError = false;
   showAddressError = false;
+
+  // Validation DTOs
+  validateFullNameDTO: ValidateDTO = {
+    isValid: true,
+    errors: [],
+  };
+  validateDateOfBirthDTO: ValidateDTO = {
+    isValid: true,
+    errors: [],
+  };
+  validateAddressDTO: ValidateDTO = {
+    isValid: true,
+    errors: [],
+  };
 
   // Form data for editing
   editData = {
@@ -97,6 +113,74 @@ export class UserProfileComponent implements OnInit, OnDestroy {
     this.editData.fullname = profile.fullname;
     this.editData.dateOfBirth = this.formatDateForInput(profile.date_of_birth);
     this.editData.address = profile.address;
+
+    // Validate initial data
+    this.validateFullName();
+    this.validateDateOfBirth();
+    this.validateAddress();
+  }
+
+  /**
+   *
+   * VALIDATE METHODS
+   *
+   */
+
+  validateFullName(event?: Event): void {
+    if (event) {
+      const input = event.target as HTMLInputElement;
+      this.editData.fullname = input.value;
+    }
+    this.validateFullNameDTO = ValidateService.validateFullName(
+      this.editData.fullname
+    );
+  }
+
+  validateDateOfBirth(event?: Event): void {
+    if (event) {
+      const input = event.target as HTMLInputElement;
+      this.editData.dateOfBirth = input.value;
+    }
+    if (
+      this.editData.dateOfBirth &&
+      this.editData.dateOfBirth.trim().length > 0
+    ) {
+      this.validateDateOfBirthDTO = ValidateService.validateDateOfBirth(
+        this.editData.dateOfBirth
+      );
+    } else {
+      this.validateDateOfBirthDTO = { isValid: true, errors: [] };
+    }
+  }
+
+  validateAddress(event?: Event): void {
+    if (event) {
+      const input = event.target as HTMLInputElement;
+      this.editData.address = input.value;
+    }
+    this.validateAddressDTO = ValidateService.validateAddress(
+      this.editData.address
+    );
+  }
+
+  validateForm(): boolean {
+    // Trigger all validations
+    this.validateFullName();
+    this.validateDateOfBirth();
+    this.validateAddress();
+
+    const isValid =
+      this.validateFullNameDTO.isValid &&
+      this.validateDateOfBirthDTO.isValid &&
+      this.validateAddressDTO.isValid;
+
+    if (!isValid) {
+      this.notificationService.showWarning(
+        '⚠️ Vui lòng kiểm tra lại thông tin!'
+      );
+    }
+
+    return isValid;
   }
 
   toggleEdit(): void {
@@ -109,6 +193,11 @@ export class UserProfileComponent implements OnInit, OnDestroy {
           this.profile.date_of_birth
         );
         this.editData.address = this.profile.address;
+
+        // Validate after resetting data
+        this.validateFullName();
+        this.validateDateOfBirth();
+        this.validateAddress();
       }
     }
   }
@@ -161,12 +250,12 @@ export class UserProfileComponent implements OnInit, OnDestroy {
 
   onAddressSelected(prediction: AddressPrediction): void {
     this.editData.address = prediction.description;
+    this.validateAddress();
     console.log('Selected address:', prediction);
   }
 
   onSubmit(): void {
-    if (!this.updateForm.valid || !this.validateAge()) {
-      this.notificationService.showWarning('Vui lòng kiểm tra lại thông tin!');
+    if (!this.validateForm()) {
       return;
     }
 
@@ -235,6 +324,11 @@ export class UserProfileComponent implements OnInit, OnDestroy {
         this.profile.date_of_birth
       );
       this.editData.address = this.profile.address;
+
+      // Validate after resetting data
+      this.validateFullName();
+      this.validateDateOfBirth();
+      this.validateAddress();
     }
   }
 }

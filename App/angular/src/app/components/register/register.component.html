@@ -31,7 +31,6 @@
               [(ngModel)]="registerData.fullName"
               required
               #fullName="ngModel"
-              (focus)="showFullNameError = true"
               (input)="validateUsername($event)"
               placeholder="Nhập họ và tên đầy đủ"
             />
@@ -63,17 +62,12 @@
               [(ngModel)]="registerData.phoneNumber"
               required
               #phone="ngModel"
-              (focus)="showPhoneError = true"
               placeholder="Nhập số điện thoại (10 số)"
             />
             <i class="fas fa-phone input-icon"></i>
           </div>
           <div
-            *ngIf="
-              showPhoneError &&
-              phone.touched &&
-              registerData.phoneNumber.length !== 10
-            "
+            *ngIf="phone.touched && registerData.phoneNumber.length !== 10"
             class="error-message"
           >
             <i class="fas fa-exclamation-circle"></i>
@@ -98,7 +92,6 @@
               (ngModelChange)="validateDateOfBirth($event)"
               required
               #dateOfBirth="ngModel"
-              (focus)="showDateOfBirthError = true"
             />
             <i class="fas fa-calendar-alt input-icon"></i>
           </div>
@@ -151,7 +144,6 @@
               (input)="validatePasswordInput($event)"
               required
               #password="ngModel"
-              (focus)="showPasswordError = true"
               placeholder="Nhập mật khẩu"
             />
             <i class="fas fa-lock input-icon"></i>

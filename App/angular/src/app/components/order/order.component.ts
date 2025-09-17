@@ -19,6 +19,8 @@ import { AddressAutocompleteComponent } from '../shared/address-autocomplete/add
 import { AddressPrediction } from '../../dtos/address.dto';
 import { UserAddressService } from '../../services/user-address.service';
 import { NotificationService } from '../../services/notification.service';
+import { ValidateDTO } from '../../dtos/validate.dto';
+import { ValidateService } from '../../services/validate.service';
 
 @Component({
   selector: 'app-order',
@@ -40,6 +42,24 @@ export class OrderComponent implements OnInit, OnDestroy {
   orderId: number = 0;
   showAutofillButton: boolean = false;
   showAddressError: boolean = false;
+
+  // Validation DTOs
+  validateFullNameDTO: ValidateDTO = {
+    isValid: false,
+    errors: ['Họ và tên không được để trống'],
+  };
+  validateEmailDTO: ValidateDTO = {
+    isValid: true,
+    errors: [],
+  };
+  validatePhoneNumberDTO: ValidateDTO = {
+    isValid: false,
+    errors: ['Số điện thoại không được để trống'],
+  };
+  validateShippingAddressDTO: ValidateDTO = {
+    isValid: false,
+    errors: ['Địa chỉ giao hàng không được để trống'],
+  };
 
   private destroy$ = new Subject<void>();
 
@@ -104,6 +124,11 @@ export class OrderComponent implements OnInit, OnDestroy {
       this.orderData.address = addressInfo.address;
       this.orderData.shippingAddress = addressInfo.address;
 
+      // Validate after autofill
+      this.validateFullName();
+      this.validatePhoneNumber();
+      this.validateShippingAddress();
+
       this.notificationService.showSuccess(
         'Đã tự động điền thông tin giao hàng từ hồ sơ của bạn!'
       );
@@ -114,7 +139,84 @@ export class OrderComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   *
+   * VALIDATE METHODS
+   *
+   */
+
+  validateFullName(event?: Event): void {
+    if (event) {
+      const input = event.target as HTMLInputElement;
+      this.orderData.fullName = input.value;
+    }
+    this.validateFullNameDTO = ValidateService.validateFullName(
+      this.orderData.fullName
+    );
+  }
+
+  validateEmail(event?: Event): void {
+    if (event) {
+      const input = event.target as HTMLInputElement;
+      this.orderData.email = input.value;
+    }
+    if (this.orderData.email && this.orderData.email.trim().length > 0) {
+      this.validateEmailDTO = ValidateService.validateEmail(
+        this.orderData.email
+      );
+    } else {
+      this.validateEmailDTO = { isValid: true, errors: [] };
+    }
+  }
+
+  validatePhoneNumber(event?: Event): void {
+    if (event) {
+      const input = event.target as HTMLInputElement;
+      this.orderData.phoneNumber = input.value;
+    }
+    this.validatePhoneNumberDTO = ValidateService.validatePhoneNumber(
+      this.orderData.phoneNumber
+    );
+  }
+
+  validateShippingAddress(): void {
+    this.validateShippingAddressDTO = ValidateService.validateAddress(
+      this.orderData.shippingAddress
+    );
+    // Đồng bộ address với shippingAddress
+    if (this.orderData.shippingAddress) {
+      this.orderData.address = this.orderData.shippingAddress;
+    }
+  }
+
+  validateForm(): boolean {
+    // Trigger all validations
+    this.validateFullName();
+    this.validateEmail();
+    this.validatePhoneNumber();
+    this.validateShippingAddress();
+
+    const isValid =
+      this.validateFullNameDTO.isValid &&
+      this.validateEmailDTO.isValid &&
+      this.validatePhoneNumberDTO.isValid &&
+      this.validateShippingAddressDTO.isValid;
+
+    if (!isValid) {
+      this.notificationService.showWarning(
+        '⚠️ Vui lòng kiểm tra lại thông tin đặt hàng!'
+      );
+    } else {
+      this.notificationService.showInfo('📝 Đang xử lý đơn hàng...');
+    }
+
+    return isValid;
+  }
+
   onSubmit() {
+    if (!this.validateForm()) {
+      return;
+    }
     this.isLoading = true;
     this.createOrder();
   }
@@ -161,6 +263,12 @@ export class OrderComponent implements OnInit, OnDestroy {
     this.orderData.phoneNumber = user.phone_number;
     this.orderData.shippingAddress = user.address;
     this.orderData.address = user.address;
+
+    // Validate after setting user data
+    this.validateFullName();
+    this.validatePhoneNumber();
+    this.validateShippingAddress();
+
     console.log('Order data updated with user info:', this.orderData);
   }
 
@@ -203,6 +311,7 @@ export class OrderComponent implements OnInit, OnDestroy {
 
   onAddressSelected(address: AddressPrediction): void {
     this.orderData.shippingAddress = address.description;
+    this.validateShippingAddress();
   }
 
   onAddressFocus(): void {
