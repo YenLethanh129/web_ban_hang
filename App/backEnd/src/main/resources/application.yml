@@ -34,6 +34,11 @@ spring:
 
 server:
   port: ${SERVER_PORT}
+  servlet:
+    encoding:
+      charset: UTF-8
+      force-request: true
+      force-response: true
 
 management:
   endpoints:
