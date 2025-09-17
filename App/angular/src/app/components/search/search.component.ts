@@ -13,7 +13,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { SearchService, SearchResult } from '../../services/search.service';
-import { ProductDTO } from '../../models/product.dto';
+import { ProductDTO } from '../../dtos/product.dto';
 
 @Component({
   selector: 'app-search',

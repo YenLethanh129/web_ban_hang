@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { UserDTO } from '../dtos/user.dto';
-import { ProductDTO } from '../models/product.dto';
+import { ProductDTO } from '../dtos/product.dto';
 import { StorageService } from './storage.service';
 
 export interface CacheData<T> {

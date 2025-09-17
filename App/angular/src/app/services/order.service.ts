@@ -2,8 +2,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { WebEnvironment } from '../environments/WebEnvironment';
 import {
-  OrderDTO,
-  OrderResponseDTO,
+  OrderRequestDTO,
   NewOrderResponseDTO,
   OrderConfirmResponseDTO,
 } from '../dtos/order.dto';
@@ -15,11 +14,11 @@ import { TokenService } from './token.service';
 })
 export class OrderService {
   private apiUrl = `${WebEnvironment.apiUrl}/orders`;
-  private currentUser: OrderDTO | null = null;
+  private currentUser: OrderRequestDTO | null = null;
 
   constructor(private http: HttpClient, private tokenService: TokenService) {}
 
-  createOrder(orderDTO: OrderDTO): Observable<any> {
+  createOrder(orderDTO: OrderRequestDTO): Observable<any> {
     return this.http.post(`${this.apiUrl}`, orderDTO, {
       withCredentials: true,
       headers: new HttpHeaders({

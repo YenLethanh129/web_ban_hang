@@ -1,4 +1,4 @@
-export interface OrderDTO {
+export interface OrderRequestDTO {
   full_name: string;
   email: string;
   phone_number: string;
@@ -9,19 +9,6 @@ export interface OrderDTO {
   shipping_address: string;
   payment_method: string;
   payment_status: string;
-}
-
-export interface OrderResponseDTO {
-  order_id: number;
-  note: string;
-  status: string;
-  total_money: number;
-  order_date: string;
-  shipping_method: string;
-  payment_method: string;
-  payment_status: string | null;
-  created_at: string;
-  last_modified: string;
 }
 
 // New interface for the updated API response
@@ -39,7 +26,7 @@ export interface NewOrderResponseDTO {
   order_details: OrderDetailResponseDTO[];
 }
 
-export interface OrderDetailDTO {
+export interface OrderDetailRequestDTO {
   order_id: number;
   product_id: number;
   quantity: number;

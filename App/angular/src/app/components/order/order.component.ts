@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Subject, takeUntil } from 'rxjs';
-import { ProductDTO } from '../../models/product.dto';
+import { ProductDTO } from '../../dtos/product.dto';
 import { CartService } from '../../services/cart.service';
 import { ProductService } from '../../services/product.service';
 import { TokenService } from '../../services/token.service';
@@ -10,8 +10,8 @@ import { UserService } from '../../services/user.service';
 import { OrderService } from '../../services/order.service';
 import { FormsModule } from '@angular/forms';
 import { UserDTO } from '../../dtos/user.dto';
-import { MomoInfoOrderDTO, OrderDTO } from '../../dtos/order.dto';
-import { OrderDetailDTO } from '../../dtos/order.dto';
+import { MomoInfoOrderDTO, OrderRequestDTO } from '../../dtos/order.dto';
+import { OrderDetailRequestDTO } from '../../dtos/order.dto';
 import { OrderDetailService } from '../../services/order.detail.service';
 import { MomoService } from '../../services/momo.service';
 import { CreateMomoResponse } from '../../dtos/momo.dto';
@@ -210,7 +210,7 @@ export class OrderComponent implements OnInit, OnDestroy {
   }
 
   createOrder(): void {
-    const orderDTO: OrderDTO = {
+    const orderDTO: OrderRequestDTO = {
       // user_id: this.orderData.userId,
       full_name: this.orderData.fullName,
       email: this.orderData.email,
@@ -225,7 +225,7 @@ export class OrderComponent implements OnInit, OnDestroy {
       payment_status: this.orderData.paymentStatus,
     };
 
-    console.log('OrderDTO: ', orderDTO);
+    console.log('OrderRequestDTO: ', orderDTO);
     this.orderService.createOrder(orderDTO).subscribe({
       next: (response: any) => {
         this.notificationService.showSuccess(
@@ -249,7 +249,7 @@ export class OrderComponent implements OnInit, OnDestroy {
 
   createOrderDetail(orderId: number): void {
     this.cartItems.forEach((item) => {
-      const orderDetailDTO: OrderDetailDTO = {
+      const orderDetailDTO: OrderDetailRequestDTO = {
         order_id: orderId,
         product_id: item.product.id,
         quantity: item.quantity,
@@ -258,7 +258,7 @@ export class OrderComponent implements OnInit, OnDestroy {
         size: item.size ?? 'L',
       };
 
-      console.log('OrderDetailDTO: ', orderDetailDTO);
+      console.log('OrderDetailRequestDTO: ', orderDetailDTO);
       this.orderDetailService.createOrderDetail(orderDetailDTO).subscribe({
         next: (response) => {
           console.log('Đơn hàng chi tiết đã được tạo:', response);

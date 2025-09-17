@@ -2,9 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import {
   OrderConfirmResponseDTO,
-  OrderDetailDTO,
-  OrderDetailResponseDTO,
-  OrderResponseDTO,
 } from '../../dtos/order.dto';
 import { OrderService } from '../../services/order.service';
 import { OrderDetailService } from '../../services/order.detail.service';

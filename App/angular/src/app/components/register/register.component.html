@@ -32,18 +32,19 @@
               required
               #fullName="ngModel"
               (focus)="showFullNameError = true"
+              (input)="validateUsername($event)"
               placeholder="Nhập họ và tên đầy đủ"
             />
             <i class="fas fa-user input-icon"></i>
           </div>
           <div
-            *ngIf="
-              showFullNameError && fullName.touched && !registerData.fullName
-            "
+            *ngIf="fullName.touched && !validateUsernameDTO.isValid"
             class="error-message"
           >
             <i class="fas fa-exclamation-circle"></i>
-            Vui lòng nhập họ và tên
+            <span *ngFor="let error of validateUsernameDTO.errors">{{
+              error
+            }}</span>
           </div>
         </div>
 
@@ -76,7 +77,9 @@
             class="error-message"
           >
             <i class="fas fa-exclamation-circle"></i>
-            Số điện thoại phải là 10 số
+            <span *ngFor="let error of validatePhoneNumberDTO.errors">{{
+              error
+            }}</span>
           </div>
         </div>
 
@@ -92,6 +95,7 @@
               id="dateOfBirth"
               name="dateOfBirth"
               [(ngModel)]="registerData.dateOfBirth"
+              (ngModelChange)="validateDateOfBirth($event)"
               required
               #dateOfBirth="ngModel"
               (focus)="showDateOfBirthError = true"
@@ -99,19 +103,13 @@
             <i class="fas fa-calendar-alt input-icon"></i>
           </div>
           <div
-            *ngIf="
-              showDateOfBirthError &&
-              dateOfBirth.touched &&
-              (!registerData.dateOfBirth || !validateAge())
-            "
+            *ngIf="dateOfBirth.touched && !validateDateOfBirthDTO.isValid"
             class="error-message"
           >
             <i class="fas fa-exclamation-circle"></i>
-            {{
-              !registerData.dateOfBirth
-                ? "Vui lòng chọn ngày sinh"
-                : "Bạn phải trên 18 tuổi"
-            }}
+            <span *ngFor="let error of validateDateOfBirthDTO.errors">{{
+              error
+            }}</span>
           </div>
         </div>
 
@@ -125,14 +123,16 @@
             placeholder="Nhập địa chỉ đầy đủ của bạn"
             label="Địa chỉ"
             (addressSelected)="onAddressSelected($event)"
-            (inputFocus)="onAddressFocus()"
+            (inputFocus)="validateAddressInput()"
           ></app-address-autocomplete>
           <div
-            *ngIf="showAddressError && address.touched && !registerData.address"
+            *ngIf="address.touched && !validateAddressDTO.isValid"
             class="error-message"
           >
             <i class="fas fa-exclamation-circle"></i>
-            Vui lòng nhập địa chỉ
+            <span *ngFor="let error of validateAddressDTO.errors">{{
+              error
+            }}</span>
           </div>
         </div>
 
@@ -148,6 +148,7 @@
               id="password"
               name="password"
               [(ngModel)]="registerData.password"
+              (input)="validatePasswordInput($event)"
               required
               #password="ngModel"
               (focus)="showPasswordError = true"
@@ -162,11 +163,13 @@
             ></i>
           </div>
           <div
-            *ngIf="showPasswordError && password.touched && !validatePassword()"
+            *ngIf="password.touched && !validatePasswordDTO.isValid"
             class="error-message"
           >
             <i class="fas fa-exclamation-circle"></i>
-            {{ showPasswordRequirements() }}
+            <span *ngFor="let error of validatePasswordDTO.errors">{{
+              error
+            }}</span>
           </div>
         </div>
 
@@ -182,9 +185,9 @@
               id="confirmPassword"
               name="confirmPassword"
               [(ngModel)]="registerData.confirmPassword"
+              (input)="validateConfirmPasswordInput($event)"
               required
               #confirmPassword="ngModel"
-              (focus)="showConfirmPasswordError = true"
               placeholder="Nhập lại mật khẩu để xác nhận"
             />
             <i class="fas fa-lock input-icon"></i>
@@ -197,14 +200,14 @@
           </div>
           <div
             *ngIf="
-              showConfirmPasswordError &&
-              confirmPassword.touched &&
-              !validateConfirmPassword()
+              confirmPassword.touched && !validateConfirmPasswordDTO.isValid
             "
             class="error-message"
           >
             <i class="fas fa-exclamation-circle"></i>
-            Mật khẩu xác nhận không khớp
+            <span *ngFor="let error of validateConfirmPasswordDTO.errors">{{
+              error
+            }}</span>
           </div>
         </div>
 
@@ -221,7 +224,9 @@
             <label class="form-check-label" for="agreeTerms">
               <span class="checkmark"></span>
               Tôi đồng ý với các
-              <a href="/contract-info" class="terms-link">điều khoản và điều kiện</a>
+              <a href="/contract-info" class="terms-link"
+                >điều khoản và điều kiện</a
+              >
               của Funny Boy
             </label>
           </div>

@@ -7,7 +7,7 @@ import {
   switchMap,
   of,
 } from 'rxjs';
-import { ProductDTO } from '../models/product.dto';
+import { ProductDTO } from '../dtos/product.dto';
 import { CacheService } from './cache.service';
 import { ProductService } from './product.service';
 import { StorageService } from './storage.service';

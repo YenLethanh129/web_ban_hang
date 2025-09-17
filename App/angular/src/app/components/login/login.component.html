@@ -32,15 +32,13 @@
             <i class="fas fa-phone input-icon"></i>
           </div>
           <div
-            *ngIf="
-              showPhoneError &&
-              phone.touched &&
-              loginData.phoneNumber.length !== 10
-            "
+            *ngIf="showPhoneError && phone.touched && !phoneValidation.isValid"
             class="error-message"
           >
             <i class="fas fa-exclamation-circle"></i>
-            Số điện thoại phải là 10 số
+            <span *ngFor="let error of phoneValidation.errors">{{
+              error
+            }}</span>
           </div>
         </div>
 
@@ -57,6 +55,7 @@
               name="password"
               [(ngModel)]="loginData.password"
               (focus)="showPasswordError = true"
+              (input)="validatePassword($event)"
               required
               #password="ngModel"
               placeholder="Nhập mật khẩu"
@@ -73,12 +72,14 @@
             *ngIf="
               showPasswordError &&
               password.touched &&
-              loginData.password.length < 12
+              !passwordValidation.isValid
             "
             class="error-message"
           >
             <i class="fas fa-exclamation-circle"></i>
-            Mật khẩu phải có ít nhất 12 ký tự
+            <span *ngFor="let error of passwordValidation.errors">{{
+              error
+            }}</span>
           </div>
         </div>
 
@@ -100,21 +101,17 @@
           type="submit"
           class="btn btn-primary login-button"
           [disabled]="isLoading"
+          [class.disabled]="!validateForm()"
         >
           <span *ngIf="isLoading" class="loading-spinner"></span>
           <i *ngIf="!isLoading" class="fas fa-sign-in-alt"></i>
           {{ isLoading ? "Đang xử lý..." : "Đăng nhập" }}
         </button>
         <!-- Show error when login fails -->
-        <div
-            *ngIf="
-              showErrorLoginMessage
-            "
-            class="error-message"
-          >
-            <i class="fas fa-exclamation-circle"></i>
-            {{ errorLoginMessage }}
-          </div>
+        <div *ngIf="showErrorLoginMessage" class="error-message">
+          <i class="fas fa-exclamation-circle"></i>
+          {{ errorLoginMessage }}
+        </div>
 
         <div class="divider">
           <span>hoặc</span>

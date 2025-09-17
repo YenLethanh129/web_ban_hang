@@ -11,11 +11,11 @@ import {
   BehaviorSubject,
 } from 'rxjs';
 import { RegisterDTO } from '../dtos/register.dto';
-import { LoginDTO } from '../dtos/login.dto';
+import { LoginRequestDTO } from '../dtos/login.dto';
 import { UserDTO } from '../dtos/user.dto';
 import { TokenService } from './token.service';
 import { WebEnvironment } from '../environments/WebEnvironment';
-import { LoginResponse } from '../response/login.response';
+import { LoginResponse } from '../dtos/login.dto';
 import { CacheService } from './cache.service';
 import { UpdateUserDTO } from '../dtos/update-user.dto';
 
@@ -36,7 +36,6 @@ export class UserService {
 
   constructor(
     private http: HttpClient,
-    private tokenService: TokenService,
     private cacheService: CacheService,
     private injector: Injector,
     @Inject(PLATFORM_ID) private platformId: Object
@@ -53,7 +52,7 @@ export class UserService {
     return this.http.post(`${this.apiUrl}/register`, registerDTO, { headers });
   }
 
-  login(request: LoginDTO): Observable<LoginResponse> {
+  login(request: LoginRequestDTO): Observable<LoginResponse> {
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
       'Accept-Language': 'vi',

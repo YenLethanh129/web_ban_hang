@@ -4,11 +4,11 @@ import { CommonModule } from '@angular/common';
 import { TokenService } from '../../services/token.service';
 import { UserService } from '../../services/user.service';
 import { FormsModule } from '@angular/forms';
-import { CategoryDTO } from '../../models/category.dto';
+import { CategoryDTO } from '../../dtos/category.dto';
 import { CategoryService } from '../../services/category.service';
 import { CacheService } from '../../services/cache.service';
 import { SearchComponent } from '../search/search.component';
-import { ProductDTO } from '../../models/product.dto';
+import { ProductDTO } from '../../dtos/product.dto';
 import { Subject, takeUntil, combineLatest } from 'rxjs';
 import { UserDTO } from '../../dtos/user.dto';
 

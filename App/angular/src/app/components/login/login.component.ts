@@ -6,11 +6,10 @@ import { HttpClientModule } from '@angular/common/http';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { UserService } from '../../services/user.service';
-import { LoginDTO } from '../../dtos/login.dto';
-import { LoginResponse } from '../../response/LoginResponse';
-import { TokenService } from '../../services/token.service';
+import { LoginRequestDTO } from '../../dtos/login.dto';
 import { NotificationService } from '../../services/notification.service';
-import e from 'express';
+import { ValidateDTO } from '../../dtos/validate.dto';
+import { ValidateService } from '../../services/validate.service';
 
 @Component({
   selector: 'app-login',
@@ -34,17 +33,22 @@ export class LoginComponent {
     password: '',
   };
 
-  showPassword = false;
+  phoneValidation: ValidateDTO = { isValid: false, errors: [] };
+  passwordValidation: ValidateDTO = { isValid: false, errors: [] };
+
   isLoading = false;
   showPhoneError = false;
+  phoneNumberErrorMessage: string[] = [];
+  showPassword = false;
   showPasswordError = false;
+  passwordErrorMessage: string[] = [];
+
   showErrorLoginMessage = false;
   errorLoginMessage = '';
 
   constructor(
     private router: Router,
     private userService: UserService,
-    private tokenService: TokenService,
     private notificationService: NotificationService
   ) {}
 
@@ -54,33 +58,24 @@ export class LoginComponent {
 
   validatePhoneNumber(event: Event): void {
     const input = event.target as HTMLInputElement;
-    input.value = input.value.replace(/[^0-9]/g, '');
-    this.loginData.phoneNumber = input.value;
+    this.phoneValidation = ValidateService.validatePhoneNumber(input.value);
+    this.showPhoneError = !this.phoneValidation.isValid;
+    this.phoneNumberErrorMessage = this.phoneValidation.errors;
+  }
+
+  validatePassword(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.passwordValidation = ValidateService.validatePassword(input.value);
+    this.showPasswordError = !this.passwordValidation.isValid;
+    this.passwordErrorMessage = this.passwordValidation.errors;
   }
 
   validateForm(): boolean {
-    return (
-      this.loginForm?.valid === true &&
-      this.loginData.phoneNumber.length === 10 &&
-      this.loginData.password.length >= 12
-    );
+    return this.phoneValidation.isValid && this.passwordValidation.isValid;
   }
 
   onSubmit() {
     if (!this.validateForm()) {
-      this.showPhoneError = this.loginData.phoneNumber.length !== 10;
-      this.showPasswordError = this.loginData.password.length < 12;
-
-      if (this.showPhoneError) {
-        this.notificationService.showError(
-          '📱 Số điện thoại phải có đúng 10 chữ số'
-        );
-      }
-      if (this.showPasswordError) {
-        this.notificationService.showError(
-          '🔒 Mật khẩu phải có ít nhất 12 ký tự'
-        );
-      }
       return;
     }
 
@@ -88,7 +83,7 @@ export class LoginComponent {
     this.showErrorLoginMessage = false;
     this.notificationService.showInfo('⏳ Đang xử lý đăng nhập...');
 
-    const loginDTO: LoginDTO = {
+    const loginDTO: LoginRequestDTO = {
       phone_number: this.loginData.phoneNumber,
       password: this.loginData.password,
     };
