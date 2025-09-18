@@ -1,5 +1,5 @@
 services:
-  webbanhang-db: 
+  webbanhang-db:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: webbanhang-db
     environment:
@@ -67,21 +67,19 @@ services:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
       SPRING_JPA_DATABASE_PLATFORM: ${SPRING_JPA_HIBERNATE_PROPERTIES_DIALECT}
       SPRING_JPA_HIBERNATE_DDL_AUTO: none
-      MAVEN_OPTS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+      # MAVEN_OPTS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
     volumes:
       - ./App/backend:/app
       - ~/.m2:/root/.m2
     working_dir: /app
-    # command: sh -c "mvn spring-boot:run -Dspring-boot.run.fork=false -DskipTests"
     command: >
       mvn spring-boot:run
       -Dspring-boot.run.fork=false
       -DskipTests
       -Djava.security.egd=file:/dev/./urandom
-      -Dagentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
     ports:
+      # -Dagentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
       - "1609:1609"
-      - "5005:5005" #Port Debug
     networks:
       - app-network
 
