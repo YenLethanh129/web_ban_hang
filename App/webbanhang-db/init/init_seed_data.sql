@@ -30,8 +30,7 @@ GO
 INSERT INTO [dbo].[roles] ([name], [description], [created_at], [last_modified]) VALUES
 ('ADMIN', N'Quản trị viên hệ thống', GETDATE(), GETDATE()),
 ('MANAGER', N'Quản lý chi nhánh', GETDATE(), GETDATE()),
-('SUPERVISOR', N'Giám sát viên ca', GETDATE(), GETDATE()),
-('WAREHOUSE_STAFF', N'Nhân viên kho', GETDATE(), GETDATE()), -- Sửa lại name và description
+('WAREHOUSE_STAFF', N'Nhân viên kho', GETDATE(), GETDATE()),
 ('CASHIER', N'Nhân viên thu ngân', GETDATE(), GETDATE()),
 ('EMPLOYEE', N'Nhân viên pha chế/phục vụ', GETDATE(), GETDATE()),
 ('CUSTOMER', N'Khách hàng thành viên', GETDATE(), GETDATE()),
@@ -661,23 +660,11 @@ INSERT INTO [dbo].[role_permissions] ([role_id], [permission_id], [created_at], 
 ((SELECT id FROM [dbo].[roles] WHERE name = 'MANAGER'),
  (SELECT id FROM [dbo].[permissions] WHERE name = 'FINANCIALREPORTS_MANAGE'), GETDATE(), GETDATE()),
 ((SELECT id FROM [dbo].[roles] WHERE name = 'MANAGER'),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'ANALYTICS_MANAGE'), GETDATE(), GETDATE()),
+((SELECT id FROM [dbo].[roles] WHERE name = 'MANAGER'),
  (SELECT id FROM [dbo].[permissions] WHERE name = 'BRANCHS_READ'), GETDATE(), GETDATE()),
 ((SELECT id FROM [dbo].[roles] WHERE name = 'MANAGER'),
  (SELECT id FROM [dbo].[permissions] WHERE name = 'BRANCHS_UPDATE'), GETDATE(), GETDATE()),
-
--- SUPERVISOR
-((SELECT id FROM [dbo].[roles] WHERE name = 'SUPERVISOR'),
- (SELECT id FROM [dbo].[permissions] WHERE name = 'USERS_READ'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'SUPERVISOR'),
- (SELECT id FROM [dbo].[permissions] WHERE name = 'PRODUCTS_READ'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'SUPERVISOR'),
- (SELECT id FROM [dbo].[permissions] WHERE name = 'ORDERS_READ'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'SUPERVISOR'),
- (SELECT id FROM [dbo].[permissions] WHERE name = 'INVENTORY_MANAGE'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'SUPERVISOR'),
- (SELECT id FROM [dbo].[permissions] WHERE name = 'FINANCIALREPORTS_MANAGE'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'SUPERVISOR'),
- (SELECT id FROM [dbo].[permissions] WHERE name = 'BRANCHS_READ'), GETDATE(), GETDATE()),
 
 -- EMPLOYEE
 ((SELECT id FROM [dbo].[roles] WHERE name = 'EMPLOYEE'),
@@ -1052,7 +1039,8 @@ PRINT N'Additional data (10 records per table) inserted successfully!';
 GO
 
 -- Insert into order_details
-INSERT INTO [dbo].[order_details] ([quantity], [order_id], [product_id], [color], [created_at], [last_modified], [note], [total_amount], [unit_price]) VALUES
+-- Insert into order_details
+INSERT INTO [dbo].[order_details] ([quantity], [order_id], [product_id], [size], [created_at], [last_modified], [note], [total_amount], [unit_price]) VALUES
 (2, 1, 1, NULL, GETDATE(), GETDATE(), N'Không đường', 90000, 45000),
 (1, 1, 5, NULL, GETDATE(), GETDATE(), N'Thêm bơ', 25000, 25000),
 (1, 2, 2, NULL, DATEADD(day, -1, GETDATE()), DATEADD(day, -1, GETDATE()), N'Ít đá', 55000, 55000),
@@ -1063,7 +1051,7 @@ GO
 
 
 -- Additional order details for new orders
-INSERT INTO [dbo].[order_details] ([quantity], [order_id], [product_id], [color], [created_at], [last_modified], [note], [total_amount], [unit_price]) VALUES
+INSERT INTO [dbo].[order_details] ([quantity], [order_id], [product_id], [size], [created_at], [last_modified], [note], [total_amount], [unit_price]) VALUES
 (1, 6, 6, NULL, GETDATE(), GETDATE(), N'Extra hot', 65000, 65000),
 (2, 6, 7, NULL, GETDATE(), GETDATE(), N'Less sugar', 100000, 50000),
 (1, 7, 8, NULL, DATEADD(hour, -3, GETDATE()), DATEADD(hour, -3, GETDATE()), N'Extra pearls', 45000, 45000),
@@ -1075,7 +1063,7 @@ INSERT INTO [dbo].[order_details] ([quantity], [order_id], [product_id], [color]
 GO
 
 -- Additional Order Details (10 records)
-INSERT INTO [dbo].[order_details] ([order_id], [product_id], [quantity], [unit_price], [total_amount], [color], [note], [created_at], [last_modified]) VALUES
+INSERT INTO [dbo].[order_details] ([order_id], [product_id], [quantity], [unit_price], [total_amount], [size], [note], [created_at], [last_modified]) VALUES
 (11, 11, 2, 65000.00, 130000.00, N'Đỏ', N'Size L', DATEADD(day, -CAST(RAND(CHECKSUM(NEWID()))*365 AS INT), GETDATE()), DATEADD(day, -CAST(RAND(CHECKSUM(NEWID()))*365 AS INT), GETDATE())),
 (11, 12, 1, 85000.00, 85000.00, N'Xanh', N'Size M', DATEADD(day, -CAST(RAND(CHECKSUM(NEWID()))*365 AS INT), GETDATE()), DATEADD(day, -CAST(RAND(CHECKSUM(NEWID()))*365 AS INT), GETDATE())),
 (12, 13, 1, 95000.00, 95000.00, N'Trắng', N'Size XL', DATEADD(day, -CAST(RAND(CHECKSUM(NEWID()))*365 AS INT), GETDATE()), DATEADD(day, -CAST(RAND(CHECKSUM(NEWID()))*365 AS INT), GETDATE())),
@@ -1087,6 +1075,7 @@ INSERT INTO [dbo].[order_details] ([order_id], [product_id], [quantity], [unit_p
 (15, 19, 4, 35000.00, 140000.00, N'Xám', N'Size M', DATEADD(day, -CAST(RAND(CHECKSUM(NEWID()))*365 AS INT), GETDATE()), DATEADD(day, -CAST(RAND(CHECKSUM(NEWID()))*365 AS INT), GETDATE())),
 (16, 20, 6, 25000.00, 150000.00, N'Nâu', N'Size S', DATEADD(day, -CAST(RAND(CHECKSUM(NEWID()))*365 AS INT), GETDATE()), DATEADD(day, -CAST(RAND(CHECKSUM(NEWID()))*365 AS INT), GETDATE()));
 GO
+
 
 -- Additional Ingredient Purchase Orders (10 records)
 INSERT INTO [dbo].[ingredient_purchase_orders] ([purchase_order_code], [supplier_id], [branch_id], [employee_id], [order_date], [expected_delivery_date], [status_id], [total_amount_before_tax], [total_tax_amount], [total_amount_after_tax], [discount_amount], [final_amount], [note], [created_at], [last_modified]) VALUES
