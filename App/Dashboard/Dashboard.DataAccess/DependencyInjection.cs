@@ -35,6 +35,7 @@ public static class DependencyInjection
         builder.Services.AddScoped<IIngredientRepository, IngredientRepository>();
         builder.Services.AddScoped<IExpenseRepository, ExpenseRepository>();
         builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+        builder.Services.AddScoped<ITaxRepository, TaxRepository>();
         builder.Services.AddScoped<IIngredientTransferRepository, IngredientTransferRepository>();
         builder.Services.AddScoped<IIngredientTransferRequestRepository, IngredientTransferRequestRepository>();
         builder.Services.AddScoped<IEmployeeShiftRepository, EmployeeShiftRepository>();
@@ -50,6 +51,8 @@ public static class DependencyInjection
         {
             options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
             options.UseSqlServer(Context);
+            options.EnableServiceProviderCaching(false); 
+            options.EnableSensitiveDataLogging(false);
         });
 
         builder.Services.AddScoped(sp =>

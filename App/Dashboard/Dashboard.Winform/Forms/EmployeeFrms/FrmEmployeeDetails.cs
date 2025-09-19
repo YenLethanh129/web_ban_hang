@@ -402,20 +402,29 @@ namespace Dashboard.Winform.Forms
 
         private async void BtnSave_Click(object sender, EventArgs e)
         {
-            if (ValidateForm())
+            if (!ValidateForm())
+                return;
+            try
             {
-                try
-                {
-                    await _presenter.SaveEmployeeAsync(_model);
-                    Result = DialogResult.OK;
-                    this.Close();
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Lỗi khi lưu dữ liệu: {ex.Message}", "Lỗi",
-                        MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
+                btnSave.Enabled = false;
+                btnCancel.Enabled = false;
+
+                await _presenter.SaveEmployeeAsync(_model);
+
+                Result = DialogResult.OK;
+                Close();
             }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi khi lưu dữ liệu: {ex.Message}", "Lỗi",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                btnSave.Enabled = true;
+                btnCancel.Enabled = true;
+            }
+
         }
 
         private void BtnCancel_Click(object sender, EventArgs e)
@@ -609,14 +618,15 @@ namespace Dashboard.Winform.Forms
             }
         }
 
-        private bool IsValidPhoneNumber(string phone)
+        private static bool IsValidPhoneNumber(string phone)
         {
             phone = phone.Replace(" ", "").Replace("-", "").Replace(".", "");
 
             if (phone.Length < 10 || phone.Length > 11)
                 return false;
 
-            return phone.StartsWith("0") && phone.All(char.IsDigit);
+            return phone.StartsWith("0")
+                   && phone.All(char.IsDigit);
         }
 
         private void BindModelToUI()

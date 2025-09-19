@@ -134,9 +134,6 @@ namespace Dashboard.Winform.Presenters
             Model.ExistingBranches = _mapper.Map<List<BranchViewModel>>(_cachedBranches!);
             Model.ExistingPositions = _mapper.Map<List<PositionViewModel>>(_cachedPositions);
 
-
-
-            // Statuses
             if (Model.Statuses == null || Model.Statuses.Count == 0)
             {
                 Model.Statuses = new List<string> { "Active", "Inactive", "Resigned" };
@@ -155,6 +152,7 @@ namespace Dashboard.Winform.Presenters
                     return;
                 }
 
+                // I dunno know why automapper just not working here
                 Model.Id = employeeDto.Id;
                 Model.FullName = employeeDto.FullName;
                 Model.Phone = employeeDto.Phone;
@@ -229,7 +227,6 @@ namespace Dashboard.Winform.Presenters
             {
                 if (employee.Id == 0)
                 {
-                    // Assume CreateEmployeeInput exists and is mappable; adjust as per actual DTO
                     var createInput = _mapper.Map<CreateEmployeeInput>(employee);
                     await _employeeService.AddEmployeeAsync(createInput);
                 }
@@ -238,12 +235,13 @@ namespace Dashboard.Winform.Presenters
                     var updateInput = _mapper.Map<UpdateEmployeeInput>(employee);
                     await _employeeService.UpdateEmployeeAsync(updateInput);
                 }
+
                 OnEmployeeSaved?.Invoke(this, EventArgs.Empty);
-                RaiseDataLoaded();
             }
             catch (Exception ex)
             {
                 OnError?.Invoke(this, $"Error saving employee: {ex.Message}");
+                throw; 
             }
             finally
             {
@@ -257,11 +255,13 @@ namespace Dashboard.Winform.Presenters
             try
             {
                 await _employeeService.DeleteEmployeeAsync(employeeId);
-                RaiseDataLoaded();
+
+                OnEmployeeSaved?.Invoke(this, EventArgs.Empty);
             }
             catch (Exception ex)
             {
                 OnError?.Invoke(this, $"Error deleting employee: {ex.Message}");
+                throw;
             }
             finally
             {

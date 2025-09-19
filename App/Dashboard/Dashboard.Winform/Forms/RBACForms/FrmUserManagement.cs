@@ -484,7 +484,9 @@ public partial class FrmUserManagement : Form
             tbxUserName.Text = user.Username ?? string.Empty;
             chkIsActive.Checked = user.IsActive;
 
-            if (user.EmployeeId.HasValue)
+
+
+            if (cbxEmployee.DataSource != null && user.EmployeeId != null)
             {
                 cbxEmployee!.SelectedValue = user.EmployeeId.Value;
             }
@@ -875,7 +877,7 @@ public partial class FrmUserManagement : Form
         {
             cbxEmployee.DisplayMember = "DisplayText";
             cbxEmployee.ValueMember = "Id";
-            cbxEmployee.SelectedIndex = -1;
+            //cbxEmployee.SelectedIndex = -1;
         }
         catch (Exception ex)
         {

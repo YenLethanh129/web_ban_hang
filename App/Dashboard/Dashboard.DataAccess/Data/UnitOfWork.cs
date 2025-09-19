@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Dashboard.DataAccess.Data;
 
-public interface IUnitOfWork : IAsyncDisposable
+public interface IUnitOfWork : IAsyncDisposable, IDisposable
 {
     IRepository<T> Repository<T>() where T : class;
     Task SaveChangesAsync();
@@ -85,5 +85,15 @@ public class UnitOfWork : IUnitOfWork
             _transaction = null;
         }
         await _context.DisposeAsync();
+    }
+
+    public void Dispose()
+    {
+        if (_transaction != null)
+        {
+            _transaction.Dispose();
+            _transaction = null;
+        }
+        _context.Dispose();
     }
 }

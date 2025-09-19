@@ -89,7 +89,6 @@ namespace Dashboard.Winform.Forms
 
                 var loginDto = new LoginInput { Username = username, Password = password };
 
-                // Execute login inside centralized blur loading if available, otherwise use a local overlay fallback
                 object? result = null;
                 if (_authService == null)
                 {
@@ -100,12 +99,10 @@ namespace Dashboard.Winform.Forms
 
                 if (_blurLoadingService != null)
                 {
-                    // use generic overload to return the login result
                     result = await _blurLoadingService.ExecuteWithLoadingAsync(() => _authService.LoginAsync(loginDto), "Đang xác thực...", true);
                 }
                 else
                 {
-                    // fallback: show local blur overlay
                     var overlay = new BlurLoadingOverlay();
                     try
                     {
@@ -121,21 +118,19 @@ namespace Dashboard.Winform.Forms
 
                 if (result != null)
                 {
-                    // success - persist token for UI session
-                    // result may be a dynamic/object - attempt to read Token property if present
                     var tokenProp = result.GetType().GetProperty("Token");
                     if (tokenProp != null)
                     {
                         var token = tokenProp.GetValue(result) as string;
                         if (!string.IsNullOrEmpty(token))
                         {
-                            Dashboard.Winform.Services.SessionManager.CurrentToken = token;
+                            Services.SessionManager.CurrentToken = token;
                         }
                     }
 
                     LoginSucceeded = true;
-                    this.DialogResult = DialogResult.OK;
-                    this.Close();
+                    DialogResult = DialogResult.OK;
+                    Close();
                 }
                 else
                 {
@@ -147,6 +142,7 @@ namespace Dashboard.Winform.Forms
             {
                 var toast = new FrmToastMessage(Dashboard.Common.Constants.ToastType.ERROR, "Lỗi khi đăng nhập: " + ex.Message);
                 toast.Show();
+                MessageBox.Show("Lỗi khi đăng nhập: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {

@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using Dashboard.BussinessLogic.Dtos;
-using Dashboard.BussinessLogic.Dtos.CategoryDto;
+using Dashboard.BussinessLogic.Dtos.ProductDtos;
 using Dashboard.BussinessLogic.Shared;
 using Dashboard.DataAccess.Data;
 using Dashboard.DataAccess.Models.Entities.Products;
@@ -11,7 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Dashboard.BussinessLogic.Services
+namespace Dashboard.BussinessLogic.Services.ProductServices
 {
     public interface ICategoryService 
     {
@@ -20,8 +20,8 @@ namespace Dashboard.BussinessLogic.Services
         Task<PagedList<CategoryDto>> GetCategoriesAsync(GetCategoriesInput input);
         Task<PagedList<CategoryDto>> GetAllCategories();
         Task<CategoryDto?> CreateCategoryAsync(CreateCategoryInput input);
-        CategoryDto? UpdateCategoryAsync(long id, UpdateCategoryInput input);
-        CategoryDto? DeleteCategory(long id);
+        Task<CategoryDto?> UpdateCategoryAsync(long id, UpdateCategoryInput input);
+        Task<bool> DeleteCategory(long id);
         Task<CategoryDto?> GetCategoryByIdAsync(long id);
         Task<PagedList<CategoryDto>> GetCategoriesContainsAsync(string queryString, string propertyName = nameof(Category.Name));
 
@@ -70,9 +70,9 @@ namespace Dashboard.BussinessLogic.Services
             }
             return Task.FromResult(query.Any());    
         }
-        public CategoryDto? UpdateCategoryAsync(long id, UpdateCategoryInput input)
+        public async Task<CategoryDto?> UpdateCategoryAsync(long id, UpdateCategoryInput input)
         { 
-            var existingCategory =  _categoryRepository.GetAsync(id).Result;
+            var existingCategory = await _categoryRepository.GetAsync(id);
             if (existingCategory == null) return null;
             existingCategory.Name = input.Name ?? existingCategory.Name;
             _categoryRepository.Update(existingCategory);
@@ -80,12 +80,13 @@ namespace Dashboard.BussinessLogic.Services
 
         }
 
-        public CategoryDto? DeleteCategory(long id)
+        public async Task<bool> DeleteCategory(long id)
         {
-            var existingCategory = _categoryRepository.GetAsync(id).Result;
-            if (existingCategory == null) return null;
+            var existingCategory = await _categoryRepository.GetAsync(id);
+            if (existingCategory == null) return false;
+
             _categoryRepository.Remove(existingCategory);
-            return _mapper.Map<CategoryDto>(existingCategory);
+            return true;
         }
 
         public async Task<PagedList<CategoryDto>> GetAllCategories()

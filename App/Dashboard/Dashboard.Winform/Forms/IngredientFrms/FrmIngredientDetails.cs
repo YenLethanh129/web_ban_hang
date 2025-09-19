@@ -15,6 +15,8 @@ namespace Dashboard.Winform.Forms
         private readonly IngredientDetailViewModel? _initialModel;
         private bool _isEditMode;
 
+        private IEnumerable<IngredientCategoryViewModel>? _categories;
+
         public FrmIngredientDetails(long? ingredientId = null, IngredientDetailViewModel? initialModel = null)
         {
             _ingredientId = ingredientId;
@@ -30,7 +32,6 @@ namespace Dashboard.Winform.Forms
         {
             Text = _isEditMode ? "Cập nhật nguyên liệu" : "Thêm nguyên liệu mới";
 
-            // Hide ID fields if not in edit mode
             if (!_isEditMode)
             {
                 lblId.Visible = false;
@@ -44,17 +45,14 @@ namespace Dashboard.Winform.Forms
 
         private void LoadData()
         {
-            // Load categories (mock data for now)
             LoadCategories();
 
-            // Load existing data if in edit mode
             if (_isEditMode && _initialModel != null)
             {
                 LoadInitialData();
             }
             else
             {
-                // Set default values for new ingredient
                 chkIsActive.Checked = true;
                 if (cbxCategory.Items.Count > 0)
                 {
@@ -63,16 +61,23 @@ namespace Dashboard.Winform.Forms
             }
         }
 
+        /// <summary>
+        /// Set categories from caller (presenter/form) so the form uses real data instead of mock.
+        /// Call this before showing the dialog if you have categories available.
+        /// </summary>
+        public void SetCategories(IEnumerable<IngredientCategoryViewModel> categories)
+        {
+            _categories = categories ?? Array.Empty<IngredientCategoryViewModel>();
+            // If the form is already loaded, refresh binding
+            if (this.IsHandleCreated)
+            {
+                LoadCategories();
+            }
+        }
+
         private void LoadCategories()
         {
-            var categories = new List<CategoryViewModel>
-            {
-                new() { Id = 1, Name = "Thịt" },
-                new() { Id = 2, Name = "Rau củ" },
-                new() { Id = 3, Name = "Gia vị" },
-                new() { Id = 4, Name = "Hải sản" },
-                new() { Id = 5, Name = "Đồ khô" }
-            };
+            var categories = _categories?.ToList() ?? new List<IngredientCategoryViewModel>();
 
             cbxCategory.DataSource = categories;
             cbxCategory.DisplayMember = "Name";

@@ -20,10 +20,10 @@ public partial class OrderDetail : BaseAuditableEntity
     [Column("product_id")]
     public long ProductId { get; set; }
 
-    [Column("color")]
+    [Column("size")]
     [StringLength(255)]
     [Unicode(false)]
-    public string? Color { get; set; }
+    public string? Size { get; set; }
 
     [Column("note")]
     [StringLength(255)]

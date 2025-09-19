@@ -61,6 +61,7 @@ namespace Dashboard.Winform.Presenters
         private long? _currentRoleFilter = null;
         private string _currentSortBy = "Id"; // Default sort by Id
         private bool _sortDescending = false; // Default sort order
+        //private bool _emplo
 
         IManagableModel IManagementPresenter<UserManagementModel>.Model
         {
@@ -371,7 +372,12 @@ namespace Dashboard.Winform.Presenters
             existingUser.IsActive = user.IsActive;
             existingUser.EmployeeId = user.EmployeeId;
             existingUser.RoleId = user.RoleId;
-
+            existingUser.Username = user.Username;
+            if (!string.IsNullOrWhiteSpace(user.Password))
+            {
+                existingUser.Password = user.Password;
+            }
+            
             var input = _mapper.Map<UpdateUserInput>(existingUser);
 
             await _userManagementService.UpdateUserAsync(input);
@@ -381,13 +387,10 @@ namespace Dashboard.Winform.Presenters
 
         public async Task DeleteUserAsync(long id)
         {
-            var user = await _userManagementService.GetUserByIdAsync(id);
-            if (user == null)
-                throw new InvalidOperationException($"Không tìm thấy người dùng với ID: {id}");
-
+            var user = await _userManagementService.GetUserByIdAsync(id) ?? throw new InvalidOperationException($"Không tìm thấy người dùng với ID: {id}");
             user.IsActive = false;
             var input = _mapper.Map<UpdateUserInput>(user);
-            await _userManagementService.UpdateUserAsync(input);
+            var uster = await _userManagementService.UpdateUserAsync(input);
 
             await RefreshCacheAsync();
         }

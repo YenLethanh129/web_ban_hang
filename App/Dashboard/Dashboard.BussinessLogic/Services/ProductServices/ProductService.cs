@@ -9,10 +9,11 @@ using Dashboard.DataAccess.Models.Entities.Orders;
 using Dashboard.DataAccess.Repositories;
 using Dashboard.DataAccess.Specification;
 using Microsoft.Extensions.Logging;
+using Dashboard.BussinessLogic.Shared;
 
-namespace Dashboard.BussinessLogic.Services;
+namespace Dashboard.BussinessLogic.Services.ProductServices;
 
-public interface IProductService 
+public interface IProductService
 {
     Task<int> GetCountAsync();
     Task<PagedList<ProductDto>> GetProductsAsync(GetProductsInput input);
@@ -25,9 +26,8 @@ public interface IProductService
     Task<Dictionary<long, int>> GetSoldQuantitiesAsync();
 }
 
-public class ProductService : IProductService
+public class ProductService : BaseTransactionalService, IProductService
 {
-    private readonly IUnitOfWork _unitOfWork;
     private readonly IProductRepository _productRepository;
     private readonly IMapper _mapper;
     private readonly ILogger<ProductService> _logger;
@@ -36,9 +36,8 @@ public class ProductService : IProductService
         IUnitOfWork unitOfWork,
         IProductRepository productRepository,
         IMapper mapper,
-        ILogger<ProductService> logger)
+        ILogger<ProductService> logger) : base(unitOfWork)
     {
-        _unitOfWork = unitOfWork;
         _productRepository = productRepository;
         _mapper = mapper;
         _logger = logger;
@@ -51,13 +50,12 @@ public class ProductService : IProductService
 
     public async Task<PagedList<ProductDto>> GetProductsAsync(GetProductsInput input)
     {
-
         var specification = new Specification<Product>(p =>
             (string.IsNullOrEmpty(input.Name) || p.Name.Contains(input.Name)) &&
             (!input.CategoryId.HasValue || p.CategoryId == input.CategoryId.Value) &&
             (!input.IsActive.HasValue || p.IsActive == input.IsActive.Value) &&
             (!input.MinPrice.HasValue || p.Price >= input.MinPrice.Value) &&
-            (!input.MaxPrice.HasValue || p.Price <= input.MaxPrice.Value) && 
+            (!input.MaxPrice.HasValue || p.Price <= input.MaxPrice.Value) &&
             (!input.StartDate.HasValue || p.CreatedAt.Date == input.StartDate.Value) &&
             (!input.EndDate.HasValue || p.CreatedAt.Date <= input.EndDate.Value)
         );
@@ -114,73 +112,6 @@ public class ProductService : IProductService
         return product != null ? _mapper.Map<ProductDto>(product) : null;
     }
 
-    public async Task<ProductDto> CreateProductAsync(CreateProductInput input)
-    {
-        var product = _mapper.Map<Product>(input);
-        product.CreatedAt = DateTime.UtcNow;
-
-        // Add product images
-        if (input.ImageUrls.Any())
-        {
-            product.ProductImages = [.. input.ImageUrls.Select((url) => new ProductImage
-            {
-                ImageUrl = url,
-            })];
-        }
-            
-        await _productRepository.AddAsync(product);
-        await _productRepository.SaveChangesAsync();
-
-        return _mapper.Map<ProductDto>(product);
-    }
-
-    public async Task<ProductDto> UpdateProductAsync(UpdateProductInput input)
-    {
-
-        var product = await _productRepository.GetProductWithDetailsAsync(input.Id);
-        if (product == null)
-        {
-            throw new ArgumentException($"Product with id {input.Id} not found");
-        }
-
-        _mapper.Map(input, product);
-        product.LastModified = DateTime.UtcNow;
-
-        product.ProductImages.Clear();
-        if (input.ImageUrls.Any())
-        {
-            product.ProductImages = [.. input.ImageUrls.Select((url) => new ProductImage
-            {
-                ProductId = product.Id,
-                ImageUrl = url,
-            })];
-        }
-
-        _productRepository.Update(product);
-        await _unitOfWork.SaveChangesAsync();
-
-        return _mapper.Map<ProductDto>(product);
-    }
-
-    public async Task<bool> DeleteProductAsync(int id)
-    {
-        var product = await _productRepository.GetAsync(id);
-        if (product == null)
-        {
-            return false;
-        }
-
-        _productRepository.Remove(product);
-        await _productRepository.SaveChangesAsync();
-        return true;
-
-    }
-
-    public async Task<bool> IsProductNameExistsAsync(string name, int? excludeId = null)
-    {
-        return await _productRepository.IsProductNameExistsAsync(name, excludeId);
-    }
-
     public async Task<int> GetAmount(GetProductsInput input)
     {
         var specification = new Specification<Product>(p =>
@@ -195,7 +126,6 @@ public class ProductService : IProductService
         var allProducts = await _productRepository.GetAllWithSpecAsync(specification, true);
 
         return allProducts.Count();
-
     }
 
     public async Task<Dictionary<long, int>> GetSoldQuantitiesAsync()
@@ -204,5 +134,85 @@ public class ProductService : IProductService
         return orderDetails
             .GroupBy(od => od.ProductId)
             .ToDictionary(g => g.Key, g => g.Sum(od => od.Quantity));
+    }
+
+    public async Task<bool> IsProductNameExistsAsync(string name, int? excludeId = null)
+    {
+        return await _productRepository.IsProductNameExistsAsync(name, excludeId);
+    }
+
+    public async Task<ProductDto> CreateProductAsync(CreateProductInput input)
+    {
+        return await ExecuteInTransactionAsync(async () =>
+        {
+            var product = _mapper.Map<Product>(input);
+            product.CreatedAt = DateTime.UtcNow;
+
+            // Chỉ thêm images nếu có ImageUrls
+            if (input.ImageUrls?.Any() == true)
+            {
+                product.ProductImages = input.ImageUrls
+                    .Where(url => !string.IsNullOrWhiteSpace(url))
+                    .Select(url => new ProductImage
+                    {
+                        ProductId = product.Id,
+                        ImageUrl = url,
+                    })
+                    .ToList();
+            }
+
+            await _productRepository.AddAsync(product);
+
+            return _mapper.Map<ProductDto>(product);
+        });
+    }
+
+    public async Task<ProductDto> UpdateProductAsync(UpdateProductInput input)
+    {
+        return await ExecuteInTransactionAsync(async () =>
+        {
+            var product = await _productRepository.GetProductWithDetailsAsync(input.Id)
+                ?? throw new ArgumentException($"Product with id {input.Id} not found");
+
+            _mapper.Map(input, product);
+            product.LastModified = DateTime.UtcNow;
+
+            if (product.ProductImages?.Any() == true)
+            {
+                _unitOfWork.Repository<ProductImage>()
+                    .RemoveRange(product.ProductImages);
+            }
+
+            if (input.ImageUrls?.Any() == true)
+            {
+                product.ProductImages = input.ImageUrls
+                    .Where(url => !string.IsNullOrWhiteSpace(url))
+                    .Select(url => new ProductImage
+                    {
+                        ProductId = product.Id,
+                        ImageUrl = url,
+                    })
+                    .ToList();
+            }
+
+            _productRepository.Update(product);
+
+            return _mapper.Map<ProductDto>(product);
+        });
+    }
+
+    public async Task<bool> DeleteProductAsync(int id)
+    {
+        return await ExecuteInTransactionAsync(async () =>
+        {
+            var product = await _productRepository.GetAsync(id);
+            if (product == null)
+            {
+                return false;
+            }
+
+            _productRepository.Remove(product);
+            return true;
+        });
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace Dashboard.BussinessLogic.Dtos.CategoryDto;
+﻿namespace Dashboard.BussinessLogic.Dtos.ProductDtos;
 
 public class CategoryDto
 {
@@ -23,3 +23,4 @@ public class CreateCategoryInput
 {
     public string? Name { get; set; } = string.Empty;
 }
+

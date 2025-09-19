@@ -32,26 +32,29 @@ namespace Dashboard.Winform.Forms
             {
                 try
                 {
-                    if (e is IngredientsLoadedEventArgs args)
+                    if (InvokeRequired)
                     {
-                        if (InvokeRequired)
+                        Invoke(new Action(() =>
                         {
-                            Invoke(new Action(() =>
+                            try
                             {
-                                try
-                                {
-                                    ApplyIngredientsToModel(args.Ingredients);
-                                }
-                                catch (Exception ex)
-                                {
-                                    ShowError($"Lỗi khi cập nhật dữ liệu: {ex.Message}");
-                                }
-                            }));
-                        }
-                        else
-                        {
-                            ApplyIngredientsToModel(args.Ingredients);
-                        }
+                                dgvListItems.DataSource = null;
+                                dgvListItems.DataSource = _model.Ingredients;
+                                dgvListItems.Refresh();
+                                UpdatePaginationInfo();
+                            }
+                            catch (Exception ex)
+                            {
+                                ShowError($"Lỗi khi cập nhật giao diện: {ex.Message}");
+                            }
+                        }));
+                    }
+                    else
+                    {
+                        dgvListItems.DataSource = null;
+                        dgvListItems.DataSource = _model.Ingredients;
+                        dgvListItems.Refresh();
+                        UpdatePaginationInfo();
                     }
                 }
                 catch (Exception ex)
@@ -73,6 +76,7 @@ namespace Dashboard.Winform.Forms
             SetupDataBindings();
             SetupDgvListItem();
             FinalizeFormSetup();
+            SetupContextMenu();
         }
 
         /// <summary>
@@ -461,7 +465,7 @@ namespace Dashboard.Winform.Forms
             try
             {
                 SetLoadingState(true);
-                await _presenter.LoadDataAsync(page: _model.CurrentPage, pageSize: _model.PageSize);
+                await _presenter.LoadDataAsync(page: _model.CurrentPage, pageSize: _model.PageSize, forceRefresh: true);
                 UpdatePaginationInfo();
                 _dataLoadingCompletionSource.SetResult(true);
             }

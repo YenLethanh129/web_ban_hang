@@ -1,15 +1,16 @@
-﻿using System;
+﻿using Dashboard.Winform.Events;
+using Dashboard.Winform.Forms;
+using Dashboard.Winform.Presenters;
+using Dashboard.Winform.ViewModels;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Dashboard.Winform.Events;
-using Dashboard.Winform.Forms;
-using Dashboard.Winform.Presenters;
-using Dashboard.Winform.ViewModels;
-using Microsoft.Extensions.Logging;
 
 namespace Dashboard.Winform.Forms
 {
@@ -17,19 +18,21 @@ namespace Dashboard.Winform.Forms
     {
         #region Fields
         private readonly ProductManagementModel _model;
+        private readonly IServiceProvider _serviceProvider;
         #endregion
 
         #region Constructor
         public FrmProductManagement(
             ILogger<FrmProductManagement> logger,
+            IServiceProvider serviceProvider,
             ProductManagementPresenter productPresenter
         ) : base(logger, productPresenter)
         {
             _model = _presenter.Model;
+            _serviceProvider = serviceProvider;
 
             InitializeBaseComponents();
 
-            // Setup event handler cho OnDataLoaded
             _presenter.OnDataLoaded += (s, e) =>
             {
                 try
@@ -75,6 +78,7 @@ namespace Dashboard.Winform.Forms
             SetupDataBindings();
             SetupDgvListItem();
             FinalizeFormSetup();
+            SetupContextMenu();
         }
         #endregion
 
@@ -521,7 +525,7 @@ namespace Dashboard.Winform.Forms
                         CategoryName = selectedProduct.CategoryName,
                         TaxId = selectedProduct.TaxId,
                         TaxName = selectedProduct.TaxName,
-                        Thumbnail = selectedProduct.Thumbnail,
+                        ThumbnailPath = selectedProduct.Thumbnail,
                         CreatedAt = selectedProduct.CreatedAt,
                         UpdatedAt = selectedProduct.UpdatedAt,
                         ProductImages = new BindingList<ProductImageViewModel>(),
@@ -530,7 +534,10 @@ namespace Dashboard.Winform.Forms
                     };
                 }
 
-                using var detailForm = new FrmProductDetails(selectedProduct?.Id, initialModel);
+                using var detailForm = _serviceProvider.GetRequiredService<FrmProductDetails>();
+
+                detailForm.SetInitData(selectedProduct?.Id, initialModel);
+
                 var result = detailForm.ShowDialog(this);
 
                 if (result == DialogResult.OK)
@@ -540,7 +547,6 @@ namespace Dashboard.Winform.Forms
                     if (selectedProduct != null)
                     {
                         await HandleProductUpdate(updatedProduct);
-                        ShowInfo("Cập nhật sản phẩm thành công!");
                     }
                     else
                     {
@@ -560,6 +566,7 @@ namespace Dashboard.Winform.Forms
                 SetLoadingState(false);
             }
         }
+
 
         private async Task HandleProductAdd(ProductDetailViewModel product)
         {

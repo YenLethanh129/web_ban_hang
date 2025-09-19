@@ -8,8 +8,7 @@ public class AuditableEntityInterceptor : SaveChangesInterceptor
 {
     private readonly TimeProvider _dateTime;
 
-    public AuditableEntityInterceptor(
-        TimeProvider dateTime)
+    public AuditableEntityInterceptor(TimeProvider dateTime)
     {
         _dateTime = dateTime;
     }
@@ -17,14 +16,15 @@ public class AuditableEntityInterceptor : SaveChangesInterceptor
     public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
     {
         UpdateEntities(eventData.Context);
-
         return base.SavingChanges(eventData, result);
     }
 
-    public override ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
+    public override ValueTask<InterceptionResult<int>> SavingChangesAsync(
+        DbContextEventData eventData,
+        InterceptionResult<int> result,
+        CancellationToken cancellationToken = default)
     {
         UpdateEntities(eventData.Context);
-
         return base.SavingChangesAsync(eventData, result, cancellationToken);
     }
 
@@ -32,16 +32,18 @@ public class AuditableEntityInterceptor : SaveChangesInterceptor
     {
         if (context == null) return;
 
+        var utcNow = _dateTime.GetUtcNow();
+        var localNow = utcNow.DateTime; // Convert to DateTime once
+
         foreach (var entry in context.ChangeTracker.Entries<BaseAuditableEntity>())
         {
             if (entry.State is EntityState.Added or EntityState.Modified || entry.HasChangedOwnedEntities())
             {
-                var utcNow = _dateTime.GetUtcNow();
                 if (entry.State == EntityState.Added)
                 {
-                    entry.Entity.CreatedAt = DateTime.Now;
+                    entry.Entity.CreatedAt = localNow;
                 }
-                entry.Entity.LastModified = DateTime.Now;
+                entry.Entity.LastModified = localNow;
             }
         }
     }

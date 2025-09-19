@@ -179,6 +179,7 @@ public class IngredientViewModel
     public long Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Unit { get; set; } = string.Empty;
+    public decimal CostPerUnit { get; set; }
     public long CategoryId { get; set; }
     public string CategoryName { get; set; } = string.Empty;
     public string? Description { get; set; }

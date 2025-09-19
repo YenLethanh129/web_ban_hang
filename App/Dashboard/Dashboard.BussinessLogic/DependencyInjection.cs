@@ -4,6 +4,7 @@ using Dashboard.BussinessLogic.Services.BranchServices;
 using Dashboard.BussinessLogic.Services.Customers;
 using Dashboard.BussinessLogic.Services.EmployeeServices;
 using Dashboard.BussinessLogic.Services.GoodsAndStockServcies;
+using Dashboard.BussinessLogic.Services.ProductServices;
 using Dashboard.BussinessLogic.Services.RBACServices;
 using Dashboard.BussinessLogic.Services.ReportServices;
 using Dashboard.BussinessLogic.Services.SupplierServices;
@@ -34,6 +35,7 @@ public static class DependencyInjection
         builder.Services.AddMediatR(Assembly.GetExecutingAssembly());
 
         builder.Services.AddScoped<IProductService, ProductService>();
+        builder.Services.AddScoped<ITaxService, TaxService>();
         builder.Services.AddScoped<ICategoryService, CategoryService>();
         builder.Services.AddScoped<IBranchService, BranchService>();
         builder.Services.AddScoped<IExpenseService, ExpenseService>();

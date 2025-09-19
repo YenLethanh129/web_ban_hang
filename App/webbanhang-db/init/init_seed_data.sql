@@ -159,26 +159,15 @@ INSERT INTO [dbo].[payment_methods] ([name]) VALUES
 (N'COD');
 GO
 
--- Insert into products
-INSERT INTO [dbo].[products] ([price], [category_id], [tax_id], [description], [name], [thumbnail], [created_at], [last_modified]) VALUES
-(45000, 1, 1, N'Cà phê espresso đậm đà, hương vị mạnh mẽ', N'Espresso', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
-(55000, 1, 1, N'Cà phê cappuccino với lớp foam mịn màng', N'Cappuccino', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
-(35000, 2, 1, N'Trà xanh thơm mát, tốt cho sức khỏe', N'Trà xanh', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
-(40000, 3, 1, N'Nước ép cam tươi nguyên chất', N'Nước ép cam', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
-(25000, 4, 1, N'Bánh croissant bơ thơm ngon', N'Croissant', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
-(35000, 1, 1, N'Cà phê latte thơm ngon với sữa tươi', N'Latte', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
-(20000, 4, 1, N'Bánh muffin chocolate chip', N'Muffin Chocolate', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE());
-GO
-
 -- Insert into employees
-INSERT INTO [dbo].[employees] ([branch_id], [full_name], [phone], [email], [position], [hire_date], [status], [created_at], [last_modified]) VALUES
-(1, N'Nguyễn Văn A', '0901111111', 'nva@coffee.com', N'Quản lý chi nhánh', '2023-01-15', 'ACTIVE', GETDATE(), GETDATE()),
-(1, N'Trần Thị B', '0901111112', 'ttb@coffee.com', N'Nhân viên pha chế', '2023-02-20', 'ACTIVE', GETDATE(), GETDATE()),
-(2, N'Lê Văn C', '0901111113', 'lvc@coffee.com', N'Nhân viên phục vụ', '2023-03-10', 'ACTIVE', GETDATE(), GETDATE()),
-(3, N'Phạm Thị D', '0901111114', 'ptd@coffee.com', N'Thu ngân', '2023-04-05', 'ACTIVE', GETDATE(), GETDATE()),
-(2, N'Hoàng Văn E', '0901111115', 'hve@coffee.com', N'Nhân viên kho', '2023-05-01', 'ACTIVE', GETDATE(), GETDATE()),
-(4, N'Ngô Thị F', '0901111116', 'ntf@coffee.com', N'Nhân viên marketing', '2023-06-15', 'ACTIVE', GETDATE(), GETDATE()),
-(5, N'Võ Văn G', '0901111117', 'vvg@coffee.com', N'Nhân viên bảo trì', '2023-07-20', 'ACTIVE', GETDATE(), GETDATE());
+INSERT INTO [dbo].[employees] ([branch_id], [full_name], [phone], [email], [position_id], [hire_date], [status], [created_at], [last_modified]) VALUES
+(1, N'Nguyễn Văn A', '0901111111', 'nva@coffee.com',2, '2023-01-15', 'ACTIVE', GETDATE(), GETDATE()),
+(1, N'Trần Thị B', '0901111112', 'ttb@coffee.com',3, '2023-02-20', 'ACTIVE', GETDATE(), GETDATE()),
+(2, N'Lê Văn C', '0901111113', 'lvc@coffee.com',1, '2023-03-10', 'ACTIVE', GETDATE(), GETDATE()),
+(3, N'Phạm Thị D', '0901111114', 'ptd@coffee.com', 3, '2023-04-05', 'ACTIVE', GETDATE(), GETDATE()),
+(2, N'Hoàng Văn E', '0901111115', 'hve@coffee.com',1, '2023-05-01', 'ACTIVE', GETDATE(), GETDATE()),
+(4, N'Ngô Thị F', '0901111116', 'ntf@coffee.com', 4, '2023-06-15', 'ACTIVE', GETDATE(), GETDATE()),
+(5, N'Võ Văn G', '0901111117', 'vvg@coffee.com', 1, '2023-07-20', 'ACTIVE', GETDATE(), GETDATE());
 GO
 
 -- Insert into ingredients
@@ -246,25 +235,6 @@ VALUES
 (3, N'Trịnh Thị LL', '0901000038', 'ttll38@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, N'333M Hoàng Diệu, Quận 4, TP.HCM', '2024-02-14', NULL, 'ACTIVE', GETDATE(), GETDATE()),       
 (4, N'Vương Văn MM', '0901000039', 'vvmm39@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, N'444N Trần Hưng Đạo, Quận 1, TP.HCM', '2024-03-03', NULL, 'ACTIVE', GETDATE(), GETDATE()),       
 (5, N'Phan Thị NN', '0901000040', 'ptnn40@coffee.com', FLOOR(RAND(CHECKSUM(NEWID())) * (SELECT COUNT(*) FROM positions)) + 1, N'555O Phan Đình Phùng, Quận 3, TP.HCM', '2024-03-22', NULL, 'ACTIVE', GETDATE(), GETDATE());        
-GO
--- Insert into product_images
-INSERT INTO [dbo].[product_images] ([product_id], [image_url]) VALUES
-(1, 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE='),
-(2, 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE='),
-(3, 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE='),
-(4, 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE='),
-(5, 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE='),
-(6, 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE='),
-(7, 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=');
-GO
-
--- Insert into product_recipes
-INSERT INTO [dbo].[product_recipes] ([product_id], [ingredient_id], [quantity], [created_at], [last_modified]) VALUES
-(1, 1, 0.02, GETDATE(), GETDATE()), -- Espresso cần 20g cà phê Arabica
-(2, 1, 0.015, GETDATE(), GETDATE()), -- Cappuccino cần 15g cà phê Arabica
-(2, 3, 0.1, GETDATE(), GETDATE()), -- Cappuccino cần 100ml sữa tươi
-(3, 5, 0.005, GETDATE(), GETDATE()), -- Trà xanh cần 5g lá trà
-(4, 4, 0.01, GETDATE(), GETDATE()); -- Nước ép cam cần 10g đường
 GO
 
 -- Insert into ingredient_purchase_order_details
@@ -361,15 +331,6 @@ INSERT INTO [dbo].[customers] ([id], [user_id], [fullname], [phone_number], [ema
 (7, 7, N'Hoàng Văn E', '0901111114', 'hve@email.com', N'147 Cách Mạng Tháng 8, Quận 10, TP.HCM', GETDATE(), GETDATE());
 GO
 
--- Insert into tokens
-INSERT INTO [dbo].[tokens] ([expired], [revoked], [expiration_date], [user_id], [token_type], [token]) VALUES
-(0, 0, DATEADD(day, 30, GETDATE()), 1, 'ACCESS_TOKEN', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...1'),
-(0, 0, DATEADD(day, 30, GETDATE()), 2, 'ACCESS_TOKEN', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...2'),
-(0, 0, DATEADD(day, 30, GETDATE()), 3, 'ACCESS_TOKEN', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...3'),
-(1, 0, DATEADD(day, -1, GETDATE()), 4, 'ACCESS_TOKEN', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...4'),
-(0, 1, DATEADD(day, 15, GETDATE()), 5, 'REFRESH_TOKEN', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...5');
-GO
-
 -- Insert into social_accounts
 INSERT INTO [dbo].[social_accounts] ([provider_id], [user_id], [provider], [name], [email], [created_at], [last_modified]) VALUES
 (1234567890, 3, 'GOOGLE', N'Khách hàng VIP 1', 'vip1@gmail.com', GETDATE(), GETDATE()),
@@ -388,15 +349,6 @@ INSERT INTO [dbo].[orders] ([order_uuid], [order_code], [customer_id], [branch_i
 (NEWID(), 'ORD005', 3, 1, 85000, 1, DATEADD(hour, -1, GETDATE()), DATEADD(hour, -1, GETDATE()), N'Đơn hàng giao nhanh');
 GO
 
--- Insert into order_details
-INSERT INTO [dbo].[order_details] ([quantity], [order_id], [product_id], [color], [created_at], [last_modified], [note], [total_amount], [unit_price]) VALUES
-(2, 1, 1, NULL, GETDATE(), GETDATE(), N'Không đường', 90000, 45000),
-(1, 1, 5, NULL, GETDATE(), GETDATE(), N'Thêm bơ', 25000, 25000),
-(1, 2, 2, NULL, DATEADD(day, -1, GETDATE()), DATEADD(day, -1, GETDATE()), N'Ít đá', 55000, 55000),
-(3, 3, 3, NULL, GETDATE(), GETDATE(), N'Nóng', 105000, 35000),
-(2, 4, 4, NULL, DATEADD(hour, -2, GETDATE()), DATEADD(hour, -2, GETDATE()), N'Không đường', 80000, 40000),
-(1, 5, 6, NULL, DATEADD(hour, -1, GETDATE()), DATEADD(hour, -1, GETDATE()), N'Size L', 35000, 35000);
-GO
 
 -- Insert into order_payments
 INSERT INTO [dbo].[order_payments] ([order_id], [payment_method_id], [payment_status_id], [amount], [payment_date], [transaction_id], [notes], [created_at], [last_modified]) VALUES
@@ -567,28 +519,6 @@ GO
 
 
 
--- Additional product images for new products
-INSERT INTO [dbo].[product_images] ([product_id], [image_url]) VALUES
-(6, 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE='),
-(7, 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE='),
-(8, 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE='),
-(9, 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE='),
-(10, 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=');
-GO
-
--- Additional product recipes for new products
-INSERT INTO [dbo].[product_recipes] ([product_id], [ingredient_id], [quantity], [created_at], [last_modified]) VALUES
-(6, 1, 0.015, GETDATE(), GETDATE()), -- Latte Art cần 15g cà phê Arabica
-(6, 3, 0.15, GETDATE(), GETDATE()), -- Latte Art cần 150ml sữa tươi
-(6, 6, 0.02, GETDATE(), GETDATE()), -- Latte Art cần 20ml kem tươi
-(7, 1, 0.02, GETDATE(), GETDATE()), -- Americano cần 20g cà phê Arabica
-(8, 10, 0.008, GETDATE(), GETDATE()), -- Trà sữa Thái cần 8g lá trà ô long
-(8, 3, 0.1, GETDATE(), GETDATE()), -- Trà sữa Thái cần 100ml sữa tươi
-(9, 4, 0.015, GETDATE(), GETDATE()), -- Sinh tố bơ cần 15g đường
-(10, 4, 0.012, GETDATE(), GETDATE()); -- Muffin cần 12g đường
-GO
-
-
 INSERT INTO [dbo].[customers] ([id], [user_id], [fullname], [phone_number], [email], [address], [created_at], [last_modified]) VALUES
 (8, 8, N'Phan Thị P', '0945678901', 'pthip@email.com', N'666 Trần Hưng Đạo, Quận 1, TP.HCM', GETDATE(), GETDATE()),
 (9, 9, N'Đặng Văn Q', '0956789012', 'dvq@email.com', N'777 Nguyễn Văn Cừ, Quận 5, TP.HCM', GETDATE(), GETDATE()),
@@ -604,17 +534,6 @@ INSERT INTO [dbo].[orders] ([order_uuid], [order_code], [customer_id], [branch_i
 (NEWID(), 'ORD010', 4, 1, 125000, 3, DATEADD(hour, -2, GETDATE()), DATEADD(hour, -2, GETDATE()), N'Đơn hàng express');
 GO
 
--- Additional order details for new orders
-INSERT INTO [dbo].[order_details] ([quantity], [order_id], [product_id], [color], [created_at], [last_modified], [note], [total_amount], [unit_price]) VALUES
-(1, 6, 6, NULL, GETDATE(), GETDATE(), N'Extra hot', 65000, 65000),
-(2, 6, 7, NULL, GETDATE(), GETDATE(), N'Less sugar', 100000, 50000),
-(1, 7, 8, NULL, DATEADD(hour, -3, GETDATE()), DATEADD(hour, -3, GETDATE()), N'Extra pearls', 45000, 45000),
-(1, 7, 9, NULL, DATEADD(hour, -3, GETDATE()), DATEADD(hour, -3, GETDATE()), N'No sugar', 60000, 60000),
-(2, 8, 10, NULL, GETDATE(), GETDATE(), N'Extra chocolate', 60000, 30000),
-(1, 8, 3, NULL, GETDATE(), GETDATE(), N'Hot tea', 35000, 35000),
-(3, 9, 1, NULL, DATEADD(hour, -4, GETDATE()), DATEADD(hour, -4, GETDATE()), N'To go', 135000, 45000),
-(2, 10, 2, NULL, DATEADD(hour, -2, GETDATE()), DATEADD(hour, -2, GETDATE()), N'Extra foam', 110000, 55000);
-GO
 
 -- Additional inventory thresholds
 INSERT INTO [dbo].[inventory_thresholds] ([ingredient_id], [branch_id], [safety_stock], [reorder_point], [maximum_stock], [created_at], [last_modified]) VALUES
@@ -802,38 +721,6 @@ WHERE r.name = 'ADMIN'
   );
 
 
--- Insert into recipes
-INSERT INTO [dbo].[recipes] ([name], [description], [product_id], [serving_size], [unit], [is_active], [notes], [created_at], [last_modified]) VALUES
-(N'Công thức Espresso', N'Công thức pha chế espresso chuẩn Italy', 1, 250, 'ml', 1, N'Sử dụng hạt cà phê Arabica cao cấp', GETDATE(), GETDATE()),
-(N'Công thức Cappuccino', N'Công thức cappuccino với tỷ lệ 1:1:1', 2, 200, 'ml', 1, N'Cần đánh sữa tạo foam mịn', GETDATE(), GETDATE()),
-(N'Công thức Trà xanh', N'Công thức pha trà xanh truyền thống', 3, 300, 'ml', 1, N'Nhiệt độ nước 80-85°C', GETDATE(), GETDATE()),
-(N'Công thức Nước ép cam', N'Nước ép cam tươi nguyên chất', 4, 350, 'ml', 1, N'Sử dụng cam tươi vắt', GETDATE(), GETDATE()),
-(N'Công thức Croissant', N'Bánh croissant bơ truyền thống Pháp', 5, 1, 'cái', 1, N'Cần ủ bột 12 tiếng', GETDATE(), GETDATE()),
-(N'Công thức Latte', N'Cà phê latte với lớp sữa mềm mại', 1, 350, 'ml', 1, N'Tỷ lệ cà phê:sữa = 1:3', GETDATE(), GETDATE()),
-(N'Công thức Americano', N'Cà phê Americano đậm đà', 1, 300, 'ml', 1, N'Pha loãng espresso với nước nóng', GETDATE(), GETDATE());
-GO
-
--- Insert into recipe_ingredients
-INSERT INTO [dbo].[recipe_ingredients] ([recipe_id], [ingredient_id], [quantity], [unit], [waste_percentage], [notes], [is_optional], [sort_order], [created_at], [last_modified]) VALUES
--- Espresso recipe
-(1, 1, 18.0, 'g', 5.0, N'Hạt cà phê Arabica xay mịn', 0, 1, GETDATE(), GETDATE()),
--- Cappuccino recipe
-(2, 1, 18.0, 'g', 5.0, N'Hạt cà phê espresso', 0, 1, GETDATE(), GETDATE()),
-(2, 3, 120.0, 'ml', 2.0, N'Sữa tươi nguyên chất', 0, 2, GETDATE(), GETDATE()),
-(2, 4, 5.0, 'g', 0.0, N'Đường trắng tinh luyện', 1, 3, GETDATE(), GETDATE()),
--- Green tea recipe
-(3, 5, 3.0, 'g', 0.0, N'Lá trà xanh cao cấp', 0, 1, GETDATE(), GETDATE()),
-(3, 4, 3.0, 'g', 0.0, N'Đường phèn', 1, 2, GETDATE(), GETDATE()),
--- Orange juice recipe
-(4, 4, 10.0, 'g', 0.0, N'Đường cát trắng', 1, 1, GETDATE(), GETDATE()),
--- Croissant recipe ingredients
-(5, 4, 15.0, 'g', 0.0, N'Đường cho bánh', 0, 1, GETDATE(), GETDATE()),
--- Latte recipe
-(6, 1, 18.0, 'g', 5.0, N'Espresso shot', 0, 1, GETDATE(), GETDATE()),
-(6, 3, 200.0, 'ml', 3.0, N'Sữa tươi steamed', 0, 2, GETDATE(), GETDATE()),
--- Americano recipe
-(7, 1, 18.0, 'g', 5.0, N'Double espresso shot', 0, 1, GETDATE(), GETDATE());
-GO
 
 -- Insert into inventory_movements
 INSERT INTO [dbo].[inventory_movements] ([branch_id], [ingredient_id], [movement_type], [quantity], [unit], [quantity_before], [quantity_after], [reference_type], [reference_id], [reference_code], [notes], [employee_id], [movement_date], [created_at], [last_modified]) VALUES
@@ -1043,6 +930,96 @@ INSERT INTO [dbo].[products] ([price], [category_id], [tax_id], [description], [
 (22000, 7, 1, N'Soda truyền thống, tươi mát nhẹ tự nhiên', N'Soda Bạc Hà', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE());  
 GO
 
+-- Insert into products
+INSERT INTO [dbo].[products] ([price], [category_id], [tax_id], [description], [name], [thumbnail], [created_at], [last_modified]) VALUES
+(45000, 1, 1, N'Cà phê espresso đậm đà, hương vị mạnh mẽ', N'Espresso', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(55000, 1, 1, N'Cà phê cappuccino với lớp foam mịn màng', N'Cappuccino', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(35000, 2, 1, N'Trà xanh thơm mát, tốt cho sức khỏe', N'Trà xanh', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(40000, 3, 1, N'Nước ép cam tươi nguyên chất', N'Nước ép cam', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(25000, 4, 1, N'Bánh croissant bơ thơm ngon', N'Croissant', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(35000, 1, 1, N'Cà phê latte thơm ngon với sữa tươi', N'Latte', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(20000, 4, 1, N'Bánh muffin chocolate chip', N'Muffin Chocolate', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE());
+GO
+
+
+-- Insert into recipes
+INSERT INTO [dbo].[recipes] ([name], [description], [product_id], [serving_size], [unit], [is_active], [notes], [created_at], [last_modified]) VALUES
+(N'Công thức Espresso', N'Công thức pha chế espresso chuẩn Italy', 1, 250, 'ml', 1, N'Sử dụng hạt cà phê Arabica cao cấp', GETDATE(), GETDATE()),
+(N'Công thức Cappuccino', N'Công thức cappuccino với tỷ lệ 1:1:1', 2, 200, 'ml', 1, N'Cần đánh sữa tạo foam mịn', GETDATE(), GETDATE()),
+(N'Công thức Trà xanh', N'Công thức pha trà xanh truyền thống', 3, 300, 'ml', 1, N'Nhiệt độ nước 80-85°C', GETDATE(), GETDATE()),
+(N'Công thức Nước ép cam', N'Nước ép cam tươi nguyên chất', 4, 350, 'ml', 1, N'Sử dụng cam tươi vắt', GETDATE(), GETDATE()),
+(N'Công thức Croissant', N'Bánh croissant bơ truyền thống Pháp', 5, 1, 'cái', 1, N'Cần ủ bột 12 tiếng', GETDATE(), GETDATE()),
+(N'Công thức Latte', N'Cà phê latte với lớp sữa mềm mại', 1, 350, 'ml', 1, N'Tỷ lệ cà phê:sữa = 1:3', GETDATE(), GETDATE()),
+(N'Công thức Americano', N'Cà phê Americano đậm đà', 1, 300, 'ml', 1, N'Pha loãng espresso với nước nóng', GETDATE(), GETDATE());
+GO
+
+
+-- Insert into product_recipes
+INSERT INTO [dbo].[product_recipes] ([product_id], [ingredient_id], [quantity], [created_at], [last_modified]) VALUES
+(1, 1, 0.02, GETDATE(), GETDATE()), -- Espresso cần 20g cà phê Arabica
+(2, 1, 0.015, GETDATE(), GETDATE()), -- Cappuccino cần 15g cà phê Arabica
+(2, 3, 0.1, GETDATE(), GETDATE()), -- Cappuccino cần 100ml sữa tươi
+(3, 5, 0.005, GETDATE(), GETDATE()), -- Trà xanh cần 5g lá trà
+(4, 4, 0.01, GETDATE(), GETDATE()); -- Nước ép cam cần 10g đường
+GO
+
+-- Insert into recipe_ingredients
+INSERT INTO [dbo].[recipe_ingredients] ([recipe_id], [ingredient_id], [quantity], [unit], [waste_percentage], [notes], [is_optional], [sort_order], [created_at], [last_modified]) VALUES
+-- Espresso recipe
+(1, 1, 18.0, 'g', 5.0, N'Hạt cà phê Arabica xay mịn', 0, 1, GETDATE(), GETDATE()),
+-- Cappuccino recipe
+(2, 1, 18.0, 'g', 5.0, N'Hạt cà phê espresso', 0, 1, GETDATE(), GETDATE()),
+(2, 3, 120.0, 'ml', 2.0, N'Sữa tươi nguyên chất', 0, 2, GETDATE(), GETDATE()),
+(2, 4, 5.0, 'g', 0.0, N'Đường trắng tinh luyện', 1, 3, GETDATE(), GETDATE()),
+-- Green tea recipe
+(3, 5, 3.0, 'g', 0.0, N'Lá trà xanh cao cấp', 0, 1, GETDATE(), GETDATE()),
+(3, 4, 3.0, 'g', 0.0, N'Đường phèn', 1, 2, GETDATE(), GETDATE()),
+-- Orange juice recipe
+(4, 4, 10.0, 'g', 0.0, N'Đường cát trắng', 1, 1, GETDATE(), GETDATE()),
+-- Croissant recipe ingredients
+(5, 4, 15.0, 'g', 0.0, N'Đường cho bánh', 0, 1, GETDATE(), GETDATE()),
+-- Latte recipe
+(6, 1, 18.0, 'g', 5.0, N'Espresso shot', 0, 1, GETDATE(), GETDATE()),
+(6, 3, 200.0, 'ml', 3.0, N'Sữa tươi steamed', 0, 2, GETDATE(), GETDATE()),
+-- Americano recipe
+(7, 1, 18.0, 'g', 5.0, N'Double espresso shot', 0, 1, GETDATE(), GETDATE());
+GO
+
+
+-- Insert into product_images
+INSERT INTO [dbo].[product_images] ([product_id], [image_url]) VALUES
+(1, 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE='),
+(2, 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE='),
+(3, 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE='),
+(4, 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE='),
+(5, 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE='),
+(6, 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE='),
+(7, 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=');
+GO
+
+
+-- Additional product images for new products
+INSERT INTO [dbo].[product_images] ([product_id], [image_url]) VALUES
+(6, 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE='),
+(7, 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE='),
+(8, 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE='),
+(9, 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE='),
+(10, 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=');
+GO
+
+-- Additional product recipes for new products
+INSERT INTO [dbo].[product_recipes] ([product_id], [ingredient_id], [quantity], [created_at], [last_modified]) VALUES
+(6, 1, 0.015, GETDATE(), GETDATE()), -- Latte Art cần 15g cà phê Arabica
+(6, 3, 0.15, GETDATE(), GETDATE()), -- Latte Art cần 150ml sữa tươi
+(6, 6, 0.02, GETDATE(), GETDATE()), -- Latte Art cần 20ml kem tươi
+(7, 1, 0.02, GETDATE(), GETDATE()), -- Americano cần 20g cà phê Arabica
+(8, 10, 0.008, GETDATE(), GETDATE()), -- Trà sữa Thái cần 8g lá trà ô long
+(8, 3, 0.1, GETDATE(), GETDATE()), -- Trà sữa Thái cần 100ml sữa tươi
+(9, 4, 0.015, GETDATE(), GETDATE()), -- Sinh tố bơ cần 15g đường
+(10, 4, 0.012, GETDATE(), GETDATE()); -- Muffin cần 12g đường
+GO
+
+
 -- Additional Orders (10 records)
 INSERT INTO [dbo].[orders] ([order_uuid], [order_code], [customer_id], [branch_id], [total_money], [status_id], [notes], [created_at], [last_modified]) VALUES
 (NEWID(), 'ORDER011', 8, 4, 285000.00, 3, N'Giao hàng buổi sáng', DATEADD(day, -CAST(RAND(CHECKSUM(NEWID()))*365 AS INT), GETDATE()), DATEADD(day, -CAST(RAND(CHECKSUM(NEWID()))*365 AS INT), GETDATE())),
@@ -1072,6 +1049,29 @@ INSERT INTO [dbo].[branch_expenses] ([branch_id], [expense_type], [amount], [sta
 GO
 
 PRINT N'Additional data (10 records per table) inserted successfully!';
+GO
+
+-- Insert into order_details
+INSERT INTO [dbo].[order_details] ([quantity], [order_id], [product_id], [color], [created_at], [last_modified], [note], [total_amount], [unit_price]) VALUES
+(2, 1, 1, NULL, GETDATE(), GETDATE(), N'Không đường', 90000, 45000),
+(1, 1, 5, NULL, GETDATE(), GETDATE(), N'Thêm bơ', 25000, 25000),
+(1, 2, 2, NULL, DATEADD(day, -1, GETDATE()), DATEADD(day, -1, GETDATE()), N'Ít đá', 55000, 55000),
+(3, 3, 3, NULL, GETDATE(), GETDATE(), N'Nóng', 105000, 35000),
+(2, 4, 4, NULL, DATEADD(hour, -2, GETDATE()), DATEADD(hour, -2, GETDATE()), N'Không đường', 80000, 40000),
+(1, 5, 6, NULL, DATEADD(hour, -1, GETDATE()), DATEADD(hour, -1, GETDATE()), N'Size L', 35000, 35000);
+GO
+
+
+-- Additional order details for new orders
+INSERT INTO [dbo].[order_details] ([quantity], [order_id], [product_id], [color], [created_at], [last_modified], [note], [total_amount], [unit_price]) VALUES
+(1, 6, 6, NULL, GETDATE(), GETDATE(), N'Extra hot', 65000, 65000),
+(2, 6, 7, NULL, GETDATE(), GETDATE(), N'Less sugar', 100000, 50000),
+(1, 7, 8, NULL, DATEADD(hour, -3, GETDATE()), DATEADD(hour, -3, GETDATE()), N'Extra pearls', 45000, 45000),
+(1, 7, 9, NULL, DATEADD(hour, -3, GETDATE()), DATEADD(hour, -3, GETDATE()), N'No sugar', 60000, 60000),
+(2, 8, 10, NULL, GETDATE(), GETDATE(), N'Extra chocolate', 60000, 30000),
+(1, 8, 3, NULL, GETDATE(), GETDATE(), N'Hot tea', 35000, 35000),
+(3, 9, 1, NULL, DATEADD(hour, -4, GETDATE()), DATEADD(hour, -4, GETDATE()), N'To go', 135000, 45000),
+(2, 10, 2, NULL, DATEADD(hour, -2, GETDATE()), DATEADD(hour, -2, GETDATE()), N'Extra foam', 110000, 55000);
 GO
 
 -- Additional Order Details (10 records)

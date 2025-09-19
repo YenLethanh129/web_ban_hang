@@ -760,6 +760,9 @@ public partial class WebbanhangDbContext : DbContext
         modelBuilder.Entity<Token>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__tokens__3213E83F23FD3269");
+            entity.Property(e => e.TokenValue)
+                .IsRequired()
+                .HasMaxLength(2048);
         });
 
         modelBuilder.Entity<EmployeeUserAccount>(entity =>

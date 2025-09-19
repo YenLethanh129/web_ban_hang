@@ -45,9 +45,7 @@ namespace Dashboard.Winform
         public FrmBaseMdiWithSidePanel(IServiceProvider serviceProvider)
         {
             InitializeComponent();
-
-            // Ensure base MDI starts centered on the screen
-            this.StartPosition = FormStartPosition.CenterScreen;
+            StartPosition = FormStartPosition.CenterScreen;
 
             _serviceProvider = serviceProvider;
             _logger = serviceProvider.GetService<ILogger<FrmBaseMdiWithSidePanel>>();
@@ -436,23 +434,19 @@ namespace Dashboard.Winform
 
             try
             {
-                var authService = _serviceProvider?.GetService(typeof(Dashboard.BussinessLogic.Services.RBACServices.IAuthenticationService)) as Dashboard.BussinessLogic.Services.RBACServices.IAuthenticationService;
+                //using var loginForm = _serviceProvider?.GetService(typeof(BussinessLogic.Services.RBACServices.IAuthenticationService)) 
+                //    is BussinessLogic.Services.RBACServices.IAuthenticationService authService ? new FrmLogin(authService) : new FrmLogin();
 
-                using var loginForm = authService != null ? new Dashboard.Winform.Forms.FrmLogin(authService) : new Dashboard.Winform.Forms.FrmLogin();
-
-                // Show login as a modal dialog with this form as owner so it centers relative to this form
-                var dr = loginForm.ShowDialog(this);
-
-                if (dr != DialogResult.OK || !loginForm.LoginSucceeded)
-                {
-                    Application.Exit();
-                    return;
-                }
+                //var dr = loginForm.ShowDialog(this);
+                //if (dr != DialogResult.OK || !loginForm.LoginSucceeded)
+                //{
+                //    Application.Exit();
+                //    return;
+                //}
 
                 try
                 {
-                    var landing = _serviceProvider?.GetService(typeof(FrmLandingDashboard)) as FrmLandingDashboard;
-                    if (landing == null)
+                    if (_serviceProvider?.GetService(typeof(FrmLandingDashboard)) is not FrmLandingDashboard landing)
                     {
                         landing = _serviceProvider!.GetRequiredService<FrmLandingDashboard>();
                     }
@@ -469,7 +463,6 @@ namespace Dashboard.Winform
             }
             catch (Exception ex)
             {
-                // If anything goes wrong, log and exit
                 _logger?.LogError(ex, "Error while showing login dialog");
                 Application.Exit();
                 return;

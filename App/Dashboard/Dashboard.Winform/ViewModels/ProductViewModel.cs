@@ -202,7 +202,7 @@ namespace Dashboard.Winform.ViewModels
         public string? CategoryName { get; set; }
         public long? TaxId { get; set; }
         public string? TaxName { get; set; }
-        public string? Thumbnail { get; set; }
+        public string? ThumbnailPath { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
 

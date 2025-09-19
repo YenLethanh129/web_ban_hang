@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <PackageReference Include="ReaLTaiizor" />
+	<PackageReference Include="System.Net.Http"/>
     <PackageReference Include="WinForms.DataVisualization" />
   </ItemGroup>
 
@@ -53,6 +54,7 @@
 
   <ItemGroup>
     <Folder Include="Forms\RecipeFrm\" />
+    <Folder Include="Resource\Uploads\" />
   </ItemGroup>
 
 </Project>
