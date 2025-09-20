@@ -167,6 +167,58 @@ namespace Dashboard.StockWorker.Services
                     results.Add(alert);
             }
 
+            // Also check ingredient_warehouse (central warehouse) levels and include alerts
+            var warehouses = await _context.IngredientWarehouses
+                .Select(w => new { w.IngredientId, w.Quantity, w.SafetyStock })
+                .ToListAsync();
+
+            foreach (var w in warehouses)
+            {
+                // We'll compare warehouse quantity against a sensible reorder point estimated from average daily consumption across all branches
+                var avgDailyAcrossBranches = 0m;
+
+                // Compute average daily consumption by summing branch consumptions for the ingredient over 30 days
+                var branchIds = await _context.Branches.Select(b => b.Id).ToListAsync();
+                var totalConsumption = 0m;
+                foreach (var branchId in branchIds)
+                {
+                    totalConsumption += await CalculateAverageDailyConsumptionAsync(branchId, w.IngredientId);
+                }
+                avgDailyAcrossBranches = Math.Max(totalConsumption, 0m);
+
+                // Use same default lead time
+                var leadTimeDays = DEFAULT_LEAD_TIME_DAYS;
+                var estimatedRop = await CalculateReorderPointAsync(avgDailyAcrossBranches, leadTimeDays, w.SafetyStock);
+
+                var daysRemaining = avgDailyAcrossBranches > 0 ? (int)Math.Floor(w.Quantity / avgDailyAcrossBranches) : 0;
+                var level = StockAlertLevel.Low;
+                if (w.Quantity <= w.SafetyStock) level = StockAlertLevel.OutOfStock;
+                else if (w.Quantity <= estimatedRop) level = StockAlertLevel.Critical;
+
+                var ing = await _context.Ingredients
+                    .Where(i => i.Id == w.IngredientId)
+                    .Select(i => new { i.Name, i.Unit })
+                    .FirstOrDefaultAsync();
+
+                var warehouseAlert = new StockAlert
+                {
+                    BranchId = 0, // 0 indicates central warehouse
+                    BranchName = "Warehouse",
+                    IngredientId = w.IngredientId,
+                    IngredientName = ing?.Name ?? string.Empty,
+                    CurrentStock = w.Quantity,
+                    Unit = ing?.Unit ?? string.Empty,
+                    ReorderPoint = estimatedRop,
+                    SafetyStock = w.SafetyStock,
+                    AverageDailyConsumption = avgDailyAcrossBranches,
+                    DaysRemaining = daysRemaining,
+                    AlertLevel = level
+                };
+
+                if (warehouseAlert.CurrentStock <= warehouseAlert.ReorderPoint)
+                    results.Add(warehouseAlert);
+            }
+
             return results;
         }
 

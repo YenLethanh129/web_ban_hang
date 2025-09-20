@@ -25,6 +25,7 @@ namespace Dashboard.Winform
 
         private bool UserManagementTransitionActive = false;
         private bool SidebarTransitionActive = true;
+        private bool IngredientTransitionActive = false; // NEW: track ingredient container state
         private bool _isLoading = false;
 
         private Form? activeForm = null;
@@ -49,6 +50,8 @@ namespace Dashboard.Winform
 
             _serviceProvider = serviceProvider;
             _logger = serviceProvider.GetService<ILogger<FrmBaseMdiWithSidePanel>>();
+
+            // Map sidebar buttons to their icons (include ingredient button-icon mapping)
             _buttonIconMap = new Dictionary<Button, PictureBox>
             {
                 { btnSBLanding, iconSBlanding },
@@ -58,7 +61,8 @@ namespace Dashboard.Winform
                 { btnSBGoods, iconSBGoods },
                 { btnSBProduct, iconSBProduct },
                 { btnSBSupplier, iconSBSupplier },
-                { btnSBExit, iconSBExit }
+                { btnSBExit, iconSBExit },
+                { btnSBIngredient, pictureBox2 } // NEW mapping for ingredient button
             };
 
 
@@ -85,11 +89,11 @@ namespace Dashboard.Winform
 
         private void EnableDoubleBuffering()
         {
-            SetStyle(ControlStyles.AllPaintingInWmPaint | 
-                     ControlStyles.UserPaint | 
-                     ControlStyles.DoubleBuffer | 
+            SetStyle(ControlStyles.AllPaintingInWmPaint |
+                     ControlStyles.UserPaint |
+                     ControlStyles.DoubleBuffer |
                      ControlStyles.ResizeRedraw, true);
-            
+
             UpdateStyles();
         }
 
@@ -115,12 +119,12 @@ namespace Dashboard.Winform
         public async Task<T> ExecuteWithLoadingAsync<T>(Func<Task<T>> asyncFunction, string loadingMessage = "Đang tải...", bool useFadeEffect = false)
         {
             T? result = default(T);
-            
+
             await ExecuteWithLoadingAsyncInternal(async () =>
             {
                 result = await asyncFunction();
             }, loadingMessage, useFadeEffect);
-            
+
             return result!;
         }
 
@@ -130,7 +134,7 @@ namespace Dashboard.Winform
         public async Task ShowLoadingAsync(string message = "Đang tải...", bool useFadeEffect = false)
         {
             if (_isLoading) return;
-            
+
             try
             {
                 _isLoading = true;
@@ -151,7 +155,7 @@ namespace Dashboard.Winform
                 _logger?.LogError(ex, "Error in ShowLoadingAsync");
                 _isLoading = false;
                 throw;
-            } 
+            }
             finally
             {
                 _isLoading = false;
@@ -164,7 +168,7 @@ namespace Dashboard.Winform
         public async Task HideLoadingAsync(bool useFadeEffect = false)
         {
             if (!_isLoading) return; // Nothing to hide
-            
+
             try
             {
                 if (_loadingStopwatch != null)
@@ -276,7 +280,7 @@ namespace Dashboard.Winform
                 {
                     _blurLoadingOverlay = new BlurLoadingOverlay();
                 }
-                
+
                 if (useFadeEffect)
                 {
                     await _blurLoadingOverlay.ShowLoadingWithFadeAsync(this, message);
@@ -434,7 +438,7 @@ namespace Dashboard.Winform
 
             try
             {
-                //using var loginForm = _serviceProvider?.GetService(typeof(BussinessLogic.Services.RBACServices.IAuthenticationService)) 
+                //using var loginForm = _serviceProvider?.GetService(typeof(BussinessLogic.Services.RBACServices.IAuthenticationService))
                 //    is BussinessLogic.Services.RBACServices.IAuthenticationService authService ? new FrmLogin(authService) : new FrmLogin();
 
                 //var dr = loginForm.ShowDialog(this);
@@ -472,13 +476,14 @@ namespace Dashboard.Winform
         #region events region
         private void InitializeEvents()
         {
-            btnSBLanding.Click += (s, e) =>  LaunchLandingForm(s!, e);
-            btnSBGoods.Click += (s, e) => LaunchIngredientForm(s!,e);
+            btnSBLanding.Click += (s, e) => LaunchLandingForm(s!, e);
+            btnSBGoods.Click += (s, e) => LaunchIngredientForm(s!, e);
             btnSBEmployee.Click += (s, e) => LaunchEmployeeForm(s!, e);
             btnSBExit.Click += (s, e) => Application.Exit();
             btnSBProduct.Click += (s, e) => LaunchProductForm(s!, e);
             btnSBAccount.Click += (s, e) => LaunchUserForm(s!, e);
             btnSBSupplier.Click += (s, e) => LaunchSupplierForm(s!, e);
+            btnSBIngredient.Click += (s, e) => OpenIngredientContainer(s!, e); // NEW: wire ingredient container toggle
             foreach (var kv in _buttonIconMap.Keys)
             {
                 kv.Click += (s, e) => SetSBButtonUI(s!);
@@ -557,6 +562,47 @@ namespace Dashboard.Winform
             }
         }
 
+        // NEW: Timer tick for ingredient container transition (similar behaviour as user management)
+        private void SBIngredientTransition_Tick(object sender, EventArgs e)
+        {
+            try
+            {
+                int targetHeight = IngredientTransitionActive ? 50 : 150;
+                int diff = targetHeight - fpnSBIngredientContainer.Height;
+                int speed = Math.Max(2, Math.Abs(diff) / 5);
+
+                if (Math.Abs(diff) <= speed)
+                {
+                    fpnSBIngredientContainer.Height = targetHeight;
+                    SBIngredientTransition.Stop();
+                    IngredientTransitionActive = !IngredientTransitionActive;
+                }
+                else
+                {
+                    fpnSBIngredientContainer.Height += (diff > 0 ? speed : -speed);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error in SBIngredientTransition_Tick");
+                SBIngredientTransition.Stop();
+            }
+        }
+
+        private void OpenIngredientContainer(object sender, EventArgs e)
+        {
+            try
+            {
+                if (SidebarTransitionActive)
+                    SBIngredientTransition.Start();
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error in OpenIngredientContainer");
+                MessageBox.Show("Không thể thực hiện animation", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
         private void SBTransition_Tick(object sender, EventArgs e)
         {
             try
@@ -590,7 +636,7 @@ namespace Dashboard.Winform
             {
                 _logger?.LogError(ex, "Error in SBTransition_Tick");
                 SBTransition.Stop();
-                
+
                 try
                 {
                     pnSBHeader.ResumeLayout();
@@ -609,6 +655,11 @@ namespace Dashboard.Winform
                     SBUserManagementTransition.Start();
                 }
 
+                if (SidebarTransitionActive && IngredientTransitionActive)
+                {
+                    SBIngredientTransition.Start();
+                }
+
                 SBTransition.Start();
             }
             catch (Exception ex)
@@ -623,7 +674,7 @@ namespace Dashboard.Winform
             await ExecuteWithLoadingInternalAsync(async () =>
             {
                 FrmLandingDashboard frmLandingDashboard = null!;
-                
+
                 await Task.Run(() =>
                 {
                     if (InvokeRequired)
@@ -640,7 +691,7 @@ namespace Dashboard.Winform
                         OpenChildForm(frmLandingDashboard);
                     }
                 });
-                
+
                 if (frmLandingDashboard != null)
                 {
                     await frmLandingDashboard.WaitForDataLoadingComplete();
@@ -839,7 +890,7 @@ namespace Dashboard.Winform
                 pnMainContainer.Controls.Add(childForm);
                 childForm.BringToFront();
                 childForm.Show();
-                
+
                 _logger?.LogInformation($"Successfully opened child form: {childForm.GetType().Name}");
             }
             catch (Exception ex)

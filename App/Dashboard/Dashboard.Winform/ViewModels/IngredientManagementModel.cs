@@ -191,40 +191,171 @@ public class IngredientViewModel
     public string StatusText => IsActive ? "Hoạt động" : "Ngừng hoạt động";
 }
 
+public class IngredientDetailViewModel : IManagableModel
+{
+    private long _id;
+    private string _name = string.Empty;
+    private string _unit = string.Empty;
+    private long _categoryId;
+    private string _categoryName = string.Empty;
+    private string? _description;
+    private bool _isActive = true;
+    private DateTime _createdAt;
+    private DateTime? _updatedAt;
+    private long? _taxId;
+
+    public long? TaxId 
+    { 
+        get => _taxId;
+        set
+        {
+            if (_taxId != value)
+            {
+                _taxId = value;
+                OnPropertyChanged(nameof(TaxId));
+            }
+        }
+    }
+
+    public long Id 
+    { 
+        get => _id;
+        set
+        {
+            if (_id != value)
+            {
+                _id = value;
+                OnPropertyChanged(nameof(Id));
+            }
+        }
+    }
+
+    public string Name 
+    { 
+        get => _name;
+        set
+        {
+            if (_name != value)
+            {
+                _name = value ?? string.Empty;
+                OnPropertyChanged(nameof(Name));
+            }
+        }
+    }
+
+    public string Unit 
+    { 
+        get => _unit;
+        set
+        {
+            if (_unit != value)
+            {
+                _unit = value ?? string.Empty;
+                OnPropertyChanged(nameof(Unit));
+            }
+        }
+    }
+
+    public long CategoryId 
+    { 
+        get => _categoryId;
+        set
+        {
+            if (_categoryId != value)
+            {
+                _categoryId = value;
+                OnPropertyChanged(nameof(CategoryId));
+            }
+        }
+    }
+
+    public string CategoryName 
+    { 
+        get => _categoryName;
+        set
+        {
+            if (_categoryName != value)
+            {
+                _categoryName = value ?? string.Empty;
+                OnPropertyChanged(nameof(CategoryName));
+            }
+        }
+    }
+
+    public string? Description 
+    { 
+        get => _description;
+        set
+        {
+            if (_description != value)
+            {
+                _description = value;
+                OnPropertyChanged(nameof(Description));
+            }
+        }
+    }
+
+    public bool IsActive 
+    { 
+        get => _isActive;
+        set
+        {
+            if (_isActive != value)
+            {
+                _isActive = value;
+                OnPropertyChanged(nameof(IsActive));
+                OnPropertyChanged(nameof(Status));
+            }
+        }
+    }
+
+    public DateTime CreatedAt 
+    { 
+        get => _createdAt;
+        set
+        {
+            if (_createdAt != value)
+            {
+                _createdAt = value;
+                OnPropertyChanged(nameof(CreatedAt));
+                OnPropertyChanged(nameof(CreatedAtFormatted));
+            }
+        }
+    }
+
+    public DateTime? UpdatedAt 
+    { 
+        get => _updatedAt;
+        set
+        {
+            if (_updatedAt != value)
+            {
+                _updatedAt = value;
+                OnPropertyChanged(nameof(UpdatedAt));
+                OnPropertyChanged(nameof(UpdatedAtFormatted));
+            }
+        }
+    }
+
+    // Computed properties for display
+    public string Status => IsActive ? "Hoạt động" : "Ngừng hoạt động";
+    public string CreatedAtFormatted => CreatedAt.ToString("dd/MM/yyyy HH:mm");
+    public string UpdatedAtFormatted => UpdatedAt?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa cập nhật";
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    protected virtual void OnPropertyChanged(string propertyName)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+}
+
+// IngredientCategoryViewModel for dropdowns
 public class IngredientCategoryViewModel
 {
     public long Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
 
-    public string DisplayText
-    {
-        get
-        {
-            if (!string.IsNullOrWhiteSpace(Description))
-                return $"{Name} ({Description})";
-            return Name;
-        }
-    }
-}
-
-public class IngredientDetailViewModel
-{
-    public long Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string Unit { get; set; } = string.Empty;
-    public long CategoryId { get; set; }
-    public string CategoryName { get; set; } = string.Empty;
-    public string? Description { get; set; }
-    public bool IsActive { get; set; } = true;
-    public long? TaxId { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public DateTime? UpdatedAt { get; set; }
-
-    // Additional properties for detail view
-    public decimal? CurrentStock { get; set; }
-    public decimal? MinimumStock { get; set; }
-    public decimal? MaximumStock { get; set; }
-    public decimal? UnitPrice { get; set; }
-    public string? Supplier { get; set; }
+    public override string ToString() => Name;
 }

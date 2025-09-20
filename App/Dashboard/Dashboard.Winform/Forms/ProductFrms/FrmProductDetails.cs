@@ -1,4 +1,5 @@
 ﻿using Dashboard.Common.Constants;
+using Dashboard.Common.Utitlities;
 using Dashboard.Winform.Helpers;
 using Dashboard.Winform.Presenters;
 using Dashboard.Winform.ViewModels;
@@ -24,13 +25,14 @@ namespace Dashboard.Winform.Forms
         private readonly IProductDetailPresenter _presenter;
         private bool _isDataLoaded = false;
         private readonly ILogger<FrmProductDetails>? _logger;
+        private readonly IImageUrlValidator _imageUrlValidator;
 
-        // Image handling fields
-        private bool _isUrlChanged = false;
-        private bool _isUrlValidated = false;
+        // Image validation management
+        private readonly ImageValidationViewModel _imageValidation;
         private string? _tempImagePath = null;
-        private string? _originalImagePath = null;
         private static readonly HttpClient _httpClient = new HttpClient();
+        private bool _imagesModified = false;
+
         #endregion
 
         #region Properties
@@ -41,20 +43,26 @@ namespace Dashboard.Winform.Forms
         #region Constructor
         public FrmProductDetails(
             IProductDetailPresenter presenter,
+            IImageUrlValidator imageUrlValidator,
             ILogger<FrmProductDetails>? logger = null,
             long? productId = null,
             ProductDetailViewModel? product = null)
         {
             _presenter = presenter ?? throw new ArgumentNullException(nameof(presenter));
+            _imageUrlValidator = imageUrlValidator ?? throw new ArgumentNullException(nameof(imageUrlValidator));
             _logger = logger;
             _productId = productId;
             _product = product ?? new ProductDetailViewModel();
             _isEditMode = productId.HasValue;
 
+            // Initialize image validation
+            _imageValidation = new ImageValidationViewModel();
+
             InitializeComponent();
             InitializeFormSettings();
             SetupEventHandlers();
             SetupDataGridViews();
+            SetupImageValidation();
 
             _presenter.OnProductSaved += Presenter_OnProductSaved;
 
@@ -69,9 +77,14 @@ namespace Dashboard.Winform.Forms
             {
                 try { TabControlHelper.CleanupDarkTheme(tabControl); } catch { }
                 components?.Dispose();
-                // Clean up temp files
                 CleanupTempFiles();
-                // Unsubscribe from presenter events
+
+                // Cleanup image validation events
+                if (_imageValidation != null)
+                {
+                    _imageValidation.PropertyChanged -= ImageValidation_PropertyChanged;
+                }
+
                 if (_presenter != null)
                 {
                     _presenter.OnProductSaved -= Presenter_OnProductSaved;
@@ -102,13 +115,125 @@ namespace Dashboard.Winform.Forms
             BackColor = Color.FromArgb(24, 28, 63);
         }
 
+        private void SetupImageValidation()
+        {
+            txtImagePath.DataBindings.Clear();
+            txtImagePath.DataBindings.Add("Text", _imageValidation, nameof(_imageValidation.ImageUrl), false, DataSourceUpdateMode.OnPropertyChanged);
+
+            btnCheckUrl.DataBindings.Clear();
+            btnCheckUrl.DataBindings.Add("Enabled", _imageValidation, nameof(_imageValidation.CanValidate), false, DataSourceUpdateMode.Never);
+
+            _imageValidation.PropertyChanged += ImageValidation_PropertyChanged;
+
+            if (_isEditMode && !string.IsNullOrEmpty(_product.ThumbnailPath))
+            {
+                _imageValidation.ImageUrl = _product.ThumbnailPath;
+                _imageValidation.OriginalImageUrl = _product.ThumbnailPath;
+                _imageValidation.SetValidationResult(true, "Ảnh hiện tại hợp lệ");
+            }
+            else
+            {
+                _imageValidation.SetValidationResult(true, "");
+            }
+        }
+
+        private void ImageValidation_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(_imageValidation.IsValid) ||
+                e.PropertyName == nameof(_imageValidation.RequiresValidation) ||
+                e.PropertyName == nameof(_imageValidation.IsValidating) ||
+                e.PropertyName == nameof(_imageValidation.CanSave))
+            {
+                UpdateValidationUI();
+                UpdateSaveButtonState();
+            }
+
+            if  (e.PropertyName == nameof(_imageValidation.ImageUrl))
+            {
+                // When the image textbox changes, require validation if the value differs from original
+                try
+                {
+                    var newUrl = _imageValidation.ImageUrl?.Trim() ?? string.Empty;
+                    var origUrl = _imageValidation.OriginalImageUrl?.Trim() ?? string.Empty;
+
+                    if (!string.Equals(newUrl, origUrl, StringComparison.OrdinalIgnoreCase))
+                    {
+                        _imageValidation.ResetValidation();
+                        _imagesModified = true;
+                    }
+                    else
+                    {
+                        _imageValidation.SetValidationResult(true, "Ảnh hiện tại hợp lệ");
+                        _imagesModified = false;
+                    }
+                }
+                catch
+                {
+                }
+
+            }
+        }
+
+        private void UpdateValidationUI()
+        {
+            SafeInvokeOnUI(() =>
+            {
+                if (_imageValidation.IsValidating)
+                {
+                    lblValidationStatus.ForeColor = Color.Blue;
+                    lblValidationStatus.Text = "Đang kiểm tra...";
+                    btnCheckUrl.Text = "Đang kiểm tra...";
+                }
+                else if (_imageValidation.RequiresValidation)
+                {
+                    lblValidationStatus.ForeColor = Color.Orange;
+                    lblValidationStatus.Text = "Cần kiểm tra URL trước khi lưu";
+                    btnCheckUrl.Text = "Kiểm tra URL";
+                }
+                else if (_imageValidation.IsValidated)
+                {
+                    if (_imageValidation.IsValid)
+                    {
+                        lblValidationStatus.ForeColor = Color.Green;
+                        lblValidationStatus.Text = _imageValidation.ValidationMessage;
+                        btnCheckUrl.Text = "✓ Hợp lệ";
+                    }
+                    else
+                    {
+                        lblValidationStatus.ForeColor = Color.Red;
+                        lblValidationStatus.Text = _imageValidation.ValidationMessage;
+                        btnCheckUrl.Text = "Kiểm tra lại";
+                    }
+                }
+                else
+                {
+                    lblValidationStatus.ForeColor = Color.Gray;
+                    lblValidationStatus.Text = "";
+                    btnCheckUrl.Text = "Kiểm tra URL";
+                }
+            });
+        }
+
+        private void UpdateSaveButtonState()
+        {
+            SafeInvokeOnUI(() =>
+            {
+                var imageOkToSave = !_imagesModified 
+                    || (_imageValidation.IsValidated && _imageValidation.IsValid 
+                    && !_imageValidation.IsValidating && !_imageValidation.RequiresValidation);
+                btnSave.Enabled = imageOkToSave && !_isProcessingSave;
+            });
+        }
+
+        private bool _isProcessingSave = false;
+
         private void UpdateFormMode()
         {
             if (_isEditMode)
             {
                 Text = $"Chi tiết sản phẩm - {_product?.Name ?? "N/A"}";
                 btnClose.Visible = true;
-                btnSave.Text = "Cập nhật";
+                btnSave.Text = "Lưu";
             }
             else
             {
@@ -120,34 +245,25 @@ namespace Dashboard.Winform.Forms
 
         private void SetupEventHandlers()
         {
-            // Form load event
             this.Load += (s, e) => FrmProductDetails_Load(s!, e);
 
-            // Form buttons
             btnSave.Click += (s, e) => BtnSave_Click(s!, e);
             btnCancel.Click += (s, e) => BtnCancel_Click(s!, e);
             btnClose.Click += (s, e) => BtnClose_Click(s!, e);
 
-            // Image management buttons
             btnAddImage.Click += (s, e) => BtnAddImage_Click(s!, e);
             btnDeleteImage.Click += (s, e) => BtnDeleteImage_Click(s!, e);
 
             btnCheckUrl.Click += async (s, e) => await BtnCheckUrl_ClickAsync(s!, e);
 
-            // Recipe management buttons
             btnAddRecipe.Click += (s, e) => BtnAddRecipe_Click(s!, e);
             btnEditRecipe.Click += (s, e) => BtnEditRecipe_Click(s!, e);
             btnDeleteRecipe.Click += (s, e) => BtnDeleteRecipe_Click(s!, e);
             btnViewRecipeDetails.Click += (s, e) => BtnViewRecipeDetails_Click(s!, e);
 
-            // Image upload/remove buttons
             btnUpload.Click += (s, e) => BtnUpload_Click(s!, e);
             btnRemove.Click += (s, e) => BtnRemove_Click(s!, e);
 
-            // Image path text changed
-            txtImagePath.TextChanged += (s, e) => TxtImagePath_TextChanged(s!, e);
-
-            // Validation events
             txtName.Validating += (s, e) => TxtName_Validating(s!, e);
             numPrice.Validating += (s, e) => NumPrice_Validating(s!, e);
         }
@@ -178,7 +294,7 @@ namespace Dashboard.Winform.Forms
                     }
                 }
 
-                PopulateFormWithData();
+                await PopulateFormWithData();
             }
             catch (Exception ex)
             {
@@ -222,7 +338,6 @@ namespace Dashboard.Winform.Forms
 
         private void LoadFallbackDropdownData()
         {
-            // Fallback categories
             cbxCategory.Items.Clear();
             cbxCategory.Items.Add(new CategoryViewModel { Id = 1L, Name = "Đồ uống" });
             cbxCategory.Items.Add(new CategoryViewModel { Id = 2L, Name = "Đồ ăn" });
@@ -230,7 +345,6 @@ namespace Dashboard.Winform.Forms
             cbxCategory.DisplayMember = "Name";
             cbxCategory.ValueMember = "Id";
 
-            // Fallback taxes
             cbxTax.Items.Clear();
             cbxTax.Items.Add(new TaxViewModel { Id = 1L, Name = "VAT 10%", Rate = 10 });
             cbxTax.Items.Add(new TaxViewModel { Id = 2L, Name = "VAT 8%", Rate = 8 });
@@ -241,25 +355,23 @@ namespace Dashboard.Winform.Forms
 
         private void Presenter_OnProductSaved(object? sender, ProductDetailViewModel? vm)
         {
-            if (InvokeRequired)
+            // Use safe invoke to avoid calling BeginInvoke before handle created
+            SafeInvokeOnUI(async () =>
             {
-                BeginInvoke(new Action(() =>
+                try
                 {
-                    try
+                    if (vm != null)
                     {
-                        if (vm != null)
-                        {
-                            _product = vm;
-                            PopulateFormWithData();
-                        }
+                        _product = vm;
+                        await PopulateFormWithData();
                     }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"Lỗi khi cập nhật dữ liệu: {ex.Message}", "Lỗi",
-                            MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                }));
-            }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Lỗi khi cập nhật dữ liệu: {ex.Message}", "Lỗi",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            });
         }
 
         private void SetupDataGridViews()
@@ -345,7 +457,7 @@ namespace Dashboard.Winform.Forms
             });
         }
 
-        private void PopulateFormWithData()
+        private async Task PopulateFormWithData()
         {
             if (_product == null) return;
 
@@ -357,9 +469,16 @@ namespace Dashboard.Winform.Forms
                 numPrice.Value = _product.Price;
                 chkIsActive.Checked = _product.IsActive;
 
-                // Store original image path
-                _originalImagePath = _product.ThumbnailPath ?? "";
-                txtImagePath.Text = _originalImagePath;
+                // Setup image validation with original image path
+                var originalImagePath = _product.ThumbnailPath ?? string.Empty;
+                _imageValidation.OriginalImageUrl = originalImagePath;
+                _imageValidation.ImageUrl = originalImagePath;
+
+                // For existing images, mark as validated
+                if (!string.IsNullOrEmpty(originalImagePath))
+                {
+                    _imageValidation.SetValidationResult(true, "Ảnh hiện tại hợp lệ");
+                }
 
                 SetComboBoxSelection(cbxCategory, _product.CategoryId ?? 0);
                 SetComboBoxSelection(cbxTax, _product.TaxId ?? 0);
@@ -370,17 +489,13 @@ namespace Dashboard.Winform.Forms
                 dgvProductImages.DataSource = _product.ProductImages;
                 dgvRecipes.DataSource = _product.Recipes;
 
-                LoadThumbnailImage();
+                await LoadThumbnailImageAsync();
 
                 if (!_isEditMode)
                 {
                     chkIsActive.Checked = true;
                     numPrice.Value = 0;
                 }
-
-                // Reset URL validation flags
-                _isUrlChanged = false;
-                _isUrlValidated = true;
             }
             catch (Exception ex)
             {
@@ -393,10 +508,18 @@ namespace Dashboard.Winform.Forms
         #region Event Handlers
         private async void BtnSave_Click(object sender, EventArgs e)
         {
-            if (!ValidateForm()) return;
+            if (!_imageValidation.CanSave)
+            {
+                MessageBox.Show("Vui lòng kiểm tra URL hình ảnh trước khi lưu.", "Thông báo",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                btnCheckUrl.Focus();
+                return;
+            }
 
-            if (btnSave.Tag?.Equals("processing") == true) return;
-            btnSave.Tag = "processing";
+            if (!ValidateFormAsync()) return;
+
+            if (_isProcessingSave) return;
+            _isProcessingSave = true;
 
             try
             {
@@ -419,6 +542,7 @@ namespace Dashboard.Winform.Forms
                 if (result != null)
                 {
                     _product = result;
+                    _imageValidation.SaveChanges(); // Mark changes as saved
                     CleanupTempFiles();
                     Result = DialogResult.OK;
                     Close();
@@ -436,242 +560,193 @@ namespace Dashboard.Winform.Forms
             finally
             {
                 SetLoadingState(false);
-                btnSave.Tag = null;
+                _isProcessingSave = false;
             }
         }
-
 
         private async Task ProcessImageBeforeSaveAsync()
         {
             try
             {
-                var currentPath = txtImagePath.Text.Trim();
-
-                if (string.IsNullOrEmpty(currentPath))
+                var currentThumb = _imageValidation.ImageUrl?.Trim();
+                if (!string.IsNullOrEmpty(currentThumb) && _imageValidation.HasChanges)
                 {
-                    return;
-                }
-
-                // If it's a URL and already validated, download and save it
-                if (IsValidImageUrl(currentPath) && _isUrlValidated)
-                {
-                    var savedPath = await DownloadAndSaveImageAsync(currentPath);
-                    if (!string.IsNullOrEmpty(savedPath))
+                    var savedThumbPath = await SaveImageToUploadsAsync(currentThumb);
+                    if (!string.IsNullOrEmpty(savedThumbPath))
                     {
-                        txtImagePath.Text = savedPath;
+                        _product.ThumbnailPath = savedThumbPath;
+                        _imageValidation.OriginalImageUrl = savedThumbPath;
+                        _imageValidation.ImageUrl = savedThumbPath;
+                    }
+                    else
+                    {
+                        throw new Exception("Không thể lưu ảnh đại diện. Vui lòng kiểm tra lại đường dẫn/ kết nối mạng.");
                     }
                 }
-                // If it's a temp file, move it to the uploads folder
-                else if (!string.IsNullOrEmpty(_tempImagePath) && File.Exists(_tempImagePath))
+
+                if (_imagesModified && _product.ProductImages != null)
                 {
-                    var savedPath = CopyImageToUploads(_tempImagePath);
-                    if (!string.IsNullOrEmpty(savedPath))
+                    var list = _product.ProductImages;
+                    for (int i = 0; i < list.Count; i++)
                     {
-                        txtImagePath.Text = savedPath;
-                    }
-                }
-                // If it's a local file path (not in uploads), copy it there
-                else if (File.Exists(currentPath) && !IsInUploadsFolder(currentPath))
-                {
-                    // Check if it's the same as original, if so skip
-                    if (currentPath != _originalImagePath)
-                    {
-                        var savedPath = CopyImageToUploads(currentPath);
-                        if (!string.IsNullOrEmpty(savedPath))
+                        var imgVm = list[i];
+                        var imgPath = imgVm.ImageUrl?.Trim();
+
+                        if (string.IsNullOrEmpty(imgPath))
+                            continue;
+
+                        if (IsInUploadsFolder(imgPath))
+                            continue;
+
+                        var saved = await SaveImageToUploadsAsync(imgPath);
+                        if (!string.IsNullOrEmpty(saved))
                         {
-                            txtImagePath.Text = savedPath;
+                            imgVm.ImageUrl = saved;
+                        }
+                        else
+                        {
+                            throw new Exception($"Không thể lưu ảnh: {imgPath}");
                         }
                     }
                 }
+
+                _imagesModified = false;
             }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, "Error processing image before save");
-                throw new Exception($"Lỗi khi xử lý hình ảnh: {ex.Message}");
+                MessageBox.Show($"Lỗi khi xử lý hình ảnh: {ex.Message}", "Lỗi",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
-        private string CopyImageToUploads(string sourcePath)
+        private async Task<string> SaveImageToUploadsAsync(string imagePathOrUrl)
         {
             try
             {
-                var uploadsDir = GetUploadsDirectory();
-                Directory.CreateDirectory(uploadsDir);
+                if (string.IsNullOrEmpty(imagePathOrUrl))
+                    return string.Empty;
 
-                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(sourcePath)}";
-                var destinationPath = Path.Combine(uploadsDir, fileName);
+                if (IsInUploadsFolder(imagePathOrUrl))
+                {
+                    var uploadsDir = GetUploadsDirectory();
+                    if (imagePathOrUrl.StartsWith(uploadsDir, StringComparison.OrdinalIgnoreCase))
+                    {
+                        var relative = imagePathOrUrl.Substring(uploadsDir.Length).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                        return Path.Combine("Resources", "Uploads", relative).Replace(Path.DirectorySeparatorChar, '/');
+                    }
+                    return imagePathOrUrl;
+                }
 
-                File.Copy(sourcePath, destinationPath, true);
+                if (Uri.TryCreate(imagePathOrUrl, UriKind.Absolute, out var uri) &&
+                    (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
+                {
+                    var saved = await DownloadAndSaveImageAsync(imagePathOrUrl);
+                    return saved ?? string.Empty;
+                }
 
-                return Path.Combine("Resources", "Uploads", fileName);
+                if (File.Exists(imagePathOrUrl))
+                {
+                    var saved = CopyImageToUploads(imagePathOrUrl);
+                    return saved ?? string.Empty;
+                }
+
+                var projectDir = Path.GetDirectoryName(Application.ExecutablePath);
+                if (!string.IsNullOrEmpty(projectDir))
+                {
+                    var full = Path.Combine(projectDir, imagePathOrUrl);
+                    if (File.Exists(full))
+                    {
+                        var saved = CopyImageToUploads(full);
+                        return saved ?? string.Empty;
+                    }
+                }
+
+                return string.Empty;
             }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, "Error copying image to uploads folder");
+                _logger?.LogError(ex, "Error saving image to uploads: {Image}", imagePathOrUrl);
                 return string.Empty;
             }
         }
-
-        private async Task<string> DownloadAndSaveImageAsync(string imageUrl)
-        {
-            try
-            {
-                using var response = await _httpClient.GetAsync(imageUrl);
-                response.EnsureSuccessStatusCode();
-
-                var contentType = response.Content.Headers.ContentType?.MediaType ?? "";
-                var extension = GetExtensionFromContentType(contentType);
-
-                if (string.IsNullOrEmpty(extension))
-                {
-                    extension = Path.GetExtension(imageUrl) ?? ".jpg";
-                }
-
-                var uploadsDir = GetUploadsDirectory();
-                Directory.CreateDirectory(uploadsDir);
-
-                var fileName = $"{Guid.NewGuid()}{extension}";
-                var filePath = Path.Combine(uploadsDir, fileName);
-
-                using var fileStream = File.Create(filePath);
-                await response.Content.CopyToAsync(fileStream);
-
-                return Path.Combine("Resources", "Uploads", fileName);
-            }
-            catch (Exception ex)
-            {
-                _logger?.LogError(ex, "Error downloading image from URL");
-                throw new Exception($"Không thể tải ảnh từ URL: {ex.Message}");
-            }
-        }
-
-        private string GetExtensionFromContentType(string contentType)
-        {
-            return contentType.ToLower() switch
-            {
-                "image/jpeg" => ".jpg",
-                "image/jpg" => ".jpg",
-                "image/png" => ".png",
-                "image/gif" => ".gif",
-                "image/bmp" => ".bmp",
-                "image/webp" => ".webp",
-                _ => ".jpg"
-            };
-        }
-
-        private bool IsInUploadsFolder(string path)
-        {
-            var uploadsDir = GetUploadsDirectory();
-            return path.StartsWith(uploadsDir, StringComparison.OrdinalIgnoreCase);
-        }
-
-        private string GetUploadsDirectory()
-        {
-            var projectDir = Path.GetDirectoryName(Application.ExecutablePath);
-            if (string.IsNullOrEmpty(projectDir))
-                throw new InvalidOperationException("Could not determine the application directory.");
-            return Path.Combine(projectDir, "Resources", "Uploads");
-        }
-
-        private void CleanupTempFiles()
-        {
-            try
-            {
-                if (!string.IsNullOrEmpty(_tempImagePath) && File.Exists(_tempImagePath))
-                {
-                    File.Delete(_tempImagePath);
-                    _tempImagePath = null;
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger?.LogWarning(ex, "Error cleaning up temp files");
-            }
-        }
-
         private async Task BtnCheckUrl_ClickAsync(object sender, EventArgs e)
         {
-            var url = txtImagePath.Text.Trim();
+            var url = _imageValidation.ImageUrl?.Trim();
 
             if (string.IsNullOrEmpty(url))
             {
-                var toastWarning = new FrmToastMessage(ToastType.WARNING, "Vui lòng nhập URL hình ảnh");
-                toastWarning.Show();
-                return;
-            }
-
-            if (!IsValidImageUrl(url))
-            {
-                var toastError = new FrmToastMessage(ToastType.ERROR, "URL không hợp lệ hoặc không phải hình ảnh");
-                toastError.Show();
-                _isUrlValidated = false;
+                MessageBox.Show("Vui lòng nhập URL hoặc đường dẫn hình ảnh", "Thông báo",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
             try
             {
-                btnCheckUrl.Enabled = false;
-                btnCheckUrl.Text = "Đang kiểm tra...";
+                _imageValidation.StartValidation();
 
-                using var response = await _httpClient.GetAsync(url);
-                response.EnsureSuccessStatusCode();
-
-                var contentType = response.Content.Headers.ContentType?.MediaType ?? "";
-                if (!IsImageContentType(contentType))
+                if (!await _imageUrlValidator.ValidateAsync(url))
                 {
-                    var toastInvalid = new FrmToastMessage(ToastType.ERROR, "URL không trỏ đến một hình ảnh hợp lệ");
-                    toastInvalid.Show();
-                    _isUrlValidated = false;
+                    _imageValidation.SetValidationResult(false, "Không phải đường dẫn hình ảnh hợp lệ");
                     return;
                 }
 
-                // Load image to preview
-                LoadThumbnailImage();
+                await LoadThumbnailImageAsync();
+                _imageValidation.SetValidationResult(true, "Đường dẫn hình ảnh hợp lệ!");
 
-                _isUrlValidated = true;
-                _isUrlChanged = false;
-                var toastValid = new FrmToastMessage(ToastType.WARNING, "URL hình ảnh hợp lệ!");
-                toastValid.Show();
+                if (!string.Equals(_imageValidation.ImageUrl, _imageValidation.OriginalImageUrl, StringComparison.OrdinalIgnoreCase))
+                {
+                    _imagesModified = true;
+                }
             }
             catch (Exception ex)
             {
                 _logger?.LogError(ex, "Error validating image URL");
-                var toastCatch = new FrmToastMessage(ToastType.ERROR, "URL không trỏ đến một hình ảnh hợp lệ");
-                toastCatch.Show();
-                _isUrlValidated = false;
+                _imageValidation.SetValidationResult(false, "Không thể xác thực hình ảnh");
             }
-            finally
+        }
+
+
+        private void BtnUpload_Click(object sender, EventArgs e)
+        {
+            using OpenFileDialog openFileDialog = new OpenFileDialog
             {
-                btnCheckUrl.Enabled = true;
-                btnCheckUrl.Text = "Kiểm tra URL";
+                Title = "Chọn hình ảnh",
+                Filter = "Image Files|*.jpg;*.jpeg;*.png;*.bmp;*.gif",
+                InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures)
+            };
+
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                try
+                {
+                    var tempDir = Path.GetTempPath();
+                    var tempFileName = $"temp_image_{Guid.NewGuid()}{Path.GetExtension(openFileDialog.FileName)}";
+                    _tempImagePath = Path.Combine(tempDir, tempFileName);
+
+                    File.Copy(openFileDialog.FileName, _tempImagePath);
+                    _imageValidation.ImageUrl = _tempImagePath;
+
+                    _imageValidation.SetValidationResult(true, "File hình ảnh hợp lệ");
+
+                    _imagesModified = true;
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Lỗi khi tải file: {ex.Message}", "Lỗi",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
         }
 
-        private bool IsValidImageUrl(string url)
+        private void BtnRemove_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrEmpty(url)) return false;
-
-            // Check if it's a valid URL
-            if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
-                return false;
-
-            // Check if it's HTTP or HTTPS
-            if (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)
-                return false;
-
-            // Check file extension
-            var extension = Path.GetExtension(uri.LocalPath).ToLower();
-            var validExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp" };
-
-            return validExtensions.Contains(extension);
+            _imageValidation.ImageUrl = string.Empty;
+            CleanupTempFiles();
+            _imageValidation.SetValidationResult(true, "");
+            _imagesModified = true;
         }
 
-        private bool IsImageContentType(string contentType)
-        {
-            var imageTypes = new[] { "image/jpeg", "image/jpg", "image/png", "image/gif", "image/bmp", "image/webp" };
-            return imageTypes.Contains(contentType.ToLower());
-        }
 
+        // Other event handlers remain the same...
         private void BtnCancel_Click(object sender, EventArgs e)
         {
             CleanupTempFiles();
@@ -707,6 +782,9 @@ namespace Dashboard.Winform.Forms
                     {
                         _product.ProductImages.Remove(selectedImage);
                         dgvProductImages.Refresh();
+
+                        // mark modified
+                        _imagesModified = true;
                     }
                 }
             }
@@ -717,39 +795,11 @@ namespace Dashboard.Winform.Forms
             }
         }
 
+        // Recipe management methods remain the same...
         private void BtnAddRecipe_Click(object sender, EventArgs e)
         {
-            try
-            {
-                var newRecipe = new RecipeViewModel
-                {
-                    ProductId = _product.Id,
-                    ProductName = _product.Name,
-                    IsActive = true,
-                    CreatedAt = DateTime.Now
-                };
-
-                // TODO: Replace with proper FrmRecipeDetails initialization
-                using var recipeForm = new FrmRecipeDetails(null, ConvertToRecipeDetailViewModel(newRecipe));
-                var result = recipeForm.ShowDialog(this);
-
-                if (result == DialogResult.OK)
-                {
-                    var updatedRecipe = ConvertToRecipeViewModel(recipeForm.Recipe);
-                    _product.Recipes.Add(updatedRecipe);
-                    dgvRecipes.Refresh();
-                    MessageBox.Show("Thêm công thức thành công!", "Thông báo",
-                        MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-
-                MessageBox.Show("Chức năng thêm công thức sẽ được triển khai", "Thông báo",
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Lỗi khi thêm công thức: {ex.Message}", "Lỗi",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            MessageBox.Show("Chức năng thêm công thức sẽ được triển khai", "Thông báo",
+                MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void BtnEditRecipe_Click(object sender, EventArgs e)
@@ -778,7 +828,7 @@ namespace Dashboard.Winform.Forms
 
                 if (result == DialogResult.Yes)
                 {
-                    _product.Recipes.Remove(selectedRecipe);
+                    _product.Recipes!.Remove(selectedRecipe);
                     dgvRecipes.Refresh();
                     MessageBox.Show("Xóa công thức thành công!", "Thông báo",
                         MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -804,53 +854,6 @@ namespace Dashboard.Winform.Forms
                 MessageBox.Show("Vui lòng chọn một công thức để xem chi tiết",
                     "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
-        }
-
-        private void TxtImagePath_TextChanged(object sender, EventArgs e)
-        {
-            _isUrlChanged = true;
-            _isUrlValidated = false;
-            LoadThumbnailImage();
-        }
-
-        private void BtnUpload_Click(object sender, EventArgs e)
-        {
-            using OpenFileDialog openFileDialog = new OpenFileDialog
-            {
-                Title = "Chọn hình ảnh",
-                Filter = "Image Files|*.jpg;*.jpeg;*.png;*.bmp;*.gif",
-                InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures)
-            };
-
-            if (openFileDialog.ShowDialog() == DialogResult.OK)
-            {
-                try
-                {
-                    // Create temp copy
-                    var tempDir = Path.GetTempPath();
-                    var tempFileName = $"temp_image_{Guid.NewGuid()}{Path.GetExtension(openFileDialog.FileName)}";
-                    _tempImagePath = Path.Combine(tempDir, tempFileName);
-
-                    File.Copy(openFileDialog.FileName, _tempImagePath);
-                    txtImagePath.Text = _tempImagePath;
-
-                    _isUrlChanged = false;
-                    _isUrlValidated = true; // Local file is considered validated
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Lỗi khi tải file: {ex.Message}", "Lỗi",
-                        MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-        }
-
-        private void BtnRemove_Click(object sender, EventArgs e)
-        {
-            txtImagePath.Text = "";
-            CleanupTempFiles();
-            _isUrlChanged = false;
-            _isUrlValidated = true;
         }
         #endregion
 
@@ -879,7 +882,7 @@ namespace Dashboard.Winform.Forms
         #endregion
 
         #region Helper Methods
-        private bool ValidateForm()
+        private bool ValidateFormAsync()
         {
             if (string.IsNullOrWhiteSpace(txtName.Text))
             {
@@ -905,18 +908,6 @@ namespace Dashboard.Winform.Forms
                 return false;
             }
 
-            if (_isUrlChanged && !_isUrlValidated)
-            {
-                var imagePath = txtImagePath.Text.Trim();
-                if (!string.IsNullOrEmpty(imagePath) && IsValidImageUrl(imagePath))
-                {
-                    MessageBox.Show("Vui lòng kiểm tra URL hình ảnh bằng cách nhấn 'Kiểm tra URL'", "Lỗi",
-                        MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    btnCheckUrl.Focus();
-                    return false;
-                }
-            }
-
             return true;
         }
 
@@ -928,9 +919,9 @@ namespace Dashboard.Winform.Forms
             vm.Description = txtDescription.Text.Trim();
             vm.Price = numPrice.Value;
             vm.IsActive = chkIsActive.Checked;
-            vm.ThumbnailPath = txtImagePath.Text.Trim();
 
-            // Handle Category selection - Fixed selection logic
+            vm.ThumbnailPath = _imageValidation.ImageUrl?.Trim();
+
             if (cbxCategory.SelectedValue != null)
             {
                 try
@@ -944,7 +935,7 @@ namespace Dashboard.Winform.Forms
                 }
             }
 
-            // Handle Tax selection - Fixed selection logic
+            // Handle Tax selection
             if (cbxTax.SelectedValue != null)
             {
                 try
@@ -958,12 +949,136 @@ namespace Dashboard.Winform.Forms
                 }
             }
 
-            // Ensure collections are properly initialized
             vm.ProductImages ??= [];
             vm.Recipes ??= [];
             vm.ProductRecipes ??= [];
 
+            vm.ImagesModified = _imagesModified;
+
             return vm;
+        }
+
+        private string CopyImageToUploads(string sourcePath)
+        {
+            try
+            {
+                var uploadsDir = GetUploadsDirectory();
+                Directory.CreateDirectory(uploadsDir);
+
+                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(sourcePath)}";
+                var destinationPath = Path.Combine(uploadsDir, fileName);
+
+                File.Copy(sourcePath, destinationPath, true);
+
+                return Path.Combine("Resources", "Uploads", fileName);
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error copying image to uploads folder");
+                return string.Empty;
+            }
+        }
+
+        private async Task<string> DownloadAndSaveImageAsync(string imageUrl)
+        {
+            try
+            {
+                string uploadsDir = GetUploadsDirectory();
+                Directory.CreateDirectory(uploadsDir);
+
+                // Case 1: Local file
+                if (File.Exists(imageUrl))
+                {
+                    var ext = Path.GetExtension(imageUrl);
+                    if (string.IsNullOrEmpty(ext))
+                        ext = ".jpg";
+
+                    var fileName = $"{Guid.NewGuid()}{ext}";
+                    var filePath = Path.Combine(uploadsDir, fileName);
+
+                    File.Copy(imageUrl, filePath, overwrite: true);
+                    return Path.Combine("Resources", "Uploads", fileName);
+                }
+
+                // Case 2: Remote URL
+                if (!Uri.TryCreate(imageUrl, UriKind.Absolute, out var uri) ||
+                    (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+                {
+                    throw new ArgumentException("Đường dẫn không hợp lệ hoặc không hỗ trợ.", nameof(imageUrl));
+                }
+
+                using var response = await _httpClient.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead);
+                response.EnsureSuccessStatusCode();
+
+                var contentType = response.Content.Headers.ContentType?.MediaType ?? "";
+                var extension = GetExtensionFromContentType(contentType);
+                if (string.IsNullOrEmpty(extension))
+                {
+                    extension = Path.GetExtension(uri.AbsolutePath);
+                    if (string.IsNullOrEmpty(extension))
+                        extension = ".jpg";
+                }
+
+                var newFileName = $"{Guid.NewGuid()}{extension}";
+                var newFilePath = Path.Combine(uploadsDir, newFileName);
+
+                using (var fs = File.Create(newFilePath))
+                {
+                    await response.Content.CopyToAsync(fs);
+                }
+
+                return Path.Combine("Resources", "Uploads", newFileName);
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error downloading or copying image from: {ImageUrl}", imageUrl);
+                throw new Exception($"Không thể tải hoặc sao chép ảnh: {ex.Message}");
+            }
+        }
+
+        private string GetExtensionFromContentType(string contentType)
+        {
+            return contentType.ToLower() switch
+            {
+                "image/jpeg" => ".jpg",
+                "image/jpg" => ".jpg",
+                "image/png" => ".png",
+                "image/gif" => ".gif",
+                "image/bmp" => ".bmp",
+                "image/webp" => ".webp",
+                _ => ".jpg"
+            };
+        }
+
+        private bool IsInUploadsFolder(string path)
+        {
+            var uploadsDir = GetUploadsDirectory();
+            return path.StartsWith(uploadsDir, StringComparison.OrdinalIgnoreCase) ||
+                   path.StartsWith(Path.Combine("Resources", "Uploads"), StringComparison.OrdinalIgnoreCase);
+        }
+
+        private string GetUploadsDirectory()
+        {
+            var projectDir = Path.GetDirectoryName(Application.ExecutablePath);
+            if (string.IsNullOrEmpty(projectDir))
+                throw new InvalidOperationException("Could not determine the application directory.");
+            return Path.Combine(projectDir, "Resources", "Uploads");
+        }
+
+        private void CleanupTempFiles()
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(_tempImagePath) && File.Exists(_tempImagePath))
+                {
+                    File.Delete(_tempImagePath);
+                    _tempImagePath = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogWarning(ex, "Error cleaning up temp files");
+            }
         }
 
         private void SetComboBoxSelection(ComboBox comboBox, long id)
@@ -976,10 +1091,8 @@ namespace Dashboard.Winform.Forms
                     return;
                 }
 
-                // Use SelectedValue for proper binding
                 comboBox.SelectedValue = id;
 
-                // Fallback if SelectedValue doesn't work
                 if (comboBox.SelectedIndex == -1)
                 {
                     for (int i = 0; i < comboBox.Items.Count; i++)
@@ -1016,9 +1129,9 @@ namespace Dashboard.Winform.Forms
             return null;
         }
 
-        private void LoadThumbnailImage()
+        private async Task LoadThumbnailImageAsync()
         {
-            var imagePath = txtImagePath.Text.Trim();
+            var imagePath = _imageValidation.ImageUrl?.Trim();
 
             try
             {
@@ -1029,7 +1142,7 @@ namespace Dashboard.Winform.Forms
                 }
 
                 // Handle URL
-                if (IsValidImageUrl(imagePath))
+                if (await _imageUrlValidator.ValidateAsync(imagePath))
                 {
                     picThumbnail.LoadAsync(imagePath);
                     return;
@@ -1043,7 +1156,6 @@ namespace Dashboard.Winform.Forms
                     return;
                 }
 
-                // Handle relative path
                 var projectDir = Path.GetDirectoryName(Application.ExecutablePath);
                 if (string.IsNullOrEmpty(projectDir))
                     throw new InvalidOperationException("Could not determine the application directory.");
@@ -1067,11 +1179,10 @@ namespace Dashboard.Winform.Forms
 
         private void SetLoadingState(bool isLoading)
         {
-            btnSave.Enabled = !isLoading;
+            btnSave.Enabled = !isLoading && _imageValidation.CanSave;
             btnCancel.Enabled = !isLoading;
             btnClose.Enabled = !isLoading;
 
-            // Disable/enable other controls as needed
             txtName.Enabled = !isLoading;
             txtDescription.Enabled = !isLoading;
             numPrice.Enabled = !isLoading;
@@ -1080,58 +1191,63 @@ namespace Dashboard.Winform.Forms
             cbxTax.Enabled = !isLoading;
             btnUpload.Enabled = !isLoading;
             btnRemove.Enabled = !isLoading;
-            btnCheckUrl.Enabled = !isLoading;
+            btnCheckUrl.Enabled = !isLoading && _imageValidation.CanValidate;
 
             this.Cursor = isLoading ? Cursors.WaitCursor : Cursors.Default;
         }
+        #endregion
 
-        private void SafeInvoke(Action action)
+        #region Thread-safe UI helpers
+
+        /// <summary>
+        /// Safely invokes an Action on the UI thread. If the control handle is not yet created,
+        /// the action will be scheduled to run when HandleCreated fires.
+        /// If the form is disposed or disposing, the action is ignored.
+        /// </summary>
+        private void SafeInvokeOnUI(Action action)
         {
-            if (InvokeRequired)
+            if (action == null) return;
+            if (IsDisposed || Disposing) return;
+
+            try
             {
-                Invoke(action);
+                if (IsHandleCreated)
+                {
+                    if (InvokeRequired)
+                        BeginInvoke(action);
+                    else
+                        action();
+                }
+                else
+                {
+                    void Handler(object? s, EventArgs e)
+                    {
+                        HandleCreated -= Handler;
+                        try
+                        {
+                            if (!IsDisposed && IsHandleCreated)
+                                BeginInvoke(action);
+                        }
+                        catch { /* swallow */ }
+                    }
+                    HandleCreated += Handler;
+                }
             }
-            else
+            catch
             {
-                action();
+                // ignore any exceptions from invoking
             }
         }
 
-        private RecipeDetailViewModel ConvertToRecipeDetailViewModel(RecipeViewModel r)
+        /// <summary>
+        /// Safely invokes an async Func on the UI thread.
+        /// </summary>
+        private void SafeInvokeOnUI(Func<Task> asyncAction)
         {
-            return new RecipeDetailViewModel
-            {
-                Id = r.Id,
-                Name = r.Name,
-                Description = r.Description,
-                ProductId = r.ProductId,
-                ProductName = r.ProductName,
-                ServingSize = r.ServingSize,
-                Unit = r.Unit,
-                IsActive = r.IsActive,
-                Notes = r.Notes,
-                CreatedAt = r.CreatedAt,
-                UpdatedAt = r.UpdatedAt
-            };
+            if (asyncAction == null) return;
+            SafeInvokeOnUI(() => { _ = asyncAction(); });
         }
 
-        private RecipeViewModel ConvertToRecipeViewModel(RecipeDetailViewModel rd)
-        {
-            return new RecipeViewModel
-            {
-                Id = rd.Id,
-                Name = rd.Name,
-                Description = rd.Description,
-                ProductId = rd.ProductId,
-                ProductName = rd.ProductName,
-                ServingSize = rd.ServingSize,
-                Unit = rd.Unit,
-                IsActive = rd.IsActive,
-                Notes = rd.Notes,
-                CreatedAt = rd.CreatedAt,
-                UpdatedAt = rd.UpdatedAt
-            };
-        }
         #endregion
     }
 }

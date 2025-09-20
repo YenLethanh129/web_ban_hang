@@ -22,8 +22,9 @@ public class ProductMappingProfile : Profile
             .ForMember(dest => dest.ProductRecipes, opt => opt.MapFrom(src => src.ProductRecipes));
 
         CreateMap<ProductImage, ProductImageDto>()
-            .ConstructUsing(src => new ProductImageDto(src.Id, false)
+            .ConstructUsing(src => new ProductImageDto(src.Id)
             {
+                ProductId = src.ProductId,
                 ImageUrl = src.ImageUrl ?? string.Empty
             });
 

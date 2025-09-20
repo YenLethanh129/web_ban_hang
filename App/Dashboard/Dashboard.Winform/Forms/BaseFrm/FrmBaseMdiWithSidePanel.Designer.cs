@@ -33,7 +33,7 @@ namespace Dashboard.Winform
                 catch (Exception ex)
                 {
                     _logger?.LogError(ex, "Error during disposal");
-                    
+
                     // Still dispose components even if custom disposal fails
                     if (components != null)
                     {
@@ -72,9 +72,6 @@ namespace Dashboard.Winform
             pnSBCustomer = new Panel();
             iconSBCustomer = new PictureBox();
             btnSBAccount = new Button();
-            pnSBGoods = new Panel();
-            iconSBGoods = new PictureBox();
-            btnSBGoods = new Button();
             pnSBProduct = new Panel();
             iconSBProduct = new PictureBox();
             btnSBProduct = new Button();
@@ -84,12 +81,27 @@ namespace Dashboard.Winform
             pnSBExit = new Panel();
             iconSBExit = new PictureBox();
             btnSBExit = new Button();
+            panel1 = new Panel();
+            pictureBox1 = new PictureBox();
+            btnSBSignOut = new Button();
             SBUserManagementTransition = new System.Windows.Forms.Timer(components);
             SBTransition = new System.Windows.Forms.Timer(components);
+            // NEW: timer for ingredient container transition
+            SBIngredientTransition = new System.Windows.Forms.Timer(components);
             pnMainDisplayRegion = new Panel();
             pnMainContainer = new Panel();
             pnHeaderTitle = new Panel();
             metroControlBox1 = new ReaLTaiizor.Controls.MetroControlBox();
+            fpnSBIngredientContainer = new FlowLayoutPanel();
+            panel2 = new Panel();
+            pictureBox2 = new PictureBox();
+            btnSBIngredient = new Button();
+            panel3 = new Panel();
+            panel4 = new Panel();
+            iconSBGoods = new PictureBox();
+            btnSBGoods = new Button();
+            pictureBox3 = new PictureBox();
+            btnSBInventory = new Button();
             fpnSideBar.SuspendLayout();
             pnSBHeader.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)picSideBarLogo).BeginInit();
@@ -103,16 +115,23 @@ namespace Dashboard.Winform
             ((System.ComponentModel.ISupportInitialize)iconSBEmployee).BeginInit();
             pnSBCustomer.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)iconSBCustomer).BeginInit();
-            pnSBGoods.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)iconSBGoods).BeginInit();
             pnSBProduct.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)iconSBProduct).BeginInit();
             pnSBSupplier.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)iconSBSupplier).BeginInit();
             pnSBExit.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)iconSBExit).BeginInit();
+            panel1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             pnMainDisplayRegion.SuspendLayout();
             pnHeaderTitle.SuspendLayout();
+            fpnSBIngredientContainer.SuspendLayout();
+            panel2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)pictureBox2).BeginInit();
+            panel3.SuspendLayout();
+            panel4.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)iconSBGoods).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)pictureBox3).BeginInit();
             SuspendLayout();
             // 
             // fpnSideBar
@@ -121,9 +140,10 @@ namespace Dashboard.Winform
             fpnSideBar.Controls.Add(pnSBHeader);
             fpnSideBar.Controls.Add(pnSBLanding);
             fpnSideBar.Controls.Add(fpnUserManagementContainer);
-            fpnSideBar.Controls.Add(pnSBGoods);
-            fpnSideBar.Controls.Add(pnSBProduct);
+            fpnSideBar.Controls.Add(fpnSBIngredientContainer);
             fpnSideBar.Controls.Add(pnSBSupplier);
+            fpnSideBar.Controls.Add(pnSBProduct);
+            fpnSideBar.Controls.Add(panel1);
             fpnSideBar.Controls.Add(pnSBExit);
             fpnSideBar.Dock = DockStyle.Left;
             fpnSideBar.Location = new Point(0, 0);
@@ -334,45 +354,11 @@ namespace Dashboard.Winform
             btnSBAccount.Text = "Tài khoản";
             btnSBAccount.UseVisualStyleBackColor = false;
             // 
-            // pnSBGoods
-            // 
-            pnSBGoods.Controls.Add(iconSBGoods);
-            pnSBGoods.Controls.Add(btnSBGoods);
-            pnSBGoods.Location = new Point(0, 206);
-            pnSBGoods.Margin = new Padding(0);
-            pnSBGoods.Name = "pnSBGoods";
-            pnSBGoods.Size = new Size(246, 50);
-            pnSBGoods.TabIndex = 7;
-            // 
-            // iconSBGoods
-            // 
-            iconSBGoods.BackColor = Color.FromArgb(54, 58, 105);
-            iconSBGoods.Image = (Image)resources.GetObject("iconSBGoods.Image");
-            iconSBGoods.Location = new Point(14, 16);
-            iconSBGoods.Name = "iconSBGoods";
-            iconSBGoods.Size = new Size(28, 25);
-            iconSBGoods.SizeMode = PictureBoxSizeMode.StretchImage;
-            iconSBGoods.TabIndex = 3;
-            iconSBGoods.TabStop = false;
-            // 
-            // btnSBGoods
-            // 
-            btnSBGoods.Anchor = AnchorStyles.None;
-            btnSBGoods.BackColor = Color.FromArgb(54, 58, 105);
-            btnSBGoods.Font = new Font("Microsoft Sans Serif", 11F);
-            btnSBGoods.ForeColor = Color.Gainsboro;
-            btnSBGoods.Location = new Point(-84, -6);
-            btnSBGoods.Name = "btnSBGoods";
-            btnSBGoods.Size = new Size(356, 70);
-            btnSBGoods.TabIndex = 2;
-            btnSBGoods.Text = "Hàng hóa";
-            btnSBGoods.UseVisualStyleBackColor = false;
-            // 
             // pnSBProduct
             // 
             pnSBProduct.Controls.Add(iconSBProduct);
             pnSBProduct.Controls.Add(btnSBProduct);
-            pnSBProduct.Location = new Point(0, 256);
+            pnSBProduct.Location = new Point(0, 306);
             pnSBProduct.Margin = new Padding(0);
             pnSBProduct.Name = "pnSBProduct";
             pnSBProduct.Size = new Size(246, 50);
@@ -407,7 +393,7 @@ namespace Dashboard.Winform
             // 
             pnSBSupplier.Controls.Add(iconSBSupplier);
             pnSBSupplier.Controls.Add(btnSBSupplier);
-            pnSBSupplier.Location = new Point(0, 306);
+            pnSBSupplier.Location = new Point(0, 256);
             pnSBSupplier.Margin = new Padding(0);
             pnSBSupplier.Name = "pnSBSupplier";
             pnSBSupplier.Size = new Size(246, 50);
@@ -442,7 +428,7 @@ namespace Dashboard.Winform
             // 
             pnSBExit.Controls.Add(iconSBExit);
             pnSBExit.Controls.Add(btnSBExit);
-            pnSBExit.Location = new Point(0, 356);
+            pnSBExit.Location = new Point(0, 406);
             pnSBExit.Margin = new Padding(0);
             pnSBExit.Name = "pnSBExit";
             pnSBExit.Size = new Size(246, 50);
@@ -473,6 +459,41 @@ namespace Dashboard.Winform
             btnSBExit.Text = "Thoát";
             btnSBExit.UseVisualStyleBackColor = false;
             // 
+            // panel1
+            // 
+            panel1.Controls.Add(pictureBox1);
+            panel1.Controls.Add(this.btnSBSignOut);
+            panel1.Location = new Point(0, 356);
+            panel1.Margin = new Padding(0);
+            panel1.Name = "panel1";
+            panel1.Size = new Size(246, 50);
+            panel1.TabIndex = 11;
+            // 
+            // pictureBox1
+            // 
+            pictureBox1.BackColor = Color.FromArgb(54, 58, 105);
+            pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
+            pictureBox1.Location = new Point(15, 16);
+            pictureBox1.Name = "pictureBox1";
+            pictureBox1.Size = new Size(28, 25);
+            pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
+            pictureBox1.TabIndex = 3;
+            pictureBox1.TabStop = false;
+            // 
+            // btnSBSignOut
+            // 
+            this.btnSBSignOut.Anchor = AnchorStyles.None;
+            this.btnSBSignOut.BackColor = Color.FromArgb(54, 58, 105);
+            this.btnSBSignOut.Font = new Font("Microsoft Sans Serif", 11F);
+            this.btnSBSignOut.ForeColor = Color.Gainsboro;
+            this.btnSBSignOut.Location = new Point(-56, -6);
+            this.btnSBSignOut.Name = "btnSBSignOut";
+            this.btnSBSignOut.RightToLeft = RightToLeft.No;
+            this.btnSBSignOut.Size = new Size(307, 70);
+            this.btnSBSignOut.TabIndex = 2;
+            this.btnSBSignOut.Text = "Đăng xuất";
+            this.btnSBSignOut.UseVisualStyleBackColor = false;
+            // 
             // SBUserManagementTransition
             // 
             SBUserManagementTransition.Interval = 10;
@@ -482,6 +503,11 @@ namespace Dashboard.Winform
             // 
             SBTransition.Interval = 10;
             SBTransition.Tick += SBTransition_Tick;
+            // 
+            // SBIngredientTransition
+            // 
+            SBIngredientTransition.Interval = 10;
+            SBIngredientTransition.Tick += SBIngredientTransition_Tick;
             // 
             // pnMainDisplayRegion
             // 
@@ -539,6 +565,120 @@ namespace Dashboard.Winform
             metroControlBox1.ThemeAuthor = "Taiizor";
             metroControlBox1.ThemeName = "MetroLight";
             // 
+            // fpnSBIngredientContainer
+            // 
+            fpnSBIngredientContainer.BackColor = Color.FromArgb(54, 58, 105);
+            fpnSBIngredientContainer.Controls.Add(panel2);
+            fpnSBIngredientContainer.Controls.Add(panel3);
+            fpnSBIngredientContainer.Controls.Add(panel4);
+            fpnSBIngredientContainer.Location = new Point(0, 206);
+            fpnSBIngredientContainer.Margin = new Padding(0);
+            fpnSBIngredientContainer.Name = "fpnSBIngredientContainer";
+            fpnSBIngredientContainer.Size = new Size(246, 50);
+            fpnSBIngredientContainer.TabIndex = 5;
+            // 
+            // panel2
+            // 
+            panel2.Controls.Add(pictureBox2);
+            panel2.Controls.Add(btnSBIngredient);
+            panel2.Location = new Point(0, 0);
+            panel2.Margin = new Padding(0);
+            panel2.Name = "panel2";
+            panel2.Size = new Size(246, 50);
+            panel2.TabIndex = 4;
+            // 
+            // pictureBox2
+            // 
+            pictureBox2.BackColor = Color.FromArgb(54, 58, 105);
+            pictureBox2.Image = (Image)resources.GetObject("pictureBox2.Image");
+            pictureBox2.Location = new Point(14, 16);
+            pictureBox2.Name = "pictureBox2";
+            pictureBox2.Size = new Size(28, 25);
+            pictureBox2.SizeMode = PictureBoxSizeMode.StretchImage;
+            pictureBox2.TabIndex = 3;
+            pictureBox2.TabStop = false;
+            // 
+            // btnSBIngredient
+            // 
+            btnSBIngredient.Anchor = AnchorStyles.None;
+            btnSBIngredient.BackColor = Color.FromArgb(54, 58, 105);
+            btnSBIngredient.Font = new Font("Microsoft Sans Serif", 11F);
+            btnSBIngredient.ForeColor = Color.Gainsboro;
+            btnSBIngredient.Location = new Point(-100, -8);
+            btnSBIngredient.Name = "btnSBIngredient";
+            btnSBIngredient.Size = new Size(400, 70);
+            btnSBIngredient.TabIndex = 2;
+            btnSBIngredient.Text = "Nguyên liệu";
+            btnSBIngredient.UseVisualStyleBackColor = false;
+            // 
+            // panel3
+            // 
+            panel3.Controls.Add(iconSBGoods);
+            panel3.Controls.Add(btnSBGoods);
+            panel3.Location = new Point(0, 50);
+            panel3.Margin = new Padding(0);
+            panel3.Name = "panel3";
+            panel3.Size = new Size(246, 50);
+            panel3.TabIndex = 6;
+            // 
+            // panel4
+            // 
+            panel4.Controls.Add(pictureBox3);
+            panel4.Controls.Add(btnSBInventory);
+            panel4.Location = new Point(0, 100);
+            panel4.Margin = new Padding(0);
+            panel4.Name = "panel4";
+            panel4.Size = new Size(246, 50);
+            panel4.TabIndex = 7;
+            // 
+            // iconSBGoods
+            // 
+            iconSBGoods.BackColor = Color.FromArgb(54, 58, 105);
+            iconSBGoods.Image = (Image)resources.GetObject("iconSBGoods.Image");
+            iconSBGoods.Location = new Point(43, 12);
+            iconSBGoods.Name = "iconSBGoods";
+            iconSBGoods.Size = new Size(28, 25);
+            iconSBGoods.SizeMode = PictureBoxSizeMode.StretchImage;
+            iconSBGoods.TabIndex = 5;
+            iconSBGoods.TabStop = false;
+            // 
+            // btnSBGoods
+            // 
+            btnSBGoods.Anchor = AnchorStyles.None;
+            btnSBGoods.BackColor = Color.FromArgb(54, 58, 105);
+            btnSBGoods.Font = new Font("Microsoft Sans Serif", 11F);
+            btnSBGoods.ForeColor = Color.Gainsboro;
+            btnSBGoods.Location = new Point(-55, -10);
+            btnSBGoods.Name = "btnSBGoods";
+            btnSBGoods.Size = new Size(356, 70);
+            btnSBGoods.TabIndex = 4;
+            btnSBGoods.Text = "Hàng hóa";
+            btnSBGoods.UseVisualStyleBackColor = false;
+            // 
+            // pictureBox3
+            // 
+            pictureBox3.BackColor = Color.FromArgb(54, 58, 105);
+            pictureBox3.Image = (Image)resources.GetObject("pictureBox3.Image");
+            pictureBox3.Location = new Point(43, 15);
+            pictureBox3.Name = "pictureBox3";
+            pictureBox3.Size = new Size(28, 25);
+            pictureBox3.SizeMode = PictureBoxSizeMode.StretchImage;
+            pictureBox3.TabIndex = 7;
+            pictureBox3.TabStop = false;
+            // 
+            // btnSBInventory
+            // 
+            btnSBInventory.Anchor = AnchorStyles.None;
+            btnSBInventory.BackColor = Color.FromArgb(54, 58, 105);
+            btnSBInventory.Font = new Font("Microsoft Sans Serif", 11F);
+            btnSBInventory.ForeColor = Color.Gainsboro;
+            btnSBInventory.Location = new Point(-55, -7);
+            btnSBInventory.Name = "btnSBInventory";
+            btnSBInventory.Size = new Size(356, 70);
+            btnSBInventory.TabIndex = 6;
+            btnSBInventory.Text = "Kho hàng";
+            btnSBInventory.UseVisualStyleBackColor = false;
+            // 
             // FrmBaseMdiWithSidePanel
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -567,16 +707,23 @@ namespace Dashboard.Winform
             ((System.ComponentModel.ISupportInitialize)iconSBEmployee).EndInit();
             pnSBCustomer.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)iconSBCustomer).EndInit();
-            pnSBGoods.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)iconSBGoods).EndInit();
             pnSBProduct.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)iconSBProduct).EndInit();
             pnSBSupplier.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)iconSBSupplier).EndInit();
             pnSBExit.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)iconSBExit).EndInit();
+            panel1.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
             pnMainDisplayRegion.ResumeLayout(false);
             pnHeaderTitle.ResumeLayout(false);
+            fpnSBIngredientContainer.ResumeLayout(false);
+            panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)pictureBox2).EndInit();
+            panel3.ResumeLayout(false);
+            panel4.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)iconSBGoods).EndInit();
+            ((System.ComponentModel.ISupportInitialize)pictureBox3).EndInit();
             ResumeLayout(false);
         }
 
@@ -595,9 +742,6 @@ namespace Dashboard.Winform
         private Panel pnSBCustomer;
         private PictureBox iconSBCustomer;
         private Button btnSBAccount;
-        private Panel pnSBGoods;
-        private PictureBox iconSBGoods;
-        private Button btnSBGoods;
         private Panel pnSBSupplier;
         private PictureBox iconSBSupplier;
         private Button btnSBSupplier;
@@ -609,6 +753,7 @@ namespace Dashboard.Winform
         private Button btnSBExit;
         private System.Windows.Forms.Timer SBUserManagementTransition;
         private System.Windows.Forms.Timer SBTransition;
+        private System.Windows.Forms.Timer SBIngredientTransition; // NEW timer declaration
         private Panel pnSBHeader;
         private PictureBox picSideBarLogo;
         private Label lblPanelSideBarTitle;
@@ -617,5 +762,18 @@ namespace Dashboard.Winform
         private Panel pnMainContainer;
         private Panel pnHeaderTitle;
         private ReaLTaiizor.Controls.MetroControlBox metroControlBox1;
+        private Panel panel1;
+        private PictureBox pictureBox1;
+        private FlowLayoutPanel fpnSBIngredientContainer;
+        private Panel panel2;
+        private PictureBox pictureBox2;
+        private Button btnSBIngredient;
+        private Panel panel3;
+        private PictureBox iconSBGoods;
+        private Button btnSBGoods;
+        private Panel panel4;
+        private PictureBox pictureBox3;
+        private Button btnSBInventory;
+        private Button btnSBSignOut;
     }
 }

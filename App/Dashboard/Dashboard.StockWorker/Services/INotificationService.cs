@@ -8,5 +8,6 @@ namespace Dashboard.StockWorker.Services
         Task SendLowStockEmailAsync(StockAlert alert);
         Task SendCriticalStockEmailAsync(StockAlert alert);
         Task SendOutOfStockEmailAsync(StockAlert alert);
+        Task SendGenericEmailAsync(string subject, string htmlBody, Dictionary<string, byte[]>? attachments = null);
     }
 }

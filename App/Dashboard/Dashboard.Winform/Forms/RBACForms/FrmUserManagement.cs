@@ -478,7 +478,7 @@ public partial class FrmUserManagement : Form
         try
         {
             lblUserDetailTitle.Text = $"Chỉnh sửa người dùng - {user.Username}";
-            btnSaveUser.Text = "Cập nhật";
+            btnSaveUser.Text = "Lưu";
 
             tbxUserId.Text = user.Id.ToString();
             tbxUserName.Text = user.Username ?? string.Empty;
@@ -544,7 +544,7 @@ public partial class FrmUserManagement : Form
             else
             {
                 await _presenter.UpdateUserAsync(userDetail);
-                ShowInfo("Cập nhật người dùng thành công!");
+                ShowInfo("Lưu người dùng thành công!");
             }
 
             tabControl.SelectedTab = tabUserList;

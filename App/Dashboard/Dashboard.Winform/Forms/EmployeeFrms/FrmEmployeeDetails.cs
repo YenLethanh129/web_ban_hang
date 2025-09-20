@@ -51,7 +51,7 @@ namespace Dashboard.Winform.Forms
             {
                 Text = $"Chi tiết nhân viên - {_model.FullName}";
                 btnClose.Visible = true;
-                btnSave.Text = "Cập nhật";
+                btnSave.Text = "Lưu";
             }
             else
             {

@@ -10,6 +10,9 @@ using Dashboard.DataAccess.Repositories;
 using Dashboard.DataAccess.Specification;
 using Microsoft.Extensions.Logging;
 using Dashboard.BussinessLogic.Shared;
+using System.Text.RegularExpressions;
+using Dashboard.Common.Utitlities;
+using Microsoft.EntityFrameworkCore;
 
 namespace Dashboard.BussinessLogic.Services.ProductServices;
 
@@ -17,13 +20,16 @@ public interface IProductService
 {
     Task<int> GetCountAsync();
     Task<PagedList<ProductDto>> GetProductsAsync(GetProductsInput input);
-    Task<ProductDto?> GetProductByIdAsync(int id);
+    Task<ProductDto?> GetProductByIdAsync(long id);
     Task<ProductDto> CreateProductAsync(CreateProductInput input);
     Task<ProductDto> UpdateProductAsync(UpdateProductInput input);
-    Task<bool> DeleteProductAsync(int id);
-    Task<bool> IsProductNameExistsAsync(string name, int? excludeId = null);
+    Task<bool> DeleteProductAsync(long id);
+    Task<bool> IsProductNameExistsAsync(string name, long? excludeId = null);
     Task<int> GetAmount(GetProductsInput input);
     Task<Dictionary<long, int>> GetSoldQuantitiesAsync();
+    Task<List<ProductImageDto>> GetProductImagesAsync(long id);
+    Task<ProductImageDto> GetThumbnailImageAsync(long productId);
+
 }
 
 public class ProductService : BaseTransactionalService, IProductService
@@ -31,16 +37,19 @@ public class ProductService : BaseTransactionalService, IProductService
     private readonly IProductRepository _productRepository;
     private readonly IMapper _mapper;
     private readonly ILogger<ProductService> _logger;
+    private readonly IImageUrlValidator _imageUrlValidator;
 
     public ProductService(
         IUnitOfWork unitOfWork,
         IProductRepository productRepository,
         IMapper mapper,
-        ILogger<ProductService> logger) : base(unitOfWork)
+        ILogger<ProductService> logger,
+        IImageUrlValidator imageUrlValidator) : base(unitOfWork)
     {
         _productRepository = productRepository;
         _mapper = mapper;
         _logger = logger;
+        _imageUrlValidator = imageUrlValidator;
     }
 
     public async Task<int> GetCountAsync()
@@ -102,14 +111,19 @@ public class ProductService : BaseTransactionalService, IProductService
             PageNumber = input.PageNumber,
             PageSize = input.PageSize,
             TotalRecords = totalRecords,
-            Items = [.. productDtos]
+            Items = productDtos.ToList()
         };
     }
 
-    public async Task<ProductDto?> GetProductByIdAsync(int id)
+    public async Task<ProductDto?> GetProductByIdAsync(long id)
     {
         var product = await _productRepository.GetProductWithDetailsAsync(id);
         return product != null ? _mapper.Map<ProductDto>(product) : null;
+    }
+
+    public async Task<ProductImageDto> GetThumbnailImageAsync(long productId)
+    {
+        return _mapper.Map<ProductImageDto>(await _productRepository.GetLastestImageAsync(productId));
     }
 
     public async Task<int> GetAmount(GetProductsInput input)
@@ -136,7 +150,7 @@ public class ProductService : BaseTransactionalService, IProductService
             .ToDictionary(g => g.Key, g => g.Sum(od => od.Quantity));
     }
 
-    public async Task<bool> IsProductNameExistsAsync(string name, int? excludeId = null)
+    public async Task<bool> IsProductNameExistsAsync(string name, long? excludeId = null)
     {
         return await _productRepository.IsProductNameExistsAsync(name, excludeId);
     }
@@ -145,14 +159,30 @@ public class ProductService : BaseTransactionalService, IProductService
     {
         return await ExecuteInTransactionAsync(async () =>
         {
+            // Validate and filter image URLs
+            var validUrls = new List<string>();
+            if (input.ImageUrls?.Any() == true)
+            {
+                foreach (var url in input.ImageUrls.Where(u => !string.IsNullOrWhiteSpace(u)))
+                {
+                    if (await _imageUrlValidator.ValidateAsync(url!))
+                    {
+                        validUrls.Add(url!);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Invalid or unsafe image URL: {Url}", url);
+                    }
+                }
+            }
+
             var product = _mapper.Map<Product>(input);
             product.CreatedAt = DateTime.UtcNow;
 
-            // Chỉ thêm images nếu có ImageUrls
-            if (input.ImageUrls?.Any() == true)
+            // Only add images if we have valid URLs
+            if (validUrls.Any())
             {
-                product.ProductImages = input.ImageUrls
-                    .Where(url => !string.IsNullOrWhiteSpace(url))
+                product.ProductImages = validUrls
                     .Select(url => new ProductImage
                     {
                         ProductId = product.Id,
@@ -174,26 +204,60 @@ public class ProductService : BaseTransactionalService, IProductService
             var product = await _productRepository.GetProductWithDetailsAsync(input.Id)
                 ?? throw new ArgumentException($"Product with id {input.Id} not found");
 
-            _mapper.Map(input, product);
-            product.LastModified = DateTime.UtcNow;
-
-            if (product.ProductImages?.Any() == true)
+            if (input.ImageUrls != null && input.ImageUrls.Any(u => !string.IsNullOrWhiteSpace(u)))
             {
-                _unitOfWork.Repository<ProductImage>()
-                    .RemoveRange(product.ProductImages);
-            }
-
-            if (input.ImageUrls?.Any() == true)
-            {
-                product.ProductImages = input.ImageUrls
-                    .Where(url => !string.IsNullOrWhiteSpace(url))
-                    .Select(url => new ProductImage
-                    {
-                        ProductId = product.Id,
-                        ImageUrl = url,
-                    })
+                var newUrls = input.ImageUrls
+                    .Where(u => !string.IsNullOrWhiteSpace(u))
+                    .Select(u => u!.Trim())
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
                     .ToList();
+
+                var existingUrls = product.ProductImages?
+                    .Select(pi => pi.ImageUrl?.Trim())
+                    .Where(s => !string.IsNullOrEmpty(s))
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase)
+                    ?? new HashSet<string?>(StringComparer.OrdinalIgnoreCase);
+
+                var toAdd = newUrls.Where(u => !existingUrls.Contains(u)).ToList();
+
+                if (toAdd.Any())
+                {
+                    if (product.ProductImages == null)
+                        product.ProductImages = new List<ProductImage>();
+
+                    foreach (var url in toAdd)
+                    {
+                        product.ProductImages.Add(new ProductImage
+                        {
+                            ProductId = product.Id,
+                            ImageUrl = url,
+                        });
+                    }
+                }
+                else
+                {
+                    _logger.LogInformation("No new product images to add for product {ProductId}", product.Id);
+                }
             }
+            else
+            {
+                _logger.LogDebug("No image URLs provided in update input for product {ProductId}; skipping image changes.", product.Id);
+            }
+
+            var updateInputCopy = new UpdateProductInput(
+                input.Id,
+                input.Description,
+                input.Price,
+                input.CategoryId,
+                input.IsActive,
+                input.TaxId
+            )
+            {
+                Name = input.Name
+            };
+
+            _mapper.Map(updateInputCopy, product);
+            product.LastModified = DateTime.UtcNow;
 
             _productRepository.Update(product);
 
@@ -201,7 +265,16 @@ public class ProductService : BaseTransactionalService, IProductService
         });
     }
 
-    public async Task<bool> DeleteProductAsync(int id)
+    public async Task<List<ProductImageDto>> GetProductImagesAsync(long id)
+    {
+        var productImages = await _unitOfWork.Repository<ProductImage>()
+            .GetQueryable()
+            .Where(pi => pi.ProductId == id).ToListAsync();
+
+        return _mapper.Map<List<ProductImageDto>>(productImages);
+    }
+
+    public async Task<bool> DeleteProductAsync(long id)
     {
         return await ExecuteInTransactionAsync(async () =>
         {

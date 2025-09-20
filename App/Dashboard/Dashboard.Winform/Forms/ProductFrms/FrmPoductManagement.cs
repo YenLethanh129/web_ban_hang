@@ -39,36 +39,22 @@ namespace Dashboard.Winform.Forms
                 {
                     if (e is ProductsLoadedEventArgs args)
                     {
-                        if (InvokeRequired)
+                        SafeInvokeOnUI(() =>
                         {
-                            Invoke(new Action(() =>
+                            try
                             {
-                                try
-                                {
-                                    ApplyProductsToModel(args.Products, args.TotalCount);
-                                }
-                                catch (Exception ex)
-                                {
-                                    ShowError($"Lỗi khi cập nhật dữ liệu: {ex.Message}");
-                                }
-                            }));
-                        }
-                        else
-                        {
-                            ApplyProductsToModel(args.Products, args.TotalCount);
-                        }
+                                ApplyProductsToModel(args.Products, args.TotalCount);
+                            }
+                            catch (Exception ex)
+                            {
+                                ShowError($"Lỗi khi cập nhật dữ liệu: {ex.Message}");
+                            }
+                        });
                     }
                 }
                 catch (Exception ex)
                 {
-                    if (InvokeRequired)
-                    {
-                        Invoke(new Action(() => ShowError($"Lỗi xử lý dữ liệu: {ex.Message}")));
-                    }
-                    else
-                    {
-                        ShowError($"Lỗi xử lý dữ liệu: {ex.Message}");
-                    }
+                    SafeInvokeOnUI(() => ShowError($"Lỗi xử lý dữ liệu: {ex.Message}"));
                 }
             };
 
@@ -117,7 +103,7 @@ namespace Dashboard.Winform.Forms
         private void OverrideComboBoxItem()
         {
             cbxOrderBy.Items.Clear();
-            cbxOrderBy.Items.AddRange(["ID", "Name", "Price", "Category", "SoldQuantity"]);
+            cbxOrderBy.Items.AddRange(new[] { "ID", "Name", "Price", "Category", "SoldQuantity" });
             if (cbxOrderBy.Items.Count > 0)
                 cbxOrderBy.SelectedIndex = 0;
         }
@@ -178,6 +164,32 @@ namespace Dashboard.Winform.Forms
 
             dgvProducts.DataSource = _model.Products;
             dgvProducts.Refresh();
+
+            // Attach column header click for sorting
+            if (dgvProducts != null)
+            {
+                dgvProducts.ColumnHeaderMouseClick -= DgvProducts_ColumnHeaderMouseClick;
+                dgvProducts.ColumnHeaderMouseClick += DgvProducts_ColumnHeaderMouseClick;
+            }
+        }
+
+        private void DgvProducts_ColumnHeaderMouseClick(object? sender, DataGridViewCellMouseEventArgs e)
+        {
+            try
+            {
+                if (dgvProducts == null) return;
+                var column = dgvProducts.Columns[e.ColumnIndex];
+                var sortBy = column.DataPropertyName ?? column.Name;
+                _ = Task.Run(async () =>
+                {
+                    await _presenter.SortBy(sortBy);
+                    SafeInvokeOnUI(UpdatePaginationInfo);
+                });
+            }
+            catch (Exception ex)
+            {
+                ShowError($"Lỗi khi sắp xếp: {ex.Message}");
+            }
         }
         #endregion
 
@@ -391,6 +403,7 @@ namespace Dashboard.Winform.Forms
             try
             {
                 SetLoadingState(true);
+                await Task.Delay(200);
                 await _presenter.RefreshCacheAsync();
                 UpdatePaginationInfo();
                 ShowInfo("Dữ liệu đã được cập nhật!");
@@ -478,12 +491,12 @@ namespace Dashboard.Winform.Forms
                 SetLoadingState(true);
 
                 await _presenter.LoadDataAsync(page: _model.CurrentPage, pageSize: _model.PageSize);
-                
+
                 cbxFilter1.SelectedItem = "All";
 
                 if (cbxFilter2.Items.Count > 0)
                     cbxFilter2.SelectedIndex = 0;
-                
+
 
                 UpdatePaginationInfo();
 
@@ -579,7 +592,7 @@ namespace Dashboard.Winform.Forms
         {
             // TODO: Implement product update logic through presenter
             await Task.Delay(50);
-            Console.WriteLine($"Cập nhật sản phẩm ID {product.Id}: {product.Name}");
+            Console.WriteLine($"Lưu sản phẩm ID {product.Id}: {product.Name}");
         }
 
         #endregion
@@ -657,6 +670,50 @@ namespace Dashboard.Winform.Forms
             var contextMenu = new ContextMenuStrip();
             contextMenu.Items.Add("Làm mới dữ liệu", null, (s, e) => RefreshData());
             dgvProducts.ContextMenuStrip = contextMenu;
+        }
+
+        #endregion
+
+        #region Thread-safe UI helpers
+
+        /// <summary>
+        /// Safely invokes an Action on the UI thread. If the control handle is not yet created,
+        /// the action will be scheduled to run when HandleCreated fires.
+        /// If the form is disposed or disposing, the action is ignored.
+        /// </summary>
+        private void SafeInvokeOnUI(Action action)
+        {
+            if (action == null) return;
+            if (IsDisposed || Disposing) return;
+
+            try
+            {
+                if (IsHandleCreated)
+                {
+                    if (InvokeRequired)
+                        BeginInvoke(action);
+                    else
+                        action();
+                }
+                else
+                {
+                    void Handler(object? s, EventArgs e)
+                    {
+                        HandleCreated -= Handler;
+                        try
+                        {
+                            if (!IsDisposed && IsHandleCreated)
+                                BeginInvoke(action);
+                        }
+                        catch { /* swallow */ }
+                    }
+                    HandleCreated += Handler;
+                }
+            }
+            catch
+            {
+                // ignore invocation exceptions
+            }
         }
 
         #endregion

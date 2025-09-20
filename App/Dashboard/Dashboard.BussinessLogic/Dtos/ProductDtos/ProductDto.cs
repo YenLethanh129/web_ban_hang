@@ -39,8 +39,9 @@ public class ProductDetailDto
     public List<ProductRecipeDto> ProductRecipes { get; set; } = new();
 }
 
-public record ProductImageDto(long Id, bool IsPrimary)
+public record ProductImageDto(long Id)
 {
+    public long? ProductId { get; set; }
     public string ImageUrl { get; set; } = string.Empty;
 }
 

@@ -1,4 +1,5 @@
 ﻿using Dashboard.BussinessLogic.Security;
+using Dashboard.BussinessLogic.Services.ProductServices;
 using Dashboard.Common.Options;
 using Dashboard.DataAccess.Helpers;
 using Dashboard.Winform.Forms;
@@ -27,12 +28,16 @@ namespace Dashboard.Winform
             services.AddTransient<IRolePermissionManagementPresenter, RolePermissionManagementPresenter>();
             services.AddTransient<IScheduleManagementPresenter, ScheduleManagementPresenter>();
             services.AddTransient<IProductDetailPresenter, ProductDetailPresenter>();
+            services.AddTransient<IProductManagementPresenter, ProductManagementPresenter>();
+            services.AddTransient<IIngredientDetailPresenter, IngredientDetailPresenter>();
 
             services.AddScoped<EmployeeManagementPresenter>();
             services.AddTransient<ProductManagementPresenter>();
             services.AddTransient<RecipeManagementPresenter>();
             services.AddTransient<IngredientManagementPresenter>();
             services.AddTransient<ProductDetailPresenter>();
+            services.AddTransient<IngredientDetailPresenter>();
+
 
             services.AddScoped<ITokenCleanupService, TokenCleanupService>();
             services.AddHostedService<TokenCleanupBackgroundService>();
@@ -63,6 +68,7 @@ namespace Dashboard.Winform
 
             services.AddSingleton<DataEncryptionHelper>();
 
+            services.AddHttpClient<ProductService>();
             return services;
         }
     }

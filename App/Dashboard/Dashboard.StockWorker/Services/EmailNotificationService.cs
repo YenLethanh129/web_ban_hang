@@ -53,6 +53,20 @@ namespace Dashboard.StockWorker.Services
             await SendConsolidatedStockAlertsAsync(new List<StockAlert> { alert });
         }
 
+        public async Task SendGenericEmailAsync(string subject, string htmlBody, Dictionary<string, byte[]>? attachments = null)
+        {
+            // If there is a single attachment, use it directly. If multiple, create a zip or concatenate - for simplicity, pick the first.
+            byte[]? attachmentData = null;
+            if (attachments != null && attachments.Count > 0)
+            {
+                // prefer CSV-like names
+                var first = attachments.First();
+                attachmentData = first.Value;
+            }
+
+            await SendEmailAsync(subject, htmlBody, attachmentData);
+        }
+
         private async Task SendConsolidatedStockAlertsAsync(List<StockAlert> alerts)
         {
             var outOfStockCount = alerts.Count(a => a.AlertLevel == StockAlertLevel.OutOfStock);
@@ -443,7 +457,7 @@ namespace Dashboard.StockWorker.Services
                     <li>Kiểm tra file Excel đính kèm để xem chi tiết đầy đủ</li>
                     <li>Liên hệ ngay với nhà cung cấp cho các mặt hàng hết hàng</li>
                     <li>Xem xét điều chuyển hàng từ chi nhánh khác (nếu có)</li>
-                    <li>Cập nhật lại điểm đặt hàng và tồn kho an toàn</li>
+                    <li>Lưu lại điểm đặt hàng và tồn kho an toàn</li>
                     <li>Kiểm tra dự báo nhu cầu và xu hướng tiêu thụ</li>
                 </ul>
             </div>

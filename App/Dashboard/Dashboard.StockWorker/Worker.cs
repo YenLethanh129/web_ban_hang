@@ -41,7 +41,7 @@ public class Worker : BackgroundService
 
         _logger.LogInformation("Starting stock monitoring process at {Time}", DateTime.UtcNow);
 
-        // 1. Cập nhật tất cả threshold và tồn kho
+        // 1. Lưu tất cả threshold và tồn kho
         _logger.LogInformation("Updating all thresholds and current stock levels");
         await stockCalculationService.CalculateAndUpdateReorderPointsAsync();
 
@@ -50,9 +50,12 @@ public class Worker : BackgroundService
         var lowStockAlerts = await stockCalculationService.GetLowStockAlertsAsync();
         var outOfStockAlerts = await stockCalculationService.GetOutOfStockAlertsAsync();
 
-        var allAlerts = new List<StockAlert>();
-        allAlerts.AddRange(lowStockAlerts);
-        allAlerts.AddRange(outOfStockAlerts);
+        // Combine alerts but avoid duplicates (outOfStockAlerts are a subset of lowStockAlerts)
+        var allAlerts = lowStockAlerts
+            .Concat(outOfStockAlerts)
+            .GroupBy(a => (a.IngredientId, a.BranchId))
+            .Select(g => g.OrderByDescending(x => x.AlertLevel).First())
+            .ToList();
 
         if (allAlerts.Any())
         {

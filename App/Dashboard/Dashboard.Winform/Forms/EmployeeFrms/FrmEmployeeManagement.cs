@@ -55,6 +55,7 @@ namespace Dashboard.Winform.Forms
                         {
                             ApplyEmployeesToModel(args.Employees);
                         }
+                    SetupDgvListItem(); // Ensure the event handler is set up after initializing the DataGridView
                     }
                 }
                 catch (Exception ex)
@@ -619,6 +620,31 @@ namespace Dashboard.Winform.Forms
                 {
                     btnGetDetails.Enabled = dgvListItems.SelectedRows.Count > 0;
                 };
+
+                dgvListItems.ColumnHeaderMouseClick -= DgvListItems_ColumnHeaderMouseClick;
+                dgvListItems.ColumnHeaderMouseClick += DgvListItems_ColumnHeaderMouseClick;
+            }
+        }
+
+        private void DgvListItems_ColumnHeaderMouseClick(object? sender, DataGridViewCellMouseEventArgs e)
+        {
+            try
+            {
+                if (dgvListItems == null) return;
+                var column = dgvListItems.Columns[e.ColumnIndex];
+                var sortBy = column.DataPropertyName ?? column.Name;
+                _ = Task.Run(async () =>
+                {
+                    await _presenter.SortBy(sortBy);
+                    if (InvokeRequired)
+                        Invoke(new Action(UpdatePaginationInfo));
+                    else
+                        UpdatePaginationInfo();
+                });
+            }
+            catch (Exception ex)
+            {
+                ShowError($"Lỗi khi sắp xếp: {ex.Message}");
             }
         }
 

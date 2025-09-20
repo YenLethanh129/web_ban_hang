@@ -1,5 +1,12 @@
 namespace Dashboard.StockWorker.Models
 {
+    public enum StockAlertLevel
+    {
+        Low = 1,
+        Critical = 2,
+        OutOfStock = 3
+    }
+
     public class StockAlert
     {
         public long BranchId { get; set; }
@@ -14,7 +21,7 @@ namespace Dashboard.StockWorker.Models
         public int DaysRemaining { get; set; }
         public StockAlertLevel AlertLevel { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
-        
+
         // Additional properties for enhanced reporting
         public decimal MaximumStock { get; set; }
         public decimal ReservedQuantity { get; set; }
@@ -22,12 +29,6 @@ namespace Dashboard.StockWorker.Models
         public string? SupplierContact { get; set; }
         public decimal? LastPurchasePrice { get; set; }
         public DateTime? LastRestockDate { get; set; }
-    }
-
-    public enum StockAlertLevel
-    {
-        Low = 1,
-        Critical = 2,
-        OutOfStock = 3
+        public string? Note { get; set; }
     }
 }

@@ -451,8 +451,10 @@ public class IngredientManagementPresenter : IIngredientManagementPresenter
     {
         if (!string.IsNullOrWhiteSpace(sortBy))
         {
-            if (_currentSortBy == sortBy)
-                _sortDescending = !_sortDescending; // toggle
+            if (_currentSortBy == (sortBy ?? string.Empty))
+            {
+                _sortDescending = !_sortDescending;
+            }
             else
             {
                 _currentSortBy = sortBy ?? string.Empty;

@@ -2,6 +2,7 @@ using AutoMapper;
 using Dashboard.BussinessLogic.Dtos.ProductDtos;
 using Dashboard.BussinessLogic.Services.ProductServices;
 using Dashboard.DataAccess.Data;
+using Dashboard.DataAccess.Models.Entities.Products;
 using Dashboard.Winform.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -41,7 +42,6 @@ namespace Dashboard.Winform.Presenters
         private readonly IMapper _mapper;
         private readonly IServiceProvider _serviceProvider;
 
-
         public event EventHandler<ProductDetailViewModel?>? OnProductSaved;
 
         public ProductDetailPresenter(
@@ -66,13 +66,36 @@ namespace Dashboard.Winform.Presenters
         {
             try
             {
-                var dto = await _productService.GetProductByIdAsync((int)id);
+                var dto = await _productService.GetProductByIdAsync(id);
                 if (dto == null)
                 {
                     return null;
                 }
 
                 var vm = _mapper.Map<ProductDetailViewModel>(dto);
+
+                try
+                {
+                    var allImages = dto.Images;
+                    var latest = allImages
+                        .Where(pi => pi.ProductId == id)
+                        .OrderByDescending(pi => pi.Id)
+                        .FirstOrDefault();
+
+                    if (latest != null && !string.IsNullOrWhiteSpace(latest.ImageUrl))
+                    {
+                        vm.ThumbnailPath = latest.ImageUrl;
+                    }
+                }
+                catch (Exception exImg)
+                {
+                    _logger.LogWarning(exImg, "Could not load latest product image for product {ProductId}", id);
+                }
+
+                vm.ProductImages ??= [];
+                vm.Recipes ??= [];
+                vm.ProductRecipes ??= [];
+
                 return vm;
             }
             catch (Exception ex)
@@ -88,15 +111,40 @@ namespace Dashboard.Winform.Presenters
             {
                 var input = _mapper.Map<CreateProductInput>(model);
 
-                if (model.ProductImages != null && model.ProductImages.Any())
+                var imageUrls = new List<string>();
+
+                if (!string.IsNullOrWhiteSpace(model.ThumbnailPath))
                 {
-                    input.ImageUrls = [.. model.ProductImages
-                            .Where(i => !string.IsNullOrWhiteSpace(i.ImageUrl))
-                            .Select(i => i.ImageUrl)];
+                    imageUrls.Add(model.ThumbnailPath);
+                }
+
+                if (model.ProductImages != null)
+                {
+                    var additionalUrls = model.ProductImages
+                        .Where(i => !string.IsNullOrWhiteSpace(i.ImageUrl))
+                        .Select(i => i.ImageUrl!)
+                        .Where(url => !imageUrls.Contains(url, StringComparer.OrdinalIgnoreCase))
+                        .ToList();
+
+                    imageUrls.AddRange(additionalUrls);
+                }
+
+                if (imageUrls.Count != 0)
+                {
+                    input.ImageUrls = imageUrls.Cast<string?>().ToList();
                 }
 
                 var created = await _productService.CreateProductAsync(input);
                 var vm = _mapper.Map<ProductDetailViewModel>(created);
+
+                try
+                {
+                    var latest = await _productService.GetThumbnailImageAsync(created.Id);
+
+                    if (latest != null)
+                        vm.ThumbnailPath = latest.ImageUrl;
+                }
+                catch { vm.ThumbnailPath = string.Empty; }
 
                 OnProductSaved?.Invoke(this, vm);
                 return vm;
@@ -112,28 +160,61 @@ namespace Dashboard.Winform.Presenters
         {
             try
             {
-                using var scope = _serviceProvider.CreateScope();
-                var productService = scope.ServiceProvider.GetRequiredService<IProductService>();
-                var mapper = scope.ServiceProvider.GetRequiredService<IMapper>();
+                var input = _mapper.Map<UpdateProductInput>(model);
+                string? currentThumbnail = model.ThumbnailPath?.Trim();
+                bool addThumbnailAsNewImage = false;
 
-                var input = mapper.Map<UpdateProductInput>(model);
-
-                if (model.ProductImages != null && model.ProductImages.Any())
+                if (model.Id > 0 && !string.IsNullOrEmpty(currentThumbnail))
                 {
-                    input.ImageUrls = [.. model.ProductImages
-                        .Where(i => !string.IsNullOrWhiteSpace(i.ImageUrl))
-                        .Select(i => i.ImageUrl)];
+                    try
+                    {
+                        var allImages = await _unitOfWork.Repository<ProductImage>().GetAllAsync();
+                        var latest = allImages
+                            .Where(pi => pi.ProductId == model.Id)
+                            .OrderByDescending(pi => pi.Id)
+                            .FirstOrDefault();
+
+                        var latestUrl = latest?.ImageUrl?.Trim();
+
+                        if (!string.Equals(currentThumbnail, latestUrl, StringComparison.OrdinalIgnoreCase))
+                        {
+                            addThumbnailAsNewImage = true;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Could not compare product image for product {ProductId}", model.Id);
+                        addThumbnailAsNewImage = false;
+                    }
+                }
+                else if (model.Id <= 0 && !string.IsNullOrEmpty(currentThumbnail))
+                {
+                    addThumbnailAsNewImage = true;
                 }
 
-                if (!string.IsNullOrWhiteSpace(model.ThumbnailPath))
+                if (addThumbnailAsNewImage)
                 {
-                    input.ImageUrls.Add(model.ThumbnailPath);
+                    input.ImageUrls = [currentThumbnail];
+                }
+                else
+                {
+                    input.ImageUrls = [];
                 }
 
-                var updated = await productService.UpdateProductAsync(input);
-                var vm = mapper.Map<ProductDetailViewModel>(updated);
+                var updated = await _productService.UpdateProductAsync(input);
+                if (updated == null) return null;
 
-                OnProductSaved?.BeginInvoke(this, vm, null, null);
+                var vm = _mapper.Map<ProductDetailViewModel>(updated);
+                try
+                {
+                    var latest = await _productService.GetThumbnailImageAsync(updated.Id);
+
+                    if (latest != null)
+                        vm.ThumbnailPath = latest.ImageUrl;
+                }
+                catch { vm.ThumbnailPath = string.Empty; }
+
+                OnProductSaved?.Invoke(this, vm);
                 return vm;
             }
             catch (Exception ex)
@@ -151,11 +232,18 @@ namespace Dashboard.Winform.Presenters
                 if (productVm == null)
                     return false;
 
-                productVm.ProductImages ??= [];
+                if (productVm.ProductImages != null &&
+                    productVm.ProductImages.Any(img => string.Equals(img.ImageUrl, imageUrl, StringComparison.OrdinalIgnoreCase)))
+                {
+                    _logger.LogWarning("Image URL already exists for product {ProductId}: {ImageUrl}", productId, imageUrl);
+                    return false;
+                }
+
+                productVm.ProductImages ??= new System.ComponentModel.BindingList<ProductImageViewModel>();
 
                 var newImage = new ProductImageViewModel
                 {
-                    Id = 0,
+                    Id = 0, 
                     ProductId = productId,
                     ImageUrl = imageUrl,
                     CreatedAt = DateTime.Now
@@ -163,9 +251,8 @@ namespace Dashboard.Winform.Presenters
 
                 productVm.ProductImages.Add(newImage);
 
-                //var result = await UpdateProductAsync(productVm);
-                //return result != null;
-                return true;
+                var result = await UpdateProductAsync(productVm);
+                return result != null;
             }
             catch (Exception ex)
             {
@@ -270,7 +357,7 @@ namespace Dashboard.Winform.Presenters
             try
             {
                 var categories = await _categoryService.GetAllCategories();
-                return _mapper.Map<List<CategoryViewModel>>(categories);
+                return _mapper.Map<List<CategoryViewModel>>(categories.Items);
             }
             catch (Exception ex)
             {

@@ -22,12 +22,12 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmProductDetails));
-            DataGridViewCellStyle dataGridViewCellStyle7 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle8 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle9 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle10 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle11 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle12 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle4 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle5 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle6 = new DataGridViewCellStyle();
             tabControl = new TabControl();
             tabBasicInfo = new TabPage();
             pnlBasicInfo = new Panel();
@@ -72,6 +72,7 @@
             btnSave = new Button();
             btnCancel = new Button();
             btnClose = new Button();
+            lblValidationStatus = new Label();
             tabControl.SuspendLayout();
             tabBasicInfo.SuspendLayout();
             pnlBasicInfo.SuspendLayout();
@@ -118,6 +119,7 @@
             // pnlBasicInfo
             // 
             pnlBasicInfo.BackColor = Color.FromArgb(42, 45, 86);
+            pnlBasicInfo.Controls.Add(lblValidationStatus);
             pnlBasicInfo.Controls.Add(btnCheckUrl);
             pnlBasicInfo.Controls.Add(btnRemove);
             pnlBasicInfo.Controls.Add(btnUpload);
@@ -434,36 +436,36 @@
             dgvProductImages.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             dgvProductImages.BackgroundColor = Color.FromArgb(24, 28, 63);
             dgvProductImages.BorderStyle = BorderStyle.None;
-            dataGridViewCellStyle7.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle7.BackColor = Color.FromArgb(107, 83, 255);
-            dataGridViewCellStyle7.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            dataGridViewCellStyle7.ForeColor = Color.White;
-            dataGridViewCellStyle7.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle7.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle7.WrapMode = DataGridViewTriState.True;
-            dgvProductImages.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle7;
+            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = Color.FromArgb(107, 83, 255);
+            dataGridViewCellStyle1.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            dataGridViewCellStyle1.ForeColor = Color.White;
+            dataGridViewCellStyle1.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = DataGridViewTriState.True;
+            dgvProductImages.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
             dgvProductImages.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewCellStyle8.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle8.BackColor = Color.FromArgb(42, 45, 86);
-            dataGridViewCellStyle8.Font = new Font("Segoe UI", 9F);
-            dataGridViewCellStyle8.ForeColor = Color.WhiteSmoke;
-            dataGridViewCellStyle8.SelectionBackColor = Color.FromArgb(107, 83, 255);
-            dataGridViewCellStyle8.SelectionForeColor = Color.White;
-            dataGridViewCellStyle8.WrapMode = DataGridViewTriState.False;
-            dgvProductImages.DefaultCellStyle = dataGridViewCellStyle8;
+            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = Color.FromArgb(42, 45, 86);
+            dataGridViewCellStyle2.Font = new Font("Segoe UI", 9F);
+            dataGridViewCellStyle2.ForeColor = Color.WhiteSmoke;
+            dataGridViewCellStyle2.SelectionBackColor = Color.FromArgb(107, 83, 255);
+            dataGridViewCellStyle2.SelectionForeColor = Color.White;
+            dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
+            dgvProductImages.DefaultCellStyle = dataGridViewCellStyle2;
             dgvProductImages.GridColor = Color.FromArgb(124, 141, 181);
             dgvProductImages.Location = new Point(18, 19);
             dgvProductImages.MultiSelect = false;
             dgvProductImages.Name = "dgvProductImages";
             dgvProductImages.ReadOnly = true;
-            dataGridViewCellStyle9.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle9.BackColor = Color.FromArgb(42, 45, 86);
-            dataGridViewCellStyle9.Font = new Font("Segoe UI", 9F);
-            dataGridViewCellStyle9.ForeColor = Color.WhiteSmoke;
-            dataGridViewCellStyle9.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle9.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle9.WrapMode = DataGridViewTriState.True;
-            dgvProductImages.RowHeadersDefaultCellStyle = dataGridViewCellStyle9;
+            dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle3.BackColor = Color.FromArgb(42, 45, 86);
+            dataGridViewCellStyle3.Font = new Font("Segoe UI", 9F);
+            dataGridViewCellStyle3.ForeColor = Color.WhiteSmoke;
+            dataGridViewCellStyle3.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle3.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle3.WrapMode = DataGridViewTriState.True;
+            dgvProductImages.RowHeadersDefaultCellStyle = dataGridViewCellStyle3;
             dgvProductImages.RowHeadersWidth = 51;
             dgvProductImages.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dgvProductImages.Size = new Size(739, 453);
@@ -534,36 +536,36 @@
             dgvRecipes.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             dgvRecipes.BackgroundColor = Color.FromArgb(24, 28, 63);
             dgvRecipes.BorderStyle = BorderStyle.None;
-            dataGridViewCellStyle10.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle10.BackColor = Color.FromArgb(107, 83, 255);
-            dataGridViewCellStyle10.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            dataGridViewCellStyle10.ForeColor = Color.White;
-            dataGridViewCellStyle10.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle10.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle10.WrapMode = DataGridViewTriState.True;
-            dgvRecipes.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle10;
+            dataGridViewCellStyle4.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle4.BackColor = Color.FromArgb(107, 83, 255);
+            dataGridViewCellStyle4.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            dataGridViewCellStyle4.ForeColor = Color.White;
+            dataGridViewCellStyle4.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle4.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle4.WrapMode = DataGridViewTriState.True;
+            dgvRecipes.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle4;
             dgvRecipes.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewCellStyle11.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle11.BackColor = Color.FromArgb(42, 45, 86);
-            dataGridViewCellStyle11.Font = new Font("Segoe UI", 9F);
-            dataGridViewCellStyle11.ForeColor = Color.WhiteSmoke;
-            dataGridViewCellStyle11.SelectionBackColor = Color.FromArgb(107, 83, 255);
-            dataGridViewCellStyle11.SelectionForeColor = Color.White;
-            dataGridViewCellStyle11.WrapMode = DataGridViewTriState.False;
-            dgvRecipes.DefaultCellStyle = dataGridViewCellStyle11;
+            dataGridViewCellStyle5.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle5.BackColor = Color.FromArgb(42, 45, 86);
+            dataGridViewCellStyle5.Font = new Font("Segoe UI", 9F);
+            dataGridViewCellStyle5.ForeColor = Color.WhiteSmoke;
+            dataGridViewCellStyle5.SelectionBackColor = Color.FromArgb(107, 83, 255);
+            dataGridViewCellStyle5.SelectionForeColor = Color.White;
+            dataGridViewCellStyle5.WrapMode = DataGridViewTriState.False;
+            dgvRecipes.DefaultCellStyle = dataGridViewCellStyle5;
             dgvRecipes.GridColor = Color.FromArgb(124, 141, 181);
             dgvRecipes.Location = new Point(18, 19);
             dgvRecipes.MultiSelect = false;
             dgvRecipes.Name = "dgvRecipes";
             dgvRecipes.ReadOnly = true;
-            dataGridViewCellStyle12.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle12.BackColor = Color.FromArgb(42, 45, 86);
-            dataGridViewCellStyle12.Font = new Font("Segoe UI", 9F);
-            dataGridViewCellStyle12.ForeColor = Color.WhiteSmoke;
-            dataGridViewCellStyle12.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle12.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle12.WrapMode = DataGridViewTriState.True;
-            dgvRecipes.RowHeadersDefaultCellStyle = dataGridViewCellStyle12;
+            dataGridViewCellStyle6.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle6.BackColor = Color.FromArgb(42, 45, 86);
+            dataGridViewCellStyle6.Font = new Font("Segoe UI", 9F);
+            dataGridViewCellStyle6.ForeColor = Color.WhiteSmoke;
+            dataGridViewCellStyle6.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle6.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle6.WrapMode = DataGridViewTriState.True;
+            dgvRecipes.RowHeadersDefaultCellStyle = dataGridViewCellStyle6;
             dgvRecipes.RowHeadersWidth = 51;
             dgvRecipes.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dgvRecipes.Size = new Size(739, 453);
@@ -688,6 +690,14 @@
             btnClose.Text = "Đóng";
             btnClose.UseVisualStyleBackColor = true;
             // 
+            // lblValidationStatus
+            // 
+            lblValidationStatus.AutoSize = true;
+            lblValidationStatus.Location = new Point(131, 314);
+            lblValidationStatus.Name = "lblValidationStatus";
+            lblValidationStatus.Size = new Size(0, 15);
+            lblValidationStatus.TabIndex = 27;
+            // 
             // FrmProductDetails
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -770,5 +780,6 @@
         private Button btnRemove;
         private Button btnUpload;
         private Button btnCheckUrl;
+        private Label lblValidationStatus;
     }
 }

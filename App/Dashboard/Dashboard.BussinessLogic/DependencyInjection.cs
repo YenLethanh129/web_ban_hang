@@ -8,6 +8,7 @@ using Dashboard.BussinessLogic.Services.ProductServices;
 using Dashboard.BussinessLogic.Services.RBACServices;
 using Dashboard.BussinessLogic.Services.ReportServices;
 using Dashboard.BussinessLogic.Services.SupplierServices;
+using Dashboard.Common.Utitlities;
 using Dashboard.DataAccess.Data;
 using FluentValidation;
 using MediatR;
@@ -43,6 +44,7 @@ public static class DependencyInjection
         builder.Services.AddScoped<IOrderService, OrderService>();
         builder.Services.AddScoped<ICustomerService, CustomerService>();
         builder.Services.AddScoped<IReportingService, ReportingService>();
+        builder.Services.AddHttpClient<IImageUrlValidator, ImageUrlValidator>();
 
 
         // Ingredient-related services
