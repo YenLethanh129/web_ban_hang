@@ -343,7 +343,6 @@ CREATE TABLE [dbo].[users] (
     [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
     [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
     CONSTRAINT [PK_users] PRIMARY KEY ([id]),
-    CONSTRAINT [FK_users_employees] FOREIGN KEY ([employee_id]) REFERENCES [dbo].[employees]([id]),
     CONSTRAINT [FK_users_roles] FOREIGN KEY ([role_id]) REFERENCES [dbo].[roles]([id])
 );
 GO
@@ -373,11 +372,13 @@ CREATE TABLE [dbo].[tokens] (
     [expired] bit NOT NULL DEFAULT 0,
     [revoked] bit NOT NULL DEFAULT 0,
     [expiration_date] datetime2(6),
-    [user_id] bigint NOT NULL,
+    [user_id] bigint NULL,
+    [employee_user_id] bigint NULL,
     [token_type] varchar(50) NOT NULL,
     [token] nvarchar(MAX) NOT NULL,
     CONSTRAINT [PK_tokens] PRIMARY KEY ([id]),
-    CONSTRAINT [FK_tokens_users] FOREIGN KEY ([user_id]) REFERENCES [dbo].[users]([id])
+    CONSTRAINT [FK_tokens_users] FOREIGN KEY ([user_id]) REFERENCES [dbo].[users]([id]),
+    CONSTRAINT [FK_tokens_employees] FOREIGN KEY ([employee_user_id]) REFERENCES [dbo].[employee_users]([id])
 );
 GO
 
@@ -745,7 +746,7 @@ CREATE TABLE [dbo].[order_details] (
     [quantity] int NOT NULL,
     [order_id] bigint NOT NULL,
     [product_id] bigint NOT NULL,
-    [color] nvarchar(50) COLLATE Vietnamese_CI_AS,
+    [size] nvarchar(50) COLLATE Vietnamese_CI_AS,
     [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
     [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),
     [note] nvarchar(1000) COLLATE Vietnamese_CI_AS,

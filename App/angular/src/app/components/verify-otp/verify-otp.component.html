@@ -1,0 +1,201 @@
+<div class="auth-page">
+  <div class="auth-container">
+    <div class="auth-wrapper">
+      <!-- Header -->
+      <div class="auth-header">
+        <div class="brand-section">
+          <h1 class="brand-title">FUNNY BOY</h1>
+          <p class="brand-subtitle">Coffee & Tea</p>
+        </div>
+        <h2 class="auth-title" *ngIf="!otpVerificationSuccess">Xác thực OTP</h2>
+        <h2 class="auth-title" *ngIf="otpVerificationSuccess">
+          Đặt lại mật khẩu thành công!
+        </h2>
+        <p class="auth-subtitle" *ngIf="!otpVerificationSuccess">
+          Mã OTP đã được gửi đến <strong>{{ phoneNumber }}</strong>
+        </p>
+        <p class="auth-subtitle" *ngIf="otpVerificationSuccess">
+          Mật khẩu mới đã được tạo thành công. Vui lòng lưu lại an toàn.
+        </p>
+      </div>
+
+      <!-- Form OTP - Chỉ hiển thị khi chưa verify thành công -->
+      <div class="auth-form" *ngIf="!otpVerificationSuccess">
+        <!-- OTP Input -->
+        <div class="form-group">
+          <label class="form-label">
+            <i class="fas fa-key"></i>
+            Mã OTP (6 số)
+          </label>
+          <div class="otp-container">
+            <input
+              *ngFor="let digit of otpDigits; let i = index"
+              type="tel"
+              inputmode="numeric"
+              maxlength="1"
+              class="otp-input"
+              [class.error]="showValidationError"
+              [value]="otpDigits[i]"
+              [attr.data-otp-index]="i"
+              (input)="onOtpInput($event, i)"
+              (keydown)="onOtpKeydown($event, i)"
+              (paste)="onOtpPaste($event, i)"
+              autocomplete="off"
+              pattern="[0-9]*"
+            />
+          </div>
+          <div class="error-message" *ngIf="showValidationError">
+            <i class="fas fa-exclamation-circle"></i>
+            Vui lòng nhập đầy đủ 6 số
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <button
+          type="button"
+          class="btn btn-primary"
+          [disabled]="!isOtpComplete || isLoading"
+          (click)="onSubmit()"
+        >
+          <i class="fas fa-shield-alt" *ngIf="!isLoading"></i>
+          <i class="fas fa-spinner fa-spin" *ngIf="isLoading"></i>
+          {{ isLoading ? "Đang xác thực..." : "Xác thực OTP" }}
+        </button>
+
+        <!-- Resend OTP -->
+        <div class="resend-section">
+          <p class="resend-text">Không nhận được mã?</p>
+          <button
+            type="button"
+            class="btn btn-secondary"
+            [disabled]="resendCooldown > 0 || isResending"
+            (click)="resendOtp()"
+          >
+            <i class="fas fa-redo" *ngIf="!isResending"></i>
+            <i class="fas fa-spinner fa-spin" *ngIf="isResending"></i>
+            <span *ngIf="resendCooldown > 0">
+              Gửi lại sau {{ resendCooldown }}s
+            </span>
+            <span *ngIf="resendCooldown === 0 && !isResending">
+              Gửi lại mã OTP
+            </span>
+            <span *ngIf="isResending"> Đang gửi... </span>
+          </button>
+        </div>
+
+        <!-- Back to Forgot Password -->
+        <div class="auth-links">
+          <a routerLink="/forgot-password" class="auth-link">
+            <i class="fas fa-arrow-left"></i>
+            Quay lại
+          </a>
+        </div>
+      </div>
+
+      <!-- Error Message - Chỉ hiển thị khi chưa verify thành công -->
+      <div
+        class="alert alert-danger"
+        *ngIf="errorMessage && !otpVerificationSuccess"
+      >
+        <i class="fas fa-exclamation-triangle"></i>
+        {{ errorMessage }}
+      </div>
+
+      <!-- Success Message - Chỉ hiển thị khi chưa verify thành công -->
+      <div
+        class="alert alert-success"
+        *ngIf="successMessage && !otpVerificationSuccess"
+      >
+        <i class="fas fa-check-circle"></i>
+        {{ successMessage }}
+      </div>
+
+      <!-- New Password Display -->
+      <div class="new-password-section" *ngIf="newPassword">
+        <div class="alert alert-success">
+          <div class="password-header">
+            <i class="fas fa-check-circle"></i>
+            <h4>Đặt lại mật khẩu thành công!</h4>
+          </div>
+
+          <div class="password-content">
+            <p><strong>Mật khẩu mới của bạn:</strong></p>
+
+            <div class="password-box">
+              <div class="password-display">
+                <span class="password-text" [class.hidden]="!showPassword">
+                  {{ newPassword }}
+                </span>
+                <span class="password-text hidden-dots" *ngIf="!showPassword">
+                  {{ "•".repeat(newPassword.length) }}
+                </span>
+              </div>
+
+              <div class="password-actions">
+                <button
+                  type="button"
+                  class="btn-icon"
+                  (click)="togglePasswordVisibility()"
+                  [title]="showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'"
+                >
+                  <i
+                    class="fas"
+                    [class.fa-eye-slash]="showPassword"
+                    [class.fa-eye]="!showPassword"
+                  ></i>
+                </button>
+
+                <button
+                  type="button"
+                  class="btn-icon copy-btn"
+                  (click)="copyPassword()"
+                  [class.copied]="passwordCopied"
+                  title="Copy mật khẩu"
+                >
+                  <i
+                    class="fas"
+                    [class.fa-copy]="!passwordCopied"
+                    [class.fa-check]="passwordCopied"
+                  ></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="copy-feedback" *ngIf="passwordCopied">
+              <i class="fas fa-check"></i>
+              Đã copy mật khẩu vào clipboard!
+            </div>
+
+            <div class="password-warning">
+              <i class="fas fa-exclamation-triangle"></i>
+              <small>
+                <strong>Quan trọng:</strong> Vui lòng lưu lại mật khẩu này an
+                toàn. Bạn sẽ cần dùng nó để đăng nhập.
+              </small>
+            </div>
+          </div>
+        </div>
+
+        <div class="action-buttons">
+          <button class="btn btn-primary" (click)="goToLogin()">
+            <i class="fas fa-sign-in-alt"></i>
+            Đăng nhập ngay
+          </button>
+
+          <div class="redirect-info" *ngIf="redirectCountdown > 0">
+            <i class="fas fa-info-circle"></i>
+            Tự động chuyển về trang đăng nhập sau {{ redirectCountdown }} giây
+            <button
+              type="button"
+              class="btn-link cancel-redirect"
+              (click)="cancelRedirect()"
+              title="Hủy tự động chuyển trang"
+            >
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

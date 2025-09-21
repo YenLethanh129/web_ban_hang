@@ -4,12 +4,13 @@ import { CommonModule } from '@angular/common';
 import { TokenService } from '../../services/token.service';
 import { UserService } from '../../services/user.service';
 import { FormsModule } from '@angular/forms';
-import { CategoryDTO } from '../../models/category.dto';
+import { CategoryDTO } from '../../dtos/category.dto';
 import { CategoryService } from '../../services/category.service';
 import { CacheService } from '../../services/cache.service';
 import { SearchComponent } from '../search/search.component';
-import { ProductDTO } from '../../models/product.dto';
-import { Subject, takeUntil } from 'rxjs';
+import { ProductDTO } from '../../dtos/product.dto';
+import { Subject, takeUntil, combineLatest } from 'rxjs';
+import { UserDTO } from '../../dtos/user.dto';
 
 @Component({
   selector: 'app-header',
@@ -24,6 +25,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
   selectedCategory: string = '';
   categories: CategoryDTO[] = [];
   isDropdownOpen: boolean = false;
+  isLoggedIn: boolean = false;
+  currentUser: UserDTO | null = null;
 
   private destroy$ = new Subject<void>();
 
@@ -38,18 +41,30 @@ export class HeaderComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.loadCategories();
 
-    // Subscribe to user changes from cache
-    this.userService
-      .getUserObservable()
+    // Subscribe to authentication and user state changes
+    combineLatest([this.userService.isAuthenticated$, this.userService.user$])
       .pipe(takeUntil(this.destroy$))
-      .subscribe((user) => {
+      .subscribe(([isAuthenticated, user]) => {
+        this.isLoggedIn = isAuthenticated;
+        this.currentUser = user;
         this.username = user?.fullname || '';
+
+        console.log('🔄 Header state updated:', {
+          isLoggedIn: this.isLoggedIn,
+          username: this.username,
+          user: user,
+        });
       });
 
-    // Load user if logged in
-    if (this.isLoggedIn) {
-      this.loadUserProfile();
-    }
+    // Initialize authentication state check
+    this.userService.checkAuthenticationStatus().subscribe({
+      next: (isAuth) => {
+        console.log('🔍 Initial auth check:', isAuth);
+      },
+      error: (error) => {
+        console.error('❌ Initial auth check failed:', error);
+      },
+    });
   }
 
   ngOnDestroy(): void {
@@ -69,35 +84,48 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   private loadUserProfile() {
-    // Check cache first
-    const cachedUser = this.cacheService.getUser();
-    if (cachedUser) {
-      this.username = cachedUser.fullname;
-      return;
-    }
-
-    // Load from server if not in cache
-    this.userService.getUser().subscribe({
-      next: (user) => {
-        this.userService.setCurrentUser(user);
-        this.username = user.fullname;
-      },
-      error: (error) => {
-        console.error('Lỗi khi tải thông tin user:', error);
-        this.tokenService.removeToken();
-      },
-    });
-  }
-
-  get isLoggedIn(): boolean {
-    return this.tokenService.isLoggedIn();
+    // Deprecated - this method is no longer needed as we use reactive streams
+    // Left for compatibility but functionality moved to ngOnInit
   }
 
   logout(): void {
-    this.userService.logout(); // Use the new logout method from UserService
-    this.username = '';
+    console.log('🚪 Header: Starting logout...');
+
+    // Đóng dropdown trước
     this.isDropdownOpen = false;
-    this.router.navigate(['/login']);
+
+    // Gọi logout service với Observable
+    this.userService.logout().subscribe({
+      next: (response) => {
+        console.log('✅ Header: Logout successful:', response);
+
+        // Clear local state
+        this.username = '';
+        this.currentUser = null;
+        this.isLoggedIn = false;
+
+        // Navigate to login
+        this.router.navigate(['/login'], {
+          queryParams: {
+            message: 'Đăng xuất thành công',
+          },
+        });
+      },
+      error: (error) => {
+        console.error('❌ Header: Logout error:', error);
+
+        // Vẫn clear local state và redirect dù có lỗi
+        this.username = '';
+        this.currentUser = null;
+        this.isLoggedIn = false;
+
+        this.router.navigate(['/login'], {
+          queryParams: {
+            message: 'Đăng xuất thành công (có lỗi nhỏ)',
+          },
+        });
+      },
+    });
   }
 
   // Handle search events

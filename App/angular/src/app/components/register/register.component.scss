@@ -167,16 +167,21 @@
     }
 
     .error-message {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: var(--accent-danger);
-      font-size: 0.8rem;
-      margin-top: 8px;
-      font-weight: 500;
+      display: block; // Hiển thị theo dòng
+      color: red;
 
-      i {
-        font-size: 0.75rem;
+      span {
+        display: block; // Mỗi error một dòng
+        margin-bottom: 4px;
+
+        &:first-of-type {
+          display: inline-block; // Error đầu tiên cùng dòng với icon
+        }
+
+        &:not(:first-of-type) {
+          margin-left: 20px; // Indent các error tiếp theo
+          margin-top: 4px;
+        }
       }
     }
 

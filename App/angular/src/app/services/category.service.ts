@@ -1,8 +1,8 @@
-import { HttpClient } from "@angular/common/http";
-import { WebEnvironment } from "../environments/WebEnvironment";
-import { Observable } from "rxjs";
-import { CategoryDTO } from "../models/category.dto";
-import { Injectable } from "@angular/core";
+import { HttpClient } from '@angular/common/http';
+import { WebEnvironment } from '../environments/WebEnvironment';
+import { Observable } from 'rxjs';
+import { CategoryDTO } from '../dtos/category.dto';
+import { Injectable } from '@angular/core';
 
 @Injectable({
   providedIn: 'root',

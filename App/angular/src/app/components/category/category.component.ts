@@ -1,7 +1,7 @@
 import { Component, OnInit, HostListener } from '@angular/core';
 import { RouterModule, ActivatedRoute } from '@angular/router';
 import { HttpClientModule } from '@angular/common/http';
-import { ProductDTO } from '../../models/product.dto';
+import { ProductDTO } from '../../dtos/product.dto';
 import { ProductService } from '../../services/product.service';
 import { CommonModule } from '@angular/common';
 import { CartService } from '../../services/cart.service';

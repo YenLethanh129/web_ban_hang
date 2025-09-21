@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Subject, takeUntil } from 'rxjs';
-import { ProductDTO } from '../../models/product.dto';
+import { ProductDTO } from '../../dtos/product.dto';
 import { CartService } from '../../services/cart.service';
 import { ProductService } from '../../services/product.service';
 import { TokenService } from '../../services/token.service';
@@ -10,8 +10,8 @@ import { UserService } from '../../services/user.service';
 import { OrderService } from '../../services/order.service';
 import { FormsModule } from '@angular/forms';
 import { UserDTO } from '../../dtos/user.dto';
-import { MomoInfoOrderDTO, OrderDTO } from '../../dtos/order.dto';
-import { OrderDetailDTO } from '../../dtos/order.dto';
+import { MomoInfoOrderDTO, OrderRequestDTO } from '../../dtos/order.dto';
+import { OrderDetailRequestDTO } from '../../dtos/order.dto';
 import { OrderDetailService } from '../../services/order.detail.service';
 import { MomoService } from '../../services/momo.service';
 import { CreateMomoResponse } from '../../dtos/momo.dto';
@@ -19,6 +19,8 @@ import { AddressAutocompleteComponent } from '../shared/address-autocomplete/add
 import { AddressPrediction } from '../../dtos/address.dto';
 import { UserAddressService } from '../../services/user-address.service';
 import { NotificationService } from '../../services/notification.service';
+import { ValidateDTO } from '../../dtos/validate.dto';
+import { ValidateService } from '../../services/validate.service';
 
 @Component({
   selector: 'app-order',
@@ -40,6 +42,24 @@ export class OrderComponent implements OnInit, OnDestroy {
   orderId: number = 0;
   showAutofillButton: boolean = false;
   showAddressError: boolean = false;
+
+  // Validation DTOs
+  validateFullNameDTO: ValidateDTO = {
+    isValid: false,
+    errors: ['Họ và tên không được để trống'],
+  };
+  validateEmailDTO: ValidateDTO = {
+    isValid: true,
+    errors: [],
+  };
+  validatePhoneNumberDTO: ValidateDTO = {
+    isValid: false,
+    errors: ['Số điện thoại không được để trống'],
+  };
+  validateShippingAddressDTO: ValidateDTO = {
+    isValid: false,
+    errors: ['Địa chỉ giao hàng không được để trống'],
+  };
 
   private destroy$ = new Subject<void>();
 
@@ -104,6 +124,11 @@ export class OrderComponent implements OnInit, OnDestroy {
       this.orderData.address = addressInfo.address;
       this.orderData.shippingAddress = addressInfo.address;
 
+      // Validate after autofill
+      this.validateFullName();
+      this.validatePhoneNumber();
+      this.validateShippingAddress();
+
       this.notificationService.showSuccess(
         'Đã tự động điền thông tin giao hàng từ hồ sơ của bạn!'
       );
@@ -114,28 +139,137 @@ export class OrderComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   *
+   * VALIDATE METHODS
+   *
+   */
+
+  validateFullName(event?: Event): void {
+    if (event) {
+      const input = event.target as HTMLInputElement;
+      this.orderData.fullName = input.value;
+    }
+    this.validateFullNameDTO = ValidateService.validateFullName(
+      this.orderData.fullName
+    );
+  }
+
+  validateEmail(event?: Event): void {
+    if (event) {
+      const input = event.target as HTMLInputElement;
+      this.orderData.email = input.value;
+    }
+    if (this.orderData.email && this.orderData.email.trim().length > 0) {
+      this.validateEmailDTO = ValidateService.validateEmail(
+        this.orderData.email
+      );
+    } else {
+      this.validateEmailDTO = { isValid: true, errors: [] };
+    }
+  }
+
+  validatePhoneNumber(event?: Event): void {
+    if (event) {
+      const input = event.target as HTMLInputElement;
+      this.orderData.phoneNumber = input.value;
+    }
+    this.validatePhoneNumberDTO = ValidateService.validatePhoneNumber(
+      this.orderData.phoneNumber
+    );
+  }
+
+  validateShippingAddress(): void {
+    this.validateShippingAddressDTO = ValidateService.validateAddress(
+      this.orderData.shippingAddress
+    );
+    // Đồng bộ address với shippingAddress
+    if (this.orderData.shippingAddress) {
+      this.orderData.address = this.orderData.shippingAddress;
+    }
+  }
+
+  validateForm(): boolean {
+    // Trigger all validations
+    this.validateFullName();
+    this.validateEmail();
+    this.validatePhoneNumber();
+    this.validateShippingAddress();
+
+    const isValid =
+      this.validateFullNameDTO.isValid &&
+      this.validateEmailDTO.isValid &&
+      this.validatePhoneNumberDTO.isValid &&
+      this.validateShippingAddressDTO.isValid;
+
+    if (!isValid) {
+      this.notificationService.showWarning(
+        '⚠️ Vui lòng kiểm tra lại thông tin đặt hàng!'
+      );
+    } else {
+      this.notificationService.showInfo('📝 Đang xử lý đơn hàng...');
+    }
+
+    return isValid;
+  }
+
   onSubmit() {
+    if (!this.validateForm()) {
+      return;
+    }
     this.isLoading = true;
     this.createOrder();
   }
 
   private loadUserData() {
-    this.userService.getUser().subscribe({
+    // First try to get current user if already loaded
+    const currentUser = this.userService.getCurrentUser();
+    if (currentUser) {
+      this.setUserData(currentUser);
+      return;
+    }
+
+    // Subscribe to user changes for real-time updates
+    this.userService.user$.pipe(takeUntil(this.destroy$)).subscribe({
       next: (user) => {
-        this.user = user;
-        console.log('Thông tin người dùng:', this.user);
-        if (this.user) {
-          this.orderData.userId = this.user.id;
-          this.orderData.fullName = this.user.fullname;
-          this.orderData.phoneNumber = this.user.phone_number;
-          this.orderData.shippingAddress = this.user.address;
-          this.orderData.address = this.user.address;
+        if (user) {
+          this.setUserData(user);
         }
       },
       error: (error) => {
-        console.error('Lỗi khi tải thông tin người dùng:', error);
+        console.error('Error in user subscription:', error);
       },
     });
+
+    // Load from server if not available
+    this.userService.getUser().subscribe({
+      next: (user) => {
+        console.log('Order component - loaded user:', user);
+        this.setUserData(user);
+      },
+      error: (error) => {
+        console.error('Lỗi khi tải thông tin người dùng:', error);
+        this.notificationService.showError(
+          'Không thể tải thông tin người dùng'
+        );
+        this.router.navigate(['/login']);
+      },
+    });
+  }
+
+  private setUserData(user: UserDTO): void {
+    this.user = user;
+    this.orderData.fullName = user.fullname;
+    this.orderData.phoneNumber = user.phone_number;
+    this.orderData.shippingAddress = user.address;
+    this.orderData.address = user.address;
+
+    // Validate after setting user data
+    this.validateFullName();
+    this.validatePhoneNumber();
+    this.validateShippingAddress();
+
+    console.log('Order data updated with user info:', this.orderData);
   }
 
   private async loadCartItems() {
@@ -177,6 +311,7 @@ export class OrderComponent implements OnInit, OnDestroy {
 
   onAddressSelected(address: AddressPrediction): void {
     this.orderData.shippingAddress = address.description;
+    this.validateShippingAddress();
   }
 
   onAddressFocus(): void {
@@ -184,8 +319,8 @@ export class OrderComponent implements OnInit, OnDestroy {
   }
 
   createOrder(): void {
-    const orderDTO: OrderDTO = {
-      user_id: this.orderData.userId,
+    const orderDTO: OrderRequestDTO = {
+      // user_id: this.orderData.userId,
       full_name: this.orderData.fullName,
       email: this.orderData.email,
       phone_number: this.orderData.phoneNumber,
@@ -199,9 +334,12 @@ export class OrderComponent implements OnInit, OnDestroy {
       payment_status: this.orderData.paymentStatus,
     };
 
-    console.log('OrderDTO: ', orderDTO);
+    console.log('OrderRequestDTO: ', orderDTO);
     this.orderService.createOrder(orderDTO).subscribe({
       next: (response: any) => {
+        this.notificationService.showSuccess(
+          'Đơn hàng đã được tạo thành công!'
+        );
         console.log('Đơn hàng đã được tạo:', response);
         this.orderId = response.order_id;
         this.momoInfoOrderDTO = {
@@ -211,14 +349,16 @@ export class OrderComponent implements OnInit, OnDestroy {
         this.createOrderDetail(this.orderId);
       },
       error: (error) => {
-        console.error('Lỗi khi tạo đơn hàng:', error);
+        this.notificationService.showError(
+          'Lỗi khi tạo đơn hàng: ' + error.message
+        );
       },
     });
   }
 
   createOrderDetail(orderId: number): void {
     this.cartItems.forEach((item) => {
-      const orderDetailDTO: OrderDetailDTO = {
+      const orderDetailDTO: OrderDetailRequestDTO = {
         order_id: orderId,
         product_id: item.product.id,
         quantity: item.quantity,
@@ -227,7 +367,7 @@ export class OrderComponent implements OnInit, OnDestroy {
         size: item.size ?? 'L',
       };
 
-      console.log('OrderDetailDTO: ', orderDetailDTO);
+      console.log('OrderDetailRequestDTO: ', orderDetailDTO);
       this.orderDetailService.createOrderDetail(orderDetailDTO).subscribe({
         next: (response) => {
           console.log('Đơn hàng chi tiết đã được tạo:', response);
@@ -238,8 +378,7 @@ export class OrderComponent implements OnInit, OnDestroy {
       });
     });
 
-    this.clearCart();
-
+    debugger;
     if (this.momoInfoOrderDTO) {
       this.momoService.createQR(this.momoInfoOrderDTO).subscribe({
         next: (response: CreateMomoResponse) => {
@@ -256,6 +395,8 @@ export class OrderComponent implements OnInit, OnDestroy {
         },
       });
     }
+
+    this.clearCart();
 
     this.isLoading = false;
   }

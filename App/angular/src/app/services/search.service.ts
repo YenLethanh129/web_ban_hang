@@ -7,7 +7,7 @@ import {
   switchMap,
   of,
 } from 'rxjs';
-import { ProductDTO } from '../models/product.dto';
+import { ProductDTO } from '../dtos/product.dto';
 import { CacheService } from './cache.service';
 import { ProductService } from './product.service';
 import { StorageService } from './storage.service';
@@ -279,14 +279,15 @@ export class SearchService {
     // This could be enhanced to track search frequency
     // For now, return some common search terms
     return [
-      'điện thoại',
-      'laptop',
-      'tai nghe',
-      'ốp lưng',
-      'sạc dự phòng',
-      'chuột máy tính',
-      'bàn phím',
-      'màn hình',
+      'cà phê đen',
+      'bạc xỉu',
+      'cà phê sữa',
+      'trà đào',
+      'trà vải',
+      'yaourt đá',
+      'sinh tố bơ',
+      'ép cam',
+      'dừa tươi',
     ];
   }
 

@@ -1,9 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import {
-  OrderDetailDTO,
-  OrderDetailResponseDTO,
-  OrderResponseDTO,
+  OrderConfirmResponseDTO,
 } from '../../dtos/order.dto';
 import { OrderService } from '../../services/order.service';
 import { OrderDetailService } from '../../services/order.detail.service';
@@ -37,23 +35,8 @@ export class OrderConfirmComponent implements OnInit {
     this.route.params.subscribe((params) => {
       const orderId = +params['id'];
       this.cleanUrl();
-      this.loadOrder(orderId);
       this.getOrderDetails(orderId);
       this.ipnHandler(orderId);
-    });
-  }
-
-  private loadOrder(orderId: number): void {
-    this.isLoading = true;
-    this.orderService.getOrderById(orderId).subscribe({
-      next: (response) => {
-        this.orderResponse = response;
-        this.isLoading = false;
-      },
-      error: (error) => {
-        console.error('Error loading order:', error);
-        this.isLoading = false;
-      },
     });
   }
 
@@ -62,9 +45,10 @@ export class OrderConfirmComponent implements OnInit {
   }
 
   getOrderDetails(orderId: number): void {
-    this.orderDetailService.getOrderDetailsByOrderId(orderId).subscribe({
-      next: (response: any) => {
-        this.listOrderDetails = response;
+    this.orderService.getOrderConfirm(orderId).subscribe({
+      next: (response: OrderConfirmResponseDTO) => {
+        this.listOrderDetails = response.order_details;
+        this.orderResponse = response;
         this.isLoading = false; // ← Kết thúc loading
       },
       error: (error) => {

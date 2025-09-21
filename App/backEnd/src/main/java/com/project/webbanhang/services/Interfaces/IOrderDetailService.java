@@ -10,7 +10,7 @@ public interface IOrderDetailService {
 
 	OrderDetailResponse createOrderDetail(OrderDetailDTO orderDetailDTO);
 	
-	OrderDetailResponse getOrderDetail(Long orderDetailId);
+	OrderDetailResponse getOrderDetail(String extractedToken,Long orderDetailId) throws Exception;
 	
 	List<OrderDetailResponse> getOrderDetails();
 	

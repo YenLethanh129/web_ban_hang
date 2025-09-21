@@ -1,5 +1,6 @@
 package com.project.webbanhang.response;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -19,7 +20,9 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @NoArgsConstructor
 @MappedSuperclass
-public class BaseResponse {
+public class BaseResponse implements Serializable {
+	private static final long serialVersionUID = 1L;
+
 	@JsonProperty("created_at")
 	private LocalDateTime createdAt;
 

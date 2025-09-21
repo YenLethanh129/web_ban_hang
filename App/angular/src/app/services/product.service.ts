@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map, tap, of } from 'rxjs';
-import { ProductDTO, ProductResponse } from '../models/product.dto';
+import { ProductDTO, ProductResponse } from '../dtos/product.dto';
 import { WebEnvironment } from '../environments/WebEnvironment';
 import { CacheService } from './cache.service';
 

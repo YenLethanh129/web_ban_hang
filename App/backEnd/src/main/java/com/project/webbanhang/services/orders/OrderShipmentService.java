@@ -1,0 +1,52 @@
+package com.project.webbanhang.services.orders;
+
+import com.project.webbanhang.models.orders.Order;
+import com.project.webbanhang.models.orders.OrderShipment;
+import com.project.webbanhang.models.ShippingProvider;
+import com.project.webbanhang.repositories.OrderShipmentRepository;
+import com.project.webbanhang.repositories.ShippingProviderRepository;
+import com.project.webbanhang.services.Interfaces.IOrderShipmentService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.Optional;
+
+@Service
+@RequiredArgsConstructor
+public class OrderShipmentService implements IOrderShipmentService {
+    private final OrderShipmentRepository orderShipmentRepository;
+    private final ShippingProviderRepository shippingProviderRepository;
+
+    @Override
+    public void createOrderShipment(Order order, String address) {
+        LocalDateTime estimateDelivery;
+        if (order.getCreatedAt() != null) {
+            estimateDelivery = order.getCreatedAt().plusHours(1);
+        } else {
+            estimateDelivery = null;
+        }
+
+        Optional<ShippingProvider> shippingProvider = shippingProviderRepository.findById(1L);
+
+        OrderShipment orderShipment = OrderShipment.builder()
+                .order(order)
+                .shippingAddress(address)
+                .shippingCost(0L)
+                .shippingMethod("Giao hàng nhanh")
+                .estimatedDeliveryDate(estimateDelivery)
+                .notes(order.getNotes())
+                .build();
+
+        shippingProvider.ifPresent(orderShipment::setShippingProvider);
+
+        orderShipmentRepository.save(orderShipment);
+    }
+
+    @Override
+    public Optional<OrderShipment> getOrderShipmentByOrderId(Long orderId) {
+        return orderShipmentRepository.findByOrderId(orderId);
+    }
+
+
+}

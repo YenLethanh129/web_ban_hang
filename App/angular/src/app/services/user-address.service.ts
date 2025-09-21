@@ -30,9 +30,6 @@ export class UserAddressService {
     }
   }
 
-  /**
-   * Tải thông tin địa chỉ user từ API
-   */
   private loadUserAddress(): void {
     // Chỉ load nếu có token
     if (!this.tokenService.getToken()) {

@@ -1,9 +1,14 @@
 package com.project.webbanhang.controllers;
 
 import com.project.webbanhang.dtos.OrderDTO;
+import com.project.webbanhang.models.User;
+import com.project.webbanhang.response.MessageResponse;
 import com.project.webbanhang.response.OrderResponse;
 import com.project.webbanhang.services.Interfaces.IOrderService;
 
+import com.project.webbanhang.utils.CookieToken;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -21,10 +26,26 @@ public class OrderController {
 	
 	private final IOrderService orderService;
 
+    @GetMapping("/{order_id}")
+    public ResponseEntity<?> getOrderById(
+            @PathVariable("order_id") Long orderId,
+            HttpServletRequest request
+    ) {
+        try {
+            String extractedToken = CookieToken.extractTokenFromCookies(request);
+            OrderResponse existingOrderResponse = orderService.getOrderById(extractedToken, orderId);
+
+            return ResponseEntity.ok(existingOrderResponse);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
 	// Done
     @PostMapping("")
     public ResponseEntity<?> createOrder(
             @RequestBody @Valid OrderDTO orderDTO,
+            HttpServletRequest request,
             BindingResult result
     ) {
         try {
@@ -35,8 +56,9 @@ public class OrderController {
                         .toList();
                 return ResponseEntity.badRequest().body(errorMessages);
             }
+            String extractedToken = CookieToken.extractTokenFromCookies(request);
             
-            OrderResponse existingOrderResponse = orderService.createOrder(orderDTO);
+            OrderResponse existingOrderResponse = orderService.createOrder(extractedToken, orderDTO);
             
             return ResponseEntity.ok(existingOrderResponse);
         } catch (Exception e) {
@@ -45,39 +67,19 @@ public class OrderController {
     }
 
     // Done
-    @GetMapping("/{order_id}")
-    public ResponseEntity<?> getOrder(
-    		@Valid @PathVariable("order_id") Long orderId
-    ) {
-        try {
-        	 OrderResponse existingOrderResponse = orderService.getOrderById(orderId);
-            return ResponseEntity.ok(existingOrderResponse);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
-    
-    // Done
-    @GetMapping("")
-    public ResponseEntity<?> getAllOrders(
-    ) {
-        try {
-
-        	List<OrderResponse> existingOrderResponses = orderService.getAllOrders();
-        	
-            return ResponseEntity.ok(existingOrderResponses);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Get orders failed");
-        }
-    }
-
-    // Done
-    @GetMapping("/user/{user_id}")
+    /**
+     * TOP 10 OWASP 2023
+     * API1:2023 - Broken Object Level Authorization (BOLA)
+     * Hacker có thể lấy id của người dùng khác và truy cập vào thông tin cá nhân của họ
+     * Giải pháp: Sử dụng token để xác thực người dùng hiện tại và chỉ trả về thông tin của họ
+     * */
+    @PostMapping("/user")
     public ResponseEntity<?> getOrdersByUserId(
-    		@Valid @PathVariable("user_id") Long userId
+            HttpServletRequest request
     ) {
         try {
-        	List<OrderResponse> existingOrderResponses = orderService.findAllByCustomerId(userId);
+            String extractedToken = CookieToken.extractTokenFromCookies(request);
+        	List<OrderResponse> existingOrderResponses = orderService.findByCustomer(extractedToken);
 
             return ResponseEntity.ok(existingOrderResponses);
         } catch (Exception e) {
@@ -106,6 +108,23 @@ public class OrderController {
             return ResponseEntity.ok(orderResponse);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Update order failed");
+        }
+    }
+
+    @PutMapping("/cancel/{id}")
+    public ResponseEntity<?> cancelOrder(
+            @PathVariable("id") Long id,
+            HttpServletRequest request
+    ) {
+        try {
+            String extractedToken = CookieToken.extractTokenFromCookies(request);
+            orderService.cancelOrder(extractedToken, id);
+            return ResponseEntity.ok(
+                    MessageResponse.builder()
+                            .message("Hủy thành công đơn hàng!")
+                            .build());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Lỗi khi hủy đơn hàng!");
         }
     }
 
