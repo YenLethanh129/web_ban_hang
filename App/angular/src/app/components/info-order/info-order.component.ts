@@ -3,7 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { OrderService } from '../../services/order.service';
 import { UserService } from '../../services/user.service';
-import { NewOrderResponseDTO } from '../../dtos/order.dto';
+import { OrderResponseDTO } from '../../dtos/order.dto';
 
 @Component({
   selector: 'app-info-order',
@@ -13,8 +13,12 @@ import { NewOrderResponseDTO } from '../../dtos/order.dto';
 })
 export class InfoOrderComponent implements OnInit {
   userId: number | null = null;
-  orders: NewOrderResponseDTO[] = [];
+  orders: OrderResponseDTO[] = [];
   isLoading: boolean = false;
+
+  // Modal properties
+  showOrderModal: boolean = false;
+  selectedOrder: OrderResponseDTO | null = null;
 
   orderStatus: { [key: string]: string } = {
     PENDING: 'Chờ xác nhận',
@@ -107,7 +111,6 @@ export class InfoOrderComponent implements OnInit {
     });
   }
 
-  // Utility methods for status and payment
   getStatusClass(status: string): string {
     const statusMap: { [key: string]: string } = {
       PENDING: 'status-pending',
@@ -172,27 +175,101 @@ export class InfoOrderComponent implements OnInit {
     return ['DELIVERED', 'CANCELLED'].includes(status);
   }
 
-  trackByOrderUuid(index: number, order: NewOrderResponseDTO): string {
+  trackByOrderUuid(index: number, order: OrderResponseDTO): string {
     return order.order_uuid;
   }
 
   // New methods for actions
-  viewOrderDetails(order: NewOrderResponseDTO): void {
+  viewOrderDetails(order: OrderResponseDTO): void {
     console.log('Viewing order details:', order);
-    // Navigate to order details page with order_uuid
-    this.router.navigate(['/order-details', order.order_uuid]);
+    this.selectedOrder = order;
+    this.showOrderModal = true;
   }
 
-  editOrder(order: NewOrderResponseDTO): void {
+  closeOrderModal(): void {
+    this.showOrderModal = false;
+    this.selectedOrder = null;
+  }
+
+  editOrder(order: OrderResponseDTO): void {
     console.log('Editing order:', order);
     // Navigate to edit order page
     this.router.navigate(['/edit-order', order.order_uuid]);
   }
 
-  cancelOrder(orderUuid: string): void {
-    if (confirm('Bạn có chắc chắn muốn hủy đơn hàng này?')) {
-      // Implement cancel order logic
-      console.log('Cancel order:', orderUuid);
+  // Function mới để xử lý khi user click button hủy đơn hàng
+  handleCancelOrder(order: OrderResponseDTO): void {
+    console.log('Handle cancel order clicked for:', order.order_uuid);
+
+    // Hiển thị confirmation dialog
+    const confirmMessage = `Bạn có chắc chắn muốn hủy đơn hàng ${order.order_uuid.substring(
+      0,
+      5
+    )}...?\n\nHành động này không thể hoàn tác.`;
+
+    if (confirm(confirmMessage)) {
+      this.processCancelOrder(order);
+    }
+  }
+
+  // Function xử lý logic hủy đơn hàng
+  private processCancelOrder(order: OrderResponseDTO): void {
+    console.log('Processing cancel order:', order.order_uuid);
+
+    this.orderService.cancelOrder(order.order_id).subscribe({
+      next: (response) => {
+        console.log('Thông báo:', response.message);
+        this.updateOrderStatusAfterCancel(order.order_uuid);
+        this.showSuccessMessage('Đơn hàng đã được hủy thành công!');
+
+        if (
+          this.showOrderModal &&
+          this.selectedOrder?.order_uuid === order.order_uuid
+        ) {
+          this.closeOrderModal();
+        }
+      },
+      error: (error) => {
+        console.error('Error cancelling order:', error);
+        this.showErrorMessage(
+          'Có lỗi xảy ra khi hủy đơn hàng. Vui lòng thử lại sau!'
+        );
+      },
+    });
+  }
+
+  private updateOrderStatusAfterCancel(orderUuid: string): void {
+    const orderIndex = this.orders.findIndex((o) => o.order_uuid === orderUuid);
+    if (orderIndex !== -1) {
+      this.orders[orderIndex].status = 'CANCELLED';
+
+      if (this.selectedOrder && this.selectedOrder.order_uuid === orderUuid) {
+        this.selectedOrder.status = 'CANCELLED';
+      }
+    }
+  }
+
+  // Function hiển thị thông báo thành công
+  private showSuccessMessage(message: string): void {
+    alert(message);
+    // TODO: Có thể thay thế bằng notification service sau này
+  }
+
+  // Function hiển thị thông báo lỗi
+  private showErrorMessage(message: string): void {
+    alert(message);
+    // TODO: Có thể thay thế bằng notification service sau này
+  }
+
+  // Giữ lại function cũ để tương thích (deprecated)
+  cancelOrder(order: OrderResponseDTO): void {
+    console.warn('cancelOrder is deprecated, use handleCancelOrder instead');
+    this.handleCancelOrder(order);
+  }
+
+  cancelOrderFromModal(): void {
+    if (this.selectedOrder) {
+      this.handleCancelOrder(this.selectedOrder);
     }
   }
 

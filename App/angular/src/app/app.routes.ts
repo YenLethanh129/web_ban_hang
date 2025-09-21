@@ -52,7 +52,7 @@ export const routes: Routes = [
     canActivate: [GuestGuard],
   },
   { path: 'product/:id', component: DetailProductComponent },
-  { path: 'cart', component: CartComponent, canActivate: [AuthGuard] },
+  { path: 'cart', component: CartComponent },
   { path: 'category/:id', component: CategoryComponent },
   { path: 'search', component: SearchResultsComponent },
   {

@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { WebEnvironment } from '../environments/WebEnvironment';
 import {
   OrderRequestDTO,
-  NewOrderResponseDTO,
+  OrderResponseDTO,
   OrderConfirmResponseDTO,
 } from '../dtos/order.dto';
 import { Observable } from 'rxjs';
@@ -28,8 +28,8 @@ export class OrderService {
     });
   }
 
-  getUserOrders(): Observable<NewOrderResponseDTO[]> {
-    return this.http.post<NewOrderResponseDTO[]>(
+  getUserOrders(): Observable<OrderResponseDTO[]> {
+    return this.http.post<OrderResponseDTO[]>(
       `${this.apiUrl}/user`,
       {},
       {
@@ -50,5 +50,19 @@ export class OrderService {
         'X-Requested-With': 'XMLHttpRequest',
       }),
     });
+  }
+
+  cancelOrder(order_id: number): Observable<any> {
+    return this.http.put(
+      `${this.apiUrl}/cancel/${order_id}`,
+      {},
+      {
+        withCredentials: true,
+        headers: new HttpHeaders({
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+        }),
+      }
+    );
   }
 }

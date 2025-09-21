@@ -30,11 +30,13 @@
             Họ và tên người nhận hàng
           </label>
           <div class="input-wrapper">
+            <!-- Chi show nguoi dung xem, khong cho phep thay doi -->
             <input
               type="text"
               name="fullName"
               id="fullName"
               [(ngModel)]="orderData.fullName"
+              [readonly]="true"
               required
               #fullName="ngModel"
               class="form-control"
@@ -92,6 +94,7 @@
               name="phoneNumber"
               required
               [(ngModel)]="orderData.phoneNumber"
+              [readonly]="true"
               #phoneNumber="ngModel"
               [class.is-invalid]="!validatePhoneNumberDTO.isValid"
               placeholder="Nhập số điện thoại"

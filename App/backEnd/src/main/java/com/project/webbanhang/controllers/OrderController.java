@@ -2,6 +2,7 @@ package com.project.webbanhang.controllers;
 
 import com.project.webbanhang.dtos.OrderDTO;
 import com.project.webbanhang.models.User;
+import com.project.webbanhang.response.MessageResponse;
 import com.project.webbanhang.response.OrderResponse;
 import com.project.webbanhang.services.Interfaces.IOrderService;
 
@@ -55,16 +56,7 @@ public class OrderController {
                         .toList();
                 return ResponseEntity.badRequest().body(errorMessages);
             }
-            Cookie[] cookies = request.getCookies();
-            String extractedToken = null;
-            if (cookies != null) {
-                for (Cookie cookie : cookies) {
-                    if (cookie.getName().equals("JWT_TOKEN")) {
-                        extractedToken = cookie.getValue();
-                        break;
-                    }
-                }
-            }
+            String extractedToken = CookieToken.extractTokenFromCookies(request);
             
             OrderResponse existingOrderResponse = orderService.createOrder(extractedToken, orderDTO);
             
@@ -86,16 +78,7 @@ public class OrderController {
             HttpServletRequest request
     ) {
         try {
-            Cookie[] cookies = request.getCookies();
-            String extractedToken = null;
-            if (cookies != null) {
-                for (Cookie cookie : cookies) {
-                    if (cookie.getName().equals("JWT_TOKEN")) {
-                        extractedToken = cookie.getValue();
-                        break;
-                    }
-                }
-            }
+            String extractedToken = CookieToken.extractTokenFromCookies(request);
         	List<OrderResponse> existingOrderResponses = orderService.findByCustomer(extractedToken);
 
             return ResponseEntity.ok(existingOrderResponses);
@@ -125,6 +108,23 @@ public class OrderController {
             return ResponseEntity.ok(orderResponse);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Update order failed");
+        }
+    }
+
+    @PutMapping("/cancel/{id}")
+    public ResponseEntity<?> cancelOrder(
+            @PathVariable("id") Long id,
+            HttpServletRequest request
+    ) {
+        try {
+            String extractedToken = CookieToken.extractTokenFromCookies(request);
+            orderService.cancelOrder(extractedToken, id);
+            return ResponseEntity.ok(
+                    MessageResponse.builder()
+                            .message("Hủy thành công đơn hàng!")
+                            .build());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Lỗi khi hủy đơn hàng!");
         }
     }
 

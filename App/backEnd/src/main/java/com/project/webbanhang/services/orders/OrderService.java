@@ -6,9 +6,11 @@ import com.project.webbanhang.annotations.RateLimited;
 import com.project.webbanhang.models.*;
 import com.project.webbanhang.models.orders.Order;
 import com.project.webbanhang.models.orders.OrderPayment;
+import com.project.webbanhang.models.orders.OrderShipment;
 import com.project.webbanhang.models.orders.OrderStatus;
 import com.project.webbanhang.repositories.*;
 import com.project.webbanhang.response.OrderDetailResponse;
+import com.project.webbanhang.response.ReceiverResponse;
 import com.project.webbanhang.services.Interfaces.*;
 import com.project.webbanhang.utils.TrackingNumberGenerator;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,7 @@ public class OrderService implements IOrderService {
 	private final IOrderShipmentService orderShipmentService;
 	private final IUserService userService;
 	private final IOrderDetailService orderDetailService;
+	private final IShippingProviderService shippingProviderService;
 
 	private final OrderRepository orderRepository;
 	private final CustomerRepository customerRepository;
@@ -133,11 +136,21 @@ public class OrderService implements IOrderService {
 	}
 
 	@Override
-	public void deleteOrder(Long orderId) throws DataNotFoundException {
-		Order existingOrder = orderRepository.findById(orderId)
-				.orElseThrow(() -> new DataNotFoundException("Can't found order with id: " + orderId));
-//		existingOrder.setIsActive(false);
-		orderRepository.save(existingOrder);
+	public void cancelOrder(String extractedToken, Long orderId) throws Exception {
+		User user = userService.getUserProfileFromToken(extractedToken);
+		List<Order> existingOrder = orderRepository.findAllByCustomerId(user.getId());
+		for (Order order : existingOrder) {
+			if (order.getId().equals(orderId)) {
+				OrderStatus orderStatus = OrderStatus.builder()
+						.id(6L)
+						.name(OrderStatus.CANCELLED)
+						.build();
+				order.setStatus(orderStatus);
+				orderRepository.save(order);
+				return;
+			}
+		}
+		throw new DataNotFoundException("Can't found order with id: " + orderId);
 	}
 
 	/**
@@ -160,6 +173,23 @@ public class OrderService implements IOrderService {
 			if (!existingOrderDetails.isEmpty()) {
 				orderResponse.setOrderDetails(existingOrderDetails);
 			}
+
+			Optional<OrderShipment> orderShipment = orderShipmentService.getOrderShipmentByOrderId(order.getId());
+			if (orderShipment.isPresent()) {
+				Optional<ShippingProvider> shippingProvider = shippingProviderService.getShippingProviderById(orderShipment.get().getShippingProvider().getId());
+				shippingProvider.ifPresent(provider -> orderResponse.setProvider(provider.getName()));
+			} else {
+				Optional<ShippingProvider> shippingProvider = shippingProviderService.getShippingProviderById(1L);
+				shippingProvider.ifPresent(provider -> orderResponse.setProvider(provider.getName()));
+			}
+
+			ReceiverResponse receiverResponse = ReceiverResponse.builder()
+					.fullname(user.getFullName())
+					.phoneNumber(user.getPhoneNumber())
+					.address(orderShipment.map(OrderShipment::getShippingAddress).orElse("No address"))
+					.build();
+
+			orderResponse.setReceiverInfo(receiverResponse);
 
 			existingOrderResponses.add(orderResponse);
 			if (existingOrderResponses.size() >= 5) {

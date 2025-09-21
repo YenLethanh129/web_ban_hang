@@ -42,4 +42,11 @@ public class OrderShipmentService implements IOrderShipmentService {
 
         orderShipmentRepository.save(orderShipment);
     }
+
+    @Override
+    public Optional<OrderShipment> getOrderShipmentByOrderId(Long orderId) {
+        return orderShipmentRepository.findByOrderId(orderId);
+    }
+
+
 }

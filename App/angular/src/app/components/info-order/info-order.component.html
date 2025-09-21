@@ -23,7 +23,9 @@
       >
         <div class="order-header">
           <div class="order-info">
-            <h4 class="order-uuid">Đơn hàng {{ order.order_uuid.substring(0, 5) }}</h4>
+            <h4 class="order-uuid">
+              Đơn hàng {{ order.order_uuid.substring(0, 5) }}
+            </h4>
             <p class="order-date">
               {{ order.order_date | date : "dd/MM/yyyy HH:mm" }}
             </p>
@@ -117,12 +119,12 @@
           </button>
 
           <button
-            class="btn btn-secondary"
-            (click)="editOrder(order)"
+            class="btn btn-danger"
+            (click)="handleCancelOrder(order)"
             [disabled]="!canCancelOrder(order.status)"
           >
-            <i class="fas fa-edit"></i>
-            Chỉnh sửa đơn hàng
+            <i class="fas fa-times"></i>
+            Hủy đơn hàng
           </button>
         </div>
       </div>
@@ -139,6 +141,168 @@
         <i class="fas fa-shopping-cart"></i>
         Bắt đầu mua sắm
       </button>
+    </div>
+  </div>
+
+  <!-- Order Details Modal -->
+  <div *ngIf="showOrderModal" class="modal-overlay" (click)="closeOrderModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Chi tiết đơn hàng</h3>
+        <button class="close-btn" (click)="closeOrderModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="modal-body" *ngIf="selectedOrder">
+        <!-- Order Basic Info -->
+        <div class="order-detail-section">
+          <h4><i class="fas fa-info-circle"></i> Thông tin đơn hàng</h4>
+          <div class="detail-grid">
+            <div class="detail-item">
+              <span class="label">Mã đơn hàng:</span>
+              <span class="value">{{ selectedOrder.order_uuid }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Ngày đặt:</span>
+              <span class="value">{{
+                selectedOrder.order_date | date : "dd/MM/yyyy HH:mm"
+              }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Trạng thái:</span>
+              <span
+                class="value status-badge"
+                [ngClass]="getStatusClass(selectedOrder.status)"
+              >
+                {{ getStatusText(selectedOrder.status) }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Receiver Info -->
+        <div class="order-detail-section">
+          <h4><i class="fas fa-user"></i> Thông tin người nhận</h4>
+          <div class="detail-grid">
+            <div class="detail-item">
+              <span class="label">Họ tên:</span>
+              <span class="value">{{
+                selectedOrder.receiver_info.fullname
+              }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Số điện thoại:</span>
+              <span class="value">{{
+                selectedOrder.receiver_info.phone_number
+              }}</span>
+            </div>
+            <div class="detail-item full-width">
+              <span class="label">Địa chỉ:</span>
+              <span class="value">{{
+                selectedOrder.receiver_info.address
+              }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment & Shipping Info -->
+        <div class="order-detail-section">
+          <h4><i class="fas fa-credit-card"></i> Thanh toán & Vận chuyển</h4>
+          <div class="detail-grid">
+            <div class="detail-item">
+              <span class="label">Phương thức thanh toán:</span>
+              <span
+                class="value"
+                [ngClass]="getPaymentMethodClass(selectedOrder.payment_method)"
+              >
+                <i
+                  [class]="getPaymentMethodIcon(selectedOrder.payment_method)"
+                ></i>
+                {{ getPaymentMethodText(selectedOrder.payment_method) }}
+              </span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Trạng thái thanh toán:</span>
+              <span
+                class="value"
+                [ngClass]="getPaymentStatusClass(selectedOrder.payment_status)"
+              >
+                {{ getPaymentStatusText(selectedOrder.payment_status) }}
+              </span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Phương thức vận chuyển:</span>
+              <span class="value">{{ selectedOrder.shipping_method }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Đơn vị vận chuyển:</span>
+              <span class="value">{{
+                selectedOrder.provider || "Shopee Food"
+              }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Tổng tiền:</span>
+              <span class="value total-amount"
+                >{{ selectedOrder.total_money | number }} VNĐ</span
+              >
+            </div>
+          </div>
+        </div>
+
+        <!-- Order Note -->
+        <div class="order-detail-section" *ngIf="selectedOrder.note">
+          <h4><i class="fas fa-sticky-note"></i> Ghi chú</h4>
+          <div class="note-content">
+            {{ selectedOrder.note }}
+          </div>
+        </div>
+
+        <!-- Order Details -->
+        <div class="order-detail-section">
+          <h4><i class="fas fa-list"></i> Chi tiết sản phẩm</h4>
+          <div class="products-detail-list">
+            <div
+              class="product-detail-item"
+              *ngFor="let detail of selectedOrder.order_details"
+            >
+              <img
+                [src]="detail.product_thumbnail"
+                [alt]="detail.product_name"
+                class="product-detail-image"
+              />
+              <div class="product-detail-info">
+                <h5 class="product-detail-name">{{ detail.product_name }}</h5>
+                <div class="product-detail-specs">
+                  <span class="spec-item">Size: {{ detail.size }}</span>
+                  <span class="spec-item">Số lượng: {{ detail.quantity }}</span>
+                  <span class="spec-item"
+                    >Đơn giá: {{ detail.unit_price | number }} VNĐ</span
+                  >
+                </div>
+              </div>
+              <div class="product-detail-total">
+                {{ detail.total_amount | number }} VNĐ
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeOrderModal()">
+          <i class="fas fa-times"></i>
+          Đóng
+        </button>
+        <button
+          class="btn btn-danger"
+          (click)="cancelOrderFromModal()"
+          [disabled]="!canCancelOrder(selectedOrder?.status || '')"
+        >
+          <i class="fas fa-ban"></i>
+          Hủy đơn hàng
+        </button>
+      </div>
     </div>
   </div>
 </div>

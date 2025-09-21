@@ -1,14 +1,11 @@
 package com.project.webbanhang.response;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import jakarta.persistence.Column;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -49,4 +46,10 @@ public class OrderResponse extends BaseResponse{
 
     @JsonProperty("order_details" )
     private List<OrderDetailResponse> orderDetails;
+
+    @JsonProperty("receiver_info" )
+    private ReceiverResponse receiverInfo;
+
+    @JsonProperty("provider")
+    private String provider;
 }

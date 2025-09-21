@@ -11,11 +11,11 @@ export interface OrderRequestDTO {
   payment_status: string;
 }
 
-// New interface for the updated API response
-export interface NewOrderResponseDTO {
+export interface OrderResponseDTO {
   created_at: string;
   last_modified: string;
   order_uuid: string;
+  order_id: number;
   note: string;
   status: string;
   total_money: number;
@@ -24,6 +24,12 @@ export interface NewOrderResponseDTO {
   payment_method: string;
   payment_status: string;
   order_details: OrderDetailResponseDTO[];
+  receiver_info: {
+    fullname: string;
+    address: string;
+    phone_number: string;
+  };
+  provider: string;
 }
 
 export interface OrderDetailRequestDTO {
