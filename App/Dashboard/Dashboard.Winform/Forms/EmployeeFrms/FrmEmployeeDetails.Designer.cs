@@ -105,7 +105,6 @@
             tabControl.Controls.Add(tabSalaryInfo);
             tabControl.Controls.Add(tabPayrollInfo);
             tabControl.Dock = DockStyle.Fill;
-            tabControl.DrawMode = TabDrawMode.OwnerDrawFixed;
             tabControl.Font = new Font("Segoe UI", 9F);
             tabControl.ItemSize = new Size(120, 40);
             tabControl.Location = new Point(10, 10);
@@ -731,7 +730,7 @@
             ClientSize = new Size(808, 662);
             Controls.Add(tabControl);
             Controls.Add(pnlButtons);
-            FormBorderStyle = FormBorderStyle.FixedDialog;
+            FormBorderStyle = FormBorderStyle.None;
             MaximizeBox = false;
             MinimizeBox = false;
             Name = "FrmEmployeeDetails";

@@ -125,7 +125,7 @@ namespace Dashboard.Winform.Forms
                 if (_isEditMode)
                 {
                     await _presenter.UpdateScheduleAsync(_existingSchedule.Id, shiftDate, startTime, endTime, status!);
-                    MessageBox.Show("Cập nhật lịch làm việc thành công!", "Thành công",
+                    MessageBox.Show("Lưu lịch làm việc thành công!", "Thành công",
                         MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 else

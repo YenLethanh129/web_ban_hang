@@ -1,6 +1,8 @@
 ﻿using Dashboard.BussinessLogic.Dtos.RBACDtos;
 using Dashboard.BussinessLogic.Services.RBACServices;
 using Dashboard.Common.Constants;
+using Dashboard.Winform.Interfaces;
+using Dashboard.Winform.Controls;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -13,13 +15,16 @@ using System.Windows.Forms;
 
 namespace Dashboard.Winform.Forms
 {
-    public partial class FrmLogin : Form
+    public partial class FrmLogin : Form, IBlurLoadingServiceAware
     {
         private readonly IAuthenticationService? _authService;
+        private IBlurLoadingService? _blurLoadingService;
         public FrmLogin()
         {
             InitializeComponent();
             this.Load += FrmLogin_Load;
+            // Ensure the login dialog appears centered relative to its parent
+            this.StartPosition = FormStartPosition.CenterParent;
         }
 
 
@@ -27,6 +32,15 @@ namespace Dashboard.Winform.Forms
             : this()
         {
             _authService = authService ?? throw new ArgumentNullException(nameof(authService));
+        }
+
+        /// <summary>
+        /// Implementation of IBlurLoadingServiceAware - allows parent to inject centralized blur loading service
+        /// </summary>
+        /// <param name="blurLoadingService"></param>
+        public void SetBlurLoadingService(IBlurLoadingService blurLoadingService)
+        {
+            _blurLoadingService = blurLoadingService;
         }
 
  
@@ -74,16 +88,49 @@ namespace Dashboard.Winform.Forms
                 if (btn != null) btn.Enabled = false;
 
                 var loginDto = new LoginInput { Username = username, Password = password };
-                var result = await _authService.LoginAsync(loginDto);
+
+                object? result = null;
+                if (_authService == null)
+                {
+                    var toast = new FrmToastMessage(ToastType.ERROR, "Dịch vụ xác thực không khả dụng.");
+                    toast.Show();
+                    return;
+                }
+
+                if (_blurLoadingService != null)
+                {
+                    result = await _blurLoadingService.ExecuteWithLoadingAsync(() => _authService.LoginAsync(loginDto), "Đang xác thực...", true);
+                }
+                else
+                {
+                    var overlay = new BlurLoadingOverlay();
+                    try
+                    {
+                        await overlay.ShowLoadingWithFadeAsync(this, "Đang xác thực...");
+                        result = await _authService.LoginAsync(loginDto);
+                    }
+                    finally
+                    {
+                        try { await overlay.HideLoadingWithFadeAsync(); } catch { }
+                        overlay.Dispose();
+                    }
+                }
 
                 if (result != null)
                 {
-                    // success - persist token for UI session
-                    Dashboard.Winform.Services.SessionManager.CurrentToken = result.Token;
+                    var tokenProp = result.GetType().GetProperty("Token");
+                    if (tokenProp != null)
+                    {
+                        var token = tokenProp.GetValue(result) as string;
+                        if (!string.IsNullOrEmpty(token))
+                        {
+                            Services.SessionManager.CurrentToken = token;
+                        }
+                    }
 
                     LoginSucceeded = true;
-                    this.DialogResult = DialogResult.OK;
-                    this.Close();
+                    DialogResult = DialogResult.OK;
+                    Close();
                 }
                 else
                 {
@@ -95,6 +142,7 @@ namespace Dashboard.Winform.Forms
             {
                 var toast = new FrmToastMessage(Dashboard.Common.Constants.ToastType.ERROR, "Lỗi khi đăng nhập: " + ex.Message);
                 toast.Show();
+                MessageBox.Show("Lỗi khi đăng nhập: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {

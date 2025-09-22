@@ -1,0 +1,338 @@
+Đặc tả Use Case cho Dự án Quản Lý Quán Cafe eCSS
+
+Dưới đây là đặc tả chi tiết cho các use case theo yêu cầu. Mỗi use case được mô tả với các phần chính như tên, mã, mô tả ngắn gọn, tác nhân, điều kiện tiên quyết, điều kiện kết thúc, dòng sự kiện chính, dòng sự kiện thay thế, giao diện người dùng, yêu cầu đặc biệt và ghi chú.
+
+================================================================================
+Phân hệ Quản trị viên (Administrator)
+================================================================================
+
+1. Tên use case: Quản lý sản phẩm (CRUD)
+   Mã use case: UC03-001
+   Mô tả ngắn gọn: Use case này cho phép quản trị viên thực hiện các thao tác tạo, đọc, cập nhật và xóa thông tin sản phẩm cà phê trong hệ thống. Quản trị viên có thể thêm sản phẩm mới, xem danh sách sản phẩm, chỉnh sửa thông tin sản phẩm hiện có và xóa sản phẩm không còn sử dụng. Use case đảm bảo dữ liệu sản phẩm được quản lý chính xác và nhất quán.
+   Tác nhân (Actor): Quản trị viên hệ thống (A-03)
+   Điều kiện tiên quyết (Preconditions): Quản trị viên đã đăng nhập thành công vào hệ thống với quyền quản trị. Hệ thống đang hoạt động bình thường và có kết nối đến cơ sở dữ liệu.
+   Điều kiện kết thúc (Postconditions): Thông tin sản phẩm được cập nhật thành công trong cơ sở dữ liệu. Hệ thống hiển thị thông báo xác nhận cho quản trị viên.
+   Dòng sự kiện chính (Main Flow):
+     1. Quản trị viên chọn chức năng "Quản lý sản phẩm" từ menu chính.
+     2. Hệ thống hiển thị danh sách sản phẩm hiện có.
+     3. Quản trị viên chọn thao tác (Tạo, Đọc, Cập nhật, Xóa).
+     4. Nếu tạo: Quản trị viên nhập thông tin sản phẩm mới và xác nhận.
+     5. Nếu đọc: Hệ thống hiển thị chi tiết sản phẩm được chọn.
+     6. Nếu cập nhật: Quản trị viên chỉnh sửa thông tin và lưu thay đổi.
+     7. Nếu xóa: Quản trị viên xác nhận xóa sản phẩm.
+     8. Hệ thống thực hiện thao tác và cập nhật cơ sở dữ liệu.
+     9. Hệ thống hiển thị thông báo thành công.
+   Dòng sự kiện thay thế (Alternative Flows):
+     - Tại bước 4: Nếu thông tin nhập không hợp lệ, hệ thống hiển thị lỗi và yêu cầu nhập lại.
+     - Tại bước 7: Nếu sản phẩm đang được sử dụng trong đơn hàng, hệ thống cảnh báo và không cho phép xóa.
+     - Quản trị viên có thể hủy thao tác bất kỳ lúc nào và quay lại danh sách.
+   Giao diện người dùng (User Interface): MH03-06 (Danh sách thông tin sản phẩm), MH03-07 (Chi tiết thông tin sản phẩm)
+   Yêu cầu đặc biệt (Special Requirements): Hệ thống phải kiểm tra tính duy nhất của mã sản phẩm. Bảo mật thông tin sản phẩm nhạy cảm.
+   Ghi chú (Notes): Use case này chỉ áp dụng cho quản trị viên. Các vai trò khác có quyền hạn giới hạn hơn.
+
+2. Tên use case: Quản lý danh mục (CRUD)
+   Mã use case: UC03-002
+   Mô tả ngắn gọn: Use case này cho phép quản trị viên quản lý các danh mục sản phẩm cà phê như Espresso, Americano, Latte, v.v. Quản trị viên có thể tạo danh mục mới, xem danh sách danh mục, cập nhật thông tin danh mục và xóa danh mục không còn sử dụng. Use case đảm bảo cấu trúc danh mục được duy trì đúng đắn.
+   Tác nhân (Actor): Quản trị viên hệ thống (A-03)
+   Điều kiện tiên quyết (Preconditions): Quản trị viên đã đăng nhập với quyền quản trị. Hệ thống hoạt động bình thường.
+   Điều kiện kết thúc (Postconditions): Danh mục được cập nhật trong cơ sở dữ liệu. Thông báo xác nhận được hiển thị.
+   Dòng sự kiện chính (Main Flow):
+     1. Quản trị viên chọn "Quản lý danh mục".
+     2. Hệ thống hiển thị danh sách danh mục.
+     3. Quản trị viên chọn thao tác CRUD.
+     4. Thực hiện thao tác tương ứng.
+     5. Hệ thống xác nhận và cập nhật.
+   Dòng sự kiện thay thế (Alternative Flows):
+     - Nếu danh mục có sản phẩm liên kết, không cho phép xóa.
+     - Kiểm tra trùng lặp tên danh mục.
+   Giao diện người dùng (User Interface): MH03-05 (Danh sách vai trò và danh mục), MH03-07 (Chi tiết danh mục)
+   Yêu cầu đặc biệt (Special Requirements): Đảm bảo tính duy nhất của tên danh mục.
+   Ghi chú (Notes): Danh mục ảnh hưởng đến cách hiển thị sản phẩm.
+
+3. Tên use case: Quản lý hình ảnh sản phẩm
+   Mã use case: UC03-003
+   Mô tả ngắn gọn: Use case này cho phép quản trị viên tải lên, xem và quản lý hình ảnh mô tả sản phẩm cà phê. Quản trị viên có thể liên kết hình ảnh với sản phẩm, cập nhật hoặc xóa hình ảnh cũ. Use case hỗ trợ nhiều hình ảnh cho mỗi sản phẩm.
+   Tác nhân (Actor): Quản trị viên hệ thống (A-03)
+   Điều kiện tiên quyết (Preconditions): Đăng nhập với quyền quản trị. Hệ thống hỗ trợ upload file.
+   Điều kiện kết thúc (Postconditions): Hình ảnh được lưu trữ và liên kết với sản phẩm.
+   Dòng sự kiện chính (Main Flow):
+     1. Chọn sản phẩm cần quản lý hình ảnh.
+     2. Chọn "Quản lý hình ảnh".
+     3. Upload hình ảnh mới hoặc chọn từ thư viện.
+     4. Liên kết với sản phẩm.
+     5. Lưu thay đổi.
+   Dòng sự kiện thay thế (Alternative Flows):
+     - Nếu file không hợp lệ, hiển thị lỗi.
+     - Có thể xóa hình ảnh hiện có.
+   Giao diện người dùng (User Interface): MH03-08 (Danh sách hình ảnh sản phẩm)
+   Yêu cầu đặc biệt (Special Requirements): Hỗ trợ định dạng ảnh phổ biến, kiểm tra kích thước file.
+   Ghi chú (Notes): Hình ảnh cải thiện trải nghiệm người dùng.
+
+4. Tên use case: Quản lý khách hàng
+   Mã use case: UC03-004
+   Mô tả ngắn gọn: Use case này cho phép quản trị viên xem và quản lý thông tin khách hàng đã đăng ký. Quản trị viên có thể xem chi tiết khách hàng, cập nhật thông tin và quản lý trạng thái tài khoản. Use case hỗ trợ theo dõi lịch sử mua hàng của khách hàng.
+   Tác nhân (Actor): Quản trị viên hệ thống (A-03)
+   Điều kiện tiên quyết (Preconditions): Đăng nhập với quyền quản trị.
+   Điều kiện kết thúc (Postconditions): Thông tin khách hàng được cập nhật.
+   Dòng sự kiện chính (Main Flow):
+     1. Chọn "Quản lý khách hàng".
+     2. Hiển thị danh sách khách hàng.
+     3. Chọn khách hàng để xem chi tiết.
+     4. Cập nhật thông tin nếu cần.
+     5. Lưu thay đổi.
+   Dòng sự kiện thay thế (Alternative Flows):
+     - Có thể khóa tài khoản khách hàng nếu vi phạm.
+   Giao diện người dùng (User Interface): MH02-01 (Thông tin cá nhân khách hàng)
+   Yêu cầu đặc biệt (Special Requirements): Bảo mật thông tin cá nhân khách hàng.
+   Ghi chú (Notes): Tuân thủ quy định bảo vệ dữ liệu.
+
+5. Tên use case: Quản lý nhân viên (CRUD)
+   Mã use case: UC03-005
+   Mô tả ngắn gọn: Use case này cho phép quản trị viên quản lý thông tin nhân viên bao gồm tạo tài khoản mới, xem danh sách, cập nhật thông tin và xóa nhân viên. Quản trị viên có thể gán vai trò và quản lý quyền hạn cho nhân viên.
+   Tác nhân (Actor): Quản trị viên hệ thống (A-03)
+   Điều kiện tiên quyết (Preconditions): Đăng nhập với quyền cao nhất.
+   Điều kiện kết thúc (Postconditions): Thông tin nhân viên được cập nhật.
+   Dòng sự kiện chính (Main Flow):
+     1. Chọn "Quản lý nhân viên".
+     2. Hiển thị danh sách nhân viên.
+     3. Thực hiện CRUD.
+     4. Gán vai trò nếu tạo mới.
+   Dòng sự kiện thay thế (Alternative Flows):
+     - Kiểm tra trùng lặp thông tin.
+   Giao diện người dùng (User Interface): MH03-01 (Danh sách nhân viên), MH03-02 (Chi tiết nhân viên)
+   Yêu cầu đặc biệt (Special Requirements): Mã hóa mật khẩu.
+   Ghi chú (Notes): Ảnh hưởng đến phân quyền hệ thống.
+
+6. Tên use case: Quản lý chi nhánh (CRUD)
+   Mã use case: UC03-006
+   Mô tả ngắn gọn: Use case này cho phép quản trị viên quản lý thông tin các chi nhánh của quán cafe. Bao gồm tạo chi nhánh mới, xem danh sách, cập nhật thông tin và xóa chi nhánh không còn hoạt động.
+   Tác nhân (Actor): Quản trị viên hệ thống (A-03)
+   Điều kiện tiên quyết (Preconditions): Đăng nhập với quyền quản trị.
+   Điều kiện kết thúc (Postconditions): Thông tin chi nhánh được cập nhật.
+   Dòng sự kiện chính (Main Flow):
+     1. Chọn "Quản lý chi nhánh".
+     2. Hiển thị danh sách chi nhánh.
+     3. Thực hiện CRUD.
+   Dòng sự kiện thay thế (Alternative Flows):
+     - Kiểm tra chi nhánh có đơn hàng liên kết.
+   Giao diện người dùng (User Interface): MH03-16 (Dashboard chi nhánh)
+   Yêu cầu đặc biệt (Special Requirements): Đảm bảo tính duy nhất địa chỉ.
+   Ghi chú (Notes): Ảnh hưởng đến quản lý kho và đơn hàng.
+
+7. Tên use case: Quản lý phân quyền người dùng
+   Mã use case: UC03-007
+   Mô tả ngắn gọn: Use case này cho phép quản trị viên gán và quản lý vai trò cho nhân viên. Quản trị viên có thể xem danh sách vai trò, gán vai trò cho nhân viên và điều chỉnh quyền hạn.
+   Tác nhân (Actor): Quản trị viên hệ thống (A-03)
+   Điều kiện tiên quyết (Preconditions): Đăng nhập với quyền cao nhất.
+   Điều kiện kết thúc (Postconditions): Phân quyền được cập nhật.
+   Dòng sự kiện chính (Main Flow):
+     1. Chọn "Quản lý phân quyền".
+     2. Hiển thị danh sách nhân viên và vai trò.
+     3. Gán hoặc thay đổi vai trò.
+   Dòng sự kiện thay thế (Alternative Flows):
+     - Kiểm tra xung đột quyền hạn.
+   Giao diện người dùng (User Interface): MH03-05 (Danh sách vai trò)
+   Yêu cầu đặc biệt (Special Requirements): Tuân thủ nguyên tắc least privilege.
+   Ghi chú (Notes): Quan trọng cho bảo mật hệ thống.
+
+8. Tên use case: Quản lý tồn kho (CRUD)
+   Mã use case: UC03-008
+   Mô tả ngắn gọn: Use case này cho phép quản trị viên quản lý tồn kho nguyên liệu và hàng hóa. Bao gồm cập nhật số lượng, theo dõi tình trạng và quản lý phiếu nhập xuất.
+   Tác nhân (Actor): Quản trị viên hệ thống (A-03)
+   Điều kiện tiên quyết (Preconditions): Đăng nhập với quyền quản trị.
+   Điều kiện kết thúc (Postconditions): Tồn kho được cập nhật.
+   Dòng sự kiện chính (Main Flow):
+     1. Chọn "Quản lý tồn kho".
+     2. Hiển thị danh sách nguyên liệu.
+     3. Cập nhật số lượng tồn kho.
+   Dòng sự kiện thay thế (Alternative Flows):
+     - Cảnh báo khi số lượng thấp.
+   Giao diện người dùng (User Interface): MH03-12 (Danh sách nguyên liệu), MH03-14 (Nhập xuất hàng hóa)
+   Yêu cầu đặc biệt (Special Requirements): Theo dõi lịch sử thay đổi.
+   Ghi chú (Notes): Quan trọng cho quản lý chuỗi cung ứng.
+
+9. Tên use case: Quản lý nguồn hàng & nhà cung cấp
+   Mã use case: UC03-009
+   Mô tả ngắn gọn: Use case này cho phép quản trị viên quản lý thông tin nhà cung cấp và nguồn hàng. Bao gồm thêm nhà cung cấp mới, cập nhật thông tin và quản lý hợp đồng.
+   Tác nhân (Actor): Quản trị viên hệ thống (A-03)
+   Điều kiện tiên quyết (Preconditions): Đăng nhập với quyền quản trị.
+   Điều kiện kết thúc (Postconditions): Thông tin nhà cung cấp được cập nhật.
+   Dòng sự kiện chính (Main Flow):
+     1. Chọn "Quản lý nhà cung cấp".
+     2. Hiển thị danh sách nhà cung cấp.
+     3. Thực hiện CRUD.
+   Dòng sự kiện thay thế (Alternative Flows):
+     - Liên kết với nguyên liệu.
+   Giao diện người dùng (User Interface): MH03-10 (Danh sách nhà cung cấp), MH03-11 (Chi tiết nhà cung cấp)
+   Yêu cầu đặc biệt (Special Requirements): Lưu trữ thông tin liên hệ.
+   Ghi chú (Notes): Hỗ trợ quản lý chuỗi cung ứng.
+
+10. Tên use case: Thống kê & báo cáo tổng hợp
+    Mã use case: UC03-0010
+    Mô tả ngắn gọn: Use case này cho phép quản trị viên xem các báo cáo thống kê tổng hợp về doanh thu, chi phí, tồn kho và hiệu suất kinh doanh.
+    Tác nhân (Actor): Quản trị viên hệ thống (A-03)
+    Điều kiện tiên quyết (Preconditions): Đăng nhập với quyền quản trị.
+    Điều kiện kết thúc (Postconditions): Báo cáo được tạo và hiển thị.
+    Dòng sự kiện chính (Main Flow):
+      1. Chọn "Thống kê & báo cáo".
+      2. Chọn loại báo cáo.
+      3. Chọn khoảng thời gian.
+      4. Hệ thống tạo báo cáo.
+    Dòng sự kiện thay thế (Alternative Flows):
+      - Xuất báo cáo ra file.
+    Giao diện người dùng (User Interface): MH03-16 (Dashboard)
+    Yêu cầu đặc biệt (Special Requirements): Hỗ trợ nhiều định dạng xuất.
+    Ghi chú (Notes): Hỗ trợ ra quyết định kinh doanh.
+
+================================================================================
+Phân hệ Quản lý chi nhánh (Manager)
+================================================================================
+
+1. Tên use case: Quản lý đơn hàng
+   Mã use case: UC04-001
+   Mô tả ngắn gọn: Use case này cho phép quản lý chi nhánh xem và quản lý đơn hàng tại chi nhánh của mình. Bao gồm xem danh sách đơn hàng, lọc theo trạng thái và cập nhật thông tin cơ bản.
+   Tác nhân (Actor): Quản lý chi nhánh (A-04)
+   Điều kiện tiên quyết (Preconditions): Đăng nhập với quyền quản lý chi nhánh.
+   Điều kiện kết thúc (Postconditions): Thông tin đơn hàng được cập nhật.
+   Dòng sự kiện chính (Main Flow):
+     1. Chọn "Quản lý đơn hàng".
+     2. Hiển thị danh sách đơn hàng chi nhánh.
+     3. Lọc và tìm kiếm đơn hàng.
+     4. Xem chi tiết đơn hàng.
+   Dòng sự kiện thay thế (Alternative Flows):
+     - Cập nhật thông tin giao hàng.
+   Giao diện người dùng (User Interface): MH02-05 (Lịch sử đơn hàng), MH02-06 (Chi tiết đơn hàng)
+   Yêu cầu đặc biệt (Special Requirements): Chỉ xem đơn hàng của chi nhánh.
+   Ghi chú (Notes): Hỗ trợ quản lý vận hành chi nhánh.
+
+2. Tên use case: Cập nhật trạng thái đơn hàng
+   Mã use case: UC04-002
+   Mô tả ngắn gọn: Use case này cho phép quản lý chi nhánh cập nhật trạng thái đơn hàng như từ "Đang xử lý" sang "Đã giao" hoặc "Đã hủy".
+   Tác nhân (Actor): Quản lý chi nhánh (A-04)
+   Điều kiện tiên quyết (Preconditions): Đăng nhập với quyền quản lý.
+   Điều kiện kết thúc (Postconditions): Trạng thái đơn hàng được cập nhật.
+   Dòng sự kiện chính (Main Flow):
+     1. Chọn đơn hàng cần cập nhật.
+     2. Chọn trạng thái mới.
+     3. Xác nhận cập nhật.
+   Dòng sự kiện thay thế (Alternative Flows):
+     - Gửi thông báo cho khách hàng.
+   Giao diện người dùng (User Interface): MH02-07 (Theo dõi đơn hàng)
+   Yêu cầu đặc biệt (Special Requirements): Ghi lại lịch sử thay đổi.
+   Ghi chú (Notes): Quan trọng cho trải nghiệm khách hàng.
+
+3. Tên use case: Xem chi tiết đơn hàng
+   Mã use case: UC04-003
+   Mô tả ngắn gọn: Use case này cho phép quản lý chi nhánh xem chi tiết thông tin đơn hàng bao gồm sản phẩm, số lượng, giá cả và thông tin khách hàng.
+   Tác nhân (Actor): Quản lý chi nhánh (A-04)
+   Điều kiện tiên quyết (Preconditions): Đăng nhập với quyền quản lý.
+   Điều kiện kết thúc (Postconditions): Chi tiết đơn hàng được hiển thị.
+   Dòng sự kiện chính (Main Flow):
+     1. Chọn đơn hàng từ danh sách.
+     2. Hệ thống hiển thị chi tiết.
+   Dòng sự kiện thay thế (Alternative Flows):
+     - In hóa đơn.
+   Giao diện người dùng (User Interface): MH02-06 (Chi tiết đơn hàng)
+   Yêu cầu đặc biệt (Special Requirements): Bảo mật thông tin khách hàng.
+   Ghi chú (Notes): Hỗ trợ xử lý khiếu nại.
+
+4. Tên use case: Quản lý kho hàng tại chi nhánh
+   Mã use case: UC04-005
+   Mô tả ngắn gọn: Use case này cho phép quản lý chi nhánh quản lý tồn kho tại chi nhánh của mình, bao gồm nhập xuất hàng và kiểm kê.
+   Tác nhân (Actor): Quản lý chi nhánh (A-04)
+   Điều kiện tiên quyết (Preconditions): Đăng nhập với quyền quản lý.
+   Điều kiện kết thúc (Postconditions): Tồn kho được cập nhật.
+   Dòng sự kiện chính (Main Flow):
+     1. Chọn "Quản lý kho chi nhánh".
+     2. Hiển thị tồn kho.
+     3. Thực hiện nhập/xuất.
+   Dòng sự kiện thay thế (Alternative Flows):
+     - Cảnh báo khi hết hàng.
+   Giao diện người dùng (User Interface): MH03-12 (Danh sách nguyên liệu), MH03-14 (Nhập xuất)
+   Yêu cầu đặc biệt (Special Requirements): Đồng bộ với kho chính.
+   Ghi chú (Notes): Đảm bảo cung ứng tại chi nhánh.
+
+5. Tên use case: Quản lý lịch làm việc nhân viên
+   Mã use case: UC04-007
+   Mô tả ngắn gọn: Use case này cho phép quản lý chi nhánh sắp xếp và quản lý lịch làm việc của nhân viên tại chi nhánh.
+   Tác nhân (Actor): Quản lý chi nhánh (A-04)
+   Điều kiện tiên quyết (Preconditions): Đăng nhập với quyền quản lý.
+   Điều kiện kết thúc (Postconditions): Lịch làm việc được cập nhật.
+   Dòng sự kiện chính (Main Flow):
+     1. Chọn "Quản lý lịch làm việc".
+     2. Hiển thị lịch hiện tại.
+     3. Sắp xếp ca làm việc.
+   Dòng sự kiện thay thế (Alternative Flows):
+     - Phê duyệt yêu cầu nghỉ phép.
+   Giao diện người dùng (User Interface): MH03-15 (Bảng lương nhân viên)
+   Yêu cầu đặc biệt (Special Requirements): Tuân thủ luật lao động.
+   Ghi chú (Notes): Ảnh hưởng đến hiệu suất chi nhánh.
+
+6. Tên use case: Thống kê doanh thu chi nhánh
+   Mã use case: UC04-008
+   Mô tả ngắn gọn: Use case này cho phép quản lý chi nhánh xem thống kê doanh thu của chi nhánh theo khoảng thời gian.
+   Tác nhân (Actor): Quản lý chi nhánh (A-04)
+   Điều kiện tiên quyết (Preconditions): Đăng nhập với quyền quản lý.
+   Điều kiện kết thúc (Postconditions): Báo cáo doanh thu được hiển thị.
+   Dòng sự kiện chính (Main Flow):
+     1. Chọn "Thống kê doanh thu".
+     2. Chọn khoảng thời gian.
+     3. Hệ thống tính toán và hiển thị.
+   Dòng sự kiện thay thế (Alternative Flows):
+     - Xuất báo cáo.
+   Giao diện người dùng (User Interface): MH03-16 (Dashboard chi nhánh)
+   Yêu cầu đặc biệt (Special Requirements): Bao gồm thuế và chi phí.
+   Ghi chú (Notes): Hỗ trợ ra quyết định.
+
+7. Tên use case: Báo cáo bán hàng chi nhánh
+   Mã use case: UC04-009
+   Mô tả ngắn gọn: Use case này cho phép quản lý chi nhánh tạo báo cáo chi tiết về bán hàng tại chi nhánh.
+   Tác nhân (Actor): Quản lý chi nhánh (A-04)
+   Điều kiện tiên quyết (Preconditions): Đăng nhập với quyền quản lý.
+   Điều kiện kết thúc (Postconditions): Báo cáo được tạo.
+   Dòng sự kiện chính (Main Flow):
+     1. Chọn "Báo cáo bán hàng".
+     2. Chọn tiêu chí.
+     3. Tạo báo cáo.
+   Dòng sự kiện thay thế (Alternative Flows):
+     - Gửi báo cáo cho quản trị viên.
+   Giao diện người dùng (User Interface): MH03-16 (Dashboard)
+   Yêu cầu đặc biệt (Special Requirements): Bao gồm sản phẩm bán chạy.
+   Ghi chú (Notes): Hỗ trợ tối ưu hóa kinh doanh.
+
+================================================================================
+Phân hệ Nhân viên (Staff)
+================================================================================
+
+1. Tên use case: Kiểm kê kho nguyên liệu
+   Mã use case: UC05-001
+   Mô tả ngắn gọn: Use case này cho phép nhân viên kiểm kê số lượng nguyên liệu trong kho, cập nhật tồn kho và báo cáo chênh lệch.
+   Tác nhân (Actor): Nhân viên kho (A-05)
+   Điều kiện tiên quyết (Preconditions): Đăng nhập với quyền nhân viên kho.
+   Điều kiện kết thúc (Postconditions): Tồn kho được cập nhật sau kiểm kê.
+   Dòng sự kiện chính (Main Flow):
+     1. Chọn "Kiểm kê kho".
+     2. Hiển thị danh sách nguyên liệu.
+     3. Đếm và nhập số lượng thực tế.
+     4. Lưu kết quả kiểm kê.
+   Dòng sự kiện thay thế (Alternative Flows):
+     - Báo cáo chênh lệch cho quản lý.
+   Giao diện người dùng (User Interface): MH03-12 (Danh sách nguyên liệu), MH03-13 (Chi tiết nguyên liệu)
+   Yêu cầu đặc biệt (Special Requirements): Ghi lại thời gian kiểm kê.
+   Ghi chú (Notes): Quan trọng cho quản lý hàng tồn kho.
+
+2. Tên use case: Xem bản lương
+   Mã use case: UC05-002
+   Mô tả ngắn gọn: Use case này cho phép nhân viên xem thông tin lương tháng của mình, bao gồm lương cơ bản, thưởng và khấu trừ.
+   Tác nhân (Actor): Nhân viên (A-05)
+   Điều kiện tiên quyết (Preconditions): Đăng nhập với tài khoản nhân viên.
+   Điều kiện kết thúc (Postconditions): Thông tin lương được hiển thị.
+   Dòng sự kiện chính (Main Flow):
+     1. Chọn "Xem bản lương".
+     2. Chọn tháng cần xem.
+     3. Hệ thống hiển thị chi tiết lương.
+   Dòng sự kiện thay thế (Alternative Flows):
+     - Xuất bản lương ra PDF.
+   Giao diện người dùng (User Interface): MH03-15 (Bảng lương nhân viên)
+   Yêu cầu đặc biệt (Special Requirements): Bảo mật thông tin lương.
+  Ghi chú (Notes): Tuân thủ quy định về quyền riêng tư.

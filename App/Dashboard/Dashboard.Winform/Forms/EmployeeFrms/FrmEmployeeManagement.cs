@@ -55,6 +55,7 @@ namespace Dashboard.Winform.Forms
                         {
                             ApplyEmployeesToModel(args.Employees);
                         }
+                    SetupDgvListItem(); // Ensure the event handler is set up after initializing the DataGridView
                     }
                 }
                 catch (Exception ex)
@@ -76,6 +77,7 @@ namespace Dashboard.Winform.Forms
             SetupDataBindings();
             SetupDgvListItem();
             FinalizeFormSetup();
+            SetupContextMenu();
         }
 
         /// <summary>
@@ -260,13 +262,6 @@ namespace Dashboard.Winform.Forms
         {
             try
             {
-                // Mở dialog để thêm nhân viên mới
-                // Có thể inject dependency cho AddEmployeeForm
-                // var addForm = _serviceProvider.GetService<FrmAddEmployee>();
-                // if (addForm?.ShowDialog() == DialogResult.OK)
-                // {
-                //     await RefreshData();
-                // }
 
                 MessageBox.Show("Chức năng thêm nhân viên sẽ được triển khai",
                     "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -401,25 +396,6 @@ namespace Dashboard.Winform.Forms
             }
         }
 
-        private async void RefreshData()
-        {
-            try
-            {
-                SetLoadingState(true);
-                await _presenter.RefreshCacheAsync();
-                UpdatePaginationInfo();
-                ShowInfo("Dữ liệu đã được cập nhật!");
-            }
-            catch (Exception ex)
-            {
-                ShowError($"Lỗi khi làm mới dữ liệu: {ex.Message}");
-            }
-            finally
-            {
-                SetLoadingState(false);
-            }
-        }
-
         #endregion
 
         #region Helper Methods
@@ -510,28 +486,26 @@ namespace Dashboard.Winform.Forms
         private void SetupContextMenu()
         {
             var contextMenu = new ContextMenuStrip();
-            contextMenu.Items.Add("Làm mới dữ liệu", null, (s, e) => RefreshData());
+            contextMenu.Items.Add("Làm mới dữ liệu", null, (s, e) => _ = Task.Run(async () => { await Task.Delay(100); if (InvokeRequired) { Invoke(new Action(async () => await RefreshDataSafely())); } else { await RefreshDataSafely(); } }));
             dgvListItems.ContextMenuStrip = contextMenu;
         }
 
         #endregion
 
         #region Dialog Integration Methods
-        // frmEmployeeManagement
 
         private void OpenEmployeeDetailsDialog(EmployeeViewModel? selectedEmployee = null)
         {
             try
             {
                 var presenter = _serviceProvider.GetRequiredService<IEmployeeDetailsPresenter>();
-                presenter.OnEmployeeSaved += (s, e) => RefreshData();
 
                 long? employeeId = selectedEmployee?.Id;
                 EmployeeDetailViewModel? employeeDetail = null;
 
                 if (selectedEmployee != null)
                 {
-                    // Map to detail view model manually
+                    // Again I just dunno why auto mapper not work here
                     employeeDetail = new EmployeeDetailViewModel
                     {
                         Id = selectedEmployee.Id,
@@ -550,8 +524,21 @@ namespace Dashboard.Winform.Forms
 
                 if (result == DialogResult.OK)
                 {
-                    RefreshData();
+                    _ = Task.Run(async () =>
+                    {
+                        await Task.Delay(300);
+
+                        if (InvokeRequired)
+                        {
+                            Invoke(new Action(async () => await RefreshDataSafely()));
+                        }
+                        else
+                        {
+                            await RefreshDataSafely();
+                        }
+                    });
                 }
+
             }
             catch (Exception ex)
             {
@@ -559,40 +546,24 @@ namespace Dashboard.Winform.Forms
             }
         }
 
-        //private async Task HandleEmployeeAdd(EmployeeDetailViewModel employee)
-        //{
-        //    await _presenter.AddEmployeeAsync(
-        //        employee.FullName,
-        //        employee.PositionId,
-        //        employee.Email,
-        //        employee.Phone,
-        //        employee.HireDate ?? DateTime.Now,
-        //        employee.ResignDate ?? DateTime.Now.AddYears(1),
-        //        employee.Status,
-        //        employee.Salaries.FirstOrDefault()?.BaseSalary ?? 0,
-        //        employee.Salaries.FirstOrDefault()?.SalaryType ?? "MONTHLY"
-        //    );
-        //    var logInfo = $"Thêm nhân viên: {employee.FullName}, Email: {employee.Email}, SĐT: {employee.Phone}";
-        //    Console.WriteLine(logInfo);
-        //}
+        private async Task RefreshDataSafely()
+        {
+            try
+            {
+                SetLoadingState(true);
+                await _presenter.RefreshCacheAsync();
+                UpdatePaginationInfo();
+            }
+            catch (Exception ex)
+            {
+                ShowError($"Lỗi khi làm mới dữ liệu: {ex.Message}");
+            }
+            finally
+            {
+                SetLoadingState(false);
+            }
+        }
 
-        //private async Task HandleEmployeeUpdate(EmployeeDetailViewModel employee)
-        //{
-        //    await _presenter.UpdateUserAsync(
-        //        employee.Id,
-        //        employee.FullName,
-        //        employee.PositionId,
-        //        employee.Email,
-        //        employee.Phone,
-        //        employee.HireDate ?? DateTime.Now,
-        //        employee.ResignDate ?? DateTime.Now.AddYears(1),
-        //        employee.Status,
-        //        employee.Salaries.FirstOrDefault()?.BaseSalary ?? 0,
-        //        employee.Salaries.FirstOrDefault()?.SalaryType ?? "MONTHLY"
-        //    );
-        //    var logInfo = $"Cập nhật nhân viên ID {employee.Id}: {employee.FullName}, Email: {employee.Email}";
-        //    Console.WriteLine(logInfo);
-        //}
         #endregion
 
         #region Override Event Handlers - Updated
@@ -649,6 +620,31 @@ namespace Dashboard.Winform.Forms
                 {
                     btnGetDetails.Enabled = dgvListItems.SelectedRows.Count > 0;
                 };
+
+                dgvListItems.ColumnHeaderMouseClick -= DgvListItems_ColumnHeaderMouseClick;
+                dgvListItems.ColumnHeaderMouseClick += DgvListItems_ColumnHeaderMouseClick;
+            }
+        }
+
+        private void DgvListItems_ColumnHeaderMouseClick(object? sender, DataGridViewCellMouseEventArgs e)
+        {
+            try
+            {
+                if (dgvListItems == null) return;
+                var column = dgvListItems.Columns[e.ColumnIndex];
+                var sortBy = column.DataPropertyName ?? column.Name;
+                _ = Task.Run(async () =>
+                {
+                    await _presenter.SortBy(sortBy);
+                    if (InvokeRequired)
+                        Invoke(new Action(UpdatePaginationInfo));
+                    else
+                        UpdatePaginationInfo();
+                });
+            }
+            catch (Exception ex)
+            {
+                ShowError($"Lỗi khi sắp xếp: {ex.Message}");
             }
         }
 

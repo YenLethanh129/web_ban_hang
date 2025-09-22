@@ -1,15 +1,16 @@
-﻿using System;
+﻿using Dashboard.Winform.Events;
+using Dashboard.Winform.Forms;
+using Dashboard.Winform.Presenters;
+using Dashboard.Winform.ViewModels;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Dashboard.Winform.Events;
-using Dashboard.Winform.Forms;
-using Dashboard.Winform.Presenters;
-using Dashboard.Winform.ViewModels;
-using Microsoft.Extensions.Logging;
 
 namespace Dashboard.Winform.Forms
 {
@@ -17,55 +18,43 @@ namespace Dashboard.Winform.Forms
     {
         #region Fields
         private readonly ProductManagementModel _model;
+        private readonly IServiceProvider _serviceProvider;
         #endregion
 
         #region Constructor
         public FrmProductManagement(
             ILogger<FrmProductManagement> logger,
+            IServiceProvider serviceProvider,
             ProductManagementPresenter productPresenter
         ) : base(logger, productPresenter)
         {
             _model = _presenter.Model;
+            _serviceProvider = serviceProvider;
 
             InitializeBaseComponents();
 
-            // Setup event handler cho OnDataLoaded
             _presenter.OnDataLoaded += (s, e) =>
             {
                 try
                 {
                     if (e is ProductsLoadedEventArgs args)
                     {
-                        if (InvokeRequired)
+                        SafeInvokeOnUI(() =>
                         {
-                            Invoke(new Action(() =>
+                            try
                             {
-                                try
-                                {
-                                    ApplyProductsToModel(args.Products, args.TotalCount);
-                                }
-                                catch (Exception ex)
-                                {
-                                    ShowError($"Lỗi khi cập nhật dữ liệu: {ex.Message}");
-                                }
-                            }));
-                        }
-                        else
-                        {
-                            ApplyProductsToModel(args.Products, args.TotalCount);
-                        }
+                                ApplyProductsToModel(args.Products, args.TotalCount);
+                            }
+                            catch (Exception ex)
+                            {
+                                ShowError($"Lỗi khi cập nhật dữ liệu: {ex.Message}");
+                            }
+                        });
                     }
                 }
                 catch (Exception ex)
                 {
-                    if (InvokeRequired)
-                    {
-                        Invoke(new Action(() => ShowError($"Lỗi xử lý dữ liệu: {ex.Message}")));
-                    }
-                    else
-                    {
-                        ShowError($"Lỗi xử lý dữ liệu: {ex.Message}");
-                    }
+                    SafeInvokeOnUI(() => ShowError($"Lỗi xử lý dữ liệu: {ex.Message}"));
                 }
             };
 
@@ -75,6 +64,7 @@ namespace Dashboard.Winform.Forms
             SetupDataBindings();
             SetupDgvListItem();
             FinalizeFormSetup();
+            SetupContextMenu();
         }
         #endregion
 
@@ -113,7 +103,7 @@ namespace Dashboard.Winform.Forms
         private void OverrideComboBoxItem()
         {
             cbxOrderBy.Items.Clear();
-            cbxOrderBy.Items.AddRange(["ID", "Name", "Price", "Category", "SoldQuantity"]);
+            cbxOrderBy.Items.AddRange(new[] { "ID", "Name", "Price", "Category", "SoldQuantity" });
             if (cbxOrderBy.Items.Count > 0)
                 cbxOrderBy.SelectedIndex = 0;
         }
@@ -174,6 +164,32 @@ namespace Dashboard.Winform.Forms
 
             dgvProducts.DataSource = _model.Products;
             dgvProducts.Refresh();
+
+            // Attach column header click for sorting
+            if (dgvProducts != null)
+            {
+                dgvProducts.ColumnHeaderMouseClick -= DgvProducts_ColumnHeaderMouseClick;
+                dgvProducts.ColumnHeaderMouseClick += DgvProducts_ColumnHeaderMouseClick;
+            }
+        }
+
+        private void DgvProducts_ColumnHeaderMouseClick(object? sender, DataGridViewCellMouseEventArgs e)
+        {
+            try
+            {
+                if (dgvProducts == null) return;
+                var column = dgvProducts.Columns[e.ColumnIndex];
+                var sortBy = column.DataPropertyName ?? column.Name;
+                _ = Task.Run(async () =>
+                {
+                    await _presenter.SortBy(sortBy);
+                    SafeInvokeOnUI(UpdatePaginationInfo);
+                });
+            }
+            catch (Exception ex)
+            {
+                ShowError($"Lỗi khi sắp xếp: {ex.Message}");
+            }
         }
         #endregion
 
@@ -387,6 +403,7 @@ namespace Dashboard.Winform.Forms
             try
             {
                 SetLoadingState(true);
+                await Task.Delay(200);
                 await _presenter.RefreshCacheAsync();
                 UpdatePaginationInfo();
                 ShowInfo("Dữ liệu đã được cập nhật!");
@@ -474,12 +491,12 @@ namespace Dashboard.Winform.Forms
                 SetLoadingState(true);
 
                 await _presenter.LoadDataAsync(page: _model.CurrentPage, pageSize: _model.PageSize);
-                
+
                 cbxFilter1.SelectedItem = "All";
 
                 if (cbxFilter2.Items.Count > 0)
                     cbxFilter2.SelectedIndex = 0;
-                
+
 
                 UpdatePaginationInfo();
 
@@ -521,7 +538,7 @@ namespace Dashboard.Winform.Forms
                         CategoryName = selectedProduct.CategoryName,
                         TaxId = selectedProduct.TaxId,
                         TaxName = selectedProduct.TaxName,
-                        Thumbnail = selectedProduct.Thumbnail,
+                        ThumbnailPath = selectedProduct.Thumbnail,
                         CreatedAt = selectedProduct.CreatedAt,
                         UpdatedAt = selectedProduct.UpdatedAt,
                         ProductImages = new BindingList<ProductImageViewModel>(),
@@ -530,7 +547,10 @@ namespace Dashboard.Winform.Forms
                     };
                 }
 
-                using var detailForm = new FrmProductDetails(selectedProduct?.Id, initialModel);
+                using var detailForm = _serviceProvider.GetRequiredService<FrmProductDetails>();
+
+                detailForm.SetInitData(selectedProduct?.Id, initialModel);
+
                 var result = detailForm.ShowDialog(this);
 
                 if (result == DialogResult.OK)
@@ -540,7 +560,6 @@ namespace Dashboard.Winform.Forms
                     if (selectedProduct != null)
                     {
                         await HandleProductUpdate(updatedProduct);
-                        ShowInfo("Cập nhật sản phẩm thành công!");
                     }
                     else
                     {
@@ -561,6 +580,7 @@ namespace Dashboard.Winform.Forms
             }
         }
 
+
         private async Task HandleProductAdd(ProductDetailViewModel product)
         {
             // TODO: Implement product add logic through presenter
@@ -572,7 +592,7 @@ namespace Dashboard.Winform.Forms
         {
             // TODO: Implement product update logic through presenter
             await Task.Delay(50);
-            Console.WriteLine($"Cập nhật sản phẩm ID {product.Id}: {product.Name}");
+            Console.WriteLine($"Lưu sản phẩm ID {product.Id}: {product.Name}");
         }
 
         #endregion
@@ -650,6 +670,50 @@ namespace Dashboard.Winform.Forms
             var contextMenu = new ContextMenuStrip();
             contextMenu.Items.Add("Làm mới dữ liệu", null, (s, e) => RefreshData());
             dgvProducts.ContextMenuStrip = contextMenu;
+        }
+
+        #endregion
+
+        #region Thread-safe UI helpers
+
+        /// <summary>
+        /// Safely invokes an Action on the UI thread. If the control handle is not yet created,
+        /// the action will be scheduled to run when HandleCreated fires.
+        /// If the form is disposed or disposing, the action is ignored.
+        /// </summary>
+        private void SafeInvokeOnUI(Action action)
+        {
+            if (action == null) return;
+            if (IsDisposed || Disposing) return;
+
+            try
+            {
+                if (IsHandleCreated)
+                {
+                    if (InvokeRequired)
+                        BeginInvoke(action);
+                    else
+                        action();
+                }
+                else
+                {
+                    void Handler(object? s, EventArgs e)
+                    {
+                        HandleCreated -= Handler;
+                        try
+                        {
+                            if (!IsDisposed && IsHandleCreated)
+                                BeginInvoke(action);
+                        }
+                        catch { /* swallow */ }
+                    }
+                    HandleCreated += Handler;
+                }
+            }
+            catch
+            {
+                // ignore invocation exceptions
+            }
         }
 
         #endregion

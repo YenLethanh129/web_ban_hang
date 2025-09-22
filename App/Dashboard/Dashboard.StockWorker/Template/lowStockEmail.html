@@ -1,0 +1,30 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Thông báo tồn kho</title>
+	<style>
+		body{font-family:Arial,Helvetica,sans-serif;color:#222}
+		.container{max-width:700px;margin:0 auto;background:#fff;padding:18px;border-radius:8px}
+		.card{padding:10px;border-bottom:1px solid #eee}
+		.counts{display:flex;gap:12px;margin-bottom:12px}
+		.count{padding:8px 12px;border-radius:8px;background:#f4f6fb}
+	</style>
+</head>
+<body>
+	<div class="container">
+		<h2>📦 Báo cáo tồn kho</h2>
+		<div class="counts">
+			<div class="count">Hết hàng: <strong>{{OutOfStockCount}}</strong></div>
+			<div class="count">Khẩn cấp: <strong>{{CriticalCount}}</strong></div>
+			<div class="count">Sắp hết: <strong>{{LowStockCount}}</strong></div>
+		</div>
+		<div>
+			{{AlertCardsHtml}}
+		</div>
+		<p style="margin-top:12px;color:#666;font-size:13px">Đây là email tự động. Vui lòng kiểm tra hệ thống để xử lý.</p>
+	</div>
+</body>
+</html>

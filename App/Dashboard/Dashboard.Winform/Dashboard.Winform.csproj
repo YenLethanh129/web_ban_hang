@@ -7,7 +7,14 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
 	<ApplicationHighDpiMode>SystemAware</ApplicationHighDpiMode>
+	<ApplicationIcon>Resource\coffee.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Forms\RecipeFrm\**" />
+    <EmbeddedResource Remove="Forms\RecipeFrm\**" />
+    <None Remove="Forms\RecipeFrm\**" />
+  </ItemGroup>
 
   <ItemGroup>
     <None Remove="appsettings.json" />
@@ -17,10 +24,12 @@
     <Content Include="appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Resource\coffee.ico" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="ReaLTaiizor" />
+	<PackageReference Include="System.Net.Http" />
     <PackageReference Include="WinForms.DataVisualization" />
   </ItemGroup>
 
@@ -50,7 +59,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Forms\RecipeFrm\" />
+    <Folder Include="Resource\Uploads\" />
   </ItemGroup>
 
 </Project>

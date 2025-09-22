@@ -128,7 +128,7 @@ public class RBACViewModelMappingProfile : Profile
             .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive))
             .ForMember(dest => dest.RoleId, opt => opt.MapFrom(src => src.RoleId))
             .ForMember(dest => dest.EmployeeId, opt => opt.MapFrom(src => src.EmployeeId ?? 0))
-            .ForMember(dest => dest.Tokens, opt => opt.Ignore()) 
+            //.ForMember(dest => dest.Tokens, opt => opt.Ignore()) 
             .ForMember(dest => dest.Role, opt => opt.Ignore()) 
             .ForMember(dest => dest.Employee, opt => opt.Ignore()) 
             .ForAllOtherMembers(opt => opt.Ignore());

@@ -478,13 +478,15 @@ public partial class FrmUserManagement : Form
         try
         {
             lblUserDetailTitle.Text = $"Chỉnh sửa người dùng - {user.Username}";
-            btnSaveUser.Text = "Cập nhật";
+            btnSaveUser.Text = "Lưu";
 
             tbxUserId.Text = user.Id.ToString();
             tbxUserName.Text = user.Username ?? string.Empty;
             chkIsActive.Checked = user.IsActive;
 
-            if (user.EmployeeId.HasValue)
+
+
+            if (cbxEmployee.DataSource != null && user.EmployeeId != null)
             {
                 cbxEmployee!.SelectedValue = user.EmployeeId.Value;
             }
@@ -542,7 +544,7 @@ public partial class FrmUserManagement : Form
             else
             {
                 await _presenter.UpdateUserAsync(userDetail);
-                ShowInfo("Cập nhật người dùng thành công!");
+                ShowInfo("Lưu người dùng thành công!");
             }
 
             tabControl.SelectedTab = tabUserList;
@@ -875,7 +877,7 @@ public partial class FrmUserManagement : Form
         {
             cbxEmployee.DisplayMember = "DisplayText";
             cbxEmployee.ValueMember = "Id";
-            cbxEmployee.SelectedIndex = -1;
+            //cbxEmployee.SelectedIndex = -1;
         }
         catch (Exception ex)
         {

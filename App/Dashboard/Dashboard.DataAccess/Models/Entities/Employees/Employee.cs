@@ -24,11 +24,11 @@ public partial class Employee : BaseAuditableEntity
     [Column("phone")]
     [StringLength(20)]
     [Unicode(false)]
-    public string? PhoneNumber { get; set; }
+    public string? PhoneNumber { get; set; } = string.Empty;
 
     [Column("address")]
     [StringLength(255)]
-    public string Address { get; set; } = null!;
+    public string? Address { get; set; } = string.Empty;
 
     [Column("email")]
     [StringLength(255)]

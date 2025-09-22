@@ -36,7 +36,7 @@ namespace Dashboard.Winform.Forms
                 PopulateFormWithData();
                 Text = $"Chi tiết công thức - {_recipe.Name}";
                 btnClose.Visible = true;
-                btnSave.Text = "Cập nhật";
+                btnSave.Text = "Lưu";
             }
             else
             {

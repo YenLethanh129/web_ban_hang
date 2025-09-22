@@ -1,0 +1,9 @@
+true=true: The term 'true=true' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
+true=true: The term 'true=true' is not recognized as a name of a cmdlet, function, script file, or executable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
+Unhandled exception. System.ArgumentException: Required input encryptionKey was empty. (Parameter 'encryptionKey')
+   at Ardalis.GuardClauses.GuardClauseExtensions.NullOrEmpty(IGuardClause guardClause, String input, String parameterName, String message, Func`1 exceptionCreator)
+   at Dashboard.DataAccess.DependencyInjection.AddDataAccess(IHostApplicationBuilder builder) in a:\Dev\Project_Portfolio\web_ban_hang\App\Dashboard\Dashboard.DataAccess\DependencyInjection.cs:line 23
+   at Program.<Main>$(String[] args) in a:\Dev\Project_Portfolio\web_ban_hang\App\Dashboard\Dashboard.StockWorker\Program.cs:line 45
+   at Program.<Main>(String[] args)

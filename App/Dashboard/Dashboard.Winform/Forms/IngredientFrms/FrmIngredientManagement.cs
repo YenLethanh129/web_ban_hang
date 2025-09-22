@@ -1,4 +1,5 @@
-﻿using Dashboard.Winform.Events;
+﻿using Dashboard.BussinessLogic.Services.GoodsAndStockServcies;
+using Dashboard.Winform.Events;
 using Dashboard.Winform.Presenters;
 using Dashboard.Winform.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,26 +33,29 @@ namespace Dashboard.Winform.Forms
             {
                 try
                 {
-                    if (e is IngredientsLoadedEventArgs args)
+                    if (InvokeRequired)
                     {
-                        if (InvokeRequired)
+                        Invoke(new Action(() =>
                         {
-                            Invoke(new Action(() =>
+                            try
                             {
-                                try
-                                {
-                                    ApplyIngredientsToModel(args.Ingredients);
-                                }
-                                catch (Exception ex)
-                                {
-                                    ShowError($"Lỗi khi cập nhật dữ liệu: {ex.Message}");
-                                }
-                            }));
-                        }
-                        else
-                        {
-                            ApplyIngredientsToModel(args.Ingredients);
-                        }
+                                dgvListItems.DataSource = null;
+                                dgvListItems.DataSource = _model.Ingredients;
+                                dgvListItems.Refresh();
+                                UpdatePaginationInfo();
+                            }
+                            catch (Exception ex)
+                            {
+                                ShowError($"Lỗi khi cập nhật giao diện: {ex.Message}");
+                            }
+                        }));
+                    }
+                    else
+                    {
+                        dgvListItems.DataSource = null;
+                        dgvListItems.DataSource = _model.Ingredients;
+                        dgvListItems.Refresh();
+                        UpdatePaginationInfo();
                     }
                 }
                 catch (Exception ex)
@@ -73,11 +77,10 @@ namespace Dashboard.Winform.Forms
             SetupDataBindings();
             SetupDgvListItem();
             FinalizeFormSetup();
+            SetupContextMenu();
+            SetupAdditionalEvents();
         }
 
-        /// <summary>
-        /// Override để khởi tạo components riêng của Ingredient Management
-        /// </summary>
         protected override void InitializeDerivedComponents()
         {
             InitializeDgvListItem();
@@ -178,6 +181,35 @@ namespace Dashboard.Winform.Forms
 
             dgvListItems.DataSource = _model.Ingredients;
             dgvListItems.Refresh();
+
+            // Attach column header click handler for sorting
+            if (dgvListItems != null)
+            {
+                dgvListItems.ColumnHeaderMouseClick -= DgvIngredient_ColumnHeaderMouseClick;
+                dgvListItems.ColumnHeaderMouseClick += DgvIngredient_ColumnHeaderMouseClick;
+            }
+        }
+
+        private void DgvIngredient_ColumnHeaderMouseClick(object? sender, DataGridViewCellMouseEventArgs e)
+        {
+            try
+            {
+                if (dgvListItems == null) return;
+                var column = dgvListItems.Columns[e.ColumnIndex];
+                var sortBy = column.DataPropertyName ?? column.Name;
+                _ = Task.Run(async () =>
+                {
+                    await _presenter.SortBy(sortBy);
+                    if (InvokeRequired)
+                        Invoke(new Action(UpdatePaginationInfo));
+                    else
+                        UpdatePaginationInfo();
+                });
+            }
+            catch (Exception ex)
+            {
+                ShowError($"Lỗi khi sắp xếp: {ex.Message}");
+            }
         }
 
         #region Override Event Handlers Base Class
@@ -461,7 +493,7 @@ namespace Dashboard.Winform.Forms
             try
             {
                 SetLoadingState(true);
-                await _presenter.LoadDataAsync(page: _model.CurrentPage, pageSize: _model.PageSize);
+                await _presenter.LoadDataAsync(page: _model.CurrentPage, pageSize: _model.PageSize, forceRefresh: true);
                 UpdatePaginationInfo();
                 _dataLoadingCompletionSource.SetResult(true);
             }
@@ -502,19 +534,13 @@ namespace Dashboard.Winform.Forms
 
         #region Dialog Integration Methods
 
-        private async void OpenIngredientDetailsDialog(IngredientViewModel? selectedIngredient = null)
+        private void OpenIngredientDetailsDialog(IngredientViewModel? selectedIngredient = null)
         {
             try
             {
                 SetLoadingState(true);
-                await Task.Delay(50);
-                // TODO: Create IngredientDetailsPresenter when backend services are ready
-                // var detailsPresenter = new IngredientDetailsPresenter(
-                //     _serviceProvider.GetRequiredService<IIngredientManagementService>(),
-                //     _serviceProvider.GetRequiredService<IIngredientCategoryService>(),
-                //     _serviceProvider.GetRequiredService<ITaxService>(),
-                //     _serviceProvider.GetRequiredService<IMapper>()
-                // );
+
+                var presenter = _serviceProvider.GetRequiredService<IIngredientDetailPresenter>();
 
                 long? ingredientId = selectedIngredient?.Id;
                 IngredientDetailViewModel? initialModel = null;
@@ -536,24 +562,24 @@ namespace Dashboard.Winform.Forms
                     };
                 }
 
-                var detailForm = new FrmIngredientDetails(selectedIngredient?.Id, initialModel);
-
-
+                var detailForm = new FrmIngredientDetails(presenter, selectedIngredient?.Id, initialModel);
                 var result = detailForm.ShowDialog(this);
+
                 if (result == DialogResult.OK)
                 {
-                    var updatedIngredient = detailForm.Ingredient;
-                    if (selectedIngredient != null)
+                    _ = Task.Run(async () =>
                     {
-                        await HandleIngredientUpdate(updatedIngredient);
-                        ShowInfo("Cập nhật thông tin nguyên liệu thành công!");
-                    }
-                    else
-                    {
-                        await HandleIngredientAdd(updatedIngredient);
-                        ShowInfo("Thêm nguyên liệu mới thành công!");
-                    }
-                    RefreshData();
+                        await Task.Delay(300);
+
+                        if (InvokeRequired)
+                        {
+                            Invoke(new Action(async () => await RefreshDataSafely()));
+                        }
+                        else
+                        {
+                            await RefreshDataSafely();
+                        }
+                    });
                 }
             }
             catch (Exception ex)
@@ -566,39 +592,22 @@ namespace Dashboard.Winform.Forms
             }
         }
 
-        private async Task HandleIngredientAdd(IngredientDetailViewModel? ingredient)
+        private async Task RefreshDataSafely()
         {
-            if (ingredient == null)
-                throw new ArgumentException("Ingredient cannot be null for addition.");
-            await _presenter.AddIngredientAsync(
-                ingredient.Name,
-                ingredient.Unit,
-                ingredient.CategoryId,
-                ingredient.Description,
-                ingredient.IsActive,
-                ingredient.TaxId
-            );
-
-            var logInfo = $"Thêm nguyên liệu: {ingredient.Name}, Đơn vị: {ingredient.Unit}, Danh mục: {ingredient.CategoryName}";
-            Console.WriteLine(logInfo);
-        }
-
-        private async Task HandleIngredientUpdate(IngredientDetailViewModel? ingredient)
-        {
-            if (ingredient == null)
-                throw new ArgumentException("Ingredient or Ingredient ID cannot be null for update.");
-            await _presenter.UpdateIngredientAsync(
-                ingredient.Id,
-                ingredient.Name,
-                ingredient.Unit,
-                ingredient.CategoryId,
-                ingredient.Description,
-                ingredient.IsActive,
-                ingredient.TaxId
-            );
-
-            var logInfo = $"Cập nhật nguyên liệu ID {ingredient.Id}: {ingredient.Name}, Đơn vị: {ingredient.Unit}";
-            Console.WriteLine(logInfo);
+            try
+            {
+                SetLoadingState(true);
+                await _presenter.RefreshCacheAsync();
+                UpdatePaginationInfo();
+            }
+            catch (Exception ex)
+            {
+                ShowError($"Lỗi khi làm mới dữ liệu: {ex.Message}");
+            }
+            finally
+            {
+                SetLoadingState(false);
+            }
         }
 
         #endregion

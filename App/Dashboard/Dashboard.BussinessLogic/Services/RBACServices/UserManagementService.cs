@@ -11,12 +11,13 @@ using Dashboard.DataAccess.Specification;
 using Microsoft.Extensions.Logging;
 using Dashboard.DataAccess.Models.Entities;
 using Dashboard.BussinessLogic.Dtos.EmployeeDtos;
+using AutoMapper.Features;
 
 namespace Dashboard.BussinessLogic.Services.RBACServices;
 
 public interface IUserManagementService
 {
-    void UpdateUserRole(UpdateUserInput input);
+    Task<bool> UpdateUserRole(UpdateUserInput input);
     Task<bool> ValidateUserCredentialsAsync(string username, string password);
     Task<UserDto?> CreateUserAsync(CreateUserInput input);
     Task<UserDto?> UpdateUserAsync(UpdateUserInput input);
@@ -67,17 +68,19 @@ public class UserManagementService : BaseTransactionalService, IUserManagementSe
         return _dataEncryptionHelper.VerifyPassword(password, user.Password);
     }
 
-    public void UpdateUserRole(UpdateUserInput input)
+    public async Task<bool> UpdateUserRole(UpdateUserInput input)
     {
-        var userSpec = new Specification<EmployeeUserAccount>(u => u.Username == input.Username);
-        var user = _userRepository.GetWithSpecAsync(userSpec).Result;
-        if (user != null)
-        {
-            user.RoleId = input.RoleId!.Value;
-            user.LastModified = DateTime.Now;
-            _unitOfWork.SaveChangesAsync().Wait();
-        }
+        var userSpec = new Specification<EmployeeUserAccount>(u => u.Id == input.Id);
+        var user = await _userRepository.GetWithSpecAsync(userSpec);
+        if (user == null)
+            return false;
+
+        user.RoleId = input.RoleId ?? user.RoleId;
+
+        await _unitOfWork.SaveChangesAsync();
+        return true;
     }
+
     public async Task<List<UserDto>> GetUsersByRoleAsync(string roleName)
     {
         try
@@ -216,11 +219,25 @@ public class UserManagementService : BaseTransactionalService, IUserManagementSe
 
                 }
 
+                if (input.EmployeeId != 0 && input.EmployeeId != user.EmployeeId)
+                {
+                    var employee = await _employeeRepository.GetAsync(input.EmployeeId);
+                    if (employee == null)
+                    {
+                        _logger.LogWarning("Employee not found for user update: {EmployeeId}", input.EmployeeId);
+                        return null;
+                    }
+                    user.EmployeeId = input.EmployeeId;
+                }
+
                 if (!string.IsNullOrEmpty(input.Password))
                 {
                     var hashedPassword = _dataEncryptionHelper.HashPassword(input.Password);
                     user.Password = hashedPassword;
                 }
+
+                if (input.IsActive.HasValue)
+                    user.IsActive = input.IsActive.Value;  
 
                 user.Username = input.Username ?? user.Username;
                 user.LastModified = DateTime.Now;

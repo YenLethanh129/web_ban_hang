@@ -1,5 +1,4 @@
-﻿using Dashboard.BussinessLogic.Services;
-using Dashboard.BussinessLogic.Dtos.ProductDtos;
+﻿using Dashboard.BussinessLogic.Dtos.ProductDtos;
 using Dashboard.DataAccess.Data;
 using Dashboard.Winform.Events;
 using Dashboard.Winform.Presenters;
@@ -11,6 +10,7 @@ using Dashboard.DataAccess.Models.Entities.Orders;
 using Dashboard.DataAccess.Models.Entities.Products;
 using Dashboard.BussinessLogic.Dtos;
 using System.ComponentModel;
+using Dashboard.BussinessLogic.Services.ProductServices;
 
 namespace Dashboard.Winform.Presenters;
 
@@ -84,19 +84,16 @@ public class ProductManagementPresenter : IProductManagementPresenter
         {
             _isLoading = true;
 
-            // Load cache if empty or force refresh
             if (!_allProductsCache.Any() || forceRefresh)
             {
                 await LoadAllDataToCache();
             }
 
-            // Load categories if not loaded
             if (!Model.Categories.Any())
             {
                 await LoadCategories();
             }
 
-            // Set current filters
             _currentSearchTerm = searchTerm ?? string.Empty;
             _currentStatusFilter = "All";
             _currentCategoryFilter = categoryId;

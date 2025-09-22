@@ -10,6 +10,7 @@ public interface IProductRepository : IRepository<Product>
     Task<Product?> GetProductWithDetailsAsync(long id);
     Task<IEnumerable<Product>> GetProductsByCategoryAsync(long categoryId);
     Task<bool> IsProductNameExistsAsync(string name, long? excludeId = null);
+    Task<ProductImage?> GetLastestImageAsync(long id);
 }
 
 public class ProductRepository : Repository<Product>, IProductRepository
@@ -34,6 +35,14 @@ public class ProductRepository : Repository<Product>, IProductRepository
             .Include(p => p.ProductRecipes)
                 .ThenInclude(pr => pr.Ingredient)
             .FirstOrDefaultAsync(p => p.Id == id);
+    }
+
+    public async Task<ProductImage?> GetLastestImageAsync(long id)
+    {
+        return await _context.ProductImages
+            .Where(pi => pi.ProductId == id)
+            .OrderByDescending(pi => pi.Id)
+            .FirstOrDefaultAsync();
     }
 
     public async Task<IEnumerable<Product>> GetProductsByCategoryAsync(long categoryId)

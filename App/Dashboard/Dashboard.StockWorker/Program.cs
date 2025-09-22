@@ -3,44 +3,50 @@ using Dashboard.StockWorker;
 using Dashboard.StockWorker.Services;
 using Microsoft.EntityFrameworkCore;
 
-// Check if running in test mode
-if (args.Length > 0 && args[0].ToLower() == "test")
-{
-    await TestRunner.RunTestAsync();
-    return;
-}
-
-// Check if running in demo mode
-if (args.Length > 0 && args[0].ToLower() == "demo")
-{
-    await DemoRunner.RunDemoAsync();
-    return;
-}
 var builder = Host.CreateApplicationBuilder(args);
 
-// Add configuration
-builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
-builder.Configuration.AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true);
-builder.Configuration.AddEnvironmentVariables();
+// Load configuration
+builder.Configuration
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
+    .AddEnvironmentVariables();
 
-// Add DbContext
-builder.Services.AddDbContext<WebbanhangDbContext>(options =>
+// Register DataAccess & BusinessLogic
+Dashboard.DataAccess.DependencyInjection.AddDataAccess(builder);
+Dashboard.BussinessLogic.DependencyInjection.AddBussinessLogicServices(builder);
+
+// Register DbContext
+builder.Services.AddScoped<WebbanhangDbContext>(sp =>
 {
-    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
-        ?? "Server=localhost;Database=webbanHang;Trusted_Connection=true;TrustServerCertificate=true;";
-    options.UseSqlServer(connectionString);
+    var configuration = sp.GetRequiredService<IConfiguration>();
+    var connectionString = configuration.GetConnectionString("DefaultConnection")
+        ?? throw new InvalidOperationException("Connection string is missing");
+    var encryptionKey = configuration["Encryption:Key"] ?? 
+                        throw new InvalidOperationException("Encryption key is missing");
+
+    var options = new DbContextOptionsBuilder<WebbanhangDbContext>()
+        .UseSqlServer(connectionString)
+        .Options;
+
+    return new WebbanhangDbContext(options, encryptionKey);
 });
 
-// Add services
+// Register services
 builder.Services.AddScoped<StockCalculationService>();
 builder.Services.AddScoped<EmailNotificationService>();
 builder.Services.AddScoped<InventoryMovementService>();
 builder.Services.AddScoped<DataSeedService>();
+builder.Services.AddScoped<PurchaseEnrichmentService>();
+builder.Services.AddScoped<FinancialReportService>();
+builder.Services.AddScoped<INotificationService, EmailNotificationService>();
+builder.Services.AddScoped<Dashboard.BussinessLogic.Services.ReportServices.IReportingService,
+    Dashboard.BussinessLogic.Services.ReportServices.ReportingService>();
 
-// Add the worker service
+// Register workers
 builder.Services.AddHostedService<Worker>();
+builder.Services.AddHostedService<LowStockAlertWorker>();
 
-// Add logging
+// Logging
 builder.Services.AddLogging(logging =>
 {
     logging.ClearProviders();
@@ -50,32 +56,19 @@ builder.Services.AddLogging(logging =>
 
 var host = builder.Build();
 
-// Ensure database is created
+// Database check
 using (var scope = host.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<WebbanhangDbContext>();
-    var dataSeeder = scope.ServiceProvider.GetRequiredService<DataSeedService>();
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-    
+
     logger.LogInformation("Checking database connection...");
-    var canConnect = await context.Database.CanConnectAsync();
-    
-    if (canConnect)
-    {
-        await context.Database.EnsureCreatedAsync();
-        logger.LogInformation("Database connection verified successfully");
-        
-        await dataSeeder.SeedDataAsync();
-        logger.LogInformation("Initial data seeding completed");
-    }
-    else
+    if (!await context.Database.CanConnectAsync())
     {
         logger.LogError("Cannot connect to database. Please check connection string.");
         throw new InvalidOperationException("Database connection failed");
     }
+    logger.LogInformation("Database connection verified successfully");
 }
-Console.WriteLine("Stock Worker Service is starting...");
-Console.WriteLine("Press Ctrl+C to stop the service");
-Console.WriteLine("To run test mode: dotnet run test");
 
 host.Run();
