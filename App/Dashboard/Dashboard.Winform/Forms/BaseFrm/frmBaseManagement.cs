@@ -52,8 +52,6 @@ public partial class FrmBaseManagement : Form, IBlurLoadingServiceAware
     }
     private void SetupCommonEventHandlers()
     {
-        btnGetDetails.Click += (s, e) => BtnSearch_Click(s!, e);
-
         btnAdd.Click += (s, e) => BtnAdd_Click(s!, e);
         btnGetDetails.Click += (s, e) => BtnGetDetails_Click(s!, e);
         btnOrderBy.Click += (s, e) => BtnOrderBy_Click(s!, e);
@@ -102,7 +100,6 @@ public partial class FrmBaseManagement : Form, IBlurLoadingServiceAware
         cbxFilter1.SelectedIndexChanged += (s, o) => CbxFilterByGoodsStatusSelectedIndexChanged(s!, o);
         cbxFilter2.SelectedIndexChanged += (s, o) => CbxFilterByStockStatusSelectedIndexChanged(s!, o);
         cbxNumbRecordsPerPage.SelectedIndexChanged += (s, o) => CbxNumbRecordsPerPageSelectedIndexChanged(s!, o);
-        tbxFindString.TextChanged += async (s, o) => await TbxFindString_TextChanged(s!, o);
     }
 
     protected virtual void CbxNumbRecordsPerPageSelectedIndexChanged(object v, EventArgs o)

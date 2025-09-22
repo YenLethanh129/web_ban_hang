@@ -44,6 +44,7 @@ public static class DependencyInjection
         builder.Services.AddScoped<IOrderService, OrderService>();
         builder.Services.AddScoped<ICustomerService, CustomerService>();
         builder.Services.AddScoped<IReportingService, ReportingService>();
+        builder.Services.AddScoped<IRecipeService, RecipeService>();
         builder.Services.AddHttpClient<IImageUrlValidator, ImageUrlValidator>();
 
 

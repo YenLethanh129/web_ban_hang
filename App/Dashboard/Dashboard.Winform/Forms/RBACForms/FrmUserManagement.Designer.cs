@@ -1,4 +1,4 @@
-﻿namespace Dashboard.Winform.Forms
+﻿    namespace Dashboard.Winform.Forms
 {
     partial class FrmUserManagement
     {
@@ -11,14 +11,14 @@
         /// Clean up any resources being used.
         /// </summary>
         /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing && (components != null))
-            {
-                components.Dispose();
-            }
-            base.Dispose(disposing);
-        }
+        //protected override void Dispose(bool disposing)
+        //{
+        //    if (disposing && (components != null))
+        //    {
+        //        components.Dispose();
+        //    }
+        //    base.Dispose(disposing);
+        //}
 
         #region Windows Form Designer generated code
 
@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            components = new System.ComponentModel.Container();
             DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
             DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
             DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
@@ -48,6 +49,7 @@
             lblSearchString = new Label();
             btnGetDetails = new Button();
             btnAdd = new Button();
+            btnUpdate = new Button();
             pnlContent = new Panel();
             dgvUsers = new DataGridView();
             pnlPagination = new Panel();
@@ -63,7 +65,12 @@
             tabUserDetail = new TabPage();
             pnlUserDetail = new Panel();
             groupBoxUserInfo = new GroupBox();
+            panel6 = new Panel();
+            dgvEmployeeList = new DataGridView();
             tableLayoutPanel3 = new TableLayoutPanel();
+            tbxPasswordAgain = new TextBox();
+            label2 = new Label();
+            cbxEmployee = new ComboBox();
             lblUserId = new Label();
             tbxUserId = new TextBox();
             lblFullName = new Label();
@@ -71,11 +78,12 @@
             lblPassword = new Label();
             tbxPassword = new TextBox();
             lblEmployee = new Label();
-            cbxEmployee = new ComboBox();
-            lblUserRole = new Label();
             cbxUserRole = new ComboBox();
+            lblUserRole = new Label();
             lblIsActive = new Label();
             chkIsActive = new CheckBox();
+            tbxFindEmployeee = new TextBox();
+            label1 = new Label();
             pnlUserDetailButtons = new Panel();
             btnSaveUser = new Button();
             btnCancelUser = new Button();
@@ -92,7 +100,7 @@
             lstUserRoles = new ListBox();
             lblRoleAssignmentTitle = new Label();
             lblCurrentUserId = new Label();
-            btnUpdate = new Button();
+            toolTip1 = new ToolTip(components);
             tabControl.SuspendLayout();
             tabUserList.SuspendLayout();
             tableLayoutPanel1.SuspendLayout();
@@ -109,6 +117,8 @@
             tabUserDetail.SuspendLayout();
             pnlUserDetail.SuspendLayout();
             groupBoxUserInfo.SuspendLayout();
+            panel6.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)dgvEmployeeList).BeginInit();
             tableLayoutPanel3.SuspendLayout();
             pnlUserDetailButtons.SuspendLayout();
             tabRoleAssignment.SuspendLayout();
@@ -295,10 +305,10 @@
             // 
             // tbxFindString
             // 
-            tbxFindString.BackColor = Color.FromArgb(42, 45, 86);
-            tbxFindString.BorderStyle = BorderStyle.None;
+            tbxFindString.BackColor = Color.FromArgb(24, 28, 63);
+            tbxFindString.BorderStyle = BorderStyle.FixedSingle;
+            tbxFindString.ForeColor = Color.WhiteSmoke;
             tbxFindString.Dock = DockStyle.Bottom;
-            tbxFindString.ForeColor = Color.FromArgb(192, 255, 192);
             tbxFindString.Location = new Point(5, 27);
             tbxFindString.Name = "tbxFindString";
             tbxFindString.PlaceholderText = "ID/SĐT/Tên cần tìm";
@@ -344,6 +354,21 @@
             btnAdd.TabIndex = 1;
             btnAdd.Text = "Thêm";
             btnAdd.UseVisualStyleBackColor = true;
+            // 
+            // btnUpdate
+            // 
+            btnUpdate.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
+            btnUpdate.FlatAppearance.BorderColor = Color.Orange;
+            btnUpdate.FlatStyle = FlatStyle.Flat;
+            btnUpdate.Font = new Font("Microsoft Sans Serif", 11F);
+            btnUpdate.ForeColor = Color.FromArgb(255, 192, 128);
+            btnUpdate.Location = new Point(867, 5);
+            btnUpdate.Margin = new Padding(5);
+            btnUpdate.Name = "btnUpdate";
+            btnUpdate.Size = new Size(88, 48);
+            btnUpdate.TabIndex = 2;
+            btnUpdate.Text = "Sửa";
+            btnUpdate.UseVisualStyleBackColor = true;
             // 
             // pnlContent
             // 
@@ -539,14 +564,34 @@
             // groupBoxUserInfo
             // 
             groupBoxUserInfo.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            groupBoxUserInfo.Controls.Add(panel6);
             groupBoxUserInfo.Controls.Add(tableLayoutPanel3);
             groupBoxUserInfo.ForeColor = Color.White;
             groupBoxUserInfo.Location = new Point(13, 50);
             groupBoxUserInfo.Name = "groupBoxUserInfo";
-            groupBoxUserInfo.Size = new Size(946, 450);
+            groupBoxUserInfo.Size = new Size(946, 485);
             groupBoxUserInfo.TabIndex = 0;
             groupBoxUserInfo.TabStop = false;
             groupBoxUserInfo.Text = "Thông tin người dùng";
+            // 
+            // panel6
+            // 
+            panel6.Controls.Add(dgvEmployeeList);
+            panel6.Dock = DockStyle.Fill;
+            panel6.Location = new Point(3, 214);
+            panel6.Name = "panel6";
+            panel6.Size = new Size(940, 268);
+            panel6.TabIndex = 3;
+            // 
+            // dgvEmployeeList
+            // 
+            dgvEmployeeList.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dgvEmployeeList.Dock = DockStyle.Fill;
+            dgvEmployeeList.Location = new Point(0, 0);
+            dgvEmployeeList.Name = "dgvEmployeeList";
+            dgvEmployeeList.RowHeadersVisible = false;
+            dgvEmployeeList.Size = new Size(940, 268);
+            dgvEmployeeList.TabIndex = 0;
             // 
             // tableLayoutPanel3
             // 
@@ -555,6 +600,9 @@
             tableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
             tableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 120F));
             tableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+            tableLayoutPanel3.Controls.Add(tbxPasswordAgain, 1, 3);
+            tableLayoutPanel3.Controls.Add(label2, 0, 3);
+            tableLayoutPanel3.Controls.Add(cbxEmployee, 3, 2);
             tableLayoutPanel3.Controls.Add(lblUserId, 0, 0);
             tableLayoutPanel3.Controls.Add(tbxUserId, 1, 0);
             tableLayoutPanel3.Controls.Add(lblFullName, 0, 1);
@@ -562,21 +610,57 @@
             tableLayoutPanel3.Controls.Add(lblPassword, 0, 2);
             tableLayoutPanel3.Controls.Add(tbxPassword, 1, 2);
             tableLayoutPanel3.Controls.Add(lblEmployee, 2, 2);
-            tableLayoutPanel3.Controls.Add(cbxEmployee, 3, 2);
-            tableLayoutPanel3.Controls.Add(lblUserRole, 0, 3);
-            tableLayoutPanel3.Controls.Add(cbxUserRole, 1, 3);
-            tableLayoutPanel3.Controls.Add(lblIsActive, 2, 3);
-            tableLayoutPanel3.Controls.Add(chkIsActive, 3, 3);
-            tableLayoutPanel3.Dock = DockStyle.Fill;
+            tableLayoutPanel3.Controls.Add(cbxUserRole, 3, 1);
+            tableLayoutPanel3.Controls.Add(lblUserRole, 2, 1);
+            tableLayoutPanel3.Controls.Add(lblIsActive, 2, 0);
+            tableLayoutPanel3.Controls.Add(chkIsActive, 3, 0);
+            tableLayoutPanel3.Controls.Add(tbxFindEmployeee, 3, 3);
+            tableLayoutPanel3.Controls.Add(label1, 2, 3);
+            tableLayoutPanel3.Dock = DockStyle.Top;
             tableLayoutPanel3.Location = new Point(3, 19);
             tableLayoutPanel3.Name = "tableLayoutPanel3";
             tableLayoutPanel3.RowCount = 4;
             tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Absolute, 50F));
             tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Absolute, 50F));
             tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Absolute, 50F));
-            tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Absolute, 50F));
-            tableLayoutPanel3.Size = new Size(940, 428);
+            tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
+            tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
+            tableLayoutPanel3.Size = new Size(940, 195);
             tableLayoutPanel3.TabIndex = 0;
+            // 
+            // tbxPasswordAgain
+            // 
+            tbxPasswordAgain.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+            tbxPasswordAgain.BackColor = Color.FromArgb(24, 28, 63);
+            tbxPasswordAgain.BorderStyle = BorderStyle.FixedSingle;
+            tbxPasswordAgain.ForeColor = Color.WhiteSmoke;
+            tbxPasswordAgain.Location = new Point(123, 164);
+            tbxPasswordAgain.Name = "tbxPasswordAgain";
+            tbxPasswordAgain.PasswordChar = '*';
+            tbxPasswordAgain.Size = new Size(344, 16);
+            tbxPasswordAgain.TabIndex = 20;
+            // 
+            // label2
+            // 
+            label2.Anchor = AnchorStyles.Left;
+            label2.AutoSize = true;
+            label2.ForeColor = Color.FromArgb(124, 141, 181);
+            label2.Location = new Point(3, 165);
+            label2.Name = "label2";
+            label2.Size = new Size(110, 15);
+            label2.TabIndex = 19;
+            label2.Text = "Nhập lại mật khẩu :";
+            // 
+            // cbxEmployee
+            // 
+            cbxEmployee.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+            cbxEmployee.BackColor = Color.FromArgb(42, 45, 86);
+            cbxEmployee.ForeColor = Color.White;
+            cbxEmployee.FormattingEnabled = true;
+            cbxEmployee.Location = new Point(593, 113);
+            cbxEmployee.Name = "cbxEmployee";
+            cbxEmployee.Size = new Size(344, 23);
+            cbxEmployee.TabIndex = 18;
             // 
             // lblUserId
             // 
@@ -592,12 +676,13 @@
             // tbxUserId
             // 
             tbxUserId.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            tbxUserId.BackColor = Color.FromArgb(42, 45, 86);
-            tbxUserId.ForeColor = Color.White;
+            tbxUserId.BackColor = Color.FromArgb(24, 28, 63);
+            tbxUserId.BorderStyle = BorderStyle.FixedSingle;
+            tbxUserId.ForeColor = Color.WhiteSmoke;
             tbxUserId.Location = new Point(123, 13);
             tbxUserId.Name = "tbxUserId";
             tbxUserId.ReadOnly = true;
-            tbxUserId.Size = new Size(344, 23);
+            tbxUserId.Size = new Size(344, 16);
             tbxUserId.TabIndex = 1;
             // 
             // lblFullName
@@ -614,11 +699,12 @@
             // tbxUserName
             // 
             tbxUserName.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            tbxUserName.BackColor = Color.FromArgb(42, 45, 86);
-            tbxUserName.ForeColor = Color.White;
+            tbxUserName.BackColor = Color.FromArgb(24, 28, 63);
+            tbxUserName.BorderStyle = BorderStyle.FixedSingle;
+            tbxUserName.ForeColor = Color.WhiteSmoke;
             tbxUserName.Location = new Point(123, 63);
             tbxUserName.Name = "tbxUserName";
-            tbxUserName.Size = new Size(344, 23);
+            tbxUserName.Size = new Size(344, 16);
             tbxUserName.TabIndex = 5;
             // 
             // lblPassword
@@ -635,12 +721,13 @@
             // tbxPassword
             // 
             tbxPassword.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            tbxPassword.BackColor = Color.FromArgb(42, 45, 86);
-            tbxPassword.ForeColor = Color.White;
-            tbxPassword.Location = new Point(123, 113);
+            tbxPassword.BackColor = Color.FromArgb(24, 28, 63);
+            tbxPassword.BorderStyle = BorderStyle.FixedSingle;
+            tbxPassword.ForeColor = Color.WhiteSmoke;
+            tbxPassword.Location = new Point(123, 117);
             tbxPassword.Name = "tbxPassword";
             tbxPassword.PasswordChar = '*';
-            tbxPassword.Size = new Size(344, 23);
+            tbxPassword.Size = new Size(344, 16);
             tbxPassword.TabIndex = 9;
             // 
             // lblEmployee
@@ -654,45 +741,34 @@
             lblEmployee.TabIndex = 10;
             lblEmployee.Text = "Nhân viên:";
             // 
-            // cbxEmployee
-            // 
-            cbxEmployee.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            cbxEmployee.BackColor = Color.FromArgb(42, 45, 86);
-            cbxEmployee.ForeColor = Color.White;
-            cbxEmployee.FormattingEnabled = true;
-            cbxEmployee.Location = new Point(593, 113);
-            cbxEmployee.Name = "cbxEmployee";
-            cbxEmployee.Size = new Size(344, 23);
-            cbxEmployee.TabIndex = 11;
-            // 
-            // lblUserRole
-            // 
-            lblUserRole.Anchor = AnchorStyles.Left;
-            lblUserRole.AutoSize = true;
-            lblUserRole.ForeColor = Color.FromArgb(124, 141, 181);
-            lblUserRole.Location = new Point(3, 281);
-            lblUserRole.Name = "lblUserRole";
-            lblUserRole.Size = new Size(43, 15);
-            lblUserRole.TabIndex = 12;
-            lblUserRole.Text = "Vai trò:";
-            // 
             // cbxUserRole
             // 
             cbxUserRole.Anchor = AnchorStyles.Left | AnchorStyles.Right;
             cbxUserRole.BackColor = Color.FromArgb(42, 45, 86);
             cbxUserRole.ForeColor = Color.White;
             cbxUserRole.FormattingEnabled = true;
-            cbxUserRole.Location = new Point(123, 277);
+            cbxUserRole.Location = new Point(593, 63);
             cbxUserRole.Name = "cbxUserRole";
             cbxUserRole.Size = new Size(344, 23);
             cbxUserRole.TabIndex = 13;
+            // 
+            // lblUserRole
+            // 
+            lblUserRole.Anchor = AnchorStyles.Left;
+            lblUserRole.AutoSize = true;
+            lblUserRole.ForeColor = Color.FromArgb(124, 141, 181);
+            lblUserRole.Location = new Point(473, 67);
+            lblUserRole.Name = "lblUserRole";
+            lblUserRole.Size = new Size(43, 15);
+            lblUserRole.TabIndex = 12;
+            lblUserRole.Text = "Vai trò:";
             // 
             // lblIsActive
             // 
             lblIsActive.Anchor = AnchorStyles.Left;
             lblIsActive.AutoSize = true;
             lblIsActive.ForeColor = Color.FromArgb(124, 141, 181);
-            lblIsActive.Location = new Point(473, 281);
+            lblIsActive.Location = new Point(473, 17);
             lblIsActive.Name = "lblIsActive";
             lblIsActive.Size = new Size(63, 15);
             lblIsActive.TabIndex = 14;
@@ -703,21 +779,43 @@
             chkIsActive.Anchor = AnchorStyles.Left;
             chkIsActive.AutoSize = true;
             chkIsActive.ForeColor = Color.White;
-            chkIsActive.Location = new Point(593, 279);
+            chkIsActive.Location = new Point(593, 15);
             chkIsActive.Name = "chkIsActive";
             chkIsActive.Size = new Size(83, 19);
             chkIsActive.TabIndex = 15;
             chkIsActive.Text = "Hoạt động";
             chkIsActive.UseVisualStyleBackColor = true;
             // 
+            // tbxFindEmployeee
+            // 
+            tbxFindEmployeee.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+            tbxFindEmployeee.BackColor = Color.FromArgb(24, 28, 63);
+            tbxFindEmployeee.BorderStyle = BorderStyle.FixedSingle;
+            tbxFindEmployeee.ForeColor = Color.WhiteSmoke;
+            tbxFindEmployeee.Location = new Point(593, 161);
+            tbxFindEmployeee.Name = "tbxFindEmployeee";
+            tbxFindEmployeee.Size = new Size(344, 23);
+            tbxFindEmployeee.TabIndex = 17;
+            // 
+            // label1
+            // 
+            label1.Anchor = AnchorStyles.Left;
+            label1.AutoSize = true;
+            label1.ForeColor = Color.FromArgb(124, 141, 181);
+            label1.Location = new Point(473, 157);
+            label1.Name = "label1";
+            label1.Size = new Size(90, 30);
+            label1.TabIndex = 16;
+            label1.Text = "Tìm kiếm nhân viên:";
+            // 
             // pnlUserDetailButtons
             // 
             pnlUserDetailButtons.Controls.Add(btnSaveUser);
             pnlUserDetailButtons.Controls.Add(btnCancelUser);
             pnlUserDetailButtons.Dock = DockStyle.Bottom;
-            pnlUserDetailButtons.Location = new Point(10, 542);
+            pnlUserDetailButtons.Location = new Point(10, 541);
             pnlUserDetailButtons.Name = "pnlUserDetailButtons";
-            pnlUserDetailButtons.Size = new Size(952, 40);
+            pnlUserDetailButtons.Size = new Size(952, 41);
             pnlUserDetailButtons.TabIndex = 1;
             // 
             // btnSaveUser
@@ -727,7 +825,7 @@
             btnSaveUser.FlatStyle = FlatStyle.Flat;
             btnSaveUser.Font = new Font("Microsoft Sans Serif", 11F);
             btnSaveUser.ForeColor = Color.FromArgb(192, 255, 192);
-            btnSaveUser.Location = new Point(760, 5);
+            btnSaveUser.Location = new Point(760, 6);
             btnSaveUser.Name = "btnSaveUser";
             btnSaveUser.Size = new Size(90, 30);
             btnSaveUser.TabIndex = 0;
@@ -741,7 +839,7 @@
             btnCancelUser.FlatStyle = FlatStyle.Flat;
             btnCancelUser.Font = new Font("Microsoft Sans Serif", 11F);
             btnCancelUser.ForeColor = Color.FromArgb(255, 128, 128);
-            btnCancelUser.Location = new Point(856, 5);
+            btnCancelUser.Location = new Point(856, 6);
             btnCancelUser.Name = "btnCancelUser";
             btnCancelUser.Size = new Size(90, 30);
             btnCancelUser.TabIndex = 1;
@@ -910,21 +1008,6 @@
             lblCurrentUserId.Text = "0";
             lblCurrentUserId.Visible = false;
             // 
-            // btnUpdate
-            // 
-            btnUpdate.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
-            btnUpdate.FlatAppearance.BorderColor = Color.Orange;
-            btnUpdate.FlatStyle = FlatStyle.Flat;
-            btnUpdate.Font = new Font("Microsoft Sans Serif", 11F);
-            btnUpdate.ForeColor = Color.FromArgb(255, 192, 128);
-            btnUpdate.Location = new Point(867, 5);
-            btnUpdate.Margin = new Padding(5);
-            btnUpdate.Name = "btnUpdate";
-            btnUpdate.Size = new Size(88, 48);
-            btnUpdate.TabIndex = 2;
-            btnUpdate.Text = "Sửa";
-            btnUpdate.UseVisualStyleBackColor = true;
-            // 
             // FrmUserManagement
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -959,6 +1042,8 @@
             pnlUserDetail.ResumeLayout(false);
             pnlUserDetail.PerformLayout();
             groupBoxUserInfo.ResumeLayout(false);
+            panel6.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)dgvEmployeeList).EndInit();
             tableLayoutPanel3.ResumeLayout(false);
             tableLayoutPanel3.PerformLayout();
             pnlUserDetailButtons.ResumeLayout(false);
@@ -1029,7 +1114,6 @@
         private TextBox tbxUserId;
         private TextBox tbxUserName;
         private TextBox tbxPassword;
-        private ComboBox cbxEmployee;
         private ComboBox cbxUserRole;
         private CheckBox chkIsActive;
         private Button btnSaveUser;
@@ -1048,5 +1132,13 @@
         private Label lblRoleAssignmentTitle;
         private Label lblCurrentUserId;
         private Button btnUpdate;
+        private Panel panel6;
+        private DataGridView dgvEmployeeList;
+        private ComboBox cbxEmployee;
+        private TextBox tbxPasswordAgain;
+        private Label label2;
+        private TextBox tbxFindEmployeee;
+        private Label label1;
+        private ToolTip toolTip1;
     }
 }

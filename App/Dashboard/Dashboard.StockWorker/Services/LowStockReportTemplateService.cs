@@ -10,13 +10,13 @@ using System.Text;
 
 namespace Dashboard.StockWorker.Services
 {
-    public class EmailNotificationService : INotificationService
+    public class LowStockReportTemplateService : INotificationService
     {
         private readonly IConfiguration _configuration;
-        private readonly ILogger<EmailNotificationService> _logger;
+        private readonly ILogger<LowStockReportTemplateService> _logger;
         private readonly PurchaseEnrichmentService _purchaseEnrichment;
 
-        public EmailNotificationService(IConfiguration configuration, ILogger<EmailNotificationService> logger, PurchaseEnrichmentService purchaseEnrichment)
+        public LowStockReportTemplateService(IConfiguration configuration, ILogger<LowStockReportTemplateService> logger, PurchaseEnrichmentService purchaseEnrichment)
         {
             _configuration = configuration;
             _logger = logger;
@@ -31,10 +31,8 @@ namespace Dashboard.StockWorker.Services
                 return;
             }
 
-            // Group alerts by alert level
             var groupedAlerts = alerts.GroupBy(a => a.AlertLevel).ToList();
             
-            // Send a consolidated email with all alerts
             await SendConsolidatedStockAlertsAsync(alerts);
         }
 
@@ -55,11 +53,9 @@ namespace Dashboard.StockWorker.Services
 
         public async Task SendGenericEmailAsync(string subject, string htmlBody, Dictionary<string, byte[]>? attachments = null)
         {
-            // If there is a single attachment, use it directly. If multiple, create a zip or concatenate - for simplicity, pick the first.
             byte[]? attachmentData = null;
             if (attachments != null && attachments.Count > 0)
             {
-                // prefer CSV-like names
                 var first = attachments.First();
                 attachmentData = first.Value;
             }
@@ -76,7 +72,6 @@ namespace Dashboard.StockWorker.Services
             var subject = GenerateConsolidatedSubject(outOfStockCount, criticalCount, lowStockCount);
             var htmlBody = GenerateConsolidatedEmailBody(alerts, outOfStockCount, criticalCount, lowStockCount);
             
-            // Generate Excel attachment (enrich alerts with supplier/purchase info first)
             var excelData = await GenerateExcelData(alerts);
 
             await SendEmailAsync(subject, htmlBody, excelData);
@@ -568,7 +563,6 @@ namespace Dashboard.StockWorker.Services
 
             try
             {
-                // Enrich alerts with supplier / last purchase information (if available). Fail-safe: log errors and continue.
                 await _purchaseEnrichment.EnrichAsync(alerts);
             }
             catch (Exception ex)
@@ -576,10 +570,8 @@ namespace Dashboard.StockWorker.Services
                 _logger.LogWarning(ex, "Failed to enrich alerts with purchase/supplier info; continuing without enrichment");
             }
 
-            // Headers (added supplier / purchase columns at the end)
             csv.AppendLine("STT,Chi Nhánh,Tên Nguyên Liệu,Đơn Vị,Tồn Kho Hiện Tại,Điểm Đặt Hàng,Tồn Kho An Toàn,Tiêu Thụ TB/Ngày,Số Ngày Còn Lại,Mức Độ Cảnh Báo,Thời Gian Cập NHật,Nhà Cung Cấp,Liên Hệ Nhà Cung Cấp,Giá Mua Gần Nhất,Ngày Nhập Gần Nhất");
             
-            // Sort by severity and branch
             var sortedAlerts = alerts.OrderBy(a => a.AlertLevel)
                                    .ThenBy(a => a.BranchName)
                                    .ThenBy(a => a.IngredientName)

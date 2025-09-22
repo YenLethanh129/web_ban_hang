@@ -12,38 +12,43 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Dashboard.Winform.Helpers;
 
 namespace Dashboard.Winform.Forms
 {
     public partial class FrmLogin : Form, IBlurLoadingServiceAware
     {
         private readonly IAuthenticationService? _authService;
+        private readonly IAuthorizationService? _authorizationService;
+
         private IBlurLoadingService? _blurLoadingService;
         public FrmLogin()
         {
             InitializeComponent();
-            this.Load += FrmLogin_Load;
-            // Ensure the login dialog appears centered relative to its parent
-            this.StartPosition = FormStartPosition.CenterParent;
+            Load += FrmLogin_Load;
+            StartPosition = FormStartPosition.CenterParent;
         }
 
 
-        public FrmLogin(IAuthenticationService authService)
-            : this()
+        public FrmLogin(IAuthenticationService authService, IAuthorizationService authorizationService)
         {
+            InitializeComponent();
+            Load += FrmLogin_Load;
+            StartPosition = FormStartPosition.CenterParent;
+
             _authService = authService ?? throw new ArgumentNullException(nameof(authService));
+            _authorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
+
+            AuthenticationManager.Initialize(_authService, _authorizationService);
         }
 
-        /// <summary>
-        /// Implementation of IBlurLoadingServiceAware - allows parent to inject centralized blur loading service
-        /// </summary>
-        /// <param name="blurLoadingService"></param>
+
         public void SetBlurLoadingService(IBlurLoadingService blurLoadingService)
         {
             _blurLoadingService = blurLoadingService;
         }
 
- 
+
         public bool LoginSucceeded { get; private set; } = false;
 
         private void FrmLogin_Load(object? sender, EventArgs e)
@@ -90,12 +95,6 @@ namespace Dashboard.Winform.Forms
                 var loginDto = new LoginInput { Username = username, Password = password };
 
                 object? result = null;
-                if (_authService == null)
-                {
-                    var toast = new FrmToastMessage(ToastType.ERROR, "Dịch vụ xác thực không khả dụng.");
-                    toast.Show();
-                    return;
-                }
 
                 if (_blurLoadingService != null)
                 {
@@ -118,15 +117,7 @@ namespace Dashboard.Winform.Forms
 
                 if (result != null)
                 {
-                    var tokenProp = result.GetType().GetProperty("Token");
-                    if (tokenProp != null)
-                    {
-                        var token = tokenProp.GetValue(result) as string;
-                        if (!string.IsNullOrEmpty(token))
-                        {
-                            Services.SessionManager.CurrentToken = token;
-                        }
-                    }
+                    AuthenticationManager.SetLocalSessionFromLoginResult((LoginResult)result);
 
                     LoginSucceeded = true;
                     DialogResult = DialogResult.OK;
@@ -137,6 +128,7 @@ namespace Dashboard.Winform.Forms
                     var toast = new FrmToastMessage(ToastType.ERROR, "Tên đăng nhập hoặc mật khẩu không chính xác.");
                     toast.Show();
                 }
+
             }
             catch (Exception ex)
             {

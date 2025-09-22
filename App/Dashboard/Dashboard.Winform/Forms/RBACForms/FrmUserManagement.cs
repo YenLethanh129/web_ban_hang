@@ -13,18 +13,24 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Dashboard.Winform.Forms.BaseFrm;
+using Dashboard.Winform.Attributes;
 
 namespace Dashboard.Winform.Forms;
 
-public partial class FrmUserManagement : Form
+[RequireRole("ADMIN")]
+public partial class FrmUserManagement : FrmBaseAuthForm
 {
     private readonly ILogger<FrmUserManagement> _logger;
     private readonly IUserManagementPresenter _presenter;
     private readonly UserManagementModel _model;
     private readonly IServiceProvider _serviceProvider;
     private TaskCompletionSource<bool>? _dataLoadingCompletionSource;
-    private System.Windows.Forms.Timer?  _searchTimer;
+    private System.Windows.Forms.Timer? _searchTimer;
     private bool _isInitialized = false;
+    private BindingList<EmployeeSimpleViewModel> _allEmployees = new();
+    private BindingList<EmployeeSimpleViewModel> _filteredEmployees = new();
+    private bool _isUpdatingSelection = false;
 
     public FrmUserManagement(
         ILogger<FrmUserManagement> logger,
@@ -37,7 +43,7 @@ public partial class FrmUserManagement : Form
         _serviceProvider = serviceProvider;
 
         InitializeComponent();
-
+        InitializeEmployeeControls();
         TabControlHelper.SetupDarkTheme(tabControl);
 
         OverrideTextUI();
@@ -108,7 +114,7 @@ public partial class FrmUserManagement : Form
     {
         _searchTimer = new System.Windows.Forms.Timer
         {
-            Interval = 500 
+            Interval = 300
         };
         _searchTimer.Tick += async (s, e) =>
         {
@@ -226,6 +232,22 @@ public partial class FrmUserManagement : Form
             }
         };
 
+        tbxPasswordAgain.TextChanged += (s, e) =>
+        {
+            if (tbxPassword.Text != tbxPasswordAgain.Text)
+            {
+                btnSaveUser.Enabled = false;
+                tbxPasswordAgain.BackColor = Color.LightCoral;
+                toolTip1.SetToolTip(tbxPasswordAgain, "Mật khẩu không khớp!");
+            }
+            else
+            {
+                btnSaveUser.Enabled = true;
+                tbxPasswordAgain.BackColor = SystemColors.Window;
+                toolTip1.SetToolTip(tbxPasswordAgain, string.Empty);
+            }
+        };
+
         btnAdd.Click += (s, o) => BtnAdd_Click(s!, o);
         btnGetDetails.Click += (s, o) => BtnGetDetails_Click(s!, o);
 
@@ -252,6 +274,286 @@ public partial class FrmUserManagement : Form
     }
 
     #region Event Handlers
+
+    private void SetupEmployeeComboBox()
+    {
+        cbxEmployee.DisplayMember = "DisplayText";
+        cbxEmployee.ValueMember = "Id";
+        cbxEmployee.SelectedIndexChanged += CbxEmployee_SelectedIndexChanged;
+    }
+
+    private void DgvEmployeeList_SelectionChanged(object? sender, EventArgs e)
+    {
+        if (_isUpdatingSelection || dgvEmployeeList.SelectedRows.Count == 0)
+            return;
+
+        try
+        {
+            _isUpdatingSelection = true;
+
+            var selectedEmployee = dgvEmployeeList.SelectedRows[0].DataBoundItem as EmployeeSimpleViewModel;
+            if (selectedEmployee != null)
+            {
+                cbxEmployee.SelectedValue = selectedEmployee.Id;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Error updating employee selection from DataGridView");
+        }
+        finally
+        {
+            _isUpdatingSelection = false;
+        }
+    }
+
+    private void CbxEmployee_SelectedIndexChanged(object? sender, EventArgs e)
+    {
+        if (_isUpdatingSelection || cbxEmployee.SelectedValue == null)
+            return;
+
+        try
+        {
+            _isUpdatingSelection = true;
+
+            var selectedEmployeeId = (long)cbxEmployee.SelectedValue;
+
+            for (int i = 0; i < dgvEmployeeList.Rows.Count; i++)
+            {
+                var employee = dgvEmployeeList.Rows[i].DataBoundItem as EmployeeSimpleViewModel;
+                if (employee?.Id == selectedEmployeeId)
+                {
+                    dgvEmployeeList.ClearSelection();
+                    dgvEmployeeList.Rows[i].Selected = true;
+                    dgvEmployeeList.CurrentCell = dgvEmployeeList.Rows[i].Cells[0];
+
+                    if (dgvEmployeeList.Rows[i].Displayed == false)
+                    {
+                        dgvEmployeeList.FirstDisplayedScrollingRowIndex = i;
+                    }
+                    break;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Error updating employee selection from ComboBox");
+        }
+        finally
+        {
+            _isUpdatingSelection = false;
+        }
+    }
+
+    private void SetupEmployeeSearch()
+    {
+        var searchTimer = new System.Windows.Forms.Timer
+        {
+            Interval = 300 
+        };
+
+        searchTimer.Tick += (s, e) =>
+        {
+            searchTimer.Stop();
+            PerformEmployeeSearch();
+        };
+
+        tbxFindEmployeee.TextChanged += (s, e) =>
+        {
+            searchTimer.Stop();
+            searchTimer.Start();
+        };
+
+        tbxFindEmployeee.Tag = searchTimer;
+    }
+
+    private void ClearUserDetailForm()
+    {
+        tbxUserId.Clear();
+        tbxUserName.Clear();
+        tbxPassword.Clear();
+        tbxFindEmployeee.Clear();
+        chkIsActive.Checked = true;
+
+        _isUpdatingSelection = true;
+        cbxEmployee.SelectedIndex = -1;
+        dgvEmployeeList.ClearSelection();
+        _isUpdatingSelection = false;
+
+        if (cbxUserRole.Items.Count > 0)
+            cbxUserRole.SelectedIndex = 0;
+    }
+
+    private void InitializeEmployeeControls()
+    {
+        SetupEmployeeSearch();
+        tbxFindEmployeee.PlaceholderText = "Tìm kiếm nhân viên theo tên, SĐT, email...";
+    }
+
+    private void PerformEmployeeSearch()
+    {
+        try
+        {
+            var searchTerm = tbxFindEmployeee.Text?.Trim().ToLower() ?? string.Empty;
+
+            _filteredEmployees.Clear();
+
+            var filtered = string.IsNullOrWhiteSpace(searchTerm)
+                ? _allEmployees.ToList()
+                : _allEmployees.Where(emp =>
+                    emp.FullName.ToLower().Contains(searchTerm) ||
+                    (emp.PhoneNumber?.ToLower().Contains(searchTerm) ?? false) ||
+                    (emp.Email?.ToLower().Contains(searchTerm) ?? false) ||
+                    emp.PositionName.ToLower().Contains(searchTerm) ||
+                    emp.BranchName.ToLower().Contains(searchTerm) ||
+                    emp.Id.ToString().Contains(searchTerm)
+                ).ToList();
+
+            foreach (var emp in filtered)
+            {
+                _filteredEmployees.Add(emp);
+            }
+
+            cbxEmployee.DataSource = new BindingList<EmployeeSimpleViewModel>(_filteredEmployees.ToList());
+
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                _isUpdatingSelection = true;
+                dgvEmployeeList.ClearSelection();
+                cbxEmployee.SelectedIndex = -1;
+                _isUpdatingSelection = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            ShowError($"Lỗi khi tìm kiếm nhân viên: {ex.Message}");
+        }
+    }
+
+    private async Task LoadEmployeesForSelection()
+    {
+        try
+        {
+            if (_allEmployees.Count == 0)
+            {
+                var employees = await _presenter.GetEmployeesAsync();
+                _allEmployees.Clear();
+                _filteredEmployees.Clear();
+
+                foreach (var emp in employees)
+                {
+                    _allEmployees.Add(emp);
+                    _filteredEmployees.Add(emp);
+                }
+            }
+
+            if (dgvEmployeeList.Columns.Count == 0)
+            {
+                SetupEmployeeDataGridView();
+            }
+
+            SetupEmployeeComboBox();
+
+            dgvEmployeeList.DataSource = _filteredEmployees;
+            cbxEmployee.DataSource = new BindingList<EmployeeSimpleViewModel>(_filteredEmployees.ToList());
+        }
+        catch (Exception ex)
+        {
+            ShowError($"Lỗi khi tải danh sách nhân viên: {ex.Message}");
+        }
+    }
+
+    private void SetupEmployeeDataGridView()
+    {
+        dgvEmployeeList.AutoGenerateColumns = false;
+        dgvEmployeeList.Columns.Clear();
+        dgvEmployeeList.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+        dgvEmployeeList.MultiSelect = false;
+        dgvEmployeeList.ReadOnly = true;
+
+        dgvEmployeeList.BackgroundColor = Color.FromArgb(42, 45, 86);
+        dgvEmployeeList.BorderStyle = BorderStyle.None;
+        dgvEmployeeList.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
+        dgvEmployeeList.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
+        dgvEmployeeList.EnableHeadersVisualStyles = false;
+        dgvEmployeeList.GridColor = Color.FromArgb(73, 75, 111);
+
+        var headerStyle = new DataGridViewCellStyle
+        {
+            Alignment = DataGridViewContentAlignment.MiddleLeft,
+            BackColor = Color.FromArgb(42, 45, 86),
+            Font = new Font("Segoe UI", 9F),
+            ForeColor = Color.FromArgb(124, 141, 181),
+            SelectionBackColor = Color.FromArgb(42, 45, 86),
+            SelectionForeColor = Color.FromArgb(124, 141, 181),
+            WrapMode = DataGridViewTriState.True
+        };
+        dgvEmployeeList.ColumnHeadersDefaultCellStyle = headerStyle;
+
+        var cellStyle = new DataGridViewCellStyle
+        {
+            Alignment = DataGridViewContentAlignment.MiddleLeft,
+            BackColor = Color.FromArgb(42, 45, 86),
+            Font = new Font("Segoe UI", 9F),
+            ForeColor = Color.White,
+            SelectionBackColor = SystemColors.Highlight,
+            SelectionForeColor = SystemColors.HighlightText,
+            WrapMode = DataGridViewTriState.False
+        };
+        dgvEmployeeList.DefaultCellStyle = cellStyle;
+
+        dgvEmployeeList.Columns.Add(new DataGridViewTextBoxColumn
+        {
+            DataPropertyName = nameof(EmployeeSimpleViewModel.Id),
+            HeaderText = "ID",
+            Width = 60,
+            AutoSizeMode = DataGridViewAutoSizeColumnMode.None
+        });
+
+        dgvEmployeeList.Columns.Add(new DataGridViewTextBoxColumn
+        {
+            DataPropertyName = nameof(EmployeeSimpleViewModel.FullName),
+            HeaderText = "Họ và tên",
+            Width = 200,
+            AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill
+        });
+
+        dgvEmployeeList.Columns.Add(new DataGridViewTextBoxColumn
+        {
+            DataPropertyName = nameof(EmployeeSimpleViewModel.PhoneNumber),
+            HeaderText = "Số điện thoại",
+            Width = 120,
+            AutoSizeMode = DataGridViewAutoSizeColumnMode.None
+        });
+
+        dgvEmployeeList.Columns.Add(new DataGridViewTextBoxColumn
+        {
+            DataPropertyName = nameof(EmployeeSimpleViewModel.Email),
+            HeaderText = "Email",
+            Width = 180,
+            AutoSizeMode = DataGridViewAutoSizeColumnMode.None
+        });
+
+        dgvEmployeeList.Columns.Add(new DataGridViewTextBoxColumn
+        {
+            DataPropertyName = nameof(EmployeeSimpleViewModel.PositionName),
+            HeaderText = "Chức vụ",
+            Width = 120,
+            AutoSizeMode = DataGridViewAutoSizeColumnMode.None
+        });
+
+        dgvEmployeeList.Columns.Add(new DataGridViewTextBoxColumn
+        {
+            DataPropertyName = nameof(EmployeeSimpleViewModel.BranchName),
+            HeaderText = "Chi nhánh",
+            Width = 120,
+            AutoSizeMode = DataGridViewAutoSizeColumnMode.None
+        });
+
+        dgvEmployeeList.SelectionChanged += DgvEmployeeList_SelectionChanged;
+    }
+
+
 
     private async void FrmUserManagement_Load(object? sender, EventArgs e)
     {
@@ -392,7 +694,7 @@ public partial class FrmUserManagement : Form
         try
         {
             SetLoadingState(true);
-            _model.SearchText = tbxFindString.Text; 
+            _model.SearchText = tbxFindString.Text;
             await _presenter.SearchAsync(_model.SearchText);
             UpdatePaginationInfo();
         }
@@ -474,7 +776,6 @@ public partial class FrmUserManagement : Form
 
     private async void LoadUserForEdit(UserViewModel user)
     {
-
         try
         {
             lblUserDetailTitle.Text = $"Chỉnh sửa người dùng - {user.Username}";
@@ -484,13 +785,21 @@ public partial class FrmUserManagement : Form
             tbxUserName.Text = user.Username ?? string.Empty;
             chkIsActive.Checked = user.IsActive;
 
-
-
-            if (cbxEmployee.DataSource != null && user.EmployeeId != null)
-            {
-                cbxEmployee!.SelectedValue = user.EmployeeId.Value;
-            }
             await LoadEmployeesForSelection();
+
+            if (user.EmployeeId != null)
+            {
+                _isUpdatingSelection = true;
+                cbxEmployee.SelectedValue = user.EmployeeId.Value;
+                _isUpdatingSelection = false;
+            }
+            else
+            {
+                _isUpdatingSelection = true;
+                cbxEmployee.SelectedIndex = -1;
+                dgvEmployeeList.ClearSelection();
+                _isUpdatingSelection = false;
+            }
 
             if (cbxUserRole.DataSource != null)
             {
@@ -503,16 +812,6 @@ public partial class FrmUserManagement : Form
         }
     }
 
-    private void ClearUserDetailForm()
-    {
-        tbxUserId.Clear();
-        tbxUserName.Clear();
-        tbxPassword.Clear();
-        chkIsActive.Checked = true;
-        cbxEmployee.SelectedIndex = -1;
-        if (cbxUserRole.Items.Count > 0)
-            cbxUserRole.SelectedIndex = 0;
-    }
 
     private async Task SaveUser()
     {
@@ -526,13 +825,15 @@ public partial class FrmUserManagement : Form
 
             SetLoadingState(true);
 
+            var selectedEmployeeId = cbxEmployee.SelectedValue as long?;
+
             var userDetail = new UserDetailViewModel
             {
                 Id = string.IsNullOrEmpty(tbxUserId.Text) ? 0 : long.Parse(tbxUserId.Text),
                 Username = (tbxUserName.Text ?? string.Empty).Trim(),
                 Password = tbxPassword.Text?.Trim(),
                 IsActive = chkIsActive.Checked,
-                EmployeeId = cbxEmployee.SelectedValue as long?,
+                EmployeeId = selectedEmployeeId,
                 RoleId = (long)cbxUserRole.SelectedValue
             };
 
@@ -572,7 +873,7 @@ public partial class FrmUserManagement : Form
 
     private async void LoadUserRoles(UserViewModel user)
     {
-        
+
         try
         {
             lblRoleAssignmentTitle.Text = $"Gán vai trò cho: {user.Username}";
@@ -866,25 +1167,6 @@ public partial class FrmUserManagement : Form
         this.Cursor = isLoading ? Cursors.WaitCursor : Cursors.Default;
     }
 
-    private async Task LoadEmployeesForSelection()
-    {
-        if (cbxEmployee.Items.Count == 0)
-        {
-            var employees = await _presenter.GetEmployeesAsync();
-            cbxEmployee.DataSource = employees;
-        }
-        try
-        {
-            cbxEmployee.DisplayMember = "DisplayText";
-            cbxEmployee.ValueMember = "Id";
-            //cbxEmployee.SelectedIndex = -1;
-        }
-        catch (Exception ex)
-        {
-            ShowError($"Lỗi khi tải danh sách nhân viên: {ex.Message}");
-        }
-    }
-
     private void ShowError(string message)
     {
         MessageBox.Show(message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -935,4 +1217,21 @@ public partial class FrmUserManagement : Form
     }
 
     #endregion
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            if (tbxFindEmployeee?.Tag is System.Windows.Forms.Timer timer)
+            {
+                timer?.Dispose();
+            }
+
+            if (components != null)
+            {
+                components.Dispose();
+            }
+        }
+        base.Dispose(disposing);
+    }
 }

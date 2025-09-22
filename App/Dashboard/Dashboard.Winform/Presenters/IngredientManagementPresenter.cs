@@ -4,7 +4,12 @@ using Dashboard.Winform.Events;
 using Dashboard.Winform.ViewModels;
 using Dashboard.BussinessLogic.Dtos.IngredientDtos;
 using Dashboard.DataAccess.Models.Entities.GoodsIngredientsAndStock;
+using System;
 using System.ComponentModel;
+using System.Linq;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Dashboard.Winform.Presenters;
 
@@ -76,30 +81,165 @@ public class IngredientManagementPresenter : IIngredientManagementPresenter
     {
         if (_isLoading && !forceRefresh) return;
 
-        _isLoading = true;
+        await _semaphore.WaitAsync();
         try
         {
-            _currentCategoryFilter = categoryId;
+            _isLoading = true;
+
+            _currentCategoryFilter = categoryId ?? _currentCategoryFilter;
+            _currentSearchTerm = searchTerm ?? _currentSearchTerm;
+
+            if (!Model.Categories.Any())
+            {
+                await LoadCategoriesInternal();
+            }
+
+            if (!_allIngredientsCache.Any() || forceRefresh)
+            {
+                await LoadAllDataToCacheInternal();
+            }
+
+            if (pageSize.HasValue) Model.PageSize = pageSize.Value;
+            if (page.HasValue) Model.CurrentPage = page.Value;
+
+            await ApplyFiltersAndPaging();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading data: {ex.Message}");
+            throw;
+        }
+        finally
+        {
+            _isLoading = false;
+            _semaphore.Release();
+        }
+    }
+
+    private async Task LoadAllDataToCacheInternal()
+    {
+        _allIngredientsCache.Clear();
+
+        try
+        {
+            var input = new GetIngredientsInput
+            {
+                PageNumber = 1,
+                PageSize = int.MaxValue
+            };
+
+            var paged = await _ingredientManagementService.GetIngredientsAsync(input);
+
+            if (paged?.Items != null)
+            {
+                _allIngredientsCache = [.. paged.Items.Select(dto => new IngredientViewModel
+                {
+                    Id = dto.Id,
+                    Name = dto.Name ?? string.Empty,
+                    Unit = dto.Unit ?? string.Empty,
+                    CategoryId = dto.CategoryId,
+                    CategoryName = dto.CategoryName ?? "Không rõ",
+                    Description = dto.Description,
+                    IsActive = dto.IsActive,
+                    CreatedAt = dto.CreatedAt,
+                    UpdatedAt = dto.UpdatedAt,
+                })];
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading from service: {ex.Message}");
+            _allIngredientsCache = GenerateMockData();
+        }
+
+        if (Model.Categories != null && Model.Categories.Count > 0)
+        {
+            foreach (var item in _allIngredientsCache)
+            {
+                var cat = Model.Categories.FirstOrDefault(c => c.Id == item.CategoryId);
+                item.CategoryName = cat?.Name ?? item.CategoryName ?? "Không rõ";
+            }
+        }
+    }
+
+    private async Task LoadCategoriesInternal()
+    {
+        Model.Categories.Clear();
+
+        try
+        {
+            var repo = _unitOfWork.Repository<IngredientCategory>();
+            var categories = await repo.GetAllAsync(true);
+
+            foreach (var c in categories)
+            {
+                Model.Categories.Add(new IngredientCategoryViewModel
+                {
+                    Id = (long)c.Id,
+                    Name = c.Name ?? string.Empty,
+                    Description = c.Description
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading categories: {ex.Message}");
+            Model.Categories.Add(new IngredientCategoryViewModel { Id = 1, Name = "Rau củ", Description = "Các loại rau củ quả" });
+            Model.Categories.Add(new IngredientCategoryViewModel { Id = 2, Name = "Thịt cá", Description = "Thịt và hải sản" });
+            Model.Categories.Add(new IngredientCategoryViewModel { Id = 3, Name = "Gia vị", Description = "Các loại gia vị" });
+        }
+    }
+    private async Task LoadCategories()
+    {
+        await _semaphore.WaitAsync();
+        try
+        {
+            await LoadCategoriesInternal();
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    }
+
+    public async Task LoadDataAsync()
+    {
+        await LoadDataAsync(null, null, Model.PageSize, Model.CurrentPage, true);
+    }
+
+    public async Task SearchAsync(string searchTerm)
+    {
+        await _semaphore.WaitAsync();
+        try
+        {
             _currentSearchTerm = searchTerm ?? string.Empty;
+            Model.CurrentPage = 1;
 
-            // Load categories first
-            await LoadCategories();
+            if (!_allIngredientsCache.Any())
+            {
+                await LoadAllDataToCacheInternal();
+            }
 
-            // Load ingredients data
-            await LoadAllDataToCache();
+            await ApplyFiltersAndPaging();
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    }
 
-            // Apply filtering from cache
+    private Task ApplyFiltersAndPaging()
+    {
+        try
+        {
             var query = _allIngredientsCache.AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(_currentSearchTerm))
             {
-                query = query.Where(x => x.Name.Contains(_currentSearchTerm, StringComparison.OrdinalIgnoreCase) ||
-                                        (x.Description ?? string.Empty).Contains(_currentSearchTerm, StringComparison.OrdinalIgnoreCase));
-            }
-
-            if (_currentCategoryFilter.HasValue && _currentCategoryFilter > 0)
-            {
-                query = query.Where(x => x.CategoryId == _currentCategoryFilter.Value);
+                query = query.Where(x =>
+                    x.Name.Contains(_currentSearchTerm, StringComparison.OrdinalIgnoreCase) ||
+                    x.Id.ToString().Contains(_currentSearchTerm, StringComparison.OrdinalIgnoreCase) ||
+                    (x.Description ?? string.Empty).Contains(_currentSearchTerm, StringComparison.OrdinalIgnoreCase));
             }
 
             if (!string.IsNullOrWhiteSpace(_currentStatusFilter) && _currentStatusFilter != "All")
@@ -109,108 +249,59 @@ public class IngredientManagementPresenter : IIngredientManagementPresenter
                 query = query.Where(x => x.IsActive == active);
             }
 
+            if (_currentCategoryFilter.HasValue && _currentCategoryFilter > 0)
+            {
+                query = query.Where(x => x.CategoryId == _currentCategoryFilter.Value);
+            }
+
             if (!string.IsNullOrWhiteSpace(_currentSortBy))
             {
-                if (_currentSortBy.Equals("Name", StringComparison.OrdinalIgnoreCase))
-                    query = _sortDescending ? query.OrderByDescending(x => x.Name) : query.OrderBy(x => x.Name);
-                else if (_currentSortBy.Equals("CreatedAt", StringComparison.OrdinalIgnoreCase))
-                    query = _sortDescending ? query.OrderByDescending(x => x.CreatedAt) : query.OrderBy(x => x.CreatedAt);
-                else if (_currentSortBy.Equals("Category", StringComparison.OrdinalIgnoreCase))
-                    query = _sortDescending ? query.OrderByDescending(x => x.CategoryName) : query.OrderBy(x => x.CategoryName);
+                query = _currentSortBy.ToLower() switch
+                {
+                    "id" => _sortDescending ? query.OrderByDescending(x => x.Id) : query.OrderBy(x => x.Id),
+                    "name" => _sortDescending ? query.OrderByDescending(x => x.Name) : query.OrderBy(x => x.Name),
+                    "category" => _sortDescending ? query.OrderByDescending(x => x.CategoryName) : query.OrderBy(x => x.CategoryName),
+                    "categoryname" => _sortDescending ? query.OrderByDescending(x => x.CategoryName) : query.OrderBy(x => x.CategoryName),
+                    "unit" => _sortDescending ? query.OrderByDescending(x => x.Unit) : query.OrderBy(x => x.Unit),
+                    "description" => _sortDescending ? query.OrderByDescending(x => x.Description ?? "") : query.OrderBy(x => x.Description ?? ""),
+                    "isactive" => _sortDescending ? query.OrderByDescending(x => x.IsActive) : query.OrderBy(x => x.IsActive),
+                    "status" => _sortDescending ? query.OrderByDescending(x => x.IsActive) : query.OrderBy(x => x.IsActive),
+                    "createdat" => _sortDescending ? query.OrderByDescending(x => x.CreatedAt) : query.OrderBy(x => x.CreatedAt),
+                    "created date" => _sortDescending ? query.OrderByDescending(x => x.CreatedAt) : query.OrderBy(x => x.CreatedAt),
+                    _ => query.OrderBy(x => x.Id)
+                };
             }
 
             _filteredIngredients = query.ToList();
 
-            var pageNumber = page ?? Model.CurrentPage;
-            var pSize = pageSize ?? Model.PageSize;
-
             Model.TotalItems = _filteredIngredients.Count;
-            Model.CurrentPage = Math.Max(1, Math.Min(pageNumber, Model.TotalPages == 0 ? 1 : Model.TotalPages));
-            Model.PageSize = pSize;
+
+            if (Model.CurrentPage < 1) Model.CurrentPage = 1;
+            if (Model.CurrentPage > Model.TotalPages && Model.TotalPages > 0)
+                Model.CurrentPage = Model.TotalPages;
 
             var items = _filteredIngredients
                 .Skip((Model.CurrentPage - 1) * Model.PageSize)
                 .Take(Model.PageSize)
                 .ToList();
 
-            // Clear and add items to binding list
             Model.Ingredients.Clear();
             foreach (var item in items)
             {
                 Model.Ingredients.Add(item);
             }
 
-            // Fire event with correct EventArgs type
-            OnDataLoaded?.Invoke(this, new IngredientsLoadedEventArgs(items));
+            if (items.Any())
+            {
+                OnDataLoaded?.Invoke(this, new IngredientsLoadedEventArgs(items));
+            }
+
+            return Task.CompletedTask;
         }
         catch (Exception ex)
         {
-            // Log the error for debugging
-            System.Diagnostics.Debug.WriteLine($"Error loading data: {ex.Message}");
-            throw; // Re-throw to let the UI handle it
-        }
-        finally
-        {
-            _isLoading = false;
-        }
-    }
-
-    public async Task LoadDataAsync()
-    {
-        await LoadDataAsync(null, null, Model.PageSize, Model.CurrentPage, true);
-    }
-
-    private async Task LoadAllDataToCache()
-    {
-        await _semaphore.WaitAsync();
-        try
-        {
-            // Clear existing cache
-            _allIngredientsCache.Clear();
-
-            try
-            {
-                // Use the business service to get ingredients
-                var input = new GetIngredientsInput
-                {
-                    PageNumber = 1,
-                    PageSize = 10000 // Large page to get all items
-                };
-
-                var paged = await _ingredientManagementService.GetIngredientsAsync(input);
-
-                if (paged?.Items != null)
-                {
-                    _allIngredientsCache = paged.Items.Select(dto => new IngredientViewModel
-                    {
-                        Id = dto.Id,
-                        Name = dto.Name ?? string.Empty,
-                        Unit = dto.Unit ?? string.Empty,
-                        CategoryId = dto.IngredientCategoryId,
-                        CategoryName = dto.CategoryName ?? "Không rõ",
-                        Description = dto.Description,
-                        IsActive = true, // Default to active since DTO might not have this field
-                        CostPerUnit = dto.CostPerUnit,
-                        CreatedAt = dto.CreatedAt,
-                        UpdatedAt = dto.UpdatedAt
-                    }).ToList();
-                }
-            }
-            catch (Exception ex)
-            {
-                // Log error and provide fallback mock data for development
-                System.Diagnostics.Debug.WriteLine($"Error loading from service: {ex.Message}");
-
-                // Fallback mock data for development/testing
-                _allIngredientsCache = GenerateMockData();
-            }
-
-            // Map categories to ingredients (ensure CategoryName is populated)
-            Model.MapCategoriesToIngredients();
-        }
-        finally
-        {
-            _semaphore.Release();
+            System.Diagnostics.Debug.WriteLine($"Error in ApplyFiltersAndPaging: {ex.Message}");
+            return Task.CompletedTask;
         }
     }
 
@@ -233,8 +324,8 @@ public class IngredientManagementPresenter : IIngredientManagementPresenter
                     _ => "Gia vị"
                 },
                 Description = $"Mô tả cho nguyên liệu {i}",
-                IsActive = i % 4 != 0, // 3/4 items are active
-                CostPerUnit = (decimal)(10000 + (i * 500)),
+                IsActive = i % 4 != 0,
+                CostPerUnit = (10000 + (i * 500)),
                 CreatedAt = DateTime.Now.AddDays(-i),
                 UpdatedAt = i % 3 == 0 ? DateTime.Now.AddHours(-i) : null
             });
@@ -243,46 +334,6 @@ public class IngredientManagementPresenter : IIngredientManagementPresenter
         return mockData;
     }
 
-    private async Task LoadCategories()
-    {
-        await _semaphore.WaitAsync();
-        try
-        {
-            Model.Categories.Clear();
-
-            try
-            {
-                var repo = _unitOfWork.Repository<IngredientCategory>();
-                var categories = await repo.GetAllAsync(true);
-
-                foreach (var c in categories)
-                {
-                    Model.Categories.Add(new IngredientCategoryViewModel
-                    {
-                        Id = (long)c.Id,
-                        Name = c.Name ?? string.Empty,
-                        Description = c.Description
-                    });
-                }
-            }
-            catch (Exception ex)
-            {
-                // Log error and provide fallback categories
-                System.Diagnostics.Debug.WriteLine($"Error loading categories: {ex.Message}");
-
-                // Add default categories for development
-                Model.Categories.Add(new IngredientCategoryViewModel { Id = 1, Name = "Rau củ", Description = "Các loại rau củ quả" });
-                Model.Categories.Add(new IngredientCategoryViewModel { Id = 2, Name = "Thịt cá", Description = "Thịt và hải sản" });
-                Model.Categories.Add(new IngredientCategoryViewModel { Id = 3, Name = "Gia vị", Description = "Các loại gia vị" });
-            }
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
-    }
-
-    // Category management methods (unchanged)
     public async Task AddCategoryAsync(string name, string? description)
     {
         if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Category name is required", nameof(name));
@@ -292,7 +343,6 @@ public class IngredientManagementPresenter : IIngredientManagementPresenter
         {
             var repo = _unitOfWork.Repository<IngredientCategory>();
 
-            // Duplicate check
             var exists = await repo.GetContainString("Name", name, true);
             if (exists != null)
             {
@@ -327,12 +377,8 @@ public class IngredientManagementPresenter : IIngredientManagementPresenter
         try
         {
             var repo = _unitOfWork.Repository<IngredientCategory>();
-            var existing = await repo.GetAsync(id) as IngredientCategory;
-            if (existing == null) throw new InvalidOperationException($"Category id {id} not found.");
-
-            // Duplicate by name excluding itself
-            var dup = await repo.GetContainString("Name", name, true) as IngredientCategory;
-            if (dup != null && dup.Id != existing.Id)
+            var existing = await repo.GetAsync(id) ?? throw new InvalidOperationException($"Category id {id} not found.");
+            if (await repo.GetContainString("Name", name, true) is IngredientCategory dup && dup.Id != existing.Id)
                 throw new InvalidOperationException($"Another category with name '{name}' exists.");
 
             existing.Name = name.Trim();
@@ -370,11 +416,10 @@ public class IngredientManagementPresenter : IIngredientManagementPresenter
         }
     }
 
-    // Ingredient CRUD operations with mock implementation
     public async Task AddIngredientAsync(string name, string unit, long categoryId,
         string? description, bool isActive, long? taxId)
     {
-        await Task.Delay(100); // Simulate async operation
+        await Task.Delay(100);
 
         var newIngredient = new IngredientViewModel
         {
@@ -387,7 +432,7 @@ public class IngredientManagementPresenter : IIngredientManagementPresenter
             IsActive = isActive,
             TaxId = taxId,
             CreatedAt = DateTime.Now,
-            CostPerUnit = 0 // Default value
+            CostPerUnit = 0 
         };
 
         _allIngredientsCache.Add(newIngredient);
@@ -397,7 +442,7 @@ public class IngredientManagementPresenter : IIngredientManagementPresenter
     public async Task UpdateIngredientAsync(long id, string name, string unit, long categoryId,
         string? description, bool isActive, long? taxId)
     {
-        await Task.Delay(100); // Simulate async operation
+        await Task.Delay(100);
 
         var existingIngredient = _allIngredientsCache.FirstOrDefault(i => i.Id == id);
         if (existingIngredient != null)
@@ -417,7 +462,7 @@ public class IngredientManagementPresenter : IIngredientManagementPresenter
 
     public async Task DeleteIngredientAsync(long id)
     {
-        await Task.Delay(100); // Simulate async operation
+        await Task.Delay(100);
 
         var ingredientToRemove = _allIngredientsCache.FirstOrDefault(i => i.Id == id);
         if (ingredientToRemove != null)
@@ -428,63 +473,109 @@ public class IngredientManagementPresenter : IIngredientManagementPresenter
         await LoadDataAsync(_currentCategoryFilter, _currentSearchTerm, Model.PageSize, Model.CurrentPage, true);
     }
 
-    // Filter and navigation methods
-    public async Task SearchAsync(string searchTerm)
-    {
-        _currentSearchTerm = searchTerm ?? string.Empty;
-        await LoadDataAsync(_currentCategoryFilter, _currentSearchTerm, Model.PageSize, 1, true);
-    }
-
     public async Task FilterByStatusAsync(string status)
     {
-        _currentStatusFilter = string.IsNullOrWhiteSpace(status) ? "All" : status;
-        await LoadDataAsync(_currentCategoryFilter, _currentSearchTerm, Model.PageSize, 1, true);
+        await _semaphore.WaitAsync();
+        try
+        {
+            _currentStatusFilter = string.IsNullOrWhiteSpace(status) ? "All" : status;
+            Model.CurrentPage = 1;
+            await ApplyFiltersAndPaging();
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
     }
-
     public async Task FilterByCategoryAsync(long categoryId)
     {
-        _currentCategoryFilter = categoryId <= 0 ? null : categoryId;
-        await LoadDataAsync(_currentCategoryFilter, _currentSearchTerm, Model.PageSize, 1, true);
+        await _semaphore.WaitAsync();
+        try
+        {
+            _currentCategoryFilter = categoryId <= 0 ? null : categoryId;
+            Model.CurrentPage = 1;
+            await ApplyFiltersAndPaging();
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
     }
 
     public async Task SortBy(string? sortBy)
     {
-        if (!string.IsNullOrWhiteSpace(sortBy))
+        await _semaphore.WaitAsync();
+        try
         {
-            if (_currentSortBy == (sortBy ?? string.Empty))
+            if (!string.IsNullOrWhiteSpace(sortBy))
             {
-                _sortDescending = !_sortDescending;
+                if (_currentSortBy == (sortBy ?? string.Empty))
+                {
+                    _sortDescending = !_sortDescending;
+                }
+                else
+                {
+                    _currentSortBy = sortBy ?? string.Empty;
+                    _sortDescending = false;
+                }
             }
-            else
-            {
-                _currentSortBy = sortBy ?? string.Empty;
-                _sortDescending = false;
-            }
-        }
 
-        await LoadDataAsync(_currentCategoryFilter, _currentSearchTerm, Model.PageSize, Model.CurrentPage, true);
+            await ApplyFiltersAndPaging();
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
     }
 
     public async Task GoToNextPageAsync()
     {
-        if (Model.CurrentPage < Model.TotalPages)
+        if (Model.CurrentPage >= Model.TotalPages) return;
+
+        await _semaphore.WaitAsync();
+        try
         {
-            await LoadDataAsync(_currentCategoryFilter, _currentSearchTerm, Model.PageSize, Model.CurrentPage + 1, true);
+            Model.CurrentPage++;
+            await ApplyFiltersAndPaging();
+        }
+        finally
+        {
+            _semaphore.Release();
         }
     }
 
+
     public async Task GoToPreviousPageAsync()
     {
-        if (Model.CurrentPage > 1)
+        if (Model.CurrentPage <= 1) return;
+
+        await _semaphore.WaitAsync();
+        try
         {
-            await LoadDataAsync(_currentCategoryFilter, _currentSearchTerm, Model.PageSize, Model.CurrentPage - 1, true);
+            Model.CurrentPage--;
+            await ApplyFiltersAndPaging();
+        }
+        finally
+        {
+            _semaphore.Release();
         }
     }
 
     public async Task ChangePageSizeAsync(int pageSize)
     {
         if (pageSize <= 0) return;
-        await LoadDataAsync(_currentCategoryFilter, _currentSearchTerm, pageSize, 1, true);
+
+        await _semaphore.WaitAsync();
+        try
+        {
+            Model.PageSize = pageSize;
+            Model.CurrentPage = 1;
+            await ApplyFiltersAndPaging();
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
     }
 
     public async Task RefreshCacheAsync()

@@ -7,9 +7,6 @@ namespace Dashboard.Winform.Presenters;
 public class RecipeManagementPresenter : IManagementPresenter<RecipeManagementModel>
 {
     private readonly ILogger<RecipeManagementPresenter> _logger;
-    // TODO: Inject services here
-    // private readonly IRecipeService _recipeService;
-    // private readonly IProductService _productService;
 
     public RecipeManagementModel Model { get; }
     IManagableModel IManagementPresenter<RecipeManagementModel>.Model { get => Model; set => throw new NotImplementedException(); }

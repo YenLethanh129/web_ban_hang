@@ -34,10 +34,21 @@ public class ProductViewModelMappingProfile : Profile
 
         // Recipe
         CreateMap<RecipeDto, RecipeViewModel>()
-            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.IsActive ? "ACTIVE" : "INACTIVE"));
+            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.IsActive ? "ACTIVE" : "INACTIVE"))
+            .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => src.UpdatedAt));
+
+        CreateMap<RecipeViewModel, RecipeDto>()
+            .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => src.UpdatedAt));
+
 
         CreateMap<RecipeDto, RecipeDetailViewModel>()
+            .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => src.UpdatedAt))
             .ForMember(dest => dest.ProductName, opt => opt.Ignore());
+
+        CreateMap<RecipeDetailViewModel, CreateRecipeInput>();
+        CreateMap<RecipeViewModel, CreateRecipeInput>();
+        CreateMap<RecipeDetailViewModel, UpdateRecipeInput>();
+        CreateMap<RecipeViewModel, UpdateRecipeInput>();
 
         CreateMap<ProductRecipeDto, ProductRecipeViewModel>();
 
@@ -65,12 +76,11 @@ public class ProductViewModelMappingProfile : Profile
                         .ToList()
                     : new List<string>()));
 
-        // RecipeIngredient (chưa có DTO, nếu cần thì bổ sung sau)
+        CreateMap<RecipeIngredientDto, RecipeIngredientViewModel>();
+        CreateMap<RecipeIngredientViewModel, RecipeIngredientDto>();
 
-        // ProductRecipe
         CreateMap<ProductRecipeDto, ProductRecipeViewModel>();
         CreateMap<Category, CategoryDto>();
         CreateMap<CategoryDto, CategoryViewModel>();
-        //CreateMap<Cate, CreateCategoryInput>();
     }
 }

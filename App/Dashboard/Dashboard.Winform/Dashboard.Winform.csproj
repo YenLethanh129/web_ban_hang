@@ -62,4 +62,9 @@
     <Folder Include="Resource\Uploads\" />
   </ItemGroup>
 
+  <!-- ClosedXML for exporting payroll to .xlsx (central versioned) -->
+  <ItemGroup>
+    <PackageReference Include="ClosedXML" />
+  </ItemGroup>
+
 </Project>

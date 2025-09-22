@@ -249,23 +249,15 @@ public class ProductManagementPresenter : IProductManagementPresenter
     private List<ProductViewModel> GetCurrentPageProducts()
     {
         int skip = (Model.CurrentPage - 1) * Model.PageSize;
+        if (skip < 0) skip = 0;
         return _filteredProducts.Skip(skip).Take(Model.PageSize).ToList();
     }
 
     public async Task SearchAsync(string searchTerm)
     {
-        await _semaphore.WaitAsync();
-        try
-        {
-            _currentSearchTerm = searchTerm ?? string.Empty;
-            Model.SearchText = _currentSearchTerm;
-            Model.CurrentPage = 1;
-            ApplyFiltersAndSort();
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+        _currentSearchTerm = searchTerm ?? string.Empty;
+        Model.CurrentPage = 1;
+        await LoadDataAsync(_currentCategoryFilter, _currentSearchTerm, Model.PageSize, Model.CurrentPage, false);
     }
 
     public async Task FilterByStatusAsync(string status)

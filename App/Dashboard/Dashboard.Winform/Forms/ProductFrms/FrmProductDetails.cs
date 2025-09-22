@@ -33,6 +33,11 @@ namespace Dashboard.Winform.Forms
         private static readonly HttpClient _httpClient = new HttpClient();
         private bool _imagesModified = false;
 
+        // Recipe management
+        private List<RecipeViewModel> _allAvailableRecipes = new();
+        private List<RecipeViewModel> _assignedRecipes = new();
+        private bool _recipesModified = false;
+
         #endregion
 
         #region Properties
@@ -76,19 +81,22 @@ namespace Dashboard.Winform.Forms
             if (disposing)
             {
                 try { TabControlHelper.CleanupDarkTheme(tabControl); } catch { }
-                components?.Dispose();
+
                 CleanupTempFiles();
 
-                // Cleanup image validation events
                 if (_imageValidation != null)
                 {
                     _imageValidation.PropertyChanged -= ImageValidation_PropertyChanged;
                 }
 
+                txtImagePath.TextChanged -= TxtImagePath_TextChanged;
+
                 if (_presenter != null)
                 {
                     _presenter.OnProductSaved -= Presenter_OnProductSaved;
                 }
+
+                components?.Dispose();
             }
             base.Dispose(disposing);
         }
@@ -117,60 +125,111 @@ namespace Dashboard.Winform.Forms
 
         private void SetupImageValidation()
         {
-            txtImagePath.DataBindings.Clear();
-            txtImagePath.DataBindings.Add("Text", _imageValidation, nameof(_imageValidation.ImageUrl), false, DataSourceUpdateMode.OnPropertyChanged);
-
-            btnCheckUrl.DataBindings.Clear();
-            btnCheckUrl.DataBindings.Add("Enabled", _imageValidation, nameof(_imageValidation.CanValidate), false, DataSourceUpdateMode.Never);
-
-            _imageValidation.PropertyChanged += ImageValidation_PropertyChanged;
-
-            if (_isEditMode && !string.IsNullOrEmpty(_product.ThumbnailPath))
+            try
             {
-                _imageValidation.ImageUrl = _product.ThumbnailPath;
-                _imageValidation.OriginalImageUrl = _product.ThumbnailPath;
-                _imageValidation.SetValidationResult(true, "Ảnh hiện tại hợp lệ");
-            }
-            else
-            {
-                _imageValidation.SetValidationResult(true, "");
-            }
-        }
+                txtImagePath.DataBindings.Clear();
+                btnCheckUrl.DataBindings.Clear();
 
-        private void ImageValidation_PropertyChanged(object? sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == nameof(_imageValidation.IsValid) ||
-                e.PropertyName == nameof(_imageValidation.RequiresValidation) ||
-                e.PropertyName == nameof(_imageValidation.IsValidating) ||
-                e.PropertyName == nameof(_imageValidation.CanSave))
-            {
+                _imageValidation.PropertyChanged -= ImageValidation_PropertyChanged;
+
+                _imageValidation.PropertyChanged += ImageValidation_PropertyChanged;
+
+                if (_isEditMode && !string.IsNullOrEmpty(_product.ThumbnailPath))
+                {
+                    _imageValidation.ImageUrl = _product.ThumbnailPath;
+                    _imageValidation.OriginalImageUrl = _product.ThumbnailPath;
+                    _imageValidation.SetValidationResult(true, "Ảnh hiện tại hợp lệ");
+                }
+                else
+                {
+                    _imageValidation.ImageUrl = string.Empty;
+                    _imageValidation.OriginalImageUrl = string.Empty;
+                    _imageValidation.SetValidationResult(true, "");
+                }
+
+                txtImagePath.Text = _imageValidation.ImageUrl ?? string.Empty;
+
                 UpdateValidationUI();
                 UpdateSaveButtonState();
             }
-
-            if  (e.PropertyName == nameof(_imageValidation.ImageUrl))
+            catch (Exception ex)
             {
-                // When the image textbox changes, require validation if the value differs from original
-                try
+                _logger?.LogError(ex, "Error setting up image validation");
+            }
+        }
+        private void ImageValidation_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            try
+            {
+                if (e.PropertyName == nameof(_imageValidation.IsValid) ||
+                    e.PropertyName == nameof(_imageValidation.RequiresValidation) ||
+                    e.PropertyName == nameof(_imageValidation.IsValidating) ||
+                    e.PropertyName == nameof(_imageValidation.CanSave))
                 {
-                    var newUrl = _imageValidation.ImageUrl?.Trim() ?? string.Empty;
-                    var origUrl = _imageValidation.OriginalImageUrl?.Trim() ?? string.Empty;
-
-                    if (!string.Equals(newUrl, origUrl, StringComparison.OrdinalIgnoreCase))
-                    {
-                        _imageValidation.ResetValidation();
-                        _imagesModified = true;
-                    }
-                    else
-                    {
-                        _imageValidation.SetValidationResult(true, "Ảnh hiện tại hợp lệ");
-                        _imagesModified = false;
-                    }
-                }
-                catch
-                {
+                    UpdateValidationUI();
+                    UpdateSaveButtonState();
                 }
 
+                if (e.PropertyName == nameof(_imageValidation.ImageUrl))
+                {
+                    SafeInvokeOnUI(() =>
+                    {
+                        if (txtImagePath.Text != (_imageValidation.ImageUrl ?? string.Empty))
+                        {
+                            txtImagePath.TextChanged -= (s, o) => TxtImagePath_TextChanged(s, o);
+                            txtImagePath.Text = _imageValidation.ImageUrl ?? string.Empty;
+                            txtImagePath.TextChanged += (s, o) => TxtImagePath_TextChanged(s, o);
+                        }
+                    });
+
+                    try
+                    {
+                        var newUrl = _imageValidation.ImageUrl?.Trim() ?? string.Empty;
+                        var origUrl = _imageValidation.OriginalImageUrl?.Trim() ?? string.Empty;
+
+                        if (!string.Equals(newUrl, origUrl, StringComparison.OrdinalIgnoreCase))
+                        {
+                            _imageValidation.ResetValidation();
+                            _imagesModified = true;
+                        }
+                        else
+                        {
+                            _imageValidation.SetValidationResult(true, "Ảnh hiện tại hợp lệ");
+                            _imagesModified = false;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger?.LogWarning(ex, "Error processing image URL change");
+                    }
+                }
+
+                if (e.PropertyName == nameof(_imageValidation.CanValidate))
+                {
+                    SafeInvokeOnUI(() =>
+                    {
+                        btnCheckUrl.Enabled = _imageValidation.CanValidate;
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error in ImageValidation_PropertyChanged");
+            }
+        }
+
+        private void TxtImagePath_TextChanged(object? sender, EventArgs e)
+        {
+            try
+            {
+                if (_imageValidation.ImageUrl != txtImagePath.Text)
+                {
+                    _imageValidation.ImageUrl = txtImagePath.Text;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogWarning(ex, "Error in TxtImagePath_TextChanged");
             }
         }
 
@@ -218,8 +277,8 @@ namespace Dashboard.Winform.Forms
         {
             SafeInvokeOnUI(() =>
             {
-                var imageOkToSave = !_imagesModified 
-                    || (_imageValidation.IsValidated && _imageValidation.IsValid 
+                var imageOkToSave = !_imagesModified
+                    || (_imageValidation.IsValidated && _imageValidation.IsValid
                     && !_imageValidation.IsValidating && !_imageValidation.RequiresValidation);
                 btnSave.Enabled = imageOkToSave && !_isProcessingSave;
             });
@@ -245,24 +304,27 @@ namespace Dashboard.Winform.Forms
 
         private void SetupEventHandlers()
         {
-            this.Load += (s, e) => FrmProductDetails_Load(s!, e);
+            Load += (s, e) => FrmProductDetails_Load(s!, e);
 
             btnSave.Click += (s, e) => BtnSave_Click(s!, e);
             btnCancel.Click += (s, e) => BtnCancel_Click(s!, e);
             btnClose.Click += (s, e) => BtnClose_Click(s!, e);
 
-            btnAddImage.Click += (s, e) => BtnAddImage_Click(s!, e);
+            btnViewImage.Click += (s, e) => BtnViewImage_Click(s!, e);
             btnDeleteImage.Click += (s, e) => BtnDeleteImage_Click(s!, e);
 
             btnCheckUrl.Click += async (s, e) => await BtnCheckUrl_ClickAsync(s!, e);
 
-            btnAddRecipe.Click += (s, e) => BtnAddRecipe_Click(s!, e);
+            btnAssignRecipe.Click += (s, e) => BtnAssignRecipe_Click(s!, e);
+            btnUnassignRecipe.Click += (s, e) => BtnUnassignRecipe_Click(s!, e);
+            btnCreateNewRecipe.Click += (s, e) => BtnCreateNewRecipe_Click(s!, e);
             btnEditRecipe.Click += (s, e) => BtnEditRecipe_Click(s!, e);
-            btnDeleteRecipe.Click += (s, e) => BtnDeleteRecipe_Click(s!, e);
             btnViewRecipeDetails.Click += (s, e) => BtnViewRecipeDetails_Click(s!, e);
 
             btnUpload.Click += (s, e) => BtnUpload_Click(s!, e);
             btnRemove.Click += (s, e) => BtnRemove_Click(s!, e);
+
+            txtImagePath.TextChanged += TxtImagePath_TextChanged;
 
             txtName.Validating += (s, e) => TxtName_Validating(s!, e);
             numPrice.Validating += (s, e) => NumPrice_Validating(s!, e);
@@ -284,6 +346,7 @@ namespace Dashboard.Winform.Forms
                 SetLoadingState(true);
 
                 await LoadDropdownDataAsync();
+                await LoadRecipesDataAsync();
 
                 if (_isEditMode && _productId.HasValue)
                 {
@@ -336,6 +399,39 @@ namespace Dashboard.Winform.Forms
             }
         }
 
+        private async Task LoadRecipesDataAsync()
+        {
+            try
+            {
+                // Load all available recipes
+                _allAvailableRecipes = await _presenter.LoadAllRecipesAsync();
+
+                // Setup available recipes ComboBox
+                cbxAvailableRecipes.DataSource = null;
+                cbxAvailableRecipes.DisplayMember = "Name";
+                cbxAvailableRecipes.ValueMember = "Id";
+                cbxAvailableRecipes.DataSource = _allAvailableRecipes;
+
+                // Load assigned recipes if in edit mode
+                if (_isEditMode && _productId.HasValue)
+                {
+                    _assignedRecipes = await _presenter.LoadRecipesByProductIdAsync(_productId.Value);
+                    dgvAssignedRecipes.DataSource = _assignedRecipes;
+                }
+                else
+                {
+                    _assignedRecipes = new List<RecipeViewModel>();
+                    dgvAssignedRecipes.DataSource = _assignedRecipes;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error loading recipes data");
+                MessageBox.Show($"Lỗi khi tải dữ liệu công thức: {ex.Message}", "Lỗi",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
         private void LoadFallbackDropdownData()
         {
             cbxCategory.Items.Clear();
@@ -377,13 +473,14 @@ namespace Dashboard.Winform.Forms
         private void SetupDataGridViews()
         {
             SetupProductImagesDataGridView();
-            SetupRecipesDataGridView();
+            SetupAssignedRecipesDataGridView();
         }
 
         private void SetupProductImagesDataGridView()
         {
             dgvProductImages.AutoGenerateColumns = false;
             dgvProductImages.Columns.Clear();
+            dgvProductImages.RowHeadersVisible = false;
 
             dgvProductImages.Columns.Add(new DataGridViewTextBoxColumn
             {
@@ -396,7 +493,7 @@ namespace Dashboard.Winform.Forms
             {
                 DataPropertyName = nameof(ProductImageViewModel.ImageUrl),
                 HeaderText = "URL hình ảnh",
-                Width = 300
+                AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill
             });
 
             dgvProductImages.Columns.Add(new DataGridViewTextBoxColumn
@@ -408,33 +505,34 @@ namespace Dashboard.Winform.Forms
             });
         }
 
-        private void SetupRecipesDataGridView()
+        private void SetupAssignedRecipesDataGridView()
         {
-            dgvRecipes.AutoGenerateColumns = false;
-            dgvRecipes.Columns.Clear();
+            dgvAssignedRecipes.AutoGenerateColumns = false;
+            dgvAssignedRecipes.Columns.Clear();
+            dgvAssignedRecipes.RowHeadersVisible = false;
 
-            dgvRecipes.Columns.Add(new DataGridViewTextBoxColumn
+            dgvAssignedRecipes.Columns.Add(new DataGridViewTextBoxColumn
             {
                 DataPropertyName = nameof(RecipeViewModel.Id),
                 HeaderText = "ID",
                 Width = 60
             });
 
-            dgvRecipes.Columns.Add(new DataGridViewTextBoxColumn
+            dgvAssignedRecipes.Columns.Add(new DataGridViewTextBoxColumn
             {
                 DataPropertyName = nameof(RecipeViewModel.Name),
                 HeaderText = "Tên công thức",
                 Width = 200
             });
 
-            dgvRecipes.Columns.Add(new DataGridViewTextBoxColumn
+            dgvAssignedRecipes.Columns.Add(new DataGridViewTextBoxColumn
             {
                 DataPropertyName = nameof(RecipeViewModel.Description),
                 HeaderText = "Mô tả",
-                Width = 180
+                AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill
             });
 
-            dgvRecipes.Columns.Add(new DataGridViewTextBoxColumn
+            dgvAssignedRecipes.Columns.Add(new DataGridViewTextBoxColumn
             {
                 DataPropertyName = nameof(RecipeViewModel.ServingSize),
                 HeaderText = "Khẩu phần",
@@ -442,14 +540,14 @@ namespace Dashboard.Winform.Forms
                 DefaultCellStyle = new DataGridViewCellStyle { Format = "N1" }
             });
 
-            dgvRecipes.Columns.Add(new DataGridViewTextBoxColumn
+            dgvAssignedRecipes.Columns.Add(new DataGridViewTextBoxColumn
             {
                 DataPropertyName = nameof(RecipeViewModel.Unit),
                 HeaderText = "Đơn vị",
                 Width = 80
             });
 
-            dgvRecipes.Columns.Add(new DataGridViewCheckBoxColumn
+            dgvAssignedRecipes.Columns.Add(new DataGridViewCheckBoxColumn
             {
                 DataPropertyName = nameof(RecipeViewModel.IsActive),
                 HeaderText = "Hoạt động",
@@ -487,7 +585,12 @@ namespace Dashboard.Winform.Forms
                 lblUpdatedAt.Text = _product.UpdatedAt?.ToString("dd/MM/yyyy HH:mm") ?? "N/A";
 
                 dgvProductImages.DataSource = _product.ProductImages;
-                dgvRecipes.DataSource = _product.Recipes;
+
+                // Refresh assigned recipes
+                if (_isEditMode && _productId.HasValue)
+                {
+                    await LoadRecipesDataAsync();
+                }
 
                 await LoadThumbnailImageAsync();
 
@@ -533,16 +636,28 @@ namespace Dashboard.Winform.Forms
                 if (_isEditMode)
                 {
                     result = await _presenter.UpdateProductAsync(_product);
+                    if (_recipesModified)
+                    {
+                        await SaveRecipeAssignments();
+                    }
                 }
                 else
                 {
                     result = await _presenter.CreateProductAsync(_product);
+                    if (result != null && _assignedRecipes.Count != 0)
+                    {
+                        foreach (var recipe in _assignedRecipes)
+                        {
+                            await _presenter.AssignRecipeToProductAsync(result.Id, recipe.Id);
+                        }
+                    }
                 }
 
                 if (result != null)
                 {
                     _product = result;
-                    _imageValidation.SaveChanges(); // Mark changes as saved
+                    _imageValidation.SaveChanges(); 
+                    _recipesModified = false;
                     CleanupTempFiles();
                     Result = DialogResult.OK;
                     Close();
@@ -561,6 +676,68 @@ namespace Dashboard.Winform.Forms
             {
                 SetLoadingState(false);
                 _isProcessingSave = false;
+            }
+        }
+
+        private async Task SaveRecipeAssignments()
+        {
+            try
+            {
+                if (!_productId.HasValue) return;
+
+                List<RecipeViewModel> currentAssigned;
+                using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
+                {
+                    try
+                    {
+                        currentAssigned = await Task.Run(async () =>
+                            await _presenter.LoadRecipesByProductIdAsync(_productId.Value), cts.Token);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        throw new TimeoutException("Timeout loading current recipe assignments");
+                    }
+                }
+                var toUnassign = currentAssigned
+                    .Where(cr => !_assignedRecipes.Any(ar => ar.Id == cr.Id))
+                    .ToList();
+                foreach (var recipe in toUnassign)
+                {
+                    try
+                    {
+                        await _presenter.UnassignRecipeFromProductAsync(_productId.Value, recipe.Id);
+                        await Task.Delay(50);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger?.LogError(ex, "Error unassigning recipe {RecipeId} from product {ProductId}",
+                            recipe.Id, _productId.Value);
+                    }
+                }
+                var toAssign = _assignedRecipes
+                    .Where(ar => !currentAssigned.Any(cr => cr.Id == ar.Id))
+                    .ToList();
+                foreach (var recipe in toAssign)
+                {
+                    try
+                    {
+                        await _presenter.AssignRecipeToProductAsync(_productId.Value, recipe.Id);
+                        await Task.Delay(50);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger?.LogError(ex, "Error assigning recipe {RecipeId} to product {ProductId}",
+                            recipe.Id, _productId.Value);
+                    }
+                }
+
+                _logger?.LogInformation("Recipe assignments saved: {UnassignedCount} unassigned, {AssignedCount} assigned",
+                    toUnassign.Count, toAssign.Count);
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error saving recipe assignments for product {ProductId}", _productId);
+                throw new Exception($"Lỗi khi lưu gán công thức cho sản phẩm: {ex.Message}", ex);
             }
         }
 
@@ -616,8 +793,10 @@ namespace Dashboard.Winform.Forms
             {
                 MessageBox.Show($"Lỗi khi xử lý hình ảnh: {ex.Message}", "Lỗi",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
+                throw;
             }
         }
+
         private async Task<string> SaveImageToUploadsAsync(string imagePathOrUrl)
         {
             try
@@ -668,6 +847,7 @@ namespace Dashboard.Winform.Forms
                 return string.Empty;
             }
         }
+
         private async Task BtnCheckUrl_ClickAsync(object sender, EventArgs e)
         {
             var url = _imageValidation.ImageUrl?.Trim();
@@ -703,7 +883,6 @@ namespace Dashboard.Winform.Forms
                 _imageValidation.SetValidationResult(false, "Không thể xác thực hình ảnh");
             }
         }
-
 
         private void BtnUpload_Click(object sender, EventArgs e)
         {
@@ -745,8 +924,6 @@ namespace Dashboard.Winform.Forms
             _imagesModified = true;
         }
 
-
-        // Other event handlers remain the same...
         private void BtnCancel_Click(object sender, EventArgs e)
         {
             CleanupTempFiles();
@@ -761,10 +938,40 @@ namespace Dashboard.Winform.Forms
             this.Close();
         }
 
-        private void BtnAddImage_Click(object sender, EventArgs e)
+        private async void BtnViewImage_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("Chức năng thêm hình ảnh sẽ được triển khai",
-                "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            if (dgvProductImages.SelectedRows.Count == 0)
+            {
+                MessageBox.Show("Vui lòng chọn một hình ảnh trong danh sách",
+                    "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            var selectedImage = dgvProductImages.SelectedRows[0].DataBoundItem as ProductImageViewModel;
+            if (selectedImage == null || string.IsNullOrWhiteSpace(selectedImage.ImageUrl))
+            {
+                MessageBox.Show("Hình ảnh không hợp lệ", "Lỗi",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            try
+            {
+                txtImagePath.Text = selectedImage.ImageUrl;
+                _imageValidation.ImageUrl = selectedImage.ImageUrl;
+
+                await LoadThumbnailImageAsync();
+
+                if (tabControl.TabPages.Contains(tabBasicInfo))
+                {
+                    tabControl.SelectedTab = tabBasicInfo;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Không thể xem ảnh: {ex.Message}", "Lỗi",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void BtnDeleteImage_Click(object sender, EventArgs e)
@@ -780,10 +987,10 @@ namespace Dashboard.Winform.Forms
                     var selectedImage = dgvProductImages.SelectedRows[0].DataBoundItem as ProductImageViewModel;
                     if (selectedImage != null && _product.ProductImages != null)
                     {
+                        _presenter.DeleteImageAsync(_product.Id, selectedImage.Id);
                         _product.ProductImages.Remove(selectedImage);
                         dgvProductImages.Refresh();
 
-                        // mark modified
                         _imagesModified = true;
                     }
                 }
@@ -795,20 +1002,151 @@ namespace Dashboard.Winform.Forms
             }
         }
 
-        // Recipe management methods remain the same...
-        private void BtnAddRecipe_Click(object sender, EventArgs e)
+        #region Recipe Management Event Handlers
+        private void BtnAssignRecipe_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("Chức năng thêm công thức sẽ được triển khai", "Thông báo",
-                MessageBoxButtons.OK, MessageBoxIcon.Information);
+            if (cbxAvailableRecipes.SelectedItem is RecipeViewModel selectedRecipe)
+            {
+                // Check if already assigned
+                if (_assignedRecipes.Any(r => r.Id == selectedRecipe.Id))
+                {
+                    MessageBox.Show("Công thức này đã được gán cho sản phẩm.", "Thông báo",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
+
+                // Add to assigned list
+                _assignedRecipes.Add(selectedRecipe);
+                RefreshAssignedRecipesGrid();
+                _recipesModified = true;
+            }
+            else
+            {
+                MessageBox.Show("Vui lòng chọn một công thức để gán.", "Thông báo",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        private void BtnUnassignRecipe_Click(object sender, EventArgs e)
+        {
+            if (dgvAssignedRecipes.SelectedRows.Count > 0)
+            {
+                var selectedRecipe = dgvAssignedRecipes.SelectedRows[0].DataBoundItem as RecipeViewModel;
+                if (selectedRecipe != null)
+                {
+                    var result = MessageBox.Show(
+                        $"Bạn có chắc chắn muốn bỏ gán công thức '{selectedRecipe.Name}'?",
+                        "Xác nhận", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+                    if (result == DialogResult.Yes)
+                    {
+                        _assignedRecipes.Remove(selectedRecipe);
+                        RefreshAssignedRecipesGrid();
+                        _recipesModified = true;
+                    }
+                }
+            }
+            else
+            {
+                MessageBox.Show("Vui lòng chọn một công thức đã gán để bỏ gán.",
+                    "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        private void BtnCreateNewRecipe_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                using var frmRecipe = new FrmRecipeDetails();
+                if (frmRecipe.ShowDialog() == DialogResult.OK)
+                {
+                    var newRecipe = frmRecipe.Recipe;
+                    if (newRecipe != null)
+                    {
+                        // Convert to RecipeViewModel and add to available recipes
+                        var recipeVm = new RecipeViewModel
+                        {
+                            Id = newRecipe.Id,
+                            Name = newRecipe.Name,
+                            Description = newRecipe.Description,
+                            ProductId = newRecipe.ProductId,
+                            ProductName = newRecipe.ProductName,
+                            ServingSize = newRecipe.ServingSize,
+                            Unit = newRecipe.Unit,
+                            IsActive = newRecipe.IsActive,
+                            Notes = newRecipe.Notes,
+                            CreatedAt = newRecipe.CreatedAt,
+                            UpdatedAt = newRecipe.UpdatedAt
+                        };
+
+                        _allAvailableRecipes.Add(recipeVm);
+                        RefreshAvailableRecipesComboBox();
+
+                        MessageBox.Show("Tạo công thức mới thành công!", "Thành công",
+                            MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error creating new recipe");
+                MessageBox.Show($"Lỗi khi tạo công thức mới: {ex.Message}", "Lỗi",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void BtnEditRecipe_Click(object sender, EventArgs e)
         {
-            var selectedRecipe = GetSelectedRecipe();
+            var selectedRecipe = GetSelectedAssignedRecipe();
             if (selectedRecipe != null)
             {
-                MessageBox.Show("Chức năng chỉnh sửa công thức sẽ được triển khai", "Thông báo",
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                try
+                {
+                    // Convert to RecipeDetailViewModel
+                    var recipeDetail = new RecipeDetailViewModel
+                    {
+                        Id = selectedRecipe.Id,
+                        Name = selectedRecipe.Name,
+                        Description = selectedRecipe.Description,
+                        ProductId = selectedRecipe.ProductId,
+                        ProductName = selectedRecipe.ProductName,
+                        ServingSize = selectedRecipe.ServingSize,
+                        Unit = selectedRecipe.Unit,
+                        IsActive = selectedRecipe.IsActive,
+                        Notes = selectedRecipe.Notes,
+                        CreatedAt = selectedRecipe.CreatedAt,
+                        UpdatedAt = selectedRecipe.UpdatedAt
+                    };
+
+                    using var frmRecipe = new FrmRecipeDetails(selectedRecipe.Id, recipeDetail);
+                    if (frmRecipe.ShowDialog() == DialogResult.OK)
+                    {
+                        var updatedRecipe = frmRecipe.Recipe;
+                        if (updatedRecipe != null)
+                        {
+                            // Update the recipe in assigned list
+                            selectedRecipe.Name = updatedRecipe.Name;
+                            selectedRecipe.Description = updatedRecipe.Description;
+                            selectedRecipe.ServingSize = updatedRecipe.ServingSize;
+                            selectedRecipe.Unit = updatedRecipe.Unit;
+                            selectedRecipe.IsActive = updatedRecipe.IsActive;
+                            selectedRecipe.Notes = updatedRecipe.Notes;
+                            selectedRecipe.UpdatedAt = updatedRecipe.UpdatedAt;
+
+                            RefreshAssignedRecipesGrid();
+                            _recipesModified = true;
+
+                            MessageBox.Show("Cập nhật công thức thành công!", "Thành công",
+                                MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogError(ex, "Error editing recipe");
+                    MessageBox.Show($"Lỗi khi sửa công thức: {ex.Message}", "Lỗi",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
             else
             {
@@ -817,37 +1155,38 @@ namespace Dashboard.Winform.Forms
             }
         }
 
-        private void BtnDeleteRecipe_Click(object sender, EventArgs e)
-        {
-            var selectedRecipe = GetSelectedRecipe();
-            if (selectedRecipe != null)
-            {
-                var result = MessageBox.Show(
-                    $"Bạn có chắc chắn muốn xóa công thức '{selectedRecipe.Name}'?",
-                    "Xác nhận", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
-                if (result == DialogResult.Yes)
-                {
-                    _product.Recipes!.Remove(selectedRecipe);
-                    dgvRecipes.Refresh();
-                    MessageBox.Show("Xóa công thức thành công!", "Thông báo",
-                        MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-            }
-            else
-            {
-                MessageBox.Show("Vui lòng chọn một công thức để xóa",
-                    "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
-        }
-
         private void BtnViewRecipeDetails_Click(object sender, EventArgs e)
         {
-            var selectedRecipe = GetSelectedRecipe();
+            var selectedRecipe = GetSelectedAssignedRecipe();
             if (selectedRecipe != null)
             {
-                MessageBox.Show("Chức năng xem chi tiết công thức sẽ được triển khai", "Thông báo",
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                try
+                {
+                    // Convert to RecipeDetailViewModel
+                    var recipeDetail = new RecipeDetailViewModel
+                    {
+                        Id = selectedRecipe.Id,
+                        Name = selectedRecipe.Name,
+                        Description = selectedRecipe.Description,
+                        ProductId = selectedRecipe.ProductId,
+                        ProductName = selectedRecipe.ProductName,
+                        ServingSize = selectedRecipe.ServingSize,
+                        Unit = selectedRecipe.Unit,
+                        IsActive = selectedRecipe.IsActive,
+                        Notes = selectedRecipe.Notes,
+                        CreatedAt = selectedRecipe.CreatedAt,
+                        UpdatedAt = selectedRecipe.UpdatedAt
+                    };
+
+                    using var frmRecipe = new FrmRecipeDetails(selectedRecipe.Id, recipeDetail, isReadOnly: true);
+                    frmRecipe.ShowDialog();
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogError(ex, "Error viewing recipe details");
+                    MessageBox.Show($"Lỗi khi xem chi tiết công thức: {ex.Message}", "Lỗi",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
             else
             {
@@ -855,6 +1194,8 @@ namespace Dashboard.Winform.Forms
                     "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
+        #endregion
+
         #endregion
 
         #region Validation Event Handlers
@@ -882,6 +1223,67 @@ namespace Dashboard.Winform.Forms
         #endregion
 
         #region Helper Methods
+        private void RefreshAssignedRecipesGrid()
+        {
+            try
+            {
+                // Suspend layout to prevent flickering and binding issues
+                dgvAssignedRecipes.SuspendLayout();
+
+                // Clear the data source and reset
+                dgvAssignedRecipes.DataSource = null;
+                dgvAssignedRecipes.Rows.Clear();
+
+                // Create a new BindingList to avoid reference issues
+                var bindingList = new BindingList<RecipeViewModel>(_assignedRecipes);
+                dgvAssignedRecipes.DataSource = bindingList;
+
+                dgvAssignedRecipes.ResumeLayout();
+                dgvAssignedRecipes.Refresh();
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error refreshing assigned recipes grid");
+                // Fallback: just clear the grid if binding fails
+                dgvAssignedRecipes.DataSource = null;
+                dgvAssignedRecipes.Rows.Clear();
+            }
+        }
+
+        private void RefreshAvailableRecipesComboBox()
+        {
+            try
+            {
+                cbxAvailableRecipes.DataSource = null;
+                cbxAvailableRecipes.Items.Clear();
+
+                cbxAvailableRecipes.DisplayMember = "Name";
+                cbxAvailableRecipes.ValueMember = "Id";
+
+                // Create a new list to avoid reference issues
+                var bindingList = new List<RecipeViewModel>(_allAvailableRecipes);
+                cbxAvailableRecipes.DataSource = bindingList;
+
+                cbxAvailableRecipes.Refresh();
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error refreshing available recipes combo box");
+                // Fallback: just clear the combo box
+                cbxAvailableRecipes.DataSource = null;
+                cbxAvailableRecipes.Items.Clear();
+            }
+        }
+
+        private RecipeViewModel? GetSelectedAssignedRecipe()
+        {
+            if (dgvAssignedRecipes.SelectedRows.Count > 0)
+            {
+                return dgvAssignedRecipes.SelectedRows[0].DataBoundItem as RecipeViewModel;
+            }
+            return null;
+        }
+
         private bool ValidateFormAsync()
         {
             if (string.IsNullOrWhiteSpace(txtName.Text))
@@ -986,7 +1388,6 @@ namespace Dashboard.Winform.Forms
                 string uploadsDir = GetUploadsDirectory();
                 Directory.CreateDirectory(uploadsDir);
 
-                // Case 1: Local file
                 if (File.Exists(imageUrl))
                 {
                     var ext = Path.GetExtension(imageUrl);
@@ -1120,15 +1521,6 @@ namespace Dashboard.Winform.Forms
             }
         }
 
-        private RecipeViewModel? GetSelectedRecipe()
-        {
-            if (dgvRecipes.SelectedRows.Count > 0)
-            {
-                return dgvRecipes.SelectedRows[0].DataBoundItem as RecipeViewModel;
-            }
-            return null;
-        }
-
         private async Task LoadThumbnailImageAsync()
         {
             var imagePath = _imageValidation.ImageUrl?.Trim();
@@ -1192,6 +1584,14 @@ namespace Dashboard.Winform.Forms
             btnUpload.Enabled = !isLoading;
             btnRemove.Enabled = !isLoading;
             btnCheckUrl.Enabled = !isLoading && _imageValidation.CanValidate;
+
+            // Recipe controls
+            btnAssignRecipe.Enabled = !isLoading;
+            btnUnassignRecipe.Enabled = !isLoading;
+            btnCreateNewRecipe.Enabled = !isLoading;
+            btnEditRecipe.Enabled = !isLoading;
+            btnViewRecipeDetails.Enabled = !isLoading;
+            cbxAvailableRecipes.Enabled = !isLoading;
 
             this.Cursor = isLoading ? Cursors.WaitCursor : Cursors.Default;
         }

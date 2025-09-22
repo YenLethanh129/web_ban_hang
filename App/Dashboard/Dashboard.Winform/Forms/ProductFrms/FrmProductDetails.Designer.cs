@@ -12,7 +12,6 @@
         /// </summary>
         /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
 
-
         #region Windows Form Designer generated code
 
         /// <summary>
@@ -22,15 +21,16 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmProductDetails));
-            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle4 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle5 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle6 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle7 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle8 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle9 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle10 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle11 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle12 = new DataGridViewCellStyle();
             tabControl = new TabControl();
             tabBasicInfo = new TabPage();
             pnlBasicInfo = new Panel();
+            lblValidationStatus = new Label();
             btnCheckUrl = new Button();
             btnRemove = new Button();
             btnUpload = new Button();
@@ -56,23 +56,28 @@
             lblUpdatedAt = new Label();
             tabImages = new TabPage();
             pnlImagesInfo = new Panel();
+            tableLayoutPanel1 = new TableLayoutPanel();
             dgvProductImages = new DataGridView();
             pnlImageButtons = new Panel();
-            btnAddImage = new Button();
+            btnViewImage = new Button();
             btnDeleteImage = new Button();
             tabRecipes = new TabPage();
             pnlRecipesInfo = new Panel();
-            dgvRecipes = new DataGridView();
+            pnlRecipeManagement = new Panel();
+            lblAvailableRecipes = new Label();
+            cbxAvailableRecipes = new ComboBox();
+            btnAssignRecipe = new Button();
+            lblAssignedRecipes = new Label();
+            dgvAssignedRecipes = new DataGridView();
             pnlRecipeButtons = new Panel();
-            btnAddRecipe = new Button();
+            btnUnassignRecipe = new Button();
+            btnCreateNewRecipe = new Button();
             btnEditRecipe = new Button();
             btnViewRecipeDetails = new Button();
-            btnDeleteRecipe = new Button();
             pnlButtons = new Panel();
             btnSave = new Button();
             btnCancel = new Button();
             btnClose = new Button();
-            lblValidationStatus = new Label();
             tabControl.SuspendLayout();
             tabBasicInfo.SuspendLayout();
             pnlBasicInfo.SuspendLayout();
@@ -80,11 +85,13 @@
             ((System.ComponentModel.ISupportInitialize)numPrice).BeginInit();
             tabImages.SuspendLayout();
             pnlImagesInfo.SuspendLayout();
+            tableLayoutPanel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dgvProductImages).BeginInit();
             pnlImageButtons.SuspendLayout();
             tabRecipes.SuspendLayout();
             pnlRecipesInfo.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)dgvRecipes).BeginInit();
+            pnlRecipeManagement.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)dgvAssignedRecipes).BeginInit();
             pnlRecipeButtons.SuspendLayout();
             pnlButtons.SuspendLayout();
             SuspendLayout();
@@ -149,6 +156,15 @@
             pnlBasicInfo.Padding = new Padding(18, 19, 18, 19);
             pnlBasicInfo.Size = new Size(774, 532);
             pnlBasicInfo.TabIndex = 0;
+            // 
+            // lblValidationStatus
+            // 
+            lblValidationStatus.AutoSize = true;
+            lblValidationStatus.ForeColor = Color.Gray;
+            lblValidationStatus.Location = new Point(131, 314);
+            lblValidationStatus.Name = "lblValidationStatus";
+            lblValidationStatus.Size = new Size(0, 15);
+            lblValidationStatus.TabIndex = 27;
             // 
             // btnCheckUrl
             // 
@@ -420,8 +436,7 @@
             // pnlImagesInfo
             // 
             pnlImagesInfo.BackColor = Color.FromArgb(42, 45, 86);
-            pnlImagesInfo.Controls.Add(dgvProductImages);
-            pnlImagesInfo.Controls.Add(pnlImageButtons);
+            pnlImagesInfo.Controls.Add(tableLayoutPanel1);
             pnlImagesInfo.Dock = DockStyle.Fill;
             pnlImagesInfo.Location = new Point(3, 3);
             pnlImagesInfo.Name = "pnlImagesInfo";
@@ -429,77 +444,93 @@
             pnlImagesInfo.Size = new Size(774, 532);
             pnlImagesInfo.TabIndex = 0;
             // 
+            // tableLayoutPanel1
+            // 
+            tableLayoutPanel1.ColumnCount = 1;
+            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            tableLayoutPanel1.Controls.Add(dgvProductImages, 0, 0);
+            tableLayoutPanel1.Controls.Add(pnlImageButtons, 0, 1);
+            tableLayoutPanel1.Dock = DockStyle.Fill;
+            tableLayoutPanel1.Location = new Point(18, 19);
+            tableLayoutPanel1.Name = "tableLayoutPanel1";
+            tableLayoutPanel1.RowCount = 2;
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 44F));
+            tableLayoutPanel1.Size = new Size(738, 494);
+            tableLayoutPanel1.TabIndex = 2;
+            // 
             // dgvProductImages
             // 
             dgvProductImages.AllowUserToAddRows = false;
             dgvProductImages.AllowUserToDeleteRows = false;
-            dgvProductImages.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             dgvProductImages.BackgroundColor = Color.FromArgb(24, 28, 63);
             dgvProductImages.BorderStyle = BorderStyle.None;
-            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle1.BackColor = Color.FromArgb(107, 83, 255);
-            dataGridViewCellStyle1.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            dataGridViewCellStyle1.ForeColor = Color.White;
-            dataGridViewCellStyle1.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle1.WrapMode = DataGridViewTriState.True;
-            dgvProductImages.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle7.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle7.BackColor = Color.FromArgb(107, 83, 255);
+            dataGridViewCellStyle7.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            dataGridViewCellStyle7.ForeColor = Color.White;
+            dataGridViewCellStyle7.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle7.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle7.WrapMode = DataGridViewTriState.True;
+            dgvProductImages.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle7;
             dgvProductImages.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle2.BackColor = Color.FromArgb(42, 45, 86);
-            dataGridViewCellStyle2.Font = new Font("Segoe UI", 9F);
-            dataGridViewCellStyle2.ForeColor = Color.WhiteSmoke;
-            dataGridViewCellStyle2.SelectionBackColor = Color.FromArgb(107, 83, 255);
-            dataGridViewCellStyle2.SelectionForeColor = Color.White;
-            dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
-            dgvProductImages.DefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle8.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle8.BackColor = Color.FromArgb(42, 45, 86);
+            dataGridViewCellStyle8.Font = new Font("Segoe UI", 9F);
+            dataGridViewCellStyle8.ForeColor = Color.WhiteSmoke;
+            dataGridViewCellStyle8.SelectionBackColor = Color.FromArgb(107, 83, 255);
+            dataGridViewCellStyle8.SelectionForeColor = Color.White;
+            dataGridViewCellStyle8.WrapMode = DataGridViewTriState.False;
+            dgvProductImages.DefaultCellStyle = dataGridViewCellStyle8;
+            dgvProductImages.Dock = DockStyle.Fill;
             dgvProductImages.GridColor = Color.FromArgb(124, 141, 181);
-            dgvProductImages.Location = new Point(18, 19);
+            dgvProductImages.Location = new Point(3, 3);
             dgvProductImages.MultiSelect = false;
             dgvProductImages.Name = "dgvProductImages";
             dgvProductImages.ReadOnly = true;
-            dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle3.BackColor = Color.FromArgb(42, 45, 86);
-            dataGridViewCellStyle3.Font = new Font("Segoe UI", 9F);
-            dataGridViewCellStyle3.ForeColor = Color.WhiteSmoke;
-            dataGridViewCellStyle3.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle3.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle3.WrapMode = DataGridViewTriState.True;
-            dgvProductImages.RowHeadersDefaultCellStyle = dataGridViewCellStyle3;
+            dataGridViewCellStyle9.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle9.BackColor = Color.FromArgb(42, 45, 86);
+            dataGridViewCellStyle9.Font = new Font("Segoe UI", 9F);
+            dataGridViewCellStyle9.ForeColor = Color.WhiteSmoke;
+            dataGridViewCellStyle9.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle9.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle9.WrapMode = DataGridViewTriState.True;
+            dgvProductImages.RowHeadersDefaultCellStyle = dataGridViewCellStyle9;
             dgvProductImages.RowHeadersWidth = 51;
             dgvProductImages.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dgvProductImages.Size = new Size(739, 453);
+            dgvProductImages.Size = new Size(732, 444);
             dgvProductImages.TabIndex = 0;
             // 
             // pnlImageButtons
             // 
             pnlImageButtons.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             pnlImageButtons.BackColor = Color.FromArgb(42, 45, 86);
-            pnlImageButtons.Controls.Add(btnAddImage);
+            pnlImageButtons.Controls.Add(btnViewImage);
             pnlImageButtons.Controls.Add(btnDeleteImage);
-            pnlImageButtons.Location = new Point(18, 481);
+            pnlImageButtons.Location = new Point(0, 450);
+            pnlImageButtons.Margin = new Padding(0);
             pnlImageButtons.Name = "pnlImageButtons";
-            pnlImageButtons.Size = new Size(739, 38);
+            pnlImageButtons.Size = new Size(738, 44);
             pnlImageButtons.TabIndex = 1;
             // 
-            // btnAddImage
+            // btnViewImage
             // 
-            btnAddImage.FlatAppearance.BorderColor = Color.Cyan;
-            btnAddImage.FlatStyle = FlatStyle.Flat;
-            btnAddImage.ForeColor = Color.FromArgb(255, 224, 192);
-            btnAddImage.Location = new Point(0, 5);
-            btnAddImage.Name = "btnAddImage";
-            btnAddImage.Size = new Size(70, 28);
-            btnAddImage.TabIndex = 0;
-            btnAddImage.Text = "Thêm";
-            btnAddImage.UseVisualStyleBackColor = true;
+            btnViewImage.FlatAppearance.BorderColor = Color.Cyan;
+            btnViewImage.FlatStyle = FlatStyle.Flat;
+            btnViewImage.ForeColor = Color.FromArgb(255, 224, 192);
+            btnViewImage.Location = new Point(1, 6);
+            btnViewImage.Name = "btnViewImage";
+            btnViewImage.Size = new Size(70, 28);
+            btnViewImage.TabIndex = 0;
+            btnViewImage.Text = "Xem";
+            btnViewImage.UseVisualStyleBackColor = true;
             // 
             // btnDeleteImage
             // 
             btnDeleteImage.FlatAppearance.BorderColor = Color.FromArgb(255, 99, 132);
             btnDeleteImage.FlatStyle = FlatStyle.Flat;
             btnDeleteImage.ForeColor = Color.FromArgb(255, 99, 132);
-            btnDeleteImage.Location = new Point(79, 5);
+            btnDeleteImage.Location = new Point(79, 7);
             btnDeleteImage.Name = "btnDeleteImage";
             btnDeleteImage.Size = new Size(70, 28);
             btnDeleteImage.TabIndex = 1;
@@ -520,8 +551,7 @@
             // pnlRecipesInfo
             // 
             pnlRecipesInfo.BackColor = Color.FromArgb(42, 45, 86);
-            pnlRecipesInfo.Controls.Add(dgvRecipes);
-            pnlRecipesInfo.Controls.Add(pnlRecipeButtons);
+            pnlRecipesInfo.Controls.Add(pnlRecipeManagement);
             pnlRecipesInfo.Dock = DockStyle.Fill;
             pnlRecipesInfo.Location = new Point(3, 3);
             pnlRecipesInfo.Name = "pnlRecipesInfo";
@@ -529,82 +559,152 @@
             pnlRecipesInfo.Size = new Size(774, 532);
             pnlRecipesInfo.TabIndex = 0;
             // 
-            // dgvRecipes
+            // pnlRecipeManagement
             // 
-            dgvRecipes.AllowUserToAddRows = false;
-            dgvRecipes.AllowUserToDeleteRows = false;
-            dgvRecipes.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            dgvRecipes.BackgroundColor = Color.FromArgb(24, 28, 63);
-            dgvRecipes.BorderStyle = BorderStyle.None;
-            dataGridViewCellStyle4.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle4.BackColor = Color.FromArgb(107, 83, 255);
-            dataGridViewCellStyle4.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            dataGridViewCellStyle4.ForeColor = Color.White;
-            dataGridViewCellStyle4.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle4.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle4.WrapMode = DataGridViewTriState.True;
-            dgvRecipes.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle4;
-            dgvRecipes.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewCellStyle5.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle5.BackColor = Color.FromArgb(42, 45, 86);
-            dataGridViewCellStyle5.Font = new Font("Segoe UI", 9F);
-            dataGridViewCellStyle5.ForeColor = Color.WhiteSmoke;
-            dataGridViewCellStyle5.SelectionBackColor = Color.FromArgb(107, 83, 255);
-            dataGridViewCellStyle5.SelectionForeColor = Color.White;
-            dataGridViewCellStyle5.WrapMode = DataGridViewTriState.False;
-            dgvRecipes.DefaultCellStyle = dataGridViewCellStyle5;
-            dgvRecipes.GridColor = Color.FromArgb(124, 141, 181);
-            dgvRecipes.Location = new Point(18, 19);
-            dgvRecipes.MultiSelect = false;
-            dgvRecipes.Name = "dgvRecipes";
-            dgvRecipes.ReadOnly = true;
-            dataGridViewCellStyle6.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle6.BackColor = Color.FromArgb(42, 45, 86);
-            dataGridViewCellStyle6.Font = new Font("Segoe UI", 9F);
-            dataGridViewCellStyle6.ForeColor = Color.WhiteSmoke;
-            dataGridViewCellStyle6.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle6.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle6.WrapMode = DataGridViewTriState.True;
-            dgvRecipes.RowHeadersDefaultCellStyle = dataGridViewCellStyle6;
-            dgvRecipes.RowHeadersWidth = 51;
-            dgvRecipes.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dgvRecipes.Size = new Size(739, 453);
-            dgvRecipes.TabIndex = 0;
+            pnlRecipeManagement.Controls.Add(lblAvailableRecipes);
+            pnlRecipeManagement.Controls.Add(cbxAvailableRecipes);
+            pnlRecipeManagement.Controls.Add(btnAssignRecipe);
+            pnlRecipeManagement.Controls.Add(lblAssignedRecipes);
+            pnlRecipeManagement.Controls.Add(dgvAssignedRecipes);
+            pnlRecipeManagement.Controls.Add(pnlRecipeButtons);
+            pnlRecipeManagement.Dock = DockStyle.Fill;
+            pnlRecipeManagement.Location = new Point(18, 19);
+            pnlRecipeManagement.Name = "pnlRecipeManagement";
+            pnlRecipeManagement.Size = new Size(738, 494);
+            pnlRecipeManagement.TabIndex = 0;
+            // 
+            // lblAvailableRecipes
+            // 
+            lblAvailableRecipes.AutoSize = true;
+            lblAvailableRecipes.ForeColor = Color.FromArgb(124, 141, 181);
+            lblAvailableRecipes.Location = new Point(0, 8);
+            lblAvailableRecipes.Name = "lblAvailableRecipes";
+            lblAvailableRecipes.Size = new Size(103, 15);
+            lblAvailableRecipes.TabIndex = 0;
+            lblAvailableRecipes.Text = "Công thức có sẵn:";
+            // 
+            // cbxAvailableRecipes
+            // 
+            cbxAvailableRecipes.BackColor = Color.FromArgb(24, 28, 63);
+            cbxAvailableRecipes.DropDownStyle = ComboBoxStyle.DropDownList;
+            cbxAvailableRecipes.FlatStyle = FlatStyle.Flat;
+            cbxAvailableRecipes.ForeColor = Color.WhiteSmoke;
+            cbxAvailableRecipes.FormattingEnabled = true;
+            cbxAvailableRecipes.Location = new Point(0, 26);
+            cbxAvailableRecipes.Name = "cbxAvailableRecipes";
+            cbxAvailableRecipes.Size = new Size(300, 23);
+            cbxAvailableRecipes.TabIndex = 1;
+            // 
+            // btnAssignRecipe
+            // 
+            btnAssignRecipe.FlatAppearance.BorderColor = Color.FromArgb(107, 83, 255);
+            btnAssignRecipe.FlatStyle = FlatStyle.Flat;
+            btnAssignRecipe.ForeColor = Color.FromArgb(192, 255, 192);
+            btnAssignRecipe.Location = new Point(310, 26);
+            btnAssignRecipe.Name = "btnAssignRecipe";
+            btnAssignRecipe.Size = new Size(80, 23);
+            btnAssignRecipe.TabIndex = 2;
+            btnAssignRecipe.Text = "Gán";
+            btnAssignRecipe.UseVisualStyleBackColor = true;
+            // 
+            // lblAssignedRecipes
+            // 
+            lblAssignedRecipes.AutoSize = true;
+            lblAssignedRecipes.ForeColor = Color.FromArgb(124, 141, 181);
+            lblAssignedRecipes.Location = new Point(0, 65);
+            lblAssignedRecipes.Name = "lblAssignedRecipes";
+            lblAssignedRecipes.Size = new Size(105, 15);
+            lblAssignedRecipes.TabIndex = 3;
+            lblAssignedRecipes.Text = "Công thức đã gán:";
+            // 
+            // dgvAssignedRecipes
+            // 
+            dgvAssignedRecipes.AllowUserToAddRows = false;
+            dgvAssignedRecipes.AllowUserToDeleteRows = false;
+            dgvAssignedRecipes.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            dgvAssignedRecipes.BackgroundColor = Color.FromArgb(24, 28, 63);
+            dgvAssignedRecipes.BorderStyle = BorderStyle.None;
+            dataGridViewCellStyle10.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle10.BackColor = Color.FromArgb(107, 83, 255);
+            dataGridViewCellStyle10.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            dataGridViewCellStyle10.ForeColor = Color.White;
+            dataGridViewCellStyle10.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle10.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle10.WrapMode = DataGridViewTriState.True;
+            dgvAssignedRecipes.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle10;
+            dgvAssignedRecipes.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dataGridViewCellStyle11.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle11.BackColor = Color.FromArgb(42, 45, 86);
+            dataGridViewCellStyle11.Font = new Font("Segoe UI", 9F);
+            dataGridViewCellStyle11.ForeColor = Color.WhiteSmoke;
+            dataGridViewCellStyle11.SelectionBackColor = Color.FromArgb(107, 83, 255);
+            dataGridViewCellStyle11.SelectionForeColor = Color.White;
+            dataGridViewCellStyle11.WrapMode = DataGridViewTriState.False;
+            dgvAssignedRecipes.DefaultCellStyle = dataGridViewCellStyle11;
+            dgvAssignedRecipes.GridColor = Color.FromArgb(124, 141, 181);
+            dgvAssignedRecipes.Location = new Point(0, 83);
+            dgvAssignedRecipes.MultiSelect = false;
+            dgvAssignedRecipes.Name = "dgvAssignedRecipes";
+            dgvAssignedRecipes.ReadOnly = true;
+            dataGridViewCellStyle12.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle12.BackColor = Color.FromArgb(42, 45, 86);
+            dataGridViewCellStyle12.Font = new Font("Segoe UI", 9F);
+            dataGridViewCellStyle12.ForeColor = Color.WhiteSmoke;
+            dataGridViewCellStyle12.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle12.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle12.WrapMode = DataGridViewTriState.True;
+            dgvAssignedRecipes.RowHeadersDefaultCellStyle = dataGridViewCellStyle12;
+            dgvAssignedRecipes.RowHeadersWidth = 51;
+            dgvAssignedRecipes.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgvAssignedRecipes.Size = new Size(738, 365);
+            dgvAssignedRecipes.TabIndex = 4;
             // 
             // pnlRecipeButtons
             // 
             pnlRecipeButtons.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             pnlRecipeButtons.BackColor = Color.FromArgb(42, 45, 86);
-            pnlRecipeButtons.Controls.Add(btnAddRecipe);
+            pnlRecipeButtons.Controls.Add(btnUnassignRecipe);
+            pnlRecipeButtons.Controls.Add(btnCreateNewRecipe);
             pnlRecipeButtons.Controls.Add(btnEditRecipe);
             pnlRecipeButtons.Controls.Add(btnViewRecipeDetails);
-            pnlRecipeButtons.Controls.Add(btnDeleteRecipe);
-            pnlRecipeButtons.Location = new Point(18, 481);
+            pnlRecipeButtons.Location = new Point(0, 454);
             pnlRecipeButtons.Name = "pnlRecipeButtons";
-            pnlRecipeButtons.Size = new Size(739, 38);
-            pnlRecipeButtons.TabIndex = 1;
+            pnlRecipeButtons.Size = new Size(738, 40);
+            pnlRecipeButtons.TabIndex = 5;
             // 
-            // btnAddRecipe
+            // btnUnassignRecipe
             // 
-            btnAddRecipe.FlatAppearance.BorderColor = Color.Cyan;
-            btnAddRecipe.FlatStyle = FlatStyle.Flat;
-            btnAddRecipe.ForeColor = Color.FromArgb(255, 224, 192);
-            btnAddRecipe.Location = new Point(0, 5);
-            btnAddRecipe.Name = "btnAddRecipe";
-            btnAddRecipe.Size = new Size(70, 28);
-            btnAddRecipe.TabIndex = 0;
-            btnAddRecipe.Text = "Thêm";
-            btnAddRecipe.UseVisualStyleBackColor = true;
+            btnUnassignRecipe.FlatAppearance.BorderColor = Color.FromArgb(255, 99, 132);
+            btnUnassignRecipe.FlatStyle = FlatStyle.Flat;
+            btnUnassignRecipe.ForeColor = Color.FromArgb(255, 99, 132);
+            btnUnassignRecipe.Location = new Point(0, 6);
+            btnUnassignRecipe.Name = "btnUnassignRecipe";
+            btnUnassignRecipe.Size = new Size(80, 28);
+            btnUnassignRecipe.TabIndex = 0;
+            btnUnassignRecipe.Text = "Bỏ gán";
+            btnUnassignRecipe.UseVisualStyleBackColor = true;
+            // 
+            // btnCreateNewRecipe
+            // 
+            btnCreateNewRecipe.FlatAppearance.BorderColor = Color.Cyan;
+            btnCreateNewRecipe.FlatStyle = FlatStyle.Flat;
+            btnCreateNewRecipe.ForeColor = Color.FromArgb(255, 224, 192);
+            btnCreateNewRecipe.Location = new Point(90, 6);
+            btnCreateNewRecipe.Name = "btnCreateNewRecipe";
+            btnCreateNewRecipe.Size = new Size(100, 28);
+            btnCreateNewRecipe.TabIndex = 1;
+            btnCreateNewRecipe.Text = "Tạo mới";
+            btnCreateNewRecipe.UseVisualStyleBackColor = true;
             // 
             // btnEditRecipe
             // 
             btnEditRecipe.FlatAppearance.BorderColor = Color.FromArgb(107, 83, 255);
             btnEditRecipe.FlatStyle = FlatStyle.Flat;
             btnEditRecipe.ForeColor = Color.FromArgb(192, 255, 192);
-            btnEditRecipe.Location = new Point(79, 5);
+            btnEditRecipe.Location = new Point(200, 6);
             btnEditRecipe.Name = "btnEditRecipe";
             btnEditRecipe.Size = new Size(70, 28);
-            btnEditRecipe.TabIndex = 1;
+            btnEditRecipe.TabIndex = 2;
             btnEditRecipe.Text = "Sửa";
             btnEditRecipe.UseVisualStyleBackColor = true;
             // 
@@ -613,24 +713,12 @@
             btnViewRecipeDetails.FlatAppearance.BorderColor = Color.FromArgb(255, 193, 7);
             btnViewRecipeDetails.FlatStyle = FlatStyle.Flat;
             btnViewRecipeDetails.ForeColor = Color.FromArgb(255, 193, 7);
-            btnViewRecipeDetails.Location = new Point(158, 5);
+            btnViewRecipeDetails.Location = new Point(280, 6);
             btnViewRecipeDetails.Name = "btnViewRecipeDetails";
             btnViewRecipeDetails.Size = new Size(70, 28);
-            btnViewRecipeDetails.TabIndex = 2;
+            btnViewRecipeDetails.TabIndex = 3;
             btnViewRecipeDetails.Text = "Chi tiết";
             btnViewRecipeDetails.UseVisualStyleBackColor = true;
-            // 
-            // btnDeleteRecipe
-            // 
-            btnDeleteRecipe.FlatAppearance.BorderColor = Color.FromArgb(255, 99, 132);
-            btnDeleteRecipe.FlatStyle = FlatStyle.Flat;
-            btnDeleteRecipe.ForeColor = Color.FromArgb(255, 99, 132);
-            btnDeleteRecipe.Location = new Point(237, 5);
-            btnDeleteRecipe.Name = "btnDeleteRecipe";
-            btnDeleteRecipe.Size = new Size(70, 28);
-            btnDeleteRecipe.TabIndex = 3;
-            btnDeleteRecipe.Text = "Xóa";
-            btnDeleteRecipe.UseVisualStyleBackColor = true;
             // 
             // pnlButtons
             // 
@@ -690,14 +778,6 @@
             btnClose.Text = "Đóng";
             btnClose.UseVisualStyleBackColor = true;
             // 
-            // lblValidationStatus
-            // 
-            lblValidationStatus.AutoSize = true;
-            lblValidationStatus.Location = new Point(131, 314);
-            lblValidationStatus.Name = "lblValidationStatus";
-            lblValidationStatus.Size = new Size(0, 15);
-            lblValidationStatus.TabIndex = 27;
-            // 
             // FrmProductDetails
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -724,11 +804,14 @@
             ((System.ComponentModel.ISupportInitialize)numPrice).EndInit();
             tabImages.ResumeLayout(false);
             pnlImagesInfo.ResumeLayout(false);
+            tableLayoutPanel1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)dgvProductImages).EndInit();
             pnlImageButtons.ResumeLayout(false);
             tabRecipes.ResumeLayout(false);
             pnlRecipesInfo.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)dgvRecipes).EndInit();
+            pnlRecipeManagement.ResumeLayout(false);
+            pnlRecipeManagement.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)dgvAssignedRecipes).EndInit();
             pnlRecipeButtons.ResumeLayout(false);
             pnlButtons.ResumeLayout(false);
             ResumeLayout(false);
@@ -761,16 +844,21 @@
         private Panel pnlImagesInfo;
         private DataGridView dgvProductImages;
         private Panel pnlImageButtons;
-        private Button btnAddImage;
+        private Button btnViewImage;
         private Button btnDeleteImage;
         private TabPage tabRecipes;
         private Panel pnlRecipesInfo;
-        private DataGridView dgvRecipes;
+        private Panel pnlRecipeManagement;
+        private Label lblAvailableRecipes;
+        private ComboBox cbxAvailableRecipes;
+        private Button btnAssignRecipe;
+        private Label lblAssignedRecipes;
+        private DataGridView dgvAssignedRecipes;
         private Panel pnlRecipeButtons;
-        private Button btnAddRecipe;
+        private Button btnUnassignRecipe;
+        private Button btnCreateNewRecipe;
         private Button btnEditRecipe;
         private Button btnViewRecipeDetails;
-        private Button btnDeleteRecipe;
         private Panel pnlButtons;
         private Button btnSave;
         private Button btnCancel;
@@ -781,5 +869,6 @@
         private Button btnUpload;
         private Button btnCheckUrl;
         private Label lblValidationStatus;
+        private TableLayoutPanel tableLayoutPanel1;
     }
 }

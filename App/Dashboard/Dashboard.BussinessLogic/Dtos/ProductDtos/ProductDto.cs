@@ -45,19 +45,6 @@ public record ProductImageDto(long Id)
     public string ImageUrl { get; set; } = string.Empty;
 }
 
-public class RecipeDto
-{
-    public long Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string? Description { get; set; }
-    public decimal ServingSize { get; set; }
-    public string Unit { get; set; } = string.Empty;
-    public bool IsActive { get; set; }
-    public string? Notes { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public DateTime? UpdatedAt { get; set; }
-}
-
 public class ProductRecipeDto
 {
     public long Id { get; set; }
@@ -67,4 +54,20 @@ public class ProductRecipeDto
     public decimal Quantity { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
+}
+
+public class RecipeDto
+{
+    public long Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public long ProductId { get; set; }
+    public string ProductName { get; set; } = string.Empty;
+    public decimal ServingSize { get; set; } = 1;
+    public string Unit { get; set; } = "portion";
+    public bool IsActive { get; set; } = true;
+    public string? Notes { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+    public List<RecipeIngredientDto> RecipeIngredients { get; set; } = new();
 }

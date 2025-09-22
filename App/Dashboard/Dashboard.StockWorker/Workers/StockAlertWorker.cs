@@ -2,15 +2,15 @@ using Dashboard.DataAccess.Models.Entities.GoodsIngredientsAndStock;
 using Dashboard.StockWorker.Services;
 using Dashboard.StockWorker.Models;
 
-namespace Dashboard.StockWorker;
+namespace Dashboard.StockWorker.Workers;
 
-public class Worker : BackgroundService
+public class StockAlertWorker : BackgroundService
 {
-    private readonly ILogger<Worker> _logger;
+    private readonly ILogger<StockAlertWorker> _logger;
     private readonly IServiceProvider _serviceProvider;
     private readonly IConfiguration _configuration;
 
-    public Worker(ILogger<Worker> logger, IServiceProvider serviceProvider, IConfiguration configuration)
+    public StockAlertWorker(ILogger<StockAlertWorker> logger, IServiceProvider serviceProvider, IConfiguration configuration)
     {
         _logger = logger;
         _serviceProvider = serviceProvider;
@@ -21,7 +21,7 @@ public class Worker : BackgroundService
     {
         _logger.LogInformation("Stock Worker Service started at: {time}", DateTimeOffset.Now);
 
-        var intervalMinutes = _configuration.GetValue<int>("StockMonitoring:IntervalMinutes", 30);
+        var intervalMinutes = _configuration.GetValue("StockMonitoring:IntervalMinutes", 30);
         var checkInterval = TimeSpan.FromMinutes(intervalMinutes);
 
         while (!stoppingToken.IsCancellationRequested)
@@ -41,16 +41,13 @@ public class Worker : BackgroundService
 
         _logger.LogInformation("Starting stock monitoring process at {Time}", DateTime.UtcNow);
 
-        // 1. Lưu tất cả threshold và tồn kho
         _logger.LogInformation("Updating all thresholds and current stock levels");
         await stockCalculationService.CalculateAndUpdateReorderPointsAsync();
 
-        // 2. Kiểm tra các cảnh báo tồn kho
         _logger.LogInformation("Checking for stock alerts");
         var lowStockAlerts = await stockCalculationService.GetLowStockAlertsAsync();
         var outOfStockAlerts = await stockCalculationService.GetOutOfStockAlertsAsync();
 
-        // Combine alerts but avoid duplicates (outOfStockAlerts are a subset of lowStockAlerts)
         var allAlerts = lowStockAlerts
             .Concat(outOfStockAlerts)
             .GroupBy(a => (a.IngredientId, a.BranchId))
@@ -67,7 +64,6 @@ public class Worker : BackgroundService
                     alert.IngredientName ?? "Unknown", alert.BranchId, alert.CurrentStock, alert.ReorderPoint);
             }
 
-            // 3. Gửi thông báo nếu có alerts
             await notificationService.SendStockAlertsAsync(allAlerts);
         }
         else

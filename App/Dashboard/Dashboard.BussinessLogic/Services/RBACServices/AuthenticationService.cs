@@ -43,11 +43,13 @@ public class AuthenticationService : IAuthenticationService
         if (!_dataEncryptionHelper.VerifyPassword(dto.Password, user.Password))
             return null;
 
-        var permissions = user.Role.RolePermissions
+        var permissions = user.Role?.RolePermissions?
+            .Where(rp => rp.Permission != null)
             .Select(rp => rp.Permission.Name)
-            .ToList();
+            .Where(name => !string.IsNullOrEmpty(name))
+            .ToList() ?? [];
 
-        var tokenString = _jwtService.GenerateToken(user.Id, user.Username, user.Role.Name, permissions);
+        var tokenString = _jwtService.GenerateToken(user.Id, user.Username, user.Role?.Name ?? "EMPLOYEE", permissions);
         var expiration = DateTime.UtcNow.AddMinutes(60); 
 
         var token = new Token
@@ -68,21 +70,28 @@ public class AuthenticationService : IAuthenticationService
             Token = tokenString,
             ExpirationDate = expiration,
             Username = user.Username,
-            Role = user.Role.Name,
+            Role = user.Role?.Name ?? "EMPLOYEE",
             Permissions = permissions
         };
     }
 
     public async Task<bool> ValidateTokenAsync(string token)
     {
-        var principal = _jwtService.ValidateToken(token);
-        if (principal == null) return false;
+        try
+        {
+            var principal = _jwtService.ValidateToken(token);
+            if (principal == null) return false;
 
-        var tokenRepo = _uow.Repository<Token>();
-        var dbToken = await tokenRepo.GetQueryable()
-            .FirstOrDefaultAsync(t => t.TokenValue == token && !t.Expired && !t.Revoked);
+            var tokenRepo = _uow.Repository<Token>();
+            var dbToken = await tokenRepo.GetQueryable()
+                .FirstOrDefaultAsync(t => t.TokenValue == token && !t.Expired && !t.Revoked);
 
-        return dbToken != null && dbToken.ExpirationDate > DateTime.UtcNow;
+            return dbToken != null && dbToken.ExpirationDate > DateTime.UtcNow;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     public async Task LogoutAsync(string token)

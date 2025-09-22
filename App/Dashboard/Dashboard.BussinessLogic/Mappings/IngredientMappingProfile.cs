@@ -16,43 +16,31 @@ public class IngredientMappingProfile : Profile
             .ForMember(dest => dest.MaximumStock, opt => opt.MapFrom(src => src.IngredientWarehouse != null ? src.IngredientWarehouse.MaximumStock : 0));
 
         CreateMap<Ingredient, IngredientDto>()
-            .ForMember(dest => dest.IngredientCategoryId,
+            .ForMember(dest => dest.CategoryId,
                 opt => opt.MapFrom(src => src.CategoryId))
             .ForMember(dest => dest.CategoryName,
                 opt => opt.MapFrom(src => src.Category.Name))
             .ForMember(dest => dest.CreatedAt,
                 opt => opt.MapFrom(src => src.CreatedAt))
             .ForMember(dest => dest.UpdatedAt,
-                opt => opt.MapFrom(src => src.LastModified));
-
+                opt => opt.MapFrom(src => src.LastModified))
+            .ForMember(dest => dest.IsActive,
+                opt => opt.MapFrom(src => src.IsActive));
 
         CreateMap<IngredientDto, Ingredient>()
             .ForMember(dest => dest.CategoryId,
-                opt => opt.MapFrom(src => src.IngredientCategoryId))
-            .ForMember(dest => dest.Category,
-                opt => opt.Ignore())
-            .ForMember(dest => dest.BranchIngredientInventories,
-                opt => opt.Ignore())
-            .ForMember(dest => dest.GoodsReceivedDetails,
-                opt => opt.Ignore())
-            .ForMember(dest => dest.IngredientPurchaseOrderDetails,
-                opt => opt.Ignore())
-            .ForMember(dest => dest.IngredientTransfers,
-                opt => opt.Ignore())
-            .ForMember(dest => dest.TransferRequestDetails,
-                opt => opt.Ignore())
-            .ForMember(dest => dest.ProductRecipes,
-                opt => opt.Ignore())
-            .ForMember(dest => dest.PurchaseInvoiceDetails,
-                opt => opt.Ignore())
-            .ForMember(dest => dest.PurchaseReturnDetails,
-                opt => opt.Ignore())
-            .ForMember(dest => dest.SupplierIngredientPrices,
-                opt => opt.Ignore())
-            .ForMember(dest => dest.InventoryThresholds,
-                opt => opt.Ignore())
-            .ForMember(dest => dest.InventoryMovements,
-                opt => opt.Ignore());
+                opt => opt.MapFrom(src => src.CategoryId))
+            .ForMember(dest => dest.IsActive,
+                opt => opt.MapFrom(src => src.IsActive))
+            .ForMember(dest => dest.Name,
+                opt => opt.MapFrom(src => src.Name))
+            .ForMember(dest => dest.Description,
+                opt => opt.MapFrom(src => src.Description))
+            .ForMember(dest => dest.Unit,
+                opt => opt.MapFrom(src => src.Unit))
+            .ForAllOtherMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+
+
 
 
         CreateMap<BranchIngredientInventory, BranchIngredientInventoryDto>()

@@ -2,10 +2,10 @@
 
 public class UpdateIngredientInput
 {
-    public int Id { get; set; }
+    public long Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string Unit { get; set; } = string.Empty;
-    public decimal CostPerUnit { get; set; }
-    public int IngredientCategoryId { get; set; }
+    public long CategoryId { get; set; }
+    public bool IsActive { get; set; } 
 }

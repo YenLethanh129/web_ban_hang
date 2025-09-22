@@ -11,14 +11,6 @@ using Microsoft.Extensions.Logging;
 
 namespace Dashboard.StockWorker.Services
 {
-    /// <summary>
-    /// Simple notification service that supports two modes:
-    /// - PickupDirectory (for testing / environments without SMTP): write HTML files to a directory
-    /// - SMTP: send real emails using SmtpClient (configured via appsettings: Email section)
-    ///
-    /// The HTML templates live under Templates/ and can contain placeholders like
-    /// {{IngredientName}}, {{CurrentStock}}, {{SafetyStock}}, {{BranchName}}, {{Date}}
-    /// </summary>
     public class NotificationService : INotificationService
     {
         private readonly IConfiguration _configuration;
@@ -37,7 +29,6 @@ namespace Dashboard.StockWorker.Services
 
             if (_usePickup && string.IsNullOrWhiteSpace(_pickupDirectory))
             {
-                // default to a temp folder inside the project
                 _pickupDirectory = Path.Combine(Path.GetTempPath(), "Dashboard.StockWorker.EmailPickup");
             }
 
@@ -125,7 +116,6 @@ namespace Dashboard.StockWorker.Services
                 }
                 else
                 {
-                    // fallback simple inline html (use same wording as templates/tests)
                     template = "<h2>Low stock alert</h2><p>Ingredient: {{IngredientName}}</p><p>Branch: {{BranchName}}</p><p>Current stock: {{CurrentStock}}</p><p>Safety stock: {{SafetyStock}}</p><p>Date: {{Date}}</p>";
                 }
             }
@@ -182,7 +172,6 @@ namespace Dashboard.StockWorker.Services
                 return;
             }
 
-            // SMTP path with attachments
             try
             {
                 using var msg = new MailMessage(from, to, subject, htmlBody) { IsBodyHtml = true };
@@ -259,7 +248,6 @@ namespace Dashboard.StockWorker.Services
                 return;
             }
 
-            // SMTP path with attachments
             try
             {
                 using var msg = new MailMessage(from, to, subject, htmlBody) { IsBodyHtml = true };

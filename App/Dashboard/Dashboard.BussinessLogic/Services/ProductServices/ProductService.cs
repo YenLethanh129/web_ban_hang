@@ -220,10 +220,9 @@ public class ProductService : BaseTransactionalService, IProductService
 
                 var toAdd = newUrls.Where(u => !existingUrls.Contains(u)).ToList();
 
-                if (toAdd.Any())
+                if (toAdd.Count != 0)
                 {
-                    if (product.ProductImages == null)
-                        product.ProductImages = new List<ProductImage>();
+                    product.ProductImages ??= [];
 
                     foreach (var url in toAdd)
                     {

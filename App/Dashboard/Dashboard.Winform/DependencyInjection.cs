@@ -30,6 +30,7 @@ namespace Dashboard.Winform
             services.AddTransient<IProductDetailPresenter, ProductDetailPresenter>();
             services.AddTransient<IProductManagementPresenter, ProductManagementPresenter>();
             services.AddTransient<IIngredientDetailPresenter, IngredientDetailPresenter>();
+            services.AddTransient<IIngredientManagementPresenter, IngredientManagementPresenter>();
 
             services.AddScoped<EmployeeManagementPresenter>();
             services.AddTransient<ProductManagementPresenter>();

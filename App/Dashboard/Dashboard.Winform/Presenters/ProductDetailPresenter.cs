@@ -25,6 +25,12 @@ namespace Dashboard.Winform.Presenters
         Task<bool> AddOrUpdateProductRecipeAsync(ProductRecipeViewModel productRecipe);
         Task<bool> DeleteProductRecipeAsync(long productId, long productRecipeId);
 
+        // Recipe management methods
+        Task<List<RecipeViewModel>> LoadAllRecipesAsync();
+        Task<List<RecipeViewModel>> LoadRecipesByProductIdAsync(long productId);
+        Task<bool> AssignRecipeToProductAsync(long productId, long recipeId);
+        Task<bool> UnassignRecipeFromProductAsync(long productId, long recipeId);
+
         // Load dropdown data
         Task<List<CategoryViewModel>> LoadCategoriesAsync();
         Task<List<TaxViewModel>> LoadTaxesAsync();
@@ -38,6 +44,7 @@ namespace Dashboard.Winform.Presenters
         private readonly IProductService _productService;
         private readonly ICategoryService _categoryService;
         private readonly ITaxService _taxService;
+        private readonly IRecipeService _recipeService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IServiceProvider _serviceProvider;
@@ -50,6 +57,7 @@ namespace Dashboard.Winform.Presenters
             IProductService productService,
             ICategoryService categoryService,
             ITaxService taxService,
+            IRecipeService recipeService,
             IUnitOfWork unitOfWork,
             IMapper mapper)
         {
@@ -58,6 +66,7 @@ namespace Dashboard.Winform.Presenters
             _productService = productService;
             _categoryService = categoryService;
             _taxService = taxService;
+            _recipeService = recipeService;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
@@ -243,7 +252,7 @@ namespace Dashboard.Winform.Presenters
 
                 var newImage = new ProductImageViewModel
                 {
-                    Id = 0, 
+                    Id = 0,
                     ProductId = productId,
                     ImageUrl = imageUrl,
                     CreatedAt = DateTime.Now
@@ -351,6 +360,64 @@ namespace Dashboard.Winform.Presenters
                 return false;
             }
         }
+
+        #region Recipe Management Methods
+
+        public async Task<List<RecipeViewModel>> LoadAllRecipesAsync()
+        {
+            try
+            {
+                var recipeDtos = await _recipeService.GetAllRecipesAsync();
+                return _mapper.Map<List<RecipeViewModel>>(recipeDtos);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading all recipes");
+                return new List<RecipeViewModel>();
+            }
+        }
+
+        public async Task<List<RecipeViewModel>> LoadRecipesByProductIdAsync(long productId)
+        {
+            try
+            {
+                var recipeDtos = await _recipeService.GetRecipesByProductIdAsync(productId);
+                return _mapper.Map<List<RecipeViewModel>>(recipeDtos);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading recipes for product {ProductId}", productId);
+                return new List<RecipeViewModel>();
+            }
+        }
+
+        public async Task<bool> AssignRecipeToProductAsync(long productId, long recipeId)
+        {
+            try
+            {
+                return await _recipeService.AssignRecipeToProductAsync(productId, recipeId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error assigning recipe {RecipeId} to product {ProductId}", recipeId, productId);
+                return false;
+            }
+        }
+
+        public async Task<bool> UnassignRecipeFromProductAsync(long productId, long recipeId)
+        {
+            try
+            {
+                return await _recipeService.UnassignRecipeFromProductAsync(productId, recipeId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error unassigning recipe {RecipeId} from product {ProductId}", recipeId, productId);
+                return false;
+            }
+        }
+
+        #endregion
 
         public async Task<List<CategoryViewModel>> LoadCategoriesAsync()
         {

@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Dashboard.BussinessLogic.Dtos;
+using Dashboard.BussinessLogic.Dtos.EmployeeDtos;
 using Dashboard.BussinessLogic.Dtos.RBACDtos;
 using Dashboard.BussinessLogic.Services.EmployeeServices;
 using Dashboard.BussinessLogic.Services.RBACServices;
@@ -504,7 +505,12 @@ namespace Dashboard.Winform.Presenters
 
         public async Task<List<EmployeeSimpleViewModel>> GetEmployeesAsync()
         {
-            var employees = await _employeeManagementService.GetEmployeesAsync();
+            var input = new GetEmployeesInput
+            {
+                PageSize = int.MaxValue,
+                PageNumber = 1
+            };
+            var employees = await _employeeManagementService.GetEmployeesAsync(input);
             return _mapper.Map<List<EmployeeSimpleViewModel>>(employees);
         }
 

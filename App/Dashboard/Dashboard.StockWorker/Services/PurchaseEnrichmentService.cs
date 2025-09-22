@@ -18,10 +18,8 @@ namespace Dashboard.StockWorker.Services
             if (alerts == null || !alerts.Any())
                 return;
 
-            // Group by ingredient to minimize DB calls
             var ingredientIds = alerts.Select(a => a.IngredientId).Distinct().ToList();
 
-            // Fetch last supplier ingredient prices
             var lastPricesList = await _db.SupplierIngredientPrices
                 .Where(p => ingredientIds.Contains(p.IngredientId))
                 .GroupBy(p => p.IngredientId)
@@ -35,7 +33,6 @@ namespace Dashboard.StockWorker.Services
                 .Where(x => x != null)
                 .ToDictionary(x => x!.IngredientId, x => x!);
 
-            // Fetch last purchase order details (join with purchase orders) per ingredient
             var lastPoDetails = await _db.IngredientPurchaseOrderDetails
                 .Where(d => ingredientIds.Contains(d.IngredientId))
                 .Include(d => d.PurchaseOrder)
@@ -44,12 +41,10 @@ namespace Dashboard.StockWorker.Services
 
             foreach (var alert in alerts)
             {
-                // Supplier name/contact from last purchase-order if available
                 var lastDetail = lastPoDetails.FirstOrDefault(d => d.IngredientId == alert.IngredientId);
                 if (lastDetail != null && lastDetail.PurchaseOrder != null)
                 {
                     var po = lastDetail.PurchaseOrder;
-                    // Supplier
                     if (po.Supplier != null)
                     {
                         alert.SupplierName = po.Supplier.Name;
@@ -63,7 +58,6 @@ namespace Dashboard.StockWorker.Services
                     alert.LastRestockDate = po.OrderDate != default ? po.OrderDate : alert.LastRestockDate;
                 }
 
-                // fallback to supplier price table
                 if (!alert.LastPurchasePrice.HasValue && lastPrices.TryGetValue(alert.IngredientId, out var sip) && sip != null)
                 {
                     alert.LastPurchasePrice = sip.Price;

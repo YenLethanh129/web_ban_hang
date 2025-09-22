@@ -82,4 +82,8 @@
     <PackageVersion Include="ReaLTaiizor" Version="3.8.1.3" />
     <PackageVersion Include="WinForms.DataVisualization" Version="1.10.0" />
   </ItemGroup>
+  <!-- Added ClosedXML for Excel export (central package management) -->
+  <ItemGroup>
+    <PackageVersion Include="ClosedXML" Version="0.104.0" />
+  </ItemGroup>
 </Project>

@@ -438,27 +438,20 @@ namespace Dashboard.Winform
 
             try
             {
-                //using var loginForm = _serviceProvider?.GetService(typeof(BussinessLogic.Services.RBACServices.IAuthenticationService))
-                //    is BussinessLogic.Services.RBACServices.IAuthenticationService authService ? new FrmLogin(authService) : new FrmLogin();
+                using var loginForm = _serviceProvider?.GetService(typeof(BussinessLogic.Services.RBACServices.IAuthenticationService))
+                    is BussinessLogic.Services.RBACServices.IAuthenticationService authService ? new FrmLogin(authService) : new FrmLogin();
 
-                //var dr = loginForm.ShowDialog(this);
-                //if (dr != DialogResult.OK || !loginForm.LoginSucceeded)
-                //{
-                //    Application.Exit();
-                //    return;
-                //}
+                var dr = loginForm.ShowDialog(this);
+                if (dr != DialogResult.OK || !loginForm.LoginSucceeded)
+                {
+                    Application.Exit();
+                    return;
+                }
 
                 try
                 {
-                    if (_serviceProvider?.GetService(typeof(FrmLandingDashboard)) is not FrmLandingDashboard landing)
-                    {
-                        landing = _serviceProvider!.GetRequiredService<FrmLandingDashboard>();
-                    }
-
-                    landing.MdiParent = this;
-                    landing.Dock = DockStyle.Fill;
-                    landing.Show();
-                    activeForm = landing;
+                    var landing = _serviceProvider!.GetRequiredService<FrmLandingDashboard>();
+                    OpenChildForm(landing);
                 }
                 catch (Exception ex)
                 {
@@ -859,10 +852,10 @@ namespace Dashboard.Winform
                         OpenChildForm(frmUserManagement);
                     }
                 });
-                //if (frmUserManagement != null)
-                //{
-                //    await frmUserManagement.WaitForDataLoadingComplete();
-                //}
+                if (frmUserManagement != null)
+                {
+                    await frmUserManagement.WaitForDataLoadingComplete();
+                }
             }, "Đang tải Dashboard...", true);
         }
 

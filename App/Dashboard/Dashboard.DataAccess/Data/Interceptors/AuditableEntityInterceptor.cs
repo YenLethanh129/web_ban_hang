@@ -33,7 +33,7 @@ public class AuditableEntityInterceptor : SaveChangesInterceptor
         if (context == null) return;
 
         var utcNow = _dateTime.GetUtcNow();
-        var localNow = utcNow.DateTime; // Convert to DateTime once
+        var localNow = utcNow.DateTime;
 
         foreach (var entry in context.ChangeTracker.Entries<BaseAuditableEntity>())
         {

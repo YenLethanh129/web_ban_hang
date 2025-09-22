@@ -9,9 +9,6 @@ using Dashboard.DataAccess.Models.Entities.RBAC;
 using Dashboard.DataAccess.Repositories;
 using Dashboard.DataAccess.Specification;
 using Microsoft.Extensions.Logging;
-using Dashboard.DataAccess.Models.Entities;
-using Dashboard.BussinessLogic.Dtos.EmployeeDtos;
-using AutoMapper.Features;
 
 namespace Dashboard.BussinessLogic.Services.RBACServices;
 
@@ -32,6 +29,7 @@ public interface IUserManagementService
     Task<List<UserDto>> GetUsersWithoutEmployeeAsync();
     Task<UserDto?> GetUserByEmployeeIdAsync(long employeeId);
     Task<List<UserDto>> GetUsersByRoleAsync(string roleName);
+
 }
 
 public class UserManagementService : BaseTransactionalService, IUserManagementService

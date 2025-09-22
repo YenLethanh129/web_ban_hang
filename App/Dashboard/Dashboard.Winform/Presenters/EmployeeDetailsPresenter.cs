@@ -136,7 +136,7 @@ namespace Dashboard.Winform.Presenters
 
             if (Model.Statuses == null || Model.Statuses.Count == 0)
             {
-                Model.Statuses = new List<string> { "Active", "Inactive", "Resigned" };
+                Model.Statuses = ["Active", "Inactive", "Resigned"];
             }
         }
 

@@ -241,15 +241,65 @@ namespace Dashboard.Winform.Forms
             cbxFilter1.SelectedIndexChanged += (s, e) => ApplyStatusFilter();
             cbxFilter2.SelectedIndexChanged += (s, e) => ApplyCategoryFilter();
             cbxOrderBy.SelectedIndexChanged += (s, e) => ApplySorting();
+            
+            // Ensure search textbox uses debounced bound-search similar to other management forms
+            tbxFindString.TextChanged += async (s, e) =>
+            {
+                // If control not ready or model not initialized, ignore
+                if (_model == null) return;
+
+                // If cleared, reset immediately and keep focus
+                if (string.IsNullOrWhiteSpace(tbxFindString.Text))
+                {
+                    try
+                    {
+                        SetLoadingState(true);
+                        _model.SearchText = string.Empty;
+                        await _presenter.SearchAsync(_model.SearchText);
+                        UpdatePaginationInfo();
+                    }
+                    catch (Exception ex)
+                    {
+                        ShowError($"Lỗi khi reset tìm kiếm: {ex.Message}");
+                    }
+                    finally
+                    {
+                        SetLoadingState(false);
+                    }
+
+                    try { tbxFindString.Focus(); } catch { }
+                    return;
+                }
+
+                // Otherwise start a small delay then perform search (debounce handled by presenter if needed)
+                await Task.Delay(300);
+                try
+                {
+                    if (!string.IsNullOrWhiteSpace(tbxFindString.Text))
+                    {
+                        SetLoadingState(true);
+                        await _presenter.SearchAsync(tbxFindString.Text);
+                        UpdatePaginationInfo();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ShowError($"Lỗi khi tìm kiếm: {ex.Message}");
+                }
+                finally
+                {
+                    SetLoadingState(false);
+                }
+            };
         }
 
         protected override async Task TbxFindString_TextChanged(object? sender, EventArgs e)
         {
-            var textBox = sender as TextBox;
-            var searchText = textBox?.Text;
-            if (string.IsNullOrEmpty(searchText))
-                return;
+            var searchText = tbxFindString?.Text?.Trim() ?? string.Empty;
+
             await _presenter.SearchAsync(searchText);
+
+            RefreshData();
         }
 
         #endregion

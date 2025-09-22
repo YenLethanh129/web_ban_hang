@@ -20,6 +20,9 @@ namespace Dashboard.Winform.Forms
     {
         private readonly EmployeeManagementModel _model;
         private readonly IServiceProvider _serviceProvider;
+        private bool _isInitialized = false;
+        private System.Windows.Forms.Timer? _searchTimer;
+
         public FrmEmployeeManagement(
             IServiceProvider serviceProvider,
             ILogger<FrmEmployeeManagement> logger,
@@ -30,7 +33,7 @@ namespace Dashboard.Winform.Forms
             _serviceProvider = serviceProvider;
 
             InitializeBaseComponents();
-
+                InitializeSearchTimer(); 
             _presenter.OnDataLoaded += (s, e) =>
             {
                 try
@@ -44,6 +47,8 @@ namespace Dashboard.Winform.Forms
                                 try
                                 {
                                     ApplyEmployeesToModel(args.Employees);
+                                    SetupDgvListItem();
+                                    UpdatePaginationInfo();
                                 }
                                 catch (Exception ex)
                                 {
@@ -54,8 +59,9 @@ namespace Dashboard.Winform.Forms
                         else
                         {
                             ApplyEmployeesToModel(args.Employees);
+                            SetupDgvListItem();
+                            UpdatePaginationInfo();
                         }
-                    SetupDgvListItem(); // Ensure the event handler is set up after initializing the DataGridView
                     }
                 }
                 catch (Exception ex)
@@ -75,10 +81,18 @@ namespace Dashboard.Winform.Forms
             OverrideTextUI();
             OverrideComboBoxItem();
             SetupDataBindings();
-            SetupDgvListItem();
+
+            if (dgvListItems != null)
+            {
+                SetupDgvListItem();
+            }
+
             FinalizeFormSetup();
             SetupContextMenu();
+
+            // no timer disposal needed
         }
+
 
         /// <summary>
         /// Override để khởi tạo components riêng của Employee Management
@@ -101,17 +115,12 @@ namespace Dashboard.Winform.Forms
             cbxFilter1.DataSource = _model.Statuses;
             cbxFilter1.SelectedIndex = 0;
 
-            cbxFilter2.DataSource = _model.Positions;
-
             cbxFilter2.DisplayMember = "Name";
             cbxFilter2.ValueMember = "Id";
 
-            tbxFindString.DataBindings.Add(
-                "Text", _model,
-                nameof(_model.SearchText),
-                false, DataSourceUpdateMode.OnPropertyChanged
-            );
+            tbxFindString.DataBindings.Clear();
         }
+
         private void OverrideComboBoxItem()
         {
             cbxOrderBy.Items.Clear();
@@ -119,6 +128,7 @@ namespace Dashboard.Winform.Forms
             if (cbxOrderBy.Items.Count > 0)
                 cbxOrderBy.SelectedIndex = 0;
         }
+
         protected void SetupDgvListItem()
         {
             if (dgvListItems == null)
@@ -126,26 +136,35 @@ namespace Dashboard.Winform.Forms
                 throw new InvalidOperationException("dgvListItems must be initialized before calling SetupDgvListItem()");
             }
 
+            dgvListItems.ColumnHeaderMouseClick -= DgvListItems_ColumnHeaderMouseClick;
+            dgvListItems.CellDoubleClick -= DgvListItems_CellDoubleClick;
+            dgvListItems.SelectionChanged -= DgvListItems_SelectionChanged;
+            dgvListItems.DataError -= DgvListItems_DataError;
+
             dgvListItems.AutoGenerateColumns = false;
             dgvListItems.Columns.Clear();
 
             dgvListItems.Columns.Add(new DataGridViewTextBoxColumn
             {
+                Name = "Id",
                 DataPropertyName = nameof(EmployeeViewModel.Id),
                 HeaderText = "ID",
-                Width = 20,
-                AutoSizeMode = DataGridViewAutoSizeColumnMode.None
-            });
-            dgvListItems.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                DataPropertyName = nameof(EmployeeViewModel.BranchId),
-                HeaderText = "Mã chi nhánh",
-                Width = 50,
+                Width = 80,
                 AutoSizeMode = DataGridViewAutoSizeColumnMode.None
             });
 
             dgvListItems.Columns.Add(new DataGridViewTextBoxColumn
             {
+                Name = "BranchId",
+                DataPropertyName = nameof(EmployeeViewModel.BranchId),
+                HeaderText = "Mã chi nhánh",
+                Width = 120,
+                AutoSizeMode = DataGridViewAutoSizeColumnMode.None
+            });
+
+            dgvListItems.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "FullName",
                 DataPropertyName = nameof(EmployeeViewModel.FullName),
                 HeaderText = "Họ tên",
                 Width = 200
@@ -153,6 +172,7 @@ namespace Dashboard.Winform.Forms
 
             dgvListItems.Columns.Add(new DataGridViewTextBoxColumn
             {
+                Name = "PositionName",
                 DataPropertyName = nameof(EmployeeViewModel.PositionName),
                 HeaderText = "Chức vụ",
                 Width = 150
@@ -160,6 +180,7 @@ namespace Dashboard.Winform.Forms
 
             dgvListItems.Columns.Add(new DataGridViewTextBoxColumn
             {
+                Name = "PhoneNumber",
                 DataPropertyName = nameof(EmployeeViewModel.PhoneNumber),
                 HeaderText = "Số điện thoại",
                 Width = 130
@@ -167,21 +188,27 @@ namespace Dashboard.Winform.Forms
 
             dgvListItems.Columns.Add(new DataGridViewCheckBoxColumn
             {
+                Name = "IsActive",
                 DataPropertyName = nameof(EmployeeViewModel.IsActive),
                 HeaderText = "Hoạt động",
                 Width = 80
             });
 
+            // Set DataSource
             dgvListItems.DataSource = _model.Employees;
+
+            dgvListItems.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgvListItems.MultiSelect = false;
+
+            dgvListItems.ColumnHeaderMouseClick += DgvListItems_ColumnHeaderMouseClick;
+            dgvListItems.CellDoubleClick += DgvListItems_CellDoubleClick;
+            dgvListItems.SelectionChanged += DgvListItems_SelectionChanged;
+            dgvListItems.DataError += DgvListItems_DataError;
+
             dgvListItems.Refresh();
         }
 
         #region Override Event Handlers Base Class
-
-        protected override void BtnSearch_Click(object sender, EventArgs e)
-        {
-            PerformSearch();
-        }
 
         protected override void Btnfilter1_Click(object sender, EventArgs e)
         {
@@ -221,58 +248,134 @@ namespace Dashboard.Winform.Forms
         protected override void InitializeEvents()
         {
             base.InitializeEvents();
-            cbxFilter1.SelectedIndexChanged += (s, e) => ApplyStatusFilter();
-            cbxFilter2.SelectedIndexChanged += (s, e) => ApplyPositionFilter();
-            cbxOrderBy.SelectedIndexChanged += (s, e) => ApplySorting();
+
+            if (tbxFindString != null)
+            {
+                tbxFindString.TextChanged -= TbxFindString_TextChanged_Handler;
+                tbxFindString.TextChanged += TbxFindString_TextChanged_Handler;
+            }
+
+            cbxFilter1.SelectedIndexChanged += async (s, e) =>
+            {
+                if (_isInitialized) await ApplyStatusFilter();
+            };
+
+            cbxFilter2.SelectedIndexChanged += async (s, e) =>
+            {
+                if (_isInitialized) await ApplyPositionFilter();
+            };
+
+            cbxOrderBy.SelectedIndexChanged += async (s, e) =>
+            {
+                if (_isInitialized) await ApplySorting();
+            };
         }
-        protected override async Task TbxFindString_TextChanged(object? sender, EventArgs e)
+        private async void TbxFindString_TextChanged_Handler(object? sender, EventArgs e)
         {
-            var textBox = sender as TextBox;
-            var searchText = textBox?.Text;
-            if (string.IsNullOrEmpty(searchText))
-                return;
-            await _presenter.SearchAsync(searchText);
+            await TbxFindString_TextChanged(sender, e);
         }
+
+        protected override Task TbxFindString_TextChanged(object? sender, EventArgs e)
+        {
+            if (!_isInitialized)
+                return Task.CompletedTask;
+            _searchTimer?.Stop();
+            _searchTimer?.Start();
+            return Task.CompletedTask;
+        }
+
+        private void InitializeSearchTimer()
+        {
+            _searchTimer = new System.Windows.Forms.Timer
+            {
+                Interval = 300
+            };
+            _searchTimer.Tick += SearchTimer_Tick;
+        }
+
+        private async void SearchTimer_Tick(object? sender, EventArgs e)
+        {
+            _searchTimer?.Stop();
+
+            var focusState = new
+            {
+                HasFocus = tbxFindString?.Focused ?? false,
+                CursorPosition = tbxFindString?.SelectionStart ?? 0,
+                Text = tbxFindString?.Text ?? string.Empty
+            };
+
+            try
+            {
+                var searchText = focusState.Text.Trim();
+
+                await Task.Run(async () =>
+                {
+                    await _presenter.SearchAsync(searchText);
+                });
+
+                if (InvokeRequired)
+                {
+                    BeginInvoke(new Action(() =>
+                    {
+                        UpdatePaginationInfo();
+                        RestoreFocusAndCursor(focusState.HasFocus, focusState.CursorPosition);
+                    }));
+                }
+                else
+                {
+                    UpdatePaginationInfo();
+                    RestoreFocusAndCursor(focusState.HasFocus, focusState.CursorPosition);
+                }
+            }
+            catch (Exception ex)
+            {
+                if (InvokeRequired)
+                {
+                    BeginInvoke(new Action(() =>
+                    {
+                        ShowError($"Lỗi khi tìm kiếm: {ex.Message}");
+                        RestoreFocusAndCursor(focusState.HasFocus, focusState.CursorPosition);
+                    }));
+                }
+                else
+                {
+                    ShowError($"Lỗi khi tìm kiếm: {ex.Message}");
+                    RestoreFocusAndCursor(focusState.HasFocus, focusState.CursorPosition);
+                }
+            }
+        }
+
+        private void RestoreFocusAndCursor(bool hadFocus, int cursorPosition)
+        {
+            if (hadFocus && tbxFindString != null && !tbxFindString.IsDisposed)
+            {
+                BeginInvoke(new Action(() =>
+                {
+                    try
+                    {
+                        tbxFindString.Focus();
+                        if (cursorPosition <= tbxFindString.Text.Length)
+                        {
+                            tbxFindString.SelectionStart = cursorPosition;
+                            tbxFindString.SelectionLength = 0;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Lỗi khi khôi phục con trỏ: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }));
+            }
+        }
+
+
 
 
         #endregion
 
         #region Employee Management Specific Methods
 
-        private async void PerformSearch()
-        {
-            try
-            {
-                SetLoadingState(true);
-
-                await _presenter.SearchAsync(_model.SearchText);
-                UpdatePaginationInfo();
-            }
-            catch (Exception ex)
-            {
-                ShowError($"Lỗi khi tìm kiếm: {ex.Message}");
-            }
-            finally
-            {
-                SetLoadingState(false);
-            }
-        }
-
-        private void OpenAddEmployeeDialog()
-        {
-            try
-            {
-
-                MessageBox.Show("Chức năng thêm nhân viên sẽ được triển khai",
-                    "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-            catch (Exception ex)
-            {
-                ShowError($"Lỗi khi mở form thêm nhân viên: {ex.Message}");
-            }
-        }
-
-        private async void ApplyStatusFilter()
+        private async Task ApplyStatusFilter()
         {
             try
             {
@@ -293,7 +396,7 @@ namespace Dashboard.Winform.Forms
             }
         }
 
-        private async void ApplyPositionFilter()
+        private async Task ApplyPositionFilter()
         {
             try
             {
@@ -316,7 +419,7 @@ namespace Dashboard.Winform.Forms
             }
         }
 
-        private async void ApplySorting()
+        private async Task ApplySorting()
         {
             try
             {
@@ -422,27 +525,58 @@ namespace Dashboard.Winform.Forms
             MessageBox.Show(message, "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
+        private bool AreControlsInitialized()
+        {
+            return dgvListItems != null &&
+                   btnGetDetails != null &&
+                   btnAdd != null &&
+                   cbxFilter1 != null &&
+                   cbxFilter2 != null &&
+                   cbxOrderBy != null &&
+                   cbxNumbRecordsPerPage != null &&
+                   tbxFindString != null;
+        }
+
         private void SetLoadingState(bool isLoading)
         {
-            btnGetDetails.Enabled = !isLoading;
+            // Early return if controls not initialized yet
+            if (!AreControlsInitialized())
+            {
+                this.Cursor = isLoading ? Cursors.WaitCursor : Cursors.Default;
+                return;
+            }
+
+            // Safe to access all controls now
+            dgvListItems.Enabled = !isLoading;
+            btnGetDetails.Enabled = !isLoading && dgvListItems.SelectedRows.Count > 0;
             btnAdd.Enabled = !isLoading;
             cbxFilter1.Enabled = !isLoading;
             cbxFilter2.Enabled = !isLoading;
             cbxOrderBy.Enabled = !isLoading;
             cbxNumbRecordsPerPage.Enabled = !isLoading;
+            tbxFindString.Enabled = !isLoading;
 
-            this.Cursor = isLoading ? Cursors.WaitCursor : Cursors.Default;
+            Cursor = isLoading ? Cursors.WaitCursor : Cursors.Default;
         }
 
         private EmployeeViewModel? GetSelectedEmployee()
         {
-            if (dgvListItems.SelectedRows.Count > 0)
+            try
             {
-                var selectedRow = dgvListItems.SelectedRows[0];
-                return selectedRow.DataBoundItem as EmployeeViewModel;
+                if (dgvListItems.SelectedRows.Count > 0)
+                {
+                    var selectedRow = dgvListItems.SelectedRows[0];
+                    return selectedRow.DataBoundItem as EmployeeViewModel;
+                }
+                return null;
             }
-            return null;
+            catch (Exception ex)
+            {
+                ShowError($"Lỗi khi lấy nhân viên được chọn: {ex.Message}");
+                return null;
+            }
         }
+
         #endregion
 
         #region Event Handlers
@@ -454,7 +588,16 @@ namespace Dashboard.Winform.Forms
             {
                 SetLoadingState(true);
                 await _presenter.LoadDataAsync(page: _model.CurrentPage, pageSize: _model.PageSize);
+
+                if (_model.Positions?.Count > 0 && cbxFilter2.DataSource == null)
+                {
+                    cbxFilter2.DataSource = _model.Positions;
+                    if (cbxFilter2.Items.Count > 0)
+                        cbxFilter2.SelectedIndex = 0;
+                }
+
                 UpdatePaginationInfo();
+                _isInitialized = true;
                 _dataLoadingCompletionSource.SetResult(true);
             }
             catch (Exception ex)
@@ -470,13 +613,18 @@ namespace Dashboard.Winform.Forms
 
         private void ApplyEmployeesToModel(List<EmployeeViewModel> employees)
         {
-            _model.Employees.Clear();
-            foreach (var emp in employees)
+            try
             {
-                _model.Employees.Add(emp);
+                _model.Employees.Clear();
+                foreach (var emp in employees)
+                {
+                    _model.Employees.Add(emp);
+                }
             }
-
-            UpdatePaginationInfo();
+            catch (Exception ex)
+            {
+                ShowError($"Lỗi khi cập nhật danh sách nhân viên: {ex.Message}");
+            }
         }
 
         #endregion
@@ -486,7 +634,32 @@ namespace Dashboard.Winform.Forms
         private void SetupContextMenu()
         {
             var contextMenu = new ContextMenuStrip();
-            contextMenu.Items.Add("Làm mới dữ liệu", null, (s, e) => _ = Task.Run(async () => { await Task.Delay(100); if (InvokeRequired) { Invoke(new Action(async () => await RefreshDataSafely())); } else { await RefreshDataSafely(); } }));
+            contextMenu.Items.Add("Làm mới dữ liệu", null, (s, e) => _ = Task.Run(async () =>
+            {
+                await Task.Delay(100);
+                if (InvokeRequired)
+                {
+                    Invoke(new Action(async () => await RefreshDataSafely()));
+                }
+                else
+                {
+                    await RefreshDataSafely();
+                }
+            }));
+
+            contextMenu.Items.Add("Xem chi tiết", null, (s, e) =>
+            {
+                var selectedEmployee = GetSelectedEmployee();
+                if (selectedEmployee != null)
+                {
+                    OpenEmployeeDetailsDialog(selectedEmployee);
+                }
+                else
+                {
+                    ShowInfo("Vui lòng chọn một nhân viên để xem chi tiết.");
+                }
+            });
+
             dgvListItems.ContextMenuStrip = contextMenu;
         }
 
@@ -505,7 +678,6 @@ namespace Dashboard.Winform.Forms
 
                 if (selectedEmployee != null)
                 {
-                    // Again I just dunno why auto mapper not work here
                     employeeDetail = new EmployeeDetailViewModel
                     {
                         Id = selectedEmployee.Id,
@@ -538,7 +710,6 @@ namespace Dashboard.Winform.Forms
                         }
                     });
                 }
-
             }
             catch (Exception ex)
             {
@@ -590,7 +761,8 @@ namespace Dashboard.Winform.Forms
             }
         }
 
-        private void DgvListItems_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        // Fixed event handlers
+        private void DgvListItems_CellDoubleClick(object? sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex >= 0)
             {
@@ -602,61 +774,89 @@ namespace Dashboard.Winform.Forms
             }
         }
 
-        #endregion
-
-
-        #region Additional Helper Methods
-
-        /// <summary>
-        /// Setup thêm event cho DataGridView double-click
-        /// </summary>
-        private void SetupAdditionalEvents()
+        private void DgvListItems_SelectionChanged(object? sender, EventArgs e)
         {
-            if (dgvListItems != null)
-            {
-                dgvListItems.CellDoubleClick += (s, o) => DgvListItems_CellDoubleClick(s!, o);
-
-                dgvListItems.SelectionChanged += (s, e) =>
-                {
-                    btnGetDetails.Enabled = dgvListItems.SelectedRows.Count > 0;
-                };
-
-                dgvListItems.ColumnHeaderMouseClick -= DgvListItems_ColumnHeaderMouseClick;
-                dgvListItems.ColumnHeaderMouseClick += DgvListItems_ColumnHeaderMouseClick;
-            }
+            btnGetDetails.Enabled = dgvListItems.SelectedRows.Count > 0;
         }
 
-        private void DgvListItems_ColumnHeaderMouseClick(object? sender, DataGridViewCellMouseEventArgs e)
+        // Fixed column header click - similar to UserManagement pattern
+        private async void DgvListItems_ColumnHeaderMouseClick(object? sender, DataGridViewCellMouseEventArgs e)
         {
             try
             {
-                if (dgvListItems == null) return;
+                if (dgvListItems == null || e.ColumnIndex < 0 || e.ColumnIndex >= dgvListItems.Columns.Count)
+                    return;
+
                 var column = dgvListItems.Columns[e.ColumnIndex];
-                var sortBy = column.DataPropertyName ?? column.Name;
-                _ = Task.Run(async () =>
+
+                // Map column index to sort field like in UserManagement
+                string sortBy = e.ColumnIndex switch
                 {
-                    await _presenter.SortBy(sortBy);
-                    if (InvokeRequired)
-                        Invoke(new Action(UpdatePaginationInfo));
-                    else
-                        UpdatePaginationInfo();
-                });
+                    0 => "Id",
+                    1 => "BranchId",
+                    2 => "FullName",
+                    3 => "PositionName",
+                    4 => "PhoneNumber",
+                    5 => "IsActive",
+                    _ => "Id"
+                };
+
+                SetLoadingState(true);
+                await _presenter.SortBy(sortBy);
+                UpdatePaginationInfo();
             }
             catch (Exception ex)
             {
                 ShowError($"Lỗi khi sắp xếp: {ex.Message}");
+            }
+            finally
+            {
+                SetLoadingState(false);
+            }
+        }
+
+        private void DgvListItems_DataError(object? sender, DataGridViewDataErrorEventArgs e)
+        {
+            e.Cancel = true;
+
+            Console.WriteLine($"DataGridView Error - Column: {e.ColumnIndex}, Row: {e.RowIndex}, Exception: {e.Exception?.Message}");
+
+            if (e.Exception != null)
+            {
+                ShowError($"Lỗi hiển thị dữ liệu tại dòng {e.RowIndex + 1}: {e.Exception.Message}");
+            }
+        }
+
+        #endregion
+
+        #region Additional Helper Methods
+
+        private void SetupAdditionalEvents()
+        {
+            if (dgvListItems != null)
+            {
+                if (btnGetDetails != null)
+                    btnGetDetails.Enabled = false;
             }
         }
 
         private void FinalizeFormSetup()
         {
             SetupAdditionalEvents();
-
-            if (btnGetDetails != null)
-                btnGetDetails.Enabled = false;
         }
 
         #endregion
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _searchTimer?.Stop();
+                _searchTimer?.Dispose();
+                _searchTimer = null;
+            }
+            base.Dispose(disposing);
+        }
 
     }
 }

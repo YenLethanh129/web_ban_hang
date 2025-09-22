@@ -53,7 +53,6 @@ namespace Dashboard.Winform.Forms
 
         private void SetupDataBindings()
         {
-            // Clear existing bindings
             txtId.DataBindings.Clear();
             txtName.DataBindings.Clear();
             txtUnit.DataBindings.Clear();
@@ -62,7 +61,6 @@ namespace Dashboard.Winform.Forms
             txtCreated.DataBindings.Clear();
             txtUpdated.DataBindings.Clear();
 
-            // Setup data bindings
             txtId.DataBindings.Add("Text", _viewModel, nameof(_viewModel.Id), false, DataSourceUpdateMode.Never);
             txtName.DataBindings.Add("Text", _viewModel, nameof(_viewModel.Name), false, DataSourceUpdateMode.OnPropertyChanged);
             txtUnit.DataBindings.Add("Text", _viewModel, nameof(_viewModel.Unit), false, DataSourceUpdateMode.OnPropertyChanged);
@@ -72,15 +70,9 @@ namespace Dashboard.Winform.Forms
             txtUpdated.DataBindings.Add("Text", _viewModel, nameof(_viewModel.UpdatedAtFormatted), false, DataSourceUpdateMode.Never);
         }
 
-
-        /// <summary>
-        /// Set categories from caller (presenter/form) so the form uses real data instead of mock.
-        /// Call this before showing the dialog if you have categories available.
-        /// </summary>
         public async Task SetCategories(IEnumerable<IngredientCategoryViewModel> categories)
         {
             _categories = categories ?? Array.Empty<IngredientCategoryViewModel>();
-            // If the form is already loaded, refresh binding
             if (IsHandleCreated)
             {
                 await LoadCategories();

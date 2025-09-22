@@ -553,145 +553,143 @@ GO
 -- DELETE FROM [dbo].[permissions];
 -- GO
 
--- Users
+-- Landing Dashboard
 INSERT INTO [dbo].[permissions] ([name], [description], [resource], [action], [created_at], [last_modified]) VALUES
-(N'USERS_CREATE', N'Tạo người dùng mới', N'Users', N'Create', GETDATE(), GETDATE()),
-(N'USERS_READ', N'Xem thông tin người dùng', N'Users', N'Read', GETDATE(), GETDATE()),
-(N'USERS_UPDATE', N'Cập nhật thông tin người dùng', N'Users', N'Update', GETDATE(), GETDATE()),
-(N'USERS_DELETE', N'Xóa người dùng', N'Users', N'Delete', GETDATE(), GETDATE());
+(N'LANDING_DASHBOARD_READ',  N'Xem dashboard chính', N'LANDING_DASHBOARD', N'Read', GETDATE(), GETDATE());
 
--- Roles
+-- Employee
 INSERT INTO [dbo].[permissions] ([name], [description], [resource], [action], [created_at], [last_modified]) VALUES
-(N'ROLES_CREATE', N'Tạo vai trò mới', N'Roles', N'Create', GETDATE(), GETDATE()),
-(N'ROLES_READ', N'Xem thông tin vai trò', N'Roles', N'Read', GETDATE(), GETDATE()),
-(N'ROLES_UPDATE', N'Cập nhật vai trò', N'Roles', N'Update', GETDATE(), GETDATE()),
-(N'ROLES_DELETE', N'Xóa vai trò', N'Roles', N'Delete', GETDATE(), GETDATE());
+(N'EMPLOYEE_CREATE', N'Tạo nhân viên mới', N'EMPLOYEE', N'Create', GETDATE(), GETDATE()),
+(N'EMPLOYEE_READ',   N'Xem thông tin nhân viên', N'EMPLOYEE', N'Read', GETDATE(), GETDATE()),
+(N'EMPLOYEE_UPDATE', N'Cập nhật nhân viên', N'EMPLOYEE', N'Update', GETDATE(), GETDATE()),
+(N'EMPLOYEE_DELETE', N'Xóa nhân viên', N'EMPLOYEE', N'Delete', GETDATE(), GETDATE());
 
--- Permissions
+-- User Account
 INSERT INTO [dbo].[permissions] ([name], [description], [resource], [action], [created_at], [last_modified]) VALUES
-(N'PERMISSIONS_MANAGE', N'Quản lý phân quyền', N'Permissions', N'Manage', GETDATE(), GETDATE());
+(N'USER_ACCOUNT_CREATE', N'Tạo tài khoản người dùng', N'USER_ACCOUNT', N'Create', GETDATE(), GETDATE()),
+(N'USER_ACCOUNT_READ',   N'Xem thông tin tài khoản', N'USER_ACCOUNT', N'Read', GETDATE(), GETDATE()),
+(N'USER_ACCOUNT_UPDATE', N'Cập nhật tài khoản người dùng', N'USER_ACCOUNT', N'Update', GETDATE(), GETDATE()),
+(N'USER_ACCOUNT_DELETE', N'Xóa tài khoản người dùng', N'USER_ACCOUNT', N'Delete', GETDATE(), GETDATE());
 
--- Products
+-- Ingredient
 INSERT INTO [dbo].[permissions] ([name], [description], [resource], [action], [created_at], [last_modified]) VALUES
-(N'PRODUCTS_CREATE', N'Tạo sản phẩm/món mới', N'Products', N'Create', GETDATE(), GETDATE()),
-(N'PRODUCTS_READ', N'Xem thông tin sản phẩm/món', N'Products', N'Read', GETDATE(), GETDATE()),
-(N'PRODUCTS_UPDATE', N'Cập nhật sản phẩm/món', N'Products', N'Update', GETDATE(), GETDATE()),
-(N'PRODUCTS_DELETE', N'Xóa sản phẩm/món', N'Products', N'Delete', GETDATE(), GETDATE());
+(N'INGREDIENT_CREATE', N'Thêm nguyên liệu mới', N'INGREDIENT', N'Create', GETDATE(), GETDATE()),
+(N'INGREDIENT_READ',   N'Xem nguyên liệu', N'INGREDIENT', N'Read', GETDATE(), GETDATE()),
+(N'INGREDIENT_UPDATE', N'Cập nhật nguyên liệu', N'INGREDIENT', N'Update', GETDATE(), GETDATE()),
+(N'INGREDIENT_DELETE', N'Xóa nguyên liệu', N'INGREDIENT', N'Delete', GETDATE(), GETDATE());
 
--- Categories
+-- Storage
 INSERT INTO [dbo].[permissions] ([name], [description], [resource], [action], [created_at], [last_modified]) VALUES
-(N'CATEGORIES_MANAGE', N'Quản lý danh mục', N'Categories', N'Manage', GETDATE(), GETDATE());
+(N'STORAGE_CREATE', N'Tạo kho mới', N'STORAGE', N'Create', GETDATE(), GETDATE()),
+(N'STORAGE_READ',   N'Xem thông tin kho', N'STORAGE', N'Read', GETDATE(), GETDATE()),
+(N'STORAGE_UPDATE', N'Cập nhật kho', N'STORAGE', N'Update', GETDATE(), GETDATE()),
+(N'STORAGE_DELETE', N'Xóa kho', N'STORAGE', N'Delete', GETDATE(), GETDATE());
 
--- Orders
+-- Supplier
 INSERT INTO [dbo].[permissions] ([name], [description], [resource], [action], [created_at], [last_modified]) VALUES
-(N'ORDERS_CREATE', N'Tạo đơn hàng', N'Orders', N'Create', GETDATE(), GETDATE()),
-(N'ORDERS_READ', N'Xem đơn hàng', N'Orders', N'Read', GETDATE(), GETDATE()),
-(N'ORDERS_UPDATE', N'Cập nhật đơn hàng', N'Orders', N'Update', GETDATE(), GETDATE()),
-(N'ORDERS_DELETE', N'Hủy đơn hàng', N'Orders', N'Delete', GETDATE(), GETDATE());
+(N'SUPPLIER_CREATE', N'Tạo nhà cung cấp mới', N'SUPPLIER', N'Create', GETDATE(), GETDATE()),
+(N'SUPPLIER_READ',   N'Xem thông tin nhà cung cấp', N'SUPPLIER', N'Read', GETDATE(), GETDATE()),
+(N'SUPPLIER_UPDATE', N'Cập nhật nhà cung cấp', N'SUPPLIER', N'Update', GETDATE(), GETDATE()),
+(N'SUPPLIER_DELETE', N'Xóa nhà cung cấp', N'SUPPLIER', N'Delete', GETDATE(), GETDATE());
 
--- Branchs
+-- Product
 INSERT INTO [dbo].[permissions] ([name], [description], [resource], [action], [created_at], [last_modified]) VALUES
-(N'BRANCHS_CREATE', N'Tạo chi nhánh mới', N'Branchs', N'Create', GETDATE(), GETDATE()),
-(N'BRANCHS_READ', N'Xem thông tin chi nhánh', N'Branchs', N'Read', GETDATE(), GETDATE()),
-(N'BRANCHS_UPDATE', N'Cập nhật thông tin chi nhánh', N'Branchs', N'Update', GETDATE(), GETDATE()),
-(N'BRANCHS_DELETE', N'Xóa chi nhánh', N'Branchs', N'Delete', GETDATE(), GETDATE());
+(N'PRODUCT_CREATE', N'Tạo sản phẩm mới', N'PRODUCT', N'Create', GETDATE(), GETDATE()),
+(N'PRODUCT_READ',   N'Xem thông tin sản phẩm', N'PRODUCT', N'Read', GETDATE(), GETDATE()),
+(N'PRODUCT_UPDATE', N'Cập nhật sản phẩm', N'PRODUCT', N'Update', GETDATE(), GETDATE()),
+(N'PRODUCT_DELETE', N'Xóa sản phẩm', N'PRODUCT', N'Delete', GETDATE(), GETDATE());
 
--- Employees
+-- Recipe
 INSERT INTO [dbo].[permissions] ([name], [description], [resource], [action], [created_at], [last_modified]) VALUES
-(N'EMPLOYEES_MANAGE', N'Quản lý nhân viên', N'Employees', N'Manage', GETDATE(), GETDATE());
-
--- Suppliers
-INSERT INTO [dbo].[permissions] ([name], [description], [resource], [action], [created_at], [last_modified]) VALUES
-(N'SUPPLIERS_MANAGE', N'Quản lý nhà cung cấp', N'Suppliers', N'Manage', GETDATE(), GETDATE());
-
--- Customers
-INSERT INTO [dbo].[permissions] ([name], [description], [resource], [action], [created_at], [last_modified]) VALUES
-(N'CUSTOMERS_MANAGE', N'Quản lý khách hàng', N'Customers', N'Manage', GETDATE(), GETDATE());
-
--- Inventory
-INSERT INTO [dbo].[permissions] ([name], [description], [resource], [action], [created_at], [last_modified]) VALUES
-(N'INVENTORY_MANAGE', N'Quản lý kho hàng', N'Inventory', N'Manage', GETDATE(), GETDATE());
-
--- Shipments
-INSERT INTO [dbo].[permissions] ([name], [description], [resource], [action], [created_at], [last_modified]) VALUES
-(N'SHIPMENTS_MANAGE', N'Quản lý giao hàng', N'Shipments', N'Manage', GETDATE(), GETDATE());
-
--- Invoices
-INSERT INTO [dbo].[permissions] ([name], [description], [resource], [action], [created_at], [last_modified]) VALUES
-(N'INVOICES_MANAGE', N'Quản lý hóa đơn', N'Invoices', N'Manage', GETDATE(), GETDATE());
-
--- Reviews
-INSERT INTO [dbo].[permissions] ([name], [description], [resource], [action], [created_at], [last_modified]) VALUES
-(N'REVIEWS_MANAGE', N'Quản lý đánh giá', N'Reviews', N'Manage', GETDATE(), GETDATE());
-
--- Analytics
-INSERT INTO [dbo].[permissions] ([name], [description], [resource], [action], [created_at], [last_modified]) VALUES
-(N'ANALYTICS_MANAGE', N'Xem phân tích dữ liệu', N'Analytics', N'Manage', GETDATE(), GETDATE());
-
--- FinancialReports
-INSERT INTO [dbo].[permissions] ([name], [description], [resource], [action], [created_at], [last_modified]) VALUES
-(N'FINANCIALREPORTS_MANAGE', N'Xem báo cáo tài chính', N'FinancialReports', N'Manage', GETDATE(), GETDATE());
+(N'RECIPE_CREATE', N'Tạo công thức mới', N'RECIPE', N'Create', GETDATE(), GETDATE()),
+(N'RECIPE_READ',   N'Xem công thức', N'RECIPE', N'Read', GETDATE(), GETDATE()),
+(N'RECIPE_UPDATE', N'Cập nhật công thức', N'RECIPE', N'Update', GETDATE(), GETDATE()),
+(N'RECIPE_DELETE', N'Xóa công thức', N'RECIPE', N'Delete', GETDATE(), GETDATE());
 GO
 
 
+
 -- Insert into role_permissions
-INSERT INTO [dbo].[role_permissions] ([role_id], [permission_id], [created_at], [last_modified]) VALUES
+-- Insert into role_permissions
+
 -- MANAGER
+INSERT INTO [dbo].[role_permissions] ([role_id], [permission_id], [created_at], [last_modified]) VALUES
+-- Quản lý tài khoản người dùng
 ((SELECT id FROM [dbo].[roles] WHERE name = 'MANAGER'),
- (SELECT id FROM [dbo].[permissions] WHERE name = 'USERS_CREATE'), GETDATE(), GETDATE()),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'USER_ACCOUNT_CREATE'), GETDATE(), GETDATE()),
 ((SELECT id FROM [dbo].[roles] WHERE name = 'MANAGER'),
- (SELECT id FROM [dbo].[permissions] WHERE name = 'USERS_READ'), GETDATE(), GETDATE()),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'USER_ACCOUNT_READ'), GETDATE(), GETDATE()),
 ((SELECT id FROM [dbo].[roles] WHERE name = 'MANAGER'),
- (SELECT id FROM [dbo].[permissions] WHERE name = 'USERS_UPDATE'), GETDATE(), GETDATE()),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'USER_ACCOUNT_UPDATE'), GETDATE(), GETDATE()),
+
+-- Quản lý nhân viên
 ((SELECT id FROM [dbo].[roles] WHERE name = 'MANAGER'),
- (SELECT id FROM [dbo].[permissions] WHERE name = 'PRODUCTS_READ'), GETDATE(), GETDATE()),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'EMPLOYEE_READ'), GETDATE(), GETDATE()),
 ((SELECT id FROM [dbo].[roles] WHERE name = 'MANAGER'),
- (SELECT id FROM [dbo].[permissions] WHERE name = 'PRODUCTS_UPDATE'), GETDATE(), GETDATE()),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'EMPLOYEE_UPDATE'), GETDATE(), GETDATE()),
+
+-- Sản phẩm
 ((SELECT id FROM [dbo].[roles] WHERE name = 'MANAGER'),
- (SELECT id FROM [dbo].[permissions] WHERE name = 'ORDERS_CREATE'), GETDATE(), GETDATE()),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'PRODUCT_READ'), GETDATE(), GETDATE()),
 ((SELECT id FROM [dbo].[roles] WHERE name = 'MANAGER'),
- (SELECT id FROM [dbo].[permissions] WHERE name = 'ORDERS_READ'), GETDATE(), GETDATE()),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'PRODUCT_UPDATE'), GETDATE(), GETDATE()),
+
+-- Nguyên liệu / kho
 ((SELECT id FROM [dbo].[roles] WHERE name = 'MANAGER'),
- (SELECT id FROM [dbo].[permissions] WHERE name = 'ORDERS_UPDATE'), GETDATE(), GETDATE()),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'INGREDIENT_READ'), GETDATE(), GETDATE()),
 ((SELECT id FROM [dbo].[roles] WHERE name = 'MANAGER'),
- (SELECT id FROM [dbo].[permissions] WHERE name = 'ORDERS_DELETE'), GETDATE(), GETDATE()),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'STORAGE_READ'), GETDATE(), GETDATE()),
+
+-- Công thức
 ((SELECT id FROM [dbo].[roles] WHERE name = 'MANAGER'),
- (SELECT id FROM [dbo].[permissions] WHERE name = 'INVENTORY_MANAGE'), GETDATE(), GETDATE()),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'RECIPE_READ'), GETDATE(), GETDATE()),
 ((SELECT id FROM [dbo].[roles] WHERE name = 'MANAGER'),
- (SELECT id FROM [dbo].[permissions] WHERE name = 'FINANCIALREPORTS_MANAGE'), GETDATE(), GETDATE()),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'RECIPE_UPDATE'), GETDATE(), GETDATE()),
+
+-- Nhà cung cấp
 ((SELECT id FROM [dbo].[roles] WHERE name = 'MANAGER'),
- (SELECT id FROM [dbo].[permissions] WHERE name = 'ANALYTICS_MANAGE'), GETDATE(), GETDATE()),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'SUPPLIER_READ'), GETDATE(), GETDATE()),
 ((SELECT id FROM [dbo].[roles] WHERE name = 'MANAGER'),
- (SELECT id FROM [dbo].[permissions] WHERE name = 'BRANCHS_READ'), GETDATE(), GETDATE()),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'SUPPLIER_UPDATE'), GETDATE(), GETDATE()),
+
+-- Dashboard
 ((SELECT id FROM [dbo].[roles] WHERE name = 'MANAGER'),
- (SELECT id FROM [dbo].[permissions] WHERE name = 'BRANCHS_UPDATE'), GETDATE(), GETDATE()),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'LANDING_DASHBOARD_READ'), GETDATE(), GETDATE());
+
+
 
 -- EMPLOYEE
+INSERT INTO [dbo].[role_permissions] ([role_id], [permission_id], [created_at], [last_modified]) VALUES
 ((SELECT id FROM [dbo].[roles] WHERE name = 'EMPLOYEE'),
- (SELECT id FROM [dbo].[permissions] WHERE name = 'PRODUCTS_READ'), GETDATE(), GETDATE()),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'PRODUCT_READ'), GETDATE(), GETDATE()),
 ((SELECT id FROM [dbo].[roles] WHERE name = 'EMPLOYEE'),
- (SELECT id FROM [dbo].[permissions] WHERE name = 'ORDERS_CREATE'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'EMPLOYEE'),
- (SELECT id FROM [dbo].[permissions] WHERE name = 'ORDERS_READ'), GETDATE(), GETDATE()),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'RECIPE_READ'), GETDATE(), GETDATE());
+
+
 
 -- CASHIER
+INSERT INTO [dbo].[role_permissions] ([role_id], [permission_id], [created_at], [last_modified]) VALUES
 ((SELECT id FROM [dbo].[roles] WHERE name = 'CASHIER'),
- (SELECT id FROM [dbo].[permissions] WHERE name = 'PRODUCTS_READ'), GETDATE(), GETDATE()),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'PRODUCT_READ'), GETDATE(), GETDATE()),
 ((SELECT id FROM [dbo].[roles] WHERE name = 'CASHIER'),
- (SELECT id FROM [dbo].[permissions] WHERE name = 'ORDERS_CREATE'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'CASHIER'),
- (SELECT id FROM [dbo].[permissions] WHERE name = 'ORDERS_READ'), GETDATE(), GETDATE()),
-((SELECT id FROM [dbo].[roles] WHERE name = 'CASHIER'),
- (SELECT id FROM [dbo].[permissions] WHERE name = 'ORDERS_UPDATE'), GETDATE(), GETDATE()),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'USER_ACCOUNT_READ'), GETDATE(), GETDATE());
+
+
 
 -- WAREHOUSE_STAFF
+INSERT INTO [dbo].[role_permissions] ([role_id], [permission_id], [created_at], [last_modified]) VALUES
 ((SELECT id FROM [dbo].[roles] WHERE name = 'WAREHOUSE_STAFF'),
- (SELECT id FROM [dbo].[permissions] WHERE name = 'PRODUCTS_READ'), GETDATE(), GETDATE()),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'INGREDIENT_READ'), GETDATE(), GETDATE()),
 ((SELECT id FROM [dbo].[roles] WHERE name = 'WAREHOUSE_STAFF'),
- (SELECT id FROM [dbo].[permissions] WHERE name = 'INVENTORY_MANAGE'), GETDATE(), GETDATE());
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'INGREDIENT_UPDATE'), GETDATE(), GETDATE()),
+((SELECT id FROM [dbo].[roles] WHERE name = 'WAREHOUSE_STAFF'),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'STORAGE_READ'), GETDATE(), GETDATE()),
+((SELECT id FROM [dbo].[roles] WHERE name = 'WAREHOUSE_STAFF'),
+ (SELECT id FROM [dbo].[permissions] WHERE name = 'STORAGE_UPDATE'), GETDATE(), GETDATE());
 
 
--- ADMIN
+
+-- ADMIN: full quyền
 INSERT INTO [dbo].[role_permissions] ([role_id], [permission_id], [created_at], [last_modified])
 SELECT 
     r.id, 
@@ -706,6 +704,8 @@ WHERE r.name = 'ADMIN'
       FROM [dbo].[role_permissions] rp
       WHERE rp.role_id = r.id AND rp.permission_id = p.id
   );
+GO
+
 
 
 
@@ -1458,7 +1458,8 @@ INSERT INTO [dbo].[employee_users] ([username], [password], [is_active], [employ
 ('employee_7', 'hashed_emp_password', 1, 7, 6, GETDATE(), GETDATE()), -- Ngô Văn G
 ('employee_8', 'hashed_emp_password', 1, 8, 6, GETDATE(), GETDATE()), -- Bùi Thị H
 ('employee_9', 'hashed_emp_password', 1, 9, 6, GETDATE(), GETDATE()), -- Vũ Văn I
-('employee_10', 'hashed_emp_password', 1, 10, 6, GETDATE(), GETDATE()); -- Lý Thị J
+('employee_10', 'hashed_emp_password', 1, 10, 6, GETDATE(), GETDATE()), -- Lý Thị J
+('taosieudeptrai','ilDlJ0bK+KzUGWbioKQCI/zrHh2mrjtNRcrjEAu1UXQ=',1, 10, 6, GETDATE(), GETDATE());
 GO
 
 -- Order Payments for the 50 additional orders
@@ -2011,6 +2012,4 @@ PRINT N'✅ BULK ORDERS DATA INSERTION COMPLETED SUCCESSFULLY! ✅';
 PRINT N'📊 Total: 50 Orders + 150+ Order Details + 50 Payments + 20+ Shipments';
 PRINT N'🗓️  Date Range: Random dates within the past 365 days';
 PRINT N'💰 Revenue Range: 75k - 885k VND per order';
-PRINT N'🎯 Perfect for Dashboard Charts and Analytics!';
-GO
 GO

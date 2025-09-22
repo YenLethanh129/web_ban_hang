@@ -802,7 +802,7 @@ public partial class FrmInventoryManagement : Form
     {
         var openFileDialog = new OpenFileDialog
         {
-            Filter = "Excel Files|*.xlsx;*.xls",
+            Filter = "Excel Files|*.xlsx;*.xls;*.csv;*.txt",
             Title = "Chọn file Excel để import"
         };
 
@@ -1242,6 +1242,11 @@ public partial class FrmInventoryManagement : Form
     }
 
     #endregion
+
+    private void panel8_Paint(object sender, PaintEventArgs e)
+    {
+
+    }
 }
 
 // Helper form for quantity input
@@ -1365,7 +1370,6 @@ public partial class QuantityInputForm : Form
 
     private void SetupForm()
     {
-        // This would normally load branches from a service
         cbxToBranch.Items.Add("Chi nhánh 1");
         cbxToBranch.Items.Add("Chi nhánh 2");
         if (cbxToBranch.Items.Count > 0) cbxToBranch.SelectedIndex = 0;
@@ -1373,7 +1377,7 @@ public partial class QuantityInputForm : Form
         btnOK.Click += (s, e) =>
         {
             Quantity = numQuantity.Value;
-            ToBranchId = 1; // Would get from selected branch
+            ToBranchId = 1;
             ToBranchName = cbxToBranch.SelectedItem?.ToString() ?? "";
             Notes = txtNotes.Text;
         };

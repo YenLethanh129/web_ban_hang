@@ -95,11 +95,10 @@ public class EmployeeManagementPresenter : IEmployeeManagementPresenter
                 await LoadPositions();
             }
 
-
-            _currentSearchTerm = searchTerm ?? string.Empty;
-            _currentStatusFilter = "All";
-            _currentPositionFilter = position;
-            _currentBranchFilter = branchId;
+            _currentSearchTerm = searchTerm ?? _currentSearchTerm ?? string.Empty;
+            _currentStatusFilter = _currentStatusFilter ?? "All";
+            _currentPositionFilter = position ?? _currentPositionFilter;
+            _currentBranchFilter = branchId ?? _currentBranchFilter;
 
             Model.PageSize = pageSize ?? 10;
             Model.CurrentPage = page ?? 1;
@@ -201,7 +200,12 @@ public class EmployeeManagementPresenter : IEmployeeManagementPresenter
                 "id" => _sortDescending ? query.OrderByDescending(e => e.Id) : query.OrderBy(e => e.Id),
                 "fullname" => _sortDescending ? query.OrderByDescending(e => e.FullName) : query.OrderBy(e => e.FullName),
                 "position" => _sortDescending ? query.OrderByDescending(e => e.PositionName) : query.OrderBy(e => e.PositionName),
+                "positionname" => _sortDescending ? query.OrderByDescending(e => e.PositionName) : query.OrderBy(e => e.PositionName),
                 "hiredate" => _sortDescending ? query.OrderByDescending(e => e.HireDate) : query.OrderBy(e => e.HireDate),
+                "branchid" => _sortDescending ? query.OrderByDescending(e => e.BranchId) : query.OrderBy(e => e.BranchId),
+                "phonenumber" => _sortDescending ? query.OrderByDescending(e => e.PhoneNumber) : query.OrderBy(e => e.PhoneNumber),
+                "email" => _sortDescending ? query.OrderByDescending(e => e.Email) : query.OrderBy(e => e.Email),
+                "isactive" => _sortDescending ? query.OrderByDescending(e => e.IsActive) : query.OrderBy(e => e.IsActive),
                 _ => query.OrderBy(e => e.Id)
             };
         }
@@ -226,7 +230,8 @@ public class EmployeeManagementPresenter : IEmployeeManagementPresenter
     private List<EmployeeViewModel> GetCurrentPageEmployees()
     {
         int skip = (Model.CurrentPage - 1) * Model.PageSize;
-        return [.. _filteredEmployees.Skip(skip).Take(Model.PageSize)];
+        if (skip < 0) skip = 0;
+        return _filteredEmployees.Skip(skip).Take(Model.PageSize).ToList();
     }
 
     public async Task SearchAsync(string searchTerm)
@@ -235,14 +240,28 @@ public class EmployeeManagementPresenter : IEmployeeManagementPresenter
         try
         {
             _currentSearchTerm = searchTerm ?? string.Empty;
-            Model.SearchText = _currentSearchTerm;
             Model.CurrentPage = 1;
+
+            if (!_allEmployeesCache.Any())
+            {
+                await LoadAllDataToCache();
+            }
+
             ApplyFiltersAndSort();
         }
         finally
         {
             _semaphore.Release();
         }
+
+        //_currentSearchTerm = searchTerm ?? string.Empty;
+        //Model.CurrentPage = 1;
+
+        //await LoadAllDataToCache();
+
+        //ApplyFiltersAndSort();
+
+        //OnDataLoaded?.Invoke(this, new EmployeesLoadedEventArgs(GetCurrentPageEmployees()));
     }
 
     public async Task FilterByStatusAsync(string status)

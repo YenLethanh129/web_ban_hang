@@ -51,5 +51,20 @@ public class ProductMappingProfile : Profile
         CreateMap<TaxDto, Taxes>();
         CreateMap<CreateTaxInput, Taxes>();
         CreateMap<UpdateTaxInput, Taxes>();
+
+        CreateMap<Recipe, RecipeDto>()
+            .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name))
+            .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => src.LastModified));
+
+        CreateMap<CreateRecipeInput, Recipe>();
+        CreateMap<UpdateRecipeInput, Recipe>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.CreatedAt, opt => opt.Ignore());
+
+        CreateMap<RecipeIngredient, RecipeIngredientDto>()
+            .ForMember(dest => dest.IngredientName, opt => opt.MapFrom(src => src.Ingredient.Name));
+
+
+
     }
 }

@@ -8,7 +8,6 @@ namespace Dashboard.StockWorker.Services
     public class StockCalculationService
     {
         private readonly WebbanhangDbContext _context;
-        // Default lead time in days to use when the DB schema does not store per-threshold lead time
         private const int DEFAULT_LEAD_TIME_DAYS = 7;
 
         public StockCalculationService(WebbanhangDbContext context)
@@ -19,8 +18,6 @@ namespace Dashboard.StockWorker.Services
         public async Task CalculateAndUpdateReorderPointsAsync()
         {
             Console.WriteLine("Bắt đầu tính toán điểm đặt hàng lại...");
-            // Project only the columns we know exist in your schema to avoid EF trying to read
-            // missing columns in mapped entities. We'll fetch ingredient/branch display fields separately.
             var thresholds = await _context.InventoryThresholds
                 .Select(t => new
                 {
@@ -37,19 +34,14 @@ namespace Dashboard.StockWorker.Services
                 var avgDailyConsumption = await CalculateAverageDailyConsumptionAsync(
                     t.BranchId, t.IngredientId);
 
-                // Use a sensible default lead time when DB doesn't hold it
                 var leadTimeDays = DEFAULT_LEAD_TIME_DAYS;
 
                 var reorderPoint = await CalculateReorderPointAsync(
                     avgDailyConsumption, leadTimeDays, t.SafetyStock);
-
-                // Update only the columns that exist in the schema using a raw SQL to avoid
-                // materializing entities that map to missing columns in DB.
                 await _context.Database.ExecuteSqlRawAsync(
                     "UPDATE [dbo].[inventory_thresholds] SET reorder_point = {0}, safety_stock = {1}, last_modified = {2} WHERE id = {3}",
                     reorderPoint, t.SafetyStock, DateTime.UtcNow, t.Id);
 
-                // Fetch ingredient name for logging only (select scalar to avoid loading full entity)
                 var ingredientName = await _context.Ingredients
                     .Where(i => i.Id == t.IngredientId)
                     .Select(i => i.Name)
@@ -62,11 +54,6 @@ namespace Dashboard.StockWorker.Services
         public async Task<decimal> CalculateAverageDailyConsumptionAsync(long branchId, long ingredientId)
         {
             var thirtyDaysAgo = DateTime.UtcNow.AddDays(-30);
-
-            // Some deployments store order product consumption in order tables, others rely
-            // on inventory_movements (OUT). To avoid schema mismatch with Orders/OrderDetails
-            // in the target DB, compute consumption from inventory_movements only using a
-            // raw SQL projection that aliases snake_case columns to the EF property names.
 
             var movementConsumption = await _context.InventoryMovements
                 .FromSqlRaw(@"
@@ -103,13 +90,10 @@ namespace Dashboard.StockWorker.Services
             return Task.FromResult(Math.Max(rop, 1m));
         }
 
-        // Return rich StockAlert objects so notification logic can be centralized in the notification service
         public async Task<List<StockAlert>> GetLowStockAlertsAsync()
         {
             var results = new List<StockAlert>();
 
-            // Avoid selecting non-existent columns by projecting only known fields and
-            // retrieving display names / units with separate scalar queries.
             var thresholds = await _context.InventoryThresholds
                 .Select(t => new
                 {
@@ -123,7 +107,6 @@ namespace Dashboard.StockWorker.Services
 
             foreach (var t in thresholds)
             {
-                // Get current quantity as scalar to avoid loading entity properties that may not exist
                 var currentQty = await _context.BranchIngredientInventories
                     .Where(bi => bi.BranchId == t.BranchId && bi.IngredientId == t.IngredientId)
                     .Select(bi => (decimal?)bi.Quantity)
@@ -135,7 +118,6 @@ namespace Dashboard.StockWorker.Services
                 if (currentQty <= t.SafetyStock) level = StockAlertLevel.OutOfStock;
                 else if (currentQty <= t.ReorderPoint) level = StockAlertLevel.Critical;
 
-                // Fetch ingredient display fields and branch name as scalars
                 var ing = await _context.Ingredients
                     .Where(i => i.Id == t.IngredientId)
                     .Select(i => new { i.Name, i.Unit })
@@ -159,25 +141,20 @@ namespace Dashboard.StockWorker.Services
                     AverageDailyConsumption = avgDaily,
                     DaysRemaining = daysRemaining,
                     AlertLevel = level,
-                    // ThresholdId = t.Id
                 };
 
-                // Only include alerts where current <= reorder point (low)
                 if (currentQty <= t.ReorderPoint)
                     results.Add(alert);
             }
 
-            // Also check ingredient_warehouse (central warehouse) levels and include alerts
             var warehouses = await _context.IngredientWarehouses
                 .Select(w => new { w.IngredientId, w.Quantity, w.SafetyStock })
                 .ToListAsync();
 
             foreach (var w in warehouses)
             {
-                // We'll compare warehouse quantity against a sensible reorder point estimated from average daily consumption across all branches
                 var avgDailyAcrossBranches = 0m;
 
-                // Compute average daily consumption by summing branch consumptions for the ingredient over 30 days
                 var branchIds = await _context.Branches.Select(b => b.Id).ToListAsync();
                 var totalConsumption = 0m;
                 foreach (var branchId in branchIds)
@@ -186,7 +163,6 @@ namespace Dashboard.StockWorker.Services
                 }
                 avgDailyAcrossBranches = Math.Max(totalConsumption, 0m);
 
-                // Use same default lead time
                 var leadTimeDays = DEFAULT_LEAD_TIME_DAYS;
                 var estimatedRop = await CalculateReorderPointAsync(avgDailyAcrossBranches, leadTimeDays, w.SafetyStock);
 
@@ -202,7 +178,7 @@ namespace Dashboard.StockWorker.Services
 
                 var warehouseAlert = new StockAlert
                 {
-                    BranchId = 0, // 0 indicates central warehouse
+                    BranchId = 0,
                     BranchName = "Warehouse",
                     IngredientId = w.IngredientId,
                     IngredientName = ing?.Name ?? string.Empty,

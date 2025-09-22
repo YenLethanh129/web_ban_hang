@@ -317,7 +317,7 @@ namespace Dashboard.Winform.Forms
             _model.BranchPhone = employee.BranchPhone;
             _model.BranchManager = employee.BranchManager;
             _model.HasAccount = employee.HasAccount;
-            _model.PhoneAsUsername = employee.PhoneAsUsername;
+            _model.Username = employee.Username;
             _model.Role = employee.Role;
             _model.Salaries = employee.Salaries;
             _model.Payrolls = employee.Payrolls;
@@ -341,7 +341,7 @@ namespace Dashboard.Winform.Forms
                 {
 
                     await _presenter.LoadLookupsAsync();
-                    BindModelToUI(); // Thêm bind sau load lookups
+                    BindModelToUI();
                     if (_employeeId.HasValue)
                     {
                         await _presenter.LoadEmployeeDetailsAsync(_employeeId.Value);
@@ -453,7 +453,7 @@ namespace Dashboard.Winform.Forms
             grpAccountInfo.Enabled = chkHasAccount.Checked;
             if (!chkHasAccount.Checked)
             {
-                _model.PhoneAsUsername = "";
+                _model.Username = "";
                 _model.Role = "";
             }
         }
@@ -655,7 +655,7 @@ namespace Dashboard.Winform.Forms
             chkResignDate.DataBindings.Add(resignDateBinding);
             chkHasAccount.DataBindings.Add("Checked", _model, nameof(EmployeeDetailViewModel.HasAccount), true, DataSourceUpdateMode.OnPropertyChanged);
 
-            txtUsername.DataBindings.Add("Text", _model, nameof(EmployeeDetailViewModel.PhoneAsUsername), true, DataSourceUpdateMode.OnPropertyChanged);
+            txtUsername.DataBindings.Add("Text", _model, nameof(EmployeeDetailViewModel.Username), true, DataSourceUpdateMode.OnPropertyChanged);
             txtRole.DataBindings.Add("Text", _model, nameof(EmployeeDetailViewModel.Role), true, DataSourceUpdateMode.OnPropertyChanged);
 
             dgvSalaries.DataSource = _model.Salaries;

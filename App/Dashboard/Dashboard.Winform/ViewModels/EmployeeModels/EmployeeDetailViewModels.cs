@@ -68,7 +68,6 @@ namespace Dashboard.Winform.ViewModels.EmployeeModels
         #region Account Information
 
         public bool HasAccount { get; set; }
-        public string PhoneAsUsername { get; set; } = string.Empty;
         public string Role { get; set; } = string.Empty;
         public string HashedPassword { get; set; } = string.Empty;
         public string AuthToken { get; set; } = string.Empty;

@@ -306,9 +306,9 @@
             // 
             tbxFindString.BackColor = Color.FromArgb(42, 45, 86);
             tbxFindString.BorderStyle = BorderStyle.None;
-            tbxFindString.Dock = DockStyle.Bottom;
             tbxFindString.ForeColor = Color.FromArgb(192, 255, 192);
             tbxFindString.Location = new Point(5, 22);
+            tbxFindString.Dock = DockStyle.Bottom;
             tbxFindString.Margin = new Padding(5, 5, 10, 5);
             tbxFindString.Name = "tbxFindString";
             tbxFindString.PlaceholderText = "Tên/ID cần tìm ";
