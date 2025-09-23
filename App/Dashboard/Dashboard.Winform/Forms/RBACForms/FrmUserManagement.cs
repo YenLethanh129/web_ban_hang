@@ -656,7 +656,6 @@ public partial class FrmUserManagement : FrmBaseAuthForm
         var selectedUser = GetSelectedUser();
         if (selectedUser != null)
         {
-            LoadUserForEdit(selectedUser);
             tabControl.SelectedTab = tabUserDetail;
         }
         else
@@ -665,7 +664,7 @@ public partial class FrmUserManagement : FrmBaseAuthForm
         }
     }
 
-    private void TabControl_SelectedIndexChanged(object sender, EventArgs e)
+    private async void TabControl_SelectedIndexChanged(object sender, EventArgs e)
     {
         if (tabControl.SelectedTab == tabRoleAssignment)
         {
@@ -674,6 +673,10 @@ public partial class FrmUserManagement : FrmBaseAuthForm
             {
                 LoadUserRoles(selectedUser);
             }
+        }
+        if (tabControl.SelectedTab == tabUserDetail)
+        {
+            await LoadEmployeesForSelection();
         }
     }
 

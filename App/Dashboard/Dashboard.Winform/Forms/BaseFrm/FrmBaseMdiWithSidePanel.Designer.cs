@@ -69,9 +69,12 @@ namespace Dashboard.Winform
             pnSBEmployee = new Panel();
             iconSBEmployee = new PictureBox();
             btnSBEmployee = new Button();
-            pnSBCustomer = new Panel();
+            pnSBUserAccount = new Panel();
             iconSBCustomer = new PictureBox();
             btnSBAccount = new Button();
+            pnSBRolePermission = new Panel();
+            iconSBRolePermission = new PictureBox();
+            btnSBRolePermission = new Button();
             fpnSBIngredientContainer = new FlowLayoutPanel();
             pnIngredient = new Panel();
             pictureBox2 = new PictureBox();
@@ -89,7 +92,7 @@ namespace Dashboard.Winform
             iconSBProduct = new PictureBox();
             btnSBProduct = new Button();
             pnSignOut = new Panel();
-            pictureBox1 = new PictureBox();
+            iconSBSignOut = new PictureBox();
             btnSBSignOut = new Button();
             pnSBExit = new Panel();
             iconSBExit = new PictureBox();
@@ -112,8 +115,10 @@ namespace Dashboard.Winform
             ((System.ComponentModel.ISupportInitialize)iconSBUser).BeginInit();
             pnSBEmployee.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)iconSBEmployee).BeginInit();
-            pnSBCustomer.SuspendLayout();
+            pnSBUserAccount.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)iconSBCustomer).BeginInit();
+            pnSBRolePermission.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)iconSBRolePermission).BeginInit();
             fpnSBIngredientContainer.SuspendLayout();
             pnIngredient.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox2).BeginInit();
@@ -126,7 +131,7 @@ namespace Dashboard.Winform
             pnSBProduct.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)iconSBProduct).BeginInit();
             pnSignOut.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)iconSBSignOut).BeginInit();
             pnSBExit.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)iconSBExit).BeginInit();
             pnMainDisplayRegion.SuspendLayout();
@@ -245,7 +250,8 @@ namespace Dashboard.Winform
             fpnUserManagementContainer.BackColor = Color.FromArgb(54, 58, 105);
             fpnUserManagementContainer.Controls.Add(pnUserManagement);
             fpnUserManagementContainer.Controls.Add(pnSBEmployee);
-            fpnUserManagementContainer.Controls.Add(pnSBCustomer);
+            fpnUserManagementContainer.Controls.Add(pnSBUserAccount);
+            fpnUserManagementContainer.Controls.Add(pnSBRolePermission);
             fpnUserManagementContainer.Location = new Point(0, 156);
             fpnUserManagementContainer.Margin = new Padding(0);
             fpnUserManagementContainer.Name = "fpnUserManagementContainer";
@@ -320,15 +326,15 @@ namespace Dashboard.Winform
             btnSBEmployee.Text = "Nhân sự";
             btnSBEmployee.UseVisualStyleBackColor = false;
             // 
-            // pnSBCustomer
+            // pnSBUserAccount
             // 
-            pnSBCustomer.Controls.Add(iconSBCustomer);
-            pnSBCustomer.Controls.Add(btnSBAccount);
-            pnSBCustomer.Location = new Point(0, 100);
-            pnSBCustomer.Margin = new Padding(0);
-            pnSBCustomer.Name = "pnSBCustomer";
-            pnSBCustomer.Size = new Size(246, 50);
-            pnSBCustomer.TabIndex = 7;
+            pnSBUserAccount.Controls.Add(iconSBCustomer);
+            pnSBUserAccount.Controls.Add(btnSBAccount);
+            pnSBUserAccount.Location = new Point(0, 100);
+            pnSBUserAccount.Margin = new Padding(0);
+            pnSBUserAccount.Name = "pnSBUserAccount";
+            pnSBUserAccount.Size = new Size(246, 50);
+            pnSBUserAccount.TabIndex = 7;
             // 
             // iconSBCustomer
             // 
@@ -346,12 +352,45 @@ namespace Dashboard.Winform
             btnSBAccount.BackColor = Color.FromArgb(54, 58, 105);
             btnSBAccount.Font = new Font("Microsoft Sans Serif", 11F);
             btnSBAccount.ForeColor = Color.Gainsboro;
-            btnSBAccount.Location = new Point(-66, -7);
+            btnSBAccount.Location = new Point(-67, -7);
             btnSBAccount.Name = "btnSBAccount";
             btnSBAccount.Size = new Size(384, 70);
             btnSBAccount.TabIndex = 2;
             btnSBAccount.Text = "Tài khoản";
             btnSBAccount.UseVisualStyleBackColor = false;
+            // 
+            // pnSBRolePermission
+            // 
+            pnSBRolePermission.Controls.Add(iconSBRolePermission);
+            pnSBRolePermission.Controls.Add(btnSBRolePermission);
+            pnSBRolePermission.Location = new Point(0, 150);
+            pnSBRolePermission.Margin = new Padding(0);
+            pnSBRolePermission.Name = "pnSBRolePermission";
+            pnSBRolePermission.Size = new Size(246, 50);
+            pnSBRolePermission.TabIndex = 8;
+            // 
+            // iconSBRolePermission
+            // 
+            iconSBRolePermission.BackColor = Color.FromArgb(54, 58, 105);
+            iconSBRolePermission.Image = (Image)resources.GetObject("iconSBRolePermission.Image");
+            iconSBRolePermission.Location = new Point(44, 16);
+            iconSBRolePermission.Name = "iconSBRolePermission";
+            iconSBRolePermission.Size = new Size(28, 25);
+            iconSBRolePermission.SizeMode = PictureBoxSizeMode.StretchImage;
+            iconSBRolePermission.TabIndex = 3;
+            iconSBRolePermission.TabStop = false;
+            // 
+            // btnSBRolePermission
+            // 
+            btnSBRolePermission.BackColor = Color.FromArgb(54, 58, 105);
+            btnSBRolePermission.Font = new Font("Microsoft Sans Serif", 11F);
+            btnSBRolePermission.ForeColor = Color.Gainsboro;
+            btnSBRolePermission.Location = new Point(-47, -7);
+            btnSBRolePermission.Name = "btnSBRolePermission";
+            btnSBRolePermission.Size = new Size(384, 70);
+            btnSBRolePermission.TabIndex = 2;
+            btnSBRolePermission.Text = "Vai trò và quyền";
+            btnSBRolePermission.UseVisualStyleBackColor = false;
             // 
             // fpnSBIngredientContainer
             // 
@@ -539,7 +578,7 @@ namespace Dashboard.Winform
             // 
             // pnSignOut
             // 
-            pnSignOut.Controls.Add(pictureBox1);
+            pnSignOut.Controls.Add(iconSBSignOut);
             pnSignOut.Controls.Add(btnSBSignOut);
             pnSignOut.Location = new Point(0, 356);
             pnSignOut.Margin = new Padding(0);
@@ -547,16 +586,16 @@ namespace Dashboard.Winform
             pnSignOut.Size = new Size(246, 50);
             pnSignOut.TabIndex = 11;
             // 
-            // pictureBox1
+            // iconSBSignOut
             // 
-            pictureBox1.BackColor = Color.FromArgb(54, 58, 105);
-            pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
-            pictureBox1.Location = new Point(15, 16);
-            pictureBox1.Name = "pictureBox1";
-            pictureBox1.Size = new Size(28, 25);
-            pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
-            pictureBox1.TabIndex = 3;
-            pictureBox1.TabStop = false;
+            iconSBSignOut.BackColor = Color.FromArgb(54, 58, 105);
+            iconSBSignOut.Image = (Image)resources.GetObject("iconSBSignOut.Image");
+            iconSBSignOut.Location = new Point(15, 16);
+            iconSBSignOut.Name = "iconSBSignOut";
+            iconSBSignOut.Size = new Size(28, 25);
+            iconSBSignOut.SizeMode = PictureBoxSizeMode.StretchImage;
+            iconSBSignOut.TabIndex = 3;
+            iconSBSignOut.TabStop = false;
             // 
             // btnSBSignOut
             // 
@@ -703,8 +742,10 @@ namespace Dashboard.Winform
             ((System.ComponentModel.ISupportInitialize)iconSBUser).EndInit();
             pnSBEmployee.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)iconSBEmployee).EndInit();
-            pnSBCustomer.ResumeLayout(false);
+            pnSBUserAccount.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)iconSBCustomer).EndInit();
+            pnSBRolePermission.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)iconSBRolePermission).EndInit();
             fpnSBIngredientContainer.ResumeLayout(false);
             pnIngredient.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)pictureBox2).EndInit();
@@ -717,7 +758,7 @@ namespace Dashboard.Winform
             pnSBProduct.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)iconSBProduct).EndInit();
             pnSignOut.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
+            ((System.ComponentModel.ISupportInitialize)iconSBSignOut).EndInit();
             pnSBExit.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)iconSBExit).EndInit();
             pnMainDisplayRegion.ResumeLayout(false);
@@ -737,7 +778,7 @@ namespace Dashboard.Winform
         private Panel pnSBLanding;
         private PictureBox iconSBlanding;
         private Button btnSBLanding;
-        private Panel pnSBCustomer;
+        private Panel pnSBUserAccount;
         private PictureBox iconSBCustomer;
         private Button btnSBAccount;
         private Panel pnSBSupplier;
@@ -761,7 +802,7 @@ namespace Dashboard.Winform
         private Panel pnHeaderTitle;
         private ReaLTaiizor.Controls.MetroControlBox metroControlBox1;
         private Panel pnSignOut;
-        private PictureBox pictureBox1;
+        private PictureBox iconSBSignOut;
         private FlowLayoutPanel fpnSBIngredientContainer;
         private Panel pnIngredient;
         private PictureBox pictureBox2;
@@ -773,5 +814,8 @@ namespace Dashboard.Winform
         private PictureBox pictureBox3;
         private Button btnSBInventory;
         private Button btnSBSignOut;
+        private Panel pnSBRolePermission;
+        private PictureBox iconSBRolePermission;
+        private Button btnSBRolePermission;
     }
 }

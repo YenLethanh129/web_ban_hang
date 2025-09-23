@@ -1,8 +1,11 @@
 ﻿using Dashboard.Common.Constants;
 using Dashboard.Common.Utitlities;
+using Dashboard.Winform.Forms;
 using Dashboard.Winform.Helpers;
 using Dashboard.Winform.Presenters;
+using Dashboard.Winform.Presenters.ProductPresenters;
 using Dashboard.Winform.ViewModels;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -11,6 +14,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -27,13 +31,13 @@ namespace Dashboard.Winform.Forms
         private readonly ILogger<FrmProductDetails>? _logger;
         private readonly IImageUrlValidator _imageUrlValidator;
 
-        // Image validation management
         private readonly ImageValidationViewModel _imageValidation;
         private string? _tempImagePath = null;
         private static readonly HttpClient _httpClient = new HttpClient();
         private bool _imagesModified = false;
 
-        // Recipe management
+        private readonly List<long> _deletedImageIds = new();
+
         private List<RecipeViewModel> _allAvailableRecipes = new();
         private List<RecipeViewModel> _assignedRecipes = new();
         private bool _recipesModified = false;
@@ -43,22 +47,27 @@ namespace Dashboard.Winform.Forms
         #region Properties
         public DialogResult Result { get; private set; }
         public ProductDetailViewModel Product => _product;
+
+        public readonly IServiceProvider _serviceProvider;
         #endregion
 
         #region Constructor
         public FrmProductDetails(
             IProductDetailPresenter presenter,
             IImageUrlValidator imageUrlValidator,
-            ILogger<FrmProductDetails>? logger = null,
+            IServiceProvider serviceProvider,
+            ILogger<FrmProductDetails> logger,
             long? productId = null,
             ProductDetailViewModel? product = null)
         {
+            _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             _presenter = presenter ?? throw new ArgumentNullException(nameof(presenter));
             _imageUrlValidator = imageUrlValidator ?? throw new ArgumentNullException(nameof(imageUrlValidator));
             _logger = logger;
             _productId = productId;
             _product = product ?? new ProductDetailViewModel();
             _isEditMode = productId.HasValue;
+
 
             // Initialize image validation
             _imageValidation = new ImageValidationViewModel();
@@ -361,8 +370,7 @@ namespace Dashboard.Winform.Forms
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Lỗi khi tải dữ liệu: {ex.Message}", "Lỗi",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                new FrmToastMessage(ToastType.ERROR, $"Lỗi khi tải dữ liệu: {ex.Message}").Show();
             }
             finally
             {
@@ -427,8 +435,7 @@ namespace Dashboard.Winform.Forms
             catch (Exception ex)
             {
                 _logger?.LogError(ex, "Error loading recipes data");
-                MessageBox.Show($"Lỗi khi tải dữ liệu công thức: {ex.Message}", "Lỗi",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                new FrmToastMessage(ToastType.WARNING, $"Lỗi khi tải dữ liệu công thức: {ex.Message}").Show();
             }
         }
 
@@ -464,8 +471,7 @@ namespace Dashboard.Winform.Forms
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Lỗi khi cập nhật dữ liệu: {ex.Message}", "Lỗi",
-                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    new FrmToastMessage(ToastType.ERROR, $"Lỗi khi cập nhật dữ liệu: {ex.Message}").Show();
                 }
             });
         }
@@ -567,12 +573,10 @@ namespace Dashboard.Winform.Forms
                 numPrice.Value = _product.Price;
                 chkIsActive.Checked = _product.IsActive;
 
-                // Setup image validation with original image path
                 var originalImagePath = _product.ThumbnailPath ?? string.Empty;
                 _imageValidation.OriginalImageUrl = originalImagePath;
                 _imageValidation.ImageUrl = originalImagePath;
 
-                // For existing images, mark as validated
                 if (!string.IsNullOrEmpty(originalImagePath))
                 {
                     _imageValidation.SetValidationResult(true, "Ảnh hiện tại hợp lệ");
@@ -584,9 +588,9 @@ namespace Dashboard.Winform.Forms
                 lblCreatedAt.Text = _product.CreatedAt.ToString("dd/MM/yyyy HH:mm");
                 lblUpdatedAt.Text = _product.UpdatedAt?.ToString("dd/MM/yyyy HH:mm") ?? "N/A";
 
-                dgvProductImages.DataSource = _product.ProductImages;
+                _product.ProductImages ??= [];
+                dgvProductImages.DataSource = new BindingList<ProductImageViewModel>(_product.ProductImages);
 
-                // Refresh assigned recipes
                 if (_isEditMode && _productId.HasValue)
                 {
                     await LoadRecipesDataAsync();
@@ -613,8 +617,7 @@ namespace Dashboard.Winform.Forms
         {
             if (!_imageValidation.CanSave)
             {
-                MessageBox.Show("Vui lòng kiểm tra URL hình ảnh trước khi lưu.", "Thông báo",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                new FrmToastMessage(ToastType.WARNING, "Vui lòng kiểm tra URL hình ảnh trước khi lưu.").Show();
                 btnCheckUrl.Focus();
                 return;
             }
@@ -656,7 +659,7 @@ namespace Dashboard.Winform.Forms
                 if (result != null)
                 {
                     _product = result;
-                    _imageValidation.SaveChanges(); 
+                    _imageValidation.SaveChanges();
                     _recipesModified = false;
                     CleanupTempFiles();
                     Result = DialogResult.OK;
@@ -664,7 +667,7 @@ namespace Dashboard.Winform.Forms
                 }
                 else
                 {
-                    MessageBox.Show("Lưu sản phẩm thất bại.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    new FrmToastMessage(ToastType.ERROR, "Lưu sản phẩm thất bại.").Show();
                 }
             }
             catch (Exception ex)
@@ -791,8 +794,7 @@ namespace Dashboard.Winform.Forms
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Lỗi khi xử lý hình ảnh: {ex.Message}", "Lỗi",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                new FrmToastMessage(ToastType.ERROR, $"Lỗi khi xử lý hình ảnh: {ex.Message}").Show();
                 throw;
             }
         }
@@ -854,8 +856,7 @@ namespace Dashboard.Winform.Forms
 
             if (string.IsNullOrEmpty(url))
             {
-                MessageBox.Show("Vui lòng nhập URL hoặc đường dẫn hình ảnh", "Thông báo",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                new FrmToastMessage(ToastType.WARNING, "Vui lòng nhập URL hoặc đường dẫn hình ảnh").Show();
                 return;
             }
 
@@ -910,8 +911,7 @@ namespace Dashboard.Winform.Forms
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Lỗi khi tải file: {ex.Message}", "Lỗi",
-                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    new FrmToastMessage(ToastType.ERROR, $"Lỗi khi tải file: {ex.Message}").Show();
                 }
             }
         }
@@ -942,16 +942,14 @@ namespace Dashboard.Winform.Forms
         {
             if (dgvProductImages.SelectedRows.Count == 0)
             {
-                MessageBox.Show("Vui lòng chọn một hình ảnh trong danh sách",
-                    "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                new FrmToastMessage(ToastType.WARNING, "Vui lòng chọn một hình ảnh trong danh sách").Show();
                 return;
             }
 
             var selectedImage = dgvProductImages.SelectedRows[0].DataBoundItem as ProductImageViewModel;
             if (selectedImage == null || string.IsNullOrWhiteSpace(selectedImage.ImageUrl))
             {
-                MessageBox.Show("Hình ảnh không hợp lệ", "Lỗi",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                new FrmToastMessage(ToastType.ERROR, "Hình ảnh không hợp lệ").Show();
                 return;
             }
 
@@ -979,7 +977,7 @@ namespace Dashboard.Winform.Forms
             if (dgvProductImages.SelectedRows.Count > 0)
             {
                 var result = MessageBox.Show(
-                    "Bạn có chắc chắn muốn xóa hình ảnh này?",
+                    "Bạn có chắc chắn muốn xóa hình ảnh này (chỉ xóa trên giao diện, thao tác sẽ được lưu khi nhấn Lưu)?",
                     "Xác nhận", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
                 if (result == DialogResult.Yes)
@@ -987,10 +985,15 @@ namespace Dashboard.Winform.Forms
                     var selectedImage = dgvProductImages.SelectedRows[0].DataBoundItem as ProductImageViewModel;
                     if (selectedImage != null && _product.ProductImages != null)
                     {
-                        _presenter.DeleteImageAsync(_product.Id, selectedImage.Id);
-                        _product.ProductImages.Remove(selectedImage);
-                        dgvProductImages.Refresh();
+                        // Do NOT call presenter to delete immediately.
+                        // Just mark as deleted on UI and remove from local viewmodel.
+                        if (selectedImage.Id > 0)
+                        {
+                            _deletedImageIds.Add(selectedImage.Id);
+                        }
 
+                        _product.ProductImages.Remove(selectedImage);
+                        RefreshProductImagesGrid();
                         _imagesModified = true;
                     }
                 }
@@ -1002,6 +1005,25 @@ namespace Dashboard.Winform.Forms
             }
         }
 
+        private void RefreshProductImagesGrid()
+        {
+            try
+            {
+                dgvProductImages.SuspendLayout();
+                dgvProductImages.DataSource = null;
+                var list = _product.ProductImages ?? [];
+                dgvProductImages.DataSource = new BindingList<ProductImageViewModel>(list);
+                dgvProductImages.ResumeLayout();
+                dgvProductImages.Refresh();
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error refreshing product images grid");
+                dgvProductImages.DataSource = null;
+            }
+        }
+        #endregion
+
         #region Recipe Management Event Handlers
         private void BtnAssignRecipe_Click(object sender, EventArgs e)
         {
@@ -1010,8 +1032,7 @@ namespace Dashboard.Winform.Forms
                 // Check if already assigned
                 if (_assignedRecipes.Any(r => r.Id == selectedRecipe.Id))
                 {
-                    MessageBox.Show("Công thức này đã được gán cho sản phẩm.", "Thông báo",
-                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    new FrmToastMessage(ToastType.WARNING, "Công thức này đã được gán cho sản phẩm.").Show();
                     return;
                 }
 
@@ -1048,16 +1069,19 @@ namespace Dashboard.Winform.Forms
             }
             else
             {
-                MessageBox.Show("Vui lòng chọn một công thức đã gán để bỏ gán.",
-                    "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                new FrmToastMessage(ToastType.WARNING, "Vui lòng chọn một công thức đã gán để bỏ gán.").Show();
             }
         }
+
+        // (Chỉ thay nội dung 3 phương thức; file tên tuỳ theo project của bạn)
 
         private void BtnCreateNewRecipe_Click(object sender, EventArgs e)
         {
             try
             {
+                // Dùng ctor đơn giản — ServiceProviderHolder.Current phải được gán trong Program.cs
                 using var frmRecipe = new FrmRecipeDetails();
+
                 if (frmRecipe.ShowDialog() == DialogResult.OK)
                 {
                     var newRecipe = frmRecipe.Recipe;
@@ -1102,7 +1126,6 @@ namespace Dashboard.Winform.Forms
             {
                 try
                 {
-                    // Convert to RecipeDetailViewModel
                     var recipeDetail = new RecipeDetailViewModel
                     {
                         Id = selectedRecipe.Id,
@@ -1119,6 +1142,7 @@ namespace Dashboard.Winform.Forms
                     };
 
                     using var frmRecipe = new FrmRecipeDetails(selectedRecipe.Id, recipeDetail);
+
                     if (frmRecipe.ShowDialog() == DialogResult.OK)
                     {
                         var updatedRecipe = frmRecipe.Recipe;
@@ -1155,6 +1179,7 @@ namespace Dashboard.Winform.Forms
             }
         }
 
+
         private void BtnViewRecipeDetails_Click(object sender, EventArgs e)
         {
             var selectedRecipe = GetSelectedAssignedRecipe();
@@ -1162,7 +1187,6 @@ namespace Dashboard.Winform.Forms
             {
                 try
                 {
-                    // Convert to RecipeDetailViewModel
                     var recipeDetail = new RecipeDetailViewModel
                     {
                         Id = selectedRecipe.Id,
@@ -1194,8 +1218,6 @@ namespace Dashboard.Winform.Forms
                     "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
-        #endregion
-
         #endregion
 
         #region Validation Event Handlers
@@ -1352,8 +1374,11 @@ namespace Dashboard.Winform.Forms
             }
 
             vm.ProductImages ??= [];
+            vm.ProductImages = [];
+
             vm.Recipes ??= [];
-            vm.ProductRecipes ??= [];
+            vm.Recipes = [];
+
 
             vm.ImagesModified = _imagesModified;
 

@@ -45,8 +45,10 @@ public static class DependencyInjection
         builder.Services.AddScoped<ICustomerService, CustomerService>();
         builder.Services.AddScoped<IReportingService, ReportingService>();
         builder.Services.AddScoped<IRecipeService, RecipeService>();
+        builder.Services.AddScoped<IRecipeService, RecipeService>();
         builder.Services.AddHttpClient<IImageUrlValidator, ImageUrlValidator>();
 
+       
 
         // Ingredient-related services
         builder.Services.AddScoped<IIngredientManagementService, IngredientManagementService>();
@@ -64,6 +66,8 @@ public static class DependencyInjection
         builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
         builder.Services.AddScoped<IAuthorizationService, AuthorizationService>();
         builder.Services.AddScoped<IUserManagementService, UserManagementService>();
+        builder.Services.AddScoped<IRoleManagementService, RoleManagementService>();
+        builder.Services.AddScoped<IPermissionManagementService, PermissionManagementService>();
 
         // Employee Shift and Payroll services
         builder.Services.AddScoped<IEmployeeShiftService, EmployeeShiftService>();

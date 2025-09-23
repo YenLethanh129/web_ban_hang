@@ -343,7 +343,19 @@ public class UserManagementService : BaseTransactionalService, IUserManagementSe
 
             var users = await _userRepository.GetAllWithSpecAsync(userSpec, true);
 
-            return _mapper.Map<List<UserDto>>(users);
+            var userDtos = users.Select(u => new UserDto
+            {
+                Id = u.Id,
+                Username = u.Username,
+                EmployeeId = u.EmployeeId,
+                IsActive = u.IsActive,
+                RoleId = u.RoleId,
+                RoleName = u.Role?.Name ?? string.Empty,
+                EmployeeName = u.Employee?.FullName ?? string.Empty,
+                CreatedAt = u.CreatedAt
+            }).ToList();
+
+            return userDtos;
         }
         catch (Exception ex)
         {

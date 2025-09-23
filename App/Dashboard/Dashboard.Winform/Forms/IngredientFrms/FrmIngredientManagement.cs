@@ -1,6 +1,5 @@
 ﻿using Dashboard.BussinessLogic.Services.GoodsAndStockServcies;
 using Dashboard.Winform.Events;
-using Dashboard.Winform.Presenters;
 using Dashboard.Winform.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -10,6 +9,9 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Dashboard.Common.Constants;
+using Dashboard.Winform.Forms;
+using Dashboard.Winform.Presenters.IngredientPresenters;
 
 namespace Dashboard.Winform.Forms
 {
@@ -645,14 +647,14 @@ namespace Dashboard.Winform.Forms
             }
         }
 
-        private void ShowError(string message)
+        private void ShowError(string message)                                                  
         {
-            MessageBox.Show(message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            new FrmToastMessage(ToastType.ERROR, message).Show();
         }
 
         private void ShowInfo(string message)
-        {
-            MessageBox.Show(message, "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        {                                                                                      
+            new FrmToastMessage(ToastType.INFO, message).Show();
         }
 
         private bool AreControlsInitialized()
@@ -874,10 +876,7 @@ namespace Dashboard.Winform.Forms
             }
             else
             {
-                MessageBox.Show("Vui lòng chọn một nguyên liệu để xem chi tiết.",
-                               "Thông báo",
-                               MessageBoxButtons.OK,
-                               MessageBoxIcon.Information);
+                new FrmToastMessage(ToastType.INFO, "Vui lòng chọn một nguyên liệu để xem chi tiết.").Show();
             }
         }
 

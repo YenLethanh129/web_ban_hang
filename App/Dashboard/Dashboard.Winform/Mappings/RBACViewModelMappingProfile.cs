@@ -42,6 +42,7 @@ public class RBACViewModelMappingProfile : Profile
             .ForMember(dest => dest.RoleId, opt => opt.MapFrom(src => src.RoleId))
             .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.RoleName ?? string.Empty))
             .ForMember(dest => dest.EmployeeId, opt => opt.MapFrom(src => src.EmployeeId))
+            .ForMember(dest => dest.EmployeeName, opt => opt.MapFrom(src => src.EmployeeName))
             .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt));
 
         CreateMap<UserDto, UserDetailViewModel>()
@@ -77,12 +78,10 @@ public class RBACViewModelMappingProfile : Profile
 
 
         CreateMap<RoleDto, RoleViewModel>()
-            .ForMember(dest => dest.PermissionCount,
-                opt => opt.MapFrom(src => src.Permissions != null ? src.Permissions.Count : 0))
-            .ForMember(dest => dest.CreatedAt,
-                opt => opt.MapFrom(src => src.CreatedAt))
-            .ForMember(dest => dest.UpdatedAt,
-                opt => opt.MapFrom(src => src.LastModified));
+            .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => src.LastModified))
+            .ForMember(dest => dest.PermissionCount, opt => opt.MapFrom(src => src.Permissions.Count));
+            //.ForMember(dest => dest.Permissions, opt => opt.MapFrom(src => src.Permissions));
+
 
         CreateMap<RoleViewModel, RoleDto>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))

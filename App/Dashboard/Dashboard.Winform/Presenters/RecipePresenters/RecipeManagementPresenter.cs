@@ -1,77 +1,67 @@
 ﻿using Dashboard.BussinessLogic.Dtos.ProductDtos;
-using Dashboard.DataAccess.Data;
+using Dashboard.BussinessLogic.Services.ProductServices;
 using Dashboard.Winform.Events;
-using Dashboard.Winform.Presenters;
 using Dashboard.Winform.ViewModels;
 using Microsoft.Extensions.Logging;
 using AutoMapper;
-using Dashboard.DataAccess.Models.Entities;
-using Dashboard.DataAccess.Models.Entities.Orders;
-using Dashboard.DataAccess.Models.Entities.Products;
-using Dashboard.BussinessLogic.Dtos;
 using System.ComponentModel;
-using Dashboard.BussinessLogic.Services.ProductServices;
 
-namespace Dashboard.Winform.Presenters;
+namespace Dashboard.Winform.Presenters.RecipePresenters;
 
-public interface IProductManagementPresenter : IManagementPresenter<ProductManagementModel>
+public interface IRecipeManagementPresenter : IManagementPresenter<RecipeManagementModel>
 {
-    Task LoadDataAsync(long? categoryId = null, string? searchTerm = null,
+    Task LoadDataAsync(long? productId = null, string? searchTerm = null,
         int? pageSize = 10, int? page = 1, bool forceRefresh = false);
     Task SearchAsync(string searchTerm);
     Task FilterByStatusAsync(string status);
-    Task FilterByCategoryAsync(long? categoryId);
+    Task FilterByProductAsync(long? productId);
     Task SortBy(string? sortBy);
     Task GoToNextPageAsync();
     Task GoToPreviousPageAsync();
     Task ChangePageSizeAsync(int pageSize);
     Task RefreshCacheAsync();
-    Task LoadCategoriesAsync();
+    Task LoadProductsAsync();
 }
 
-public class ProductManagementPresenter : IProductManagementPresenter
+public class RecipeManagementPresenter : IRecipeManagementPresenter
 {
-    private readonly ILogger<ProductManagementPresenter> _logger;
+    private readonly ILogger<RecipeManagementPresenter> _logger;
+    private readonly IRecipeService _recipeService;
     private readonly IProductService _productService;
-    private readonly ICategoryService _categoryService;
-    private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
 
-    public ProductManagementModel Model { get; }
+    public RecipeManagementModel Model { get; }
     private readonly SemaphoreSlim _semaphore = new(1, 1);
     private bool _isLoading = false;
 
     // Cache properties
-    private List<ProductViewModel> _allProductsCache = [];
-    private List<ProductViewModel> _filteredProducts = [];
+    private List<RecipeViewModel> _allRecipesCache = [];
+    private List<RecipeViewModel> _filteredRecipes = [];
     private string _currentSearchTerm = string.Empty;
     private string _currentStatusFilter = "All";
-    private long? _currentCategoryFilter = null;
+    private long? _currentProductFilter = null;
     private string _currentSortBy = string.Empty;
     private bool _sortDescending = false;
 
-    IManagableModel IManagementPresenter<ProductManagementModel>.Model { get => Model; set => throw new NotImplementedException(); }
+    IManagableModel IManagementPresenter<RecipeManagementModel>.Model { get => Model; set => throw new NotImplementedException(); }
 
     public event EventHandler? OnDataLoaded;
 
-    public ProductManagementPresenter(
-        ILogger<ProductManagementPresenter> logger,
-        IUnitOfWork unitOfWork,
-        ICategoryService categoryService,
+    public RecipeManagementPresenter(
+        ILogger<RecipeManagementPresenter> logger,
+        IRecipeService recipeService,
         IProductService productService,
-        IMapper mapper
-    )
+        IMapper mapper)
     {
         _logger = logger;
-        _unitOfWork = unitOfWork;
+        _recipeService = recipeService;
         _productService = productService;
-        _categoryService = categoryService;
         _mapper = mapper;
-        Model = new ProductManagementModel();
+        Model = new RecipeManagementModel();
     }
 
     public async Task LoadDataAsync(
-        long? categoryId = null,
+        long? productId = null,
         string? searchTerm = null,
         int? pageSize = 10,
         int? page = 1,
@@ -84,19 +74,19 @@ public class ProductManagementPresenter : IProductManagementPresenter
         {
             _isLoading = true;
 
-            if (!_allProductsCache.Any() || forceRefresh)
+            if (!_allRecipesCache.Any() || forceRefresh)
             {
                 await LoadAllDataToCache();
             }
 
-            if (!Model.Categories.Any())
+            if (!Model.Products.Any())
             {
-                await LoadCategories();
+                await LoadProducts();
             }
 
             _currentSearchTerm = searchTerm ?? string.Empty;
             _currentStatusFilter = "All";
-            _currentCategoryFilter = categoryId;
+            _currentProductFilter = productId;
 
             Model.PageSize = pageSize ?? 10;
             Model.CurrentPage = page ?? 1;
@@ -119,96 +109,93 @@ public class ProductManagementPresenter : IProductManagementPresenter
     {
         try
         {
-            _logger.LogInformation("Loading all products to cache");
+            _logger.LogInformation("Loading all recipes to cache");
 
-            var input = new GetProductsInput
+            var input = new GetRecipesInput
             {
                 PageNumber = 1,
                 PageSize = int.MaxValue
             };
 
-            var pagedResult = await _productService.GetProductsAsync(input);
-            _allProductsCache = _mapper.Map<List<ProductViewModel>>(pagedResult.Items);
+            var pagedResult = await _recipeService.GetRecipesAsync(input);
+            _allRecipesCache = _mapper.Map<List<RecipeViewModel>>(pagedResult.Items);
 
-            // Load sold quantities in separate call to avoid connection conflicts
-            try
-            {
-                var soldQuantities = await _productService.GetSoldQuantitiesAsync();
-                foreach (var product in _allProductsCache)
-                {
-                    product.SoldQuantity = soldQuantities.GetValueOrDefault(product.Id, 0);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Could not load sold quantities, continuing without them");
-            }
-
-            _logger.LogInformation("Loaded {Count} products to cache", _allProductsCache.Count);
+            _logger.LogInformation("Loaded {Count} recipes to cache", _allRecipesCache.Count);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error loading all products to cache");
+            _logger.LogError(ex, "Error loading all recipes to cache");
             throw;
         }
     }
 
-    private async Task LoadCategories()
+    private async Task LoadProducts()
     {
         try
         {
-            _logger.LogInformation("Loading categories");
+            _logger.LogInformation("Loading products for recipe filtering");
 
-            var categories = await _categoryService.GetAllCategories();
-            var listCategories = categories.Items.ToList();
+            var input = new GetProductsInput
+            {
+                PageNumber = 1,
+                PageSize = int.MaxValue,
+                IsActive = true
+            };
 
-            var categoryViewModels = _mapper.Map<List<CategoryViewModel>>(listCategories);
+            var pagedResult = await _productService.GetProductsAsync(input);
+            var productViewModels = _mapper.Map<List<ProductViewModel>>(pagedResult.Items);
 
-            Model.Categories.Clear();
-
-            Model.Categories.Add(new CategoryViewModel
+            Model.Products.Clear();
+            Model.Products.Add(new ProductViewModel
             {
                 Id = 0,
-                Name = "Tất cả"
+                Name = "Tất cả sản phẩm"
             });
 
-            foreach (var cat in categoryViewModels)
-                Model.Categories.Add(cat);
+            foreach (var product in productViewModels)
+                Model.Products.Add(product);
 
-            _logger.LogInformation("Loaded {Count} categories", Model.Categories.Count);
+            _logger.LogInformation("Loaded {Count} products for filtering", Model.Products.Count);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error loading categories");
-            throw;
+            _logger.LogError(ex, "Error loading products");
+
+            // Fallback data
+            Model.Products.Clear();
+            Model.Products.Add(new ProductViewModel { Id = 0, Name = "Tất cả sản phẩm" });
+            Model.Products.Add(new ProductViewModel { Id = 1, Name = "Cà phê đen" });
+            Model.Products.Add(new ProductViewModel { Id = 2, Name = "Cà phê sữa" });
+            Model.Products.Add(new ProductViewModel { Id = 3, Name = "Bánh mì thịt" });
         }
     }
 
-
     private void ApplyFiltersAndSort()
     {
-        var query = _allProductsCache.AsQueryable();
+        var query = _allRecipesCache.AsQueryable();
 
         // Apply search filter
         if (!string.IsNullOrWhiteSpace(_currentSearchTerm))
         {
-            query = query.Where(p =>
-                p.Id.ToString().Contains(_currentSearchTerm, StringComparison.OrdinalIgnoreCase) ||
-                p.Name.Contains(_currentSearchTerm, StringComparison.OrdinalIgnoreCase) ||
-                p.Description.Contains(_currentSearchTerm, StringComparison.OrdinalIgnoreCase));
+            query = query.Where(r =>
+                r.Id.ToString().Contains(_currentSearchTerm, StringComparison.OrdinalIgnoreCase) ||
+                r.Name.Contains(_currentSearchTerm, StringComparison.OrdinalIgnoreCase) ||
+                !string.IsNullOrEmpty(r.Description) 
+                    && r.Description.Contains(_currentSearchTerm, StringComparison.OrdinalIgnoreCase) ||
+                r.ProductName.Contains(_currentSearchTerm, StringComparison.OrdinalIgnoreCase));
         }
 
         // Apply status filter
         if (_currentStatusFilter != "All")
         {
-            bool isActive = _currentStatusFilter == "Active";
-            query = query.Where(p => p.IsActive == isActive);
+            bool isActive = _currentStatusFilter == "ACTIVE";
+            query = query.Where(r => r.IsActive == isActive);
         }
 
-        // Apply category filter
-        if (_currentCategoryFilter.HasValue && _currentCategoryFilter > 0)
+        // Apply product filter
+        if (_currentProductFilter.HasValue && _currentProductFilter > 0)
         {
-            query = query.Where(p => p.CategoryId == _currentCategoryFilter.Value);
+            query = query.Where(r => r.ProductId == _currentProductFilter.Value);
         }
 
         // Apply sorting
@@ -216,48 +203,52 @@ public class ProductManagementPresenter : IProductManagementPresenter
         {
             query = _currentSortBy.ToLower() switch
             {
-                "id" => _sortDescending ? query.OrderByDescending(p => p.Id) : query.OrderBy(p => p.Id),
-                "name" => _sortDescending ? query.OrderByDescending(p => p.Name) : query.OrderBy(p => p.Name),
-                "price" => _sortDescending ? query.OrderByDescending(p => p.Price) : query.OrderBy(p => p.Price),
-                "category" => _sortDescending ? query.OrderByDescending(p => p.CategoryName) : query.OrderBy(p => p.CategoryName),
-                "soldquantity" => _sortDescending ? query.OrderByDescending(p => p.SoldQuantity) : query.OrderBy(p => p.SoldQuantity),
-                _ => query.OrderBy(p => p.Id)
+                "id" => _sortDescending ? query.OrderByDescending(r => r.Id) : query.OrderBy(r => r.Id),
+                "name" => _sortDescending ? query.OrderByDescending(r => r.Name) : query.OrderBy(r => r.Name),
+                "product" => _sortDescending ? query.OrderByDescending(r => r.ProductName) : query.OrderBy(r => r.ProductName),
+                "servingsize" => _sortDescending ? query.OrderByDescending(r => r.ServingSize) : query.OrderBy(r => r.ServingSize),
+                "createdat" => _sortDescending ? query.OrderByDescending(r => r.CreatedAt) : query.OrderBy(r => r.CreatedAt),
+                _ => query.OrderByDescending(r => r.Id)
             };
         }
+        else
+        {
+            query = query.OrderByDescending(r => r.CreatedAt);
+        }
 
-        _filteredProducts = query.ToList();
+        _filteredRecipes = query.ToList();
 
         UpdateModelWithPagination();
 
-        var currentPageProducts = GetCurrentPageProducts();
-        OnDataLoaded?.Invoke(this, new ProductsLoadedEventArgs
+        var currentPageRecipes = GetCurrentPageRecipes();
+        OnDataLoaded?.Invoke(this, new RecipesLoadedEventArgs
         {
-            Products = currentPageProducts,
-            TotalCount = _filteredProducts.Count
+            Recipes = currentPageRecipes,
+            TotalCount = _filteredRecipes.Count
         });
     }
 
     private void UpdateModelWithPagination()
     {
-        Model.TotalItems = _filteredProducts.Count;
+        Model.TotalItems = _filteredRecipes.Count;
 
         if (Model.CurrentPage < 1) Model.CurrentPage = 1;
         if (Model.CurrentPage > Model.TotalPages && Model.TotalPages > 0)
             Model.CurrentPage = Model.TotalPages;
     }
 
-    private List<ProductViewModel> GetCurrentPageProducts()
+    private List<RecipeViewModel> GetCurrentPageRecipes()
     {
         int skip = (Model.CurrentPage - 1) * Model.PageSize;
         if (skip < 0) skip = 0;
-        return _filteredProducts.Skip(skip).Take(Model.PageSize).ToList();
+        return _filteredRecipes.Skip(skip).Take(Model.PageSize).ToList();
     }
 
     public async Task SearchAsync(string searchTerm)
     {
         _currentSearchTerm = searchTerm ?? string.Empty;
         Model.CurrentPage = 1;
-        await LoadDataAsync(_currentCategoryFilter, _currentSearchTerm, Model.PageSize, Model.CurrentPage, false);
+        await LoadDataAsync(_currentProductFilter, _currentSearchTerm, Model.PageSize, Model.CurrentPage, false);
     }
 
     public async Task FilterByStatusAsync(string status)
@@ -275,12 +266,12 @@ public class ProductManagementPresenter : IProductManagementPresenter
         }
     }
 
-    public async Task FilterByCategoryAsync(long? categoryId)
+    public async Task FilterByProductAsync(long? productId)
     {
         await _semaphore.WaitAsync();
         try
         {
-            _currentCategoryFilter = categoryId;
+            _currentProductFilter = productId;
             Model.CurrentPage = 1;
             ApplyFiltersAndSort();
         }
@@ -367,13 +358,11 @@ public class ProductManagementPresenter : IProductManagementPresenter
         await LoadDataAsync(forceRefresh: true);
     }
 
-    public async Task LoadCategoriesAsync()
+    public async Task LoadProductsAsync()
     {
-        // This method is kept for backward compatibility
-        // But categories are now loaded automatically in LoadDataAsync
-        if (!Model.Categories.Any())
+        if (!Model.Products.Any())
         {
-            await LoadCategories();
+            await LoadProducts();
         }
     }
 

@@ -1,6 +1,8 @@
 ﻿using Dashboard.Common.Constants;
 using Dashboard.Winform.Controls;
 using Dashboard.Winform.Forms;
+using Dashboard.Winform.Forms.SupplierFrm;
+using Dashboard.Winform.Helpers;
 using Dashboard.Winform.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -25,7 +27,7 @@ namespace Dashboard.Winform
 
         private bool UserManagementTransitionActive = false;
         private bool SidebarTransitionActive = true;
-        private bool IngredientTransitionActive = false; // NEW: track ingredient container state
+        private bool IngredientTransitionActive = false;
         private bool _isLoading = false;
 
         private Form? activeForm = null;
@@ -51,7 +53,6 @@ namespace Dashboard.Winform
             _serviceProvider = serviceProvider;
             _logger = serviceProvider.GetService<ILogger<FrmBaseMdiWithSidePanel>>();
 
-            // Map sidebar buttons to their icons (include ingredient button-icon mapping)
             _buttonIconMap = new Dictionary<Button, PictureBox>
             {
                 { btnSBLanding, iconSBlanding },
@@ -62,7 +63,9 @@ namespace Dashboard.Winform
                 { btnSBProduct, iconSBProduct },
                 { btnSBSupplier, iconSBSupplier },
                 { btnSBExit, iconSBExit },
-                { btnSBIngredient, pictureBox2 } // NEW mapping for ingredient button
+                { btnSBIngredient, pictureBox2 } ,
+                { btnSBSignOut, iconSBSignOut },
+                {btnSBRolePermission, iconSBRolePermission }
             };
 
 
@@ -212,7 +215,7 @@ namespace Dashboard.Winform
                 catch (Exception ex)
                 {
                     _logger?.LogError(ex, $"Error in nested loading action\n {ex.Message}");
-                    MessageBox.Show($"Có lỗi xảy ra: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    new FrmToastMessage(ToastType.ERROR, $"Có lỗi xảy ra: {ex.Message}").Show();
                     throw;
                 }
             }
@@ -264,7 +267,7 @@ namespace Dashboard.Winform
                     HideBlurLoading();
                 }
 
-                MessageBox.Show($"Có lỗi xảy ra: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                new FrmToastMessage(ToastType.ERROR, $"Có lỗi xảy ra: {ex.Message}").Show();
             }
             finally
             {
@@ -432,14 +435,13 @@ namespace Dashboard.Winform
 
         }
 
-        protected override void OnLoad(EventArgs e)
+        protected async override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
 
             try
             {
-                using var loginForm = _serviceProvider?.GetService(typeof(BussinessLogic.Services.RBACServices.IAuthenticationService))
-                    is BussinessLogic.Services.RBACServices.IAuthenticationService authService ? new FrmLogin(authService) : new FrmLogin();
+                using var loginForm = _serviceProvider.GetRequiredService<FrmLogin>();
 
                 var dr = loginForm.ShowDialog(this);
                 if (dr != DialogResult.OK || !loginForm.LoginSucceeded)
@@ -450,8 +452,32 @@ namespace Dashboard.Winform
 
                 try
                 {
-                    var landing = _serviceProvider!.GetRequiredService<FrmLandingDashboard>();
-                    OpenChildForm(landing);
+                    await ExecuteWithLoadingAsync(async () =>
+                    {
+                        FrmLandingDashboard frmLandingDashboard = null!;
+
+                        await Task.Run(() =>
+                        {
+                            if (InvokeRequired)
+                            {
+                                Invoke(new Action(() =>
+                                {
+                                    frmLandingDashboard = _serviceProvider.GetRequiredService<FrmLandingDashboard>();
+                                    OpenChildForm(frmLandingDashboard);
+                                }));
+                            }
+                            else
+                            {
+                                frmLandingDashboard = _serviceProvider.GetRequiredService<FrmLandingDashboard>();
+                                OpenChildForm(frmLandingDashboard);
+                            }
+                        });
+
+                        if (frmLandingDashboard != null)
+                        {
+                            await frmLandingDashboard.WaitForDataLoadingComplete();
+                        }
+                    }, "Đang tải Dashboard...", true);
                 }
                 catch (Exception ex)
                 {
@@ -476,17 +502,166 @@ namespace Dashboard.Winform
             btnSBProduct.Click += (s, e) => LaunchProductForm(s!, e);
             btnSBAccount.Click += (s, e) => LaunchUserForm(s!, e);
             btnSBSupplier.Click += (s, e) => LaunchSupplierForm(s!, e);
-            btnSBIngredient.Click += (s, e) => OpenIngredientContainer(s!, e); // NEW: wire ingredient container toggle
+            btnSBIngredient.Click += (s, e) => OpenIngredientContainer(s!, e);
+            btnSBSignOut.Click += async (s, e) => await HandleSignOutAsync(s!, e);
+            picSideBarIcon.Click += (s, e) => OpenAndClosedSideBar(s!, e);
+            btnSBUser.Click += (s, e) => OpenUserManagementContainer(s!, e);
+            btnSBRolePermission.Click += (s, e) => LaunchRolePermissionForm(s!, e);
+
             foreach (var kv in _buttonIconMap.Keys)
             {
                 kv.Click += (s, e) => SetSBButtonUI(s!);
             }
 
-            picSideBarIcon.Click += (s, e) => OpenAndClosedSideBar(s!, e);
-            btnSBUser.Click += (s, e) => OpenUserManagementContainer(s!, e);
-
             pnHeaderTitle.MouseDown += pnHeaderTitle_MouseDown;
         }
+
+        private async void LaunchRolePermissionForm(object sender, EventArgs e)
+        {
+            await ExecuteWithLoadingInternalAsync(async () =>
+            {
+                FrmRolePermissionManagement frmRolePermissionManagement = null!;
+
+                await Task.Run(() =>
+                {
+                    if (InvokeRequired)
+                    {
+                        Invoke(new Action(() =>
+                        {
+                            frmRolePermissionManagement = _serviceProvider.GetRequiredService<FrmRolePermissionManagement>();
+                            OpenChildForm(frmRolePermissionManagement);
+                        }));
+                    }
+                    else
+                    {
+                        frmRolePermissionManagement = _serviceProvider.GetRequiredService<FrmRolePermissionManagement>();
+                        OpenChildForm(frmRolePermissionManagement);
+                    }
+                });
+
+                if (frmRolePermissionManagement != null)
+                {
+                    await frmRolePermissionManagement.WaitForDataLoadingComplete();
+                }
+            }, "Đang tải quản lý Role & Permission...", true);
+        }
+
+        private async Task HandleSignOutAsync(object sender, EventArgs e)
+        {
+            try
+            {
+                await ExecuteWithLoadingInternalAsync(async () =>
+                {
+                    if (activeForm != null)
+                    {
+                        activeForm.Close();
+                        activeForm.Dispose();
+                        activeForm = null;
+                    }
+
+                    pnMainContainer.Controls.Clear();
+
+                    await AuthenticationManager.LogoutAsync();
+
+
+                }, "Đang đăng xuất...", true);
+
+                Hide();
+
+                ShowLoginForm();
+
+            }
+            catch (Exception ex)
+            {
+                new FrmToastMessage(ToastType.ERROR, $"Có lỗi xảy ra khi đăng xuất: {ex.Message}").Show();
+            }
+        }
+
+        private void ShowLoginForm()
+        {
+            try
+            {
+                using var loginForm = _serviceProvider.GetRequiredService<FrmLogin>();
+
+                var dialogResult = loginForm.ShowDialog(this);
+
+                if (dialogResult != DialogResult.OK || !loginForm.LoginSucceeded)
+                {
+                    Application.Exit();
+                    return;
+                }
+
+                try
+                {
+                    var landing = _serviceProvider.GetRequiredService<FrmLandingDashboard>();
+                    OpenChildForm(landing);
+
+                    ResetSidebarUI();
+                    Show();
+
+                    _logger?.LogInformation("Successfully logged in and loaded dashboard after sign out");
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogWarning(ex, "Failed to open FrmLandingDashboard after re-login");
+                    new FrmToastMessage(ToastType.WARNING, "Không thể tải dashboard sau khi đăng nhập").Show();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error showing login form after sign out");
+                new FrmToastMessage(ToastType.ERROR, $"Có lỗi khi hiển thị form đăng nhập: {ex.Message}").Show();
+            }
+        }
+
+        private void ResetSidebarUI()
+        {
+            try
+            {
+                foreach (var kvp in _buttonIconMap)
+                {
+                    var button = kvp.Key;
+                    var pictureBox = kvp.Value;
+
+                    button.BackColor = _sidebarColors[0]; 
+                    button.ForeColor = _sidebarColors[1];
+
+                    if (pictureBox != null)
+                    {
+                        pictureBox.BackColor = _sidebarColors[0];
+                    }
+                }
+
+                CurrentSelectedSidebarButton = null;
+                CurrentSelectedPictureBox = null;
+
+                if (!SidebarTransitionActive)
+                {
+                    SidebarTransitionActive = true;
+                    SBTransition.Start(); 
+                }
+
+                // Reset container states
+                if (!UserManagementTransitionActive)
+                {
+                    UserManagementTransitionActive = true;
+                    fpnUserManagementContainer.Height = 50;
+                }
+
+                if (!IngredientTransitionActive)                 
+                {
+                    IngredientTransitionActive = true;
+                    fpnSBIngredientContainer.Height = 50; 
+                }
+
+                _logger?.LogInformation("Sidebar UI state reset successfully");
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogWarning(ex, "Error resetting sidebar UI state");
+            }
+        }
+
 
         private void SetSBButtonUI(object sender)
         {
@@ -519,7 +694,7 @@ namespace Dashboard.Winform
         {
             try
             {
-                int targetHeight = UserManagementTransitionActive ? 50 : 150;
+                int targetHeight = UserManagementTransitionActive ? 50 : 200;
                 int diff = targetHeight - fpnUserManagementContainer.Height;
                 int speed = Math.Max(2, Math.Abs(diff) / 5);
 
@@ -551,16 +726,15 @@ namespace Dashboard.Winform
             catch (Exception ex)
             {
                 _logger?.LogError(ex, "Error in BtnSBUser_Click");
-                MessageBox.Show("Không thể thực hiện animation", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                new FrmToastMessage(ToastType.WARNING, "Không thể thực hiện animation").Show();
             }
         }
 
-        // NEW: Timer tick for ingredient container transition (similar behaviour as user management)
         private void SBIngredientTransition_Tick(object sender, EventArgs e)
         {
             try
             {
-                int targetHeight = IngredientTransitionActive ? 50 : 150;
+                int targetHeight = IngredientTransitionActive ? 50 : 100;
                 int diff = targetHeight - fpnSBIngredientContainer.Height;
                 int speed = Math.Max(2, Math.Abs(diff) / 5);
 
@@ -592,7 +766,7 @@ namespace Dashboard.Winform
             catch (Exception ex)
             {
                 _logger?.LogError(ex, "Error in OpenIngredientContainer");
-                MessageBox.Show("Không thể thực hiện animation", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                new FrmToastMessage(ToastType.WARNING, "Không thể thực hiện animation").Show();
             }
         }
 
@@ -658,7 +832,7 @@ namespace Dashboard.Winform
             catch (Exception ex)
             {
                 _logger?.LogError(ex, "Error in picSideBarIcon_Click");
-                MessageBox.Show("Không thể thực hiện animation", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                new FrmToastMessage(ToastType.WARNING, "Không thể thực hiện animation").Show();
             }
         }
 
@@ -802,34 +976,32 @@ namespace Dashboard.Winform
             });
 
         }
-        private void LaunchSupplierForm(object sender, EventArgs e)
+        private async void LaunchSupplierForm(object sender, EventArgs e)
         {
-            FrmToastMessage frmToastMessage = new FrmToastMessage(ToastType.ERROR, "tapdeptrai");
-            frmToastMessage.Show();
-            //await ExecuteWithLoadingInternalAsync(async () =>
-            //{
-            //    FrmSupplierManagement frmSupplierManagement = null!;
-            //    await Task.Run(() =>
-            //    {
-            //        if (InvokeRequired)
-            //        {
-            //            Invoke(new Action(() =>
-            //            {
-            //                frmSupplierManagement = _serviceProvider.GetRequiredService<FrmSupplierManagement>();
-            //                OpenChildForm(frmSupplierManagement);
-            //            }));
-            //        }
-            //        else
-            //        {
-            //            frmSupplierManagement = _serviceProvider.GetRequiredService<FrmSupplierManagement>();
-            //            OpenChildForm(frmSupplierManagement);
-            //        }
-            //    });
-            //    if (frmSupplierManagement != null)
-            //    {
-            //        await frmSupplierManagement.WaitForDataLoadingComplete();
-            //    }
-            //}, "Đang tải Dashboard...", true);
+            await ExecuteWithLoadingInternalAsync(async () =>
+            {
+                FrmSupplierManagement frmSupplierManagement = null!;
+                await Task.Run(() =>
+                {
+                    if (InvokeRequired)
+                    {
+                        Invoke(new Action(() =>
+                        {
+                            frmSupplierManagement = _serviceProvider.GetRequiredService<FrmSupplierManagement>();
+                            OpenChildForm(frmSupplierManagement);
+                        }));
+                    }
+                    else
+                    {
+                        frmSupplierManagement = _serviceProvider.GetRequiredService<FrmSupplierManagement>();
+                        OpenChildForm(frmSupplierManagement);
+                    }
+                });
+                if (frmSupplierManagement != null)
+                {
+                    await frmSupplierManagement.WaitForDataLoadingComplete();
+                }
+            }, "Đang tải Dashboard...", true);
         }
         private async void LaunchUserForm(object sender, EventArgs e)
         {
@@ -889,7 +1061,7 @@ namespace Dashboard.Winform
             catch (Exception ex)
             {
                 _logger?.LogError(ex, $"Error opening child form: {childForm?.GetType().Name}");
-                MessageBox.Show($"Không thể mở form: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                new FrmToastMessage(ToastType.ERROR, $"Không thể mở form: {ex.Message}").Show();
             }
         }
         #endregion

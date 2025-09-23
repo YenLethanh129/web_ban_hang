@@ -42,10 +42,11 @@ public static class DependencyInjection
         builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
         builder.Services.AddScoped<IPayrollRepository, PayrollRepository>();
         builder.Services.AddScoped<IEmployeeSalaryRepository, EmployeeSalaryRepository>();
-        builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+        builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();
         builder.Services.AddScoped<IRoleRepository, RoleRepository>();
-        builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
         builder.Services.AddScoped<IUserRepository, UserRepository>();
+        builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+        builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
         builder.Services.AddDbContext<WebbanhangDbContext>((sp, options) =>
         {

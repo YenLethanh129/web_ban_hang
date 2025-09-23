@@ -27,6 +27,7 @@
             DataGridViewCellStyle dataGridViewCellStyle10 = new DataGridViewCellStyle();
             DataGridViewCellStyle dataGridViewCellStyle11 = new DataGridViewCellStyle();
             DataGridViewCellStyle dataGridViewCellStyle12 = new DataGridViewCellStyle();
+            toolTip1 = new ToolTip();
             tabControl = new TabControl();
             tabBasicInfo = new TabPage();
             pnlBasicInfo = new Panel();
@@ -869,6 +870,7 @@
         private Button btnUpload;
         private Button btnCheckUrl;
         private Label lblValidationStatus;
+        private ToolTip toolTip1;
         private TableLayoutPanel tableLayoutPanel1;
     }
 }

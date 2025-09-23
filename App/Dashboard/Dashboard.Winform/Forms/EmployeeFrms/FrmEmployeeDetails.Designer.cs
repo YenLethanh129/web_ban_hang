@@ -28,12 +28,6 @@
         /// </summary>
         private void InitializeComponent()
         {
-            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle4 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle5 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle6 = new DataGridViewCellStyle();
             tabControl = new TabControl();
             tabBasicInfo = new TabPage();
             pnlBasicInfo = new Panel();
@@ -68,16 +62,6 @@
             txtUsername = new TextBox();
             lblRole = new Label();
             txtRole = new TextBox();
-            tabSalaryInfo = new TabPage();
-            pnlSalaryInfo = new Panel();
-            dgvSalaries = new DataGridView();
-            pnlSalaryButtons = new Panel();
-            btnAddSalary = new Button();
-            btnEditSalary = new Button();
-            btnDeleteSalary = new Button();
-            tabPayrollInfo = new TabPage();
-            pnlPayrollInfo = new Panel();
-            dgvPayrolls = new DataGridView();
             pnlButtons = new Panel();
             btnSave = new Button();
             btnCancel = new Button();
@@ -88,13 +72,6 @@
             tabAccountInfo.SuspendLayout();
             pnlAccountInfo.SuspendLayout();
             grpAccountInfo.SuspendLayout();
-            tabSalaryInfo.SuspendLayout();
-            pnlSalaryInfo.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)dgvSalaries).BeginInit();
-            pnlSalaryButtons.SuspendLayout();
-            tabPayrollInfo.SuspendLayout();
-            pnlPayrollInfo.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)dgvPayrolls).BeginInit();
             pnlButtons.SuspendLayout();
             SuspendLayout();
             // 
@@ -102,8 +79,6 @@
             // 
             tabControl.Controls.Add(tabBasicInfo);
             tabControl.Controls.Add(tabAccountInfo);
-            tabControl.Controls.Add(tabSalaryInfo);
-            tabControl.Controls.Add(tabPayrollInfo);
             tabControl.Dock = DockStyle.Fill;
             tabControl.Font = new Font("Segoe UI", 9F);
             tabControl.ItemSize = new Size(120, 40);
@@ -487,183 +462,6 @@
             txtRole.Size = new Size(176, 23);
             txtRole.TabIndex = 3;
             // 
-            // tabSalaryInfo
-            // 
-            tabSalaryInfo.BackColor = Color.FromArgb(42, 45, 86);
-            tabSalaryInfo.Controls.Add(pnlSalaryInfo);
-            tabSalaryInfo.Location = new Point(4, 44);
-            tabSalaryInfo.Name = "tabSalaryInfo";
-            tabSalaryInfo.Padding = new Padding(3);
-            tabSalaryInfo.Size = new Size(780, 538);
-            tabSalaryInfo.TabIndex = 2;
-            tabSalaryInfo.Text = "Thông tin lương";
-            // 
-            // pnlSalaryInfo
-            // 
-            pnlSalaryInfo.BackColor = Color.FromArgb(42, 45, 86);
-            pnlSalaryInfo.Controls.Add(dgvSalaries);
-            pnlSalaryInfo.Controls.Add(pnlSalaryButtons);
-            pnlSalaryInfo.Dock = DockStyle.Fill;
-            pnlSalaryInfo.Location = new Point(3, 3);
-            pnlSalaryInfo.Name = "pnlSalaryInfo";
-            pnlSalaryInfo.Padding = new Padding(18, 19, 18, 19);
-            pnlSalaryInfo.Size = new Size(774, 532);
-            pnlSalaryInfo.TabIndex = 0;
-            // 
-            // dgvSalaries
-            // 
-            dgvSalaries.AllowUserToAddRows = false;
-            dgvSalaries.AllowUserToDeleteRows = false;
-            dgvSalaries.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            dgvSalaries.BackgroundColor = Color.FromArgb(24, 28, 63);
-            dgvSalaries.BorderStyle = BorderStyle.None;
-            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle1.BackColor = Color.FromArgb(107, 83, 255);
-            dataGridViewCellStyle1.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            dataGridViewCellStyle1.ForeColor = Color.White;
-            dataGridViewCellStyle1.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle1.WrapMode = DataGridViewTriState.True;
-            dgvSalaries.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
-            dgvSalaries.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle2.BackColor = Color.FromArgb(42, 45, 86);
-            dataGridViewCellStyle2.Font = new Font("Segoe UI", 9F);
-            dataGridViewCellStyle2.ForeColor = Color.WhiteSmoke;
-            dataGridViewCellStyle2.SelectionBackColor = Color.FromArgb(107, 83, 255);
-            dataGridViewCellStyle2.SelectionForeColor = Color.White;
-            dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
-            dgvSalaries.DefaultCellStyle = dataGridViewCellStyle2;
-            dgvSalaries.GridColor = Color.FromArgb(124, 141, 181);
-            dgvSalaries.Location = new Point(18, 19);
-            dgvSalaries.MultiSelect = false;
-            dgvSalaries.Name = "dgvSalaries";
-            dgvSalaries.ReadOnly = true;
-            dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle3.BackColor = Color.FromArgb(42, 45, 86);
-            dataGridViewCellStyle3.Font = new Font("Segoe UI", 9F);
-            dataGridViewCellStyle3.ForeColor = Color.WhiteSmoke;
-            dataGridViewCellStyle3.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle3.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle3.WrapMode = DataGridViewTriState.True;
-            dgvSalaries.RowHeadersDefaultCellStyle = dataGridViewCellStyle3;
-            dgvSalaries.RowHeadersWidth = 51;
-            dgvSalaries.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dgvSalaries.Size = new Size(739, 453);
-            dgvSalaries.TabIndex = 0;
-            // 
-            // pnlSalaryButtons
-            // 
-            pnlSalaryButtons.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            pnlSalaryButtons.BackColor = Color.FromArgb(42, 45, 86);
-            pnlSalaryButtons.Controls.Add(btnAddSalary);
-            pnlSalaryButtons.Controls.Add(btnEditSalary);
-            pnlSalaryButtons.Controls.Add(btnDeleteSalary);
-            pnlSalaryButtons.Location = new Point(18, 481);
-            pnlSalaryButtons.Name = "pnlSalaryButtons";
-            pnlSalaryButtons.Size = new Size(739, 38);
-            pnlSalaryButtons.TabIndex = 1;
-            // 
-            // btnAddSalary
-            // 
-            btnAddSalary.FlatAppearance.BorderColor = Color.Cyan;
-            btnAddSalary.FlatStyle = FlatStyle.Flat;
-            btnAddSalary.ForeColor = Color.FromArgb(255, 224, 192);
-            btnAddSalary.Location = new Point(0, 5);
-            btnAddSalary.Name = "btnAddSalary";
-            btnAddSalary.Size = new Size(70, 28);
-            btnAddSalary.TabIndex = 0;
-            btnAddSalary.Text = "Thêm";
-            btnAddSalary.UseVisualStyleBackColor = true;
-            // 
-            // btnEditSalary
-            // 
-            btnEditSalary.FlatAppearance.BorderColor = Color.FromArgb(107, 83, 255);
-            btnEditSalary.FlatStyle = FlatStyle.Flat;
-            btnEditSalary.ForeColor = Color.FromArgb(192, 255, 192);
-            btnEditSalary.Location = new Point(79, 5);
-            btnEditSalary.Name = "btnEditSalary";
-            btnEditSalary.Size = new Size(70, 28);
-            btnEditSalary.TabIndex = 1;
-            btnEditSalary.Text = "Sửa";
-            btnEditSalary.UseVisualStyleBackColor = true;
-            // 
-            // btnDeleteSalary
-            // 
-            btnDeleteSalary.FlatAppearance.BorderColor = Color.FromArgb(255, 99, 132);
-            btnDeleteSalary.FlatStyle = FlatStyle.Flat;
-            btnDeleteSalary.ForeColor = Color.FromArgb(255, 99, 132);
-            btnDeleteSalary.Location = new Point(158, 5);
-            btnDeleteSalary.Name = "btnDeleteSalary";
-            btnDeleteSalary.Size = new Size(70, 28);
-            btnDeleteSalary.TabIndex = 2;
-            btnDeleteSalary.Text = "Xóa";
-            btnDeleteSalary.UseVisualStyleBackColor = true;
-            // 
-            // tabPayrollInfo
-            // 
-            tabPayrollInfo.BackColor = Color.FromArgb(42, 45, 86);
-            tabPayrollInfo.Controls.Add(pnlPayrollInfo);
-            tabPayrollInfo.Location = new Point(4, 44);
-            tabPayrollInfo.Name = "tabPayrollInfo";
-            tabPayrollInfo.Padding = new Padding(3);
-            tabPayrollInfo.Size = new Size(780, 538);
-            tabPayrollInfo.TabIndex = 3;
-            tabPayrollInfo.Text = "Bảng lương";
-            // 
-            // pnlPayrollInfo
-            // 
-            pnlPayrollInfo.BackColor = Color.FromArgb(42, 45, 86);
-            pnlPayrollInfo.Controls.Add(dgvPayrolls);
-            pnlPayrollInfo.Dock = DockStyle.Fill;
-            pnlPayrollInfo.Location = new Point(3, 3);
-            pnlPayrollInfo.Name = "pnlPayrollInfo";
-            pnlPayrollInfo.Padding = new Padding(18, 19, 18, 19);
-            pnlPayrollInfo.Size = new Size(774, 532);
-            pnlPayrollInfo.TabIndex = 0;
-            // 
-            // dgvPayrolls
-            // 
-            dgvPayrolls.AllowUserToAddRows = false;
-            dgvPayrolls.AllowUserToDeleteRows = false;
-            dgvPayrolls.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            dgvPayrolls.BackgroundColor = Color.FromArgb(24, 28, 63);
-            dgvPayrolls.BorderStyle = BorderStyle.None;
-            dataGridViewCellStyle4.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle4.BackColor = Color.FromArgb(107, 83, 255);
-            dataGridViewCellStyle4.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            dataGridViewCellStyle4.ForeColor = Color.White;
-            dataGridViewCellStyle4.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle4.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle4.WrapMode = DataGridViewTriState.True;
-            dgvPayrolls.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle4;
-            dgvPayrolls.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewCellStyle5.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle5.BackColor = Color.FromArgb(42, 45, 86);
-            dataGridViewCellStyle5.Font = new Font("Segoe UI", 9F);
-            dataGridViewCellStyle5.ForeColor = Color.WhiteSmoke;
-            dataGridViewCellStyle5.SelectionBackColor = Color.FromArgb(107, 83, 255);
-            dataGridViewCellStyle5.SelectionForeColor = Color.White;
-            dataGridViewCellStyle5.WrapMode = DataGridViewTriState.False;
-            dgvPayrolls.DefaultCellStyle = dataGridViewCellStyle5;
-            dgvPayrolls.GridColor = Color.FromArgb(124, 141, 181);
-            dgvPayrolls.Location = new Point(18, 19);
-            dgvPayrolls.MultiSelect = false;
-            dgvPayrolls.Name = "dgvPayrolls";
-            dgvPayrolls.ReadOnly = true;
-            dataGridViewCellStyle6.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle6.BackColor = Color.FromArgb(42, 45, 86);
-            dataGridViewCellStyle6.Font = new Font("Segoe UI", 9F);
-            dataGridViewCellStyle6.ForeColor = Color.WhiteSmoke;
-            dataGridViewCellStyle6.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle6.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle6.WrapMode = DataGridViewTriState.True;
-            dgvPayrolls.RowHeadersDefaultCellStyle = dataGridViewCellStyle6;
-            dgvPayrolls.RowHeadersWidth = 51;
-            dgvPayrolls.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dgvPayrolls.Size = new Size(739, 495);
-            dgvPayrolls.TabIndex = 0;
-            // 
             // pnlButtons
             // 
             pnlButtons.BackColor = Color.FromArgb(24, 28, 63);
@@ -747,13 +545,6 @@
             pnlAccountInfo.PerformLayout();
             grpAccountInfo.ResumeLayout(false);
             grpAccountInfo.PerformLayout();
-            tabSalaryInfo.ResumeLayout(false);
-            pnlSalaryInfo.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)dgvSalaries).EndInit();
-            pnlSalaryButtons.ResumeLayout(false);
-            tabPayrollInfo.ResumeLayout(false);
-            pnlPayrollInfo.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)dgvPayrolls).EndInit();
             pnlButtons.ResumeLayout(false);
             ResumeLayout(false);
 
@@ -795,16 +586,6 @@
         private System.Windows.Forms.TextBox txtUsername;
         private System.Windows.Forms.Label lblRole;
         private System.Windows.Forms.TextBox txtRole;
-        private System.Windows.Forms.TabPage tabSalaryInfo;
-        private System.Windows.Forms.Panel pnlSalaryInfo;
-        private System.Windows.Forms.DataGridView dgvSalaries;
-        private System.Windows.Forms.Panel pnlSalaryButtons;
-        private System.Windows.Forms.Button btnAddSalary;
-        private System.Windows.Forms.Button btnEditSalary;
-        private System.Windows.Forms.Button btnDeleteSalary;
-        private System.Windows.Forms.TabPage tabPayrollInfo;
-        private System.Windows.Forms.Panel pnlPayrollInfo;
-        private System.Windows.Forms.DataGridView dgvPayrolls;
         private System.Windows.Forms.Panel pnlButtons;
         private System.Windows.Forms.Button btnSave;
         private System.Windows.Forms.Button btnCancel;

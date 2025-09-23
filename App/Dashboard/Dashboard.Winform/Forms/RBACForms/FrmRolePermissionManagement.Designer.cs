@@ -24,6 +24,9 @@ namespace Dashboard.Winform.Forms
             DataGridViewCellStyle dataGridViewCellStyle4 = new DataGridViewCellStyle();
             DataGridViewCellStyle dataGridViewCellStyle5 = new DataGridViewCellStyle();
             DataGridViewCellStyle dataGridViewCellStyle6 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle7 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle8 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle9 = new DataGridViewCellStyle();
             tabControlMain = new TabControl();
             tabPageList = new TabPage();
             splitContainer = new SplitContainer();
@@ -51,11 +54,16 @@ namespace Dashboard.Winform.Forms
             btnCancelPermission = new Button();
             tabPageRolePermissionAssign = new TabPage();
             pnlRolePermissionAssign = new Panel();
+            tableLayoutPanel1 = new TableLayoutPanel();
+            groupBoxAvailablePermissions = new GroupBox();
+            dgvAvailablePermissions = new DataGridView();
+            pnlAssignButtons = new Panel();
+            btnAssignPermissions = new Button();
+            btnRemovePermissions = new Button();
+            groupBoxAssignedPermissions = new GroupBox();
+            dgvAssignedPermissions = new DataGridView();
             lblSelectedRole = new Label();
             lblSelectedRoleValue = new Label();
-            dgvAvailablePermissions = new DataGridView();
-            btnAssignPermissions = new Button();
-            btnUnassignPermissions = new Button();
             tabControlMain.SuspendLayout();
             tabPageList.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer).BeginInit();
@@ -70,21 +78,28 @@ namespace Dashboard.Winform.Forms
             pnlPermissionEdit.SuspendLayout();
             tabPageRolePermissionAssign.SuspendLayout();
             pnlRolePermissionAssign.SuspendLayout();
+            tableLayoutPanel1.SuspendLayout();
+            groupBoxAvailablePermissions.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dgvAvailablePermissions).BeginInit();
+            pnlAssignButtons.SuspendLayout();
+            groupBoxAssignedPermissions.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)dgvAssignedPermissions).BeginInit();
             SuspendLayout();
             // 
             // tabControlMain
             // 
             tabControlMain.Appearance = TabAppearance.FlatButtons;
+            // Use owner draw so we can ensure tab text color is visible regardless of Windows theme
+            tabControlMain.DrawMode = TabDrawMode.OwnerDrawFixed;
             tabControlMain.Controls.Add(tabPageList);
             tabControlMain.Controls.Add(tabPageRoleEdit);
             tabControlMain.Controls.Add(tabPagePermissionEdit);
             tabControlMain.Controls.Add(tabPageRolePermissionAssign);
             tabControlMain.Dock = DockStyle.Fill;
-            tabControlMain.Location = new Point(10, 25);
+            tabControlMain.Location = new Point(10, 10);
             tabControlMain.Name = "tabControlMain";
             tabControlMain.SelectedIndex = 0;
-            tabControlMain.Size = new Size(960, 590);
+            tabControlMain.Size = new Size(960, 620);
             tabControlMain.TabIndex = 0;
             // 
             // tabPageList
@@ -95,7 +110,7 @@ namespace Dashboard.Winform.Forms
             tabPageList.Location = new Point(4, 27);
             tabPageList.Name = "tabPageList";
             tabPageList.Padding = new Padding(3);
-            tabPageList.Size = new Size(952, 559);
+            tabPageList.Size = new Size(952, 589);
             tabPageList.TabIndex = 0;
             tabPageList.Text = "Danh sách Role & Permission";
             // 
@@ -116,8 +131,8 @@ namespace Dashboard.Winform.Forms
             // 
             splitContainer.Panel2.BackColor = Color.FromArgb(42, 45, 86);
             splitContainer.Panel2.Controls.Add(dgvPermissions);
-            splitContainer.Size = new Size(946, 553);
-            splitContainer.SplitterDistance = 275;
+            splitContainer.Size = new Size(946, 583);
+            splitContainer.SplitterDistance = 290;
             splitContainer.TabIndex = 0;
             // 
             // dgvRoles
@@ -158,7 +173,7 @@ namespace Dashboard.Winform.Forms
             dgvRoles.ReadOnly = true;
             dgvRoles.RowHeadersVisible = false;
             dgvRoles.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dgvRoles.Size = new Size(946, 275);
+            dgvRoles.Size = new Size(946, 290);
             dgvRoles.TabIndex = 0;
             // 
             // dgvPermissions
@@ -199,24 +214,24 @@ namespace Dashboard.Winform.Forms
             dgvPermissions.ReadOnly = true;
             dgvPermissions.RowHeadersVisible = false;
             dgvPermissions.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dgvPermissions.Size = new Size(946, 274);
+            dgvPermissions.Size = new Size(946, 289);
             dgvPermissions.TabIndex = 1;
             // 
             // tabPageRoleEdit
             // 
-            tabPageRoleEdit.BackColor = Color.FromArgb(42, 45, 86);
+            tabPageRoleEdit.BackColor = Color.FromArgb(24, 28, 63);
             tabPageRoleEdit.Controls.Add(pnlRoleEdit);
             tabPageRoleEdit.ForeColor = Color.White;
             tabPageRoleEdit.Location = new Point(4, 27);
             tabPageRoleEdit.Name = "tabPageRoleEdit";
             tabPageRoleEdit.Padding = new Padding(3);
-            tabPageRoleEdit.Size = new Size(952, 559);
+            tabPageRoleEdit.Size = new Size(952, 589);
             tabPageRoleEdit.TabIndex = 1;
             tabPageRoleEdit.Text = "Thêm/Sửa Role";
             // 
             // pnlRoleEdit
             // 
-            pnlRoleEdit.BackColor = Color.FromArgb(42, 45, 86);
+            pnlRoleEdit.BackColor = Color.FromArgb(24, 28, 63);
             pnlRoleEdit.Controls.Add(lblRoleName);
             pnlRoleEdit.Controls.Add(txtRoleName);
             pnlRoleEdit.Controls.Add(lblRoleDescription);
@@ -227,7 +242,7 @@ namespace Dashboard.Winform.Forms
             pnlRoleEdit.Location = new Point(3, 3);
             pnlRoleEdit.Name = "pnlRoleEdit";
             pnlRoleEdit.Padding = new Padding(20);
-            pnlRoleEdit.Size = new Size(946, 553);
+            pnlRoleEdit.Size = new Size(946, 583);
             pnlRoleEdit.TabIndex = 0;
             // 
             // lblRoleName
@@ -243,7 +258,7 @@ namespace Dashboard.Winform.Forms
             // 
             // txtRoleName
             // 
-            txtRoleName.BackColor = Color.FromArgb(24, 28, 63);
+            txtRoleName.BackColor = Color.FromArgb(42, 45, 86);
             txtRoleName.BorderStyle = BorderStyle.FixedSingle;
             txtRoleName.Font = new Font("Segoe UI", 10F);
             txtRoleName.ForeColor = Color.White;
@@ -265,7 +280,7 @@ namespace Dashboard.Winform.Forms
             // 
             // txtRoleDescription
             // 
-            txtRoleDescription.BackColor = Color.FromArgb(24, 28, 63);
+            txtRoleDescription.BackColor = Color.FromArgb(42, 45, 86);
             txtRoleDescription.BorderStyle = BorderStyle.FixedSingle;
             txtRoleDescription.Font = new Font("Segoe UI", 10F);
             txtRoleDescription.ForeColor = Color.White;
@@ -303,19 +318,19 @@ namespace Dashboard.Winform.Forms
             // 
             // tabPagePermissionEdit
             // 
-            tabPagePermissionEdit.BackColor = Color.FromArgb(42, 45, 86);
+            tabPagePermissionEdit.BackColor = Color.FromArgb(24, 28, 63);
             tabPagePermissionEdit.Controls.Add(pnlPermissionEdit);
             tabPagePermissionEdit.ForeColor = Color.White;
             tabPagePermissionEdit.Location = new Point(4, 27);
             tabPagePermissionEdit.Name = "tabPagePermissionEdit";
             tabPagePermissionEdit.Padding = new Padding(3);
-            tabPagePermissionEdit.Size = new Size(952, 559);
+            tabPagePermissionEdit.Size = new Size(952, 589);
             tabPagePermissionEdit.TabIndex = 2;
             tabPagePermissionEdit.Text = "Thêm/Sửa Permission";
             // 
             // pnlPermissionEdit
             // 
-            pnlPermissionEdit.BackColor = Color.FromArgb(42, 45, 86);
+            pnlPermissionEdit.BackColor = Color.FromArgb(24, 28, 63);
             pnlPermissionEdit.Controls.Add(lblPermissionName);
             pnlPermissionEdit.Controls.Add(txtPermissionName);
             pnlPermissionEdit.Controls.Add(lblPermissionDescription);
@@ -330,7 +345,7 @@ namespace Dashboard.Winform.Forms
             pnlPermissionEdit.Location = new Point(3, 3);
             pnlPermissionEdit.Name = "pnlPermissionEdit";
             pnlPermissionEdit.Padding = new Padding(20);
-            pnlPermissionEdit.Size = new Size(946, 553);
+            pnlPermissionEdit.Size = new Size(946, 583);
             pnlPermissionEdit.TabIndex = 0;
             // 
             // lblPermissionName
@@ -342,11 +357,11 @@ namespace Dashboard.Winform.Forms
             lblPermissionName.Name = "lblPermissionName";
             lblPermissionName.Size = new Size(102, 19);
             lblPermissionName.TabIndex = 0;
-            lblPermissionName.Text = "Tên Permission:";
+            lblPermissionName.Text = "Tên quyền:";
             // 
             // txtPermissionName
             // 
-            txtPermissionName.BackColor = Color.FromArgb(24, 28, 63);
+            txtPermissionName.BackColor = Color.FromArgb(42, 45, 86);
             txtPermissionName.BorderStyle = BorderStyle.FixedSingle;
             txtPermissionName.Font = new Font("Segoe UI", 10F);
             txtPermissionName.ForeColor = Color.White;
@@ -368,7 +383,7 @@ namespace Dashboard.Winform.Forms
             // 
             // txtPermissionDescription
             // 
-            txtPermissionDescription.BackColor = Color.FromArgb(24, 28, 63);
+            txtPermissionDescription.BackColor = Color.FromArgb(42, 45, 86);
             txtPermissionDescription.BorderStyle = BorderStyle.FixedSingle;
             txtPermissionDescription.Font = new Font("Segoe UI", 10F);
             txtPermissionDescription.ForeColor = Color.White;
@@ -391,7 +406,7 @@ namespace Dashboard.Winform.Forms
             // 
             // txtPermissionResource
             // 
-            txtPermissionResource.BackColor = Color.FromArgb(24, 28, 63);
+            txtPermissionResource.BackColor = Color.FromArgb(42, 45, 86);
             txtPermissionResource.BorderStyle = BorderStyle.FixedSingle;
             txtPermissionResource.Font = new Font("Segoe UI", 10F);
             txtPermissionResource.ForeColor = Color.White;
@@ -413,7 +428,7 @@ namespace Dashboard.Winform.Forms
             // 
             // txtPermissionAction
             // 
-            txtPermissionAction.BackColor = Color.FromArgb(24, 28, 63);
+            txtPermissionAction.BackColor = Color.FromArgb(42, 45, 86);
             txtPermissionAction.BorderStyle = BorderStyle.FixedSingle;
             txtPermissionAction.Font = new Font("Segoe UI", 10F);
             txtPermissionAction.ForeColor = Color.White;
@@ -450,40 +465,178 @@ namespace Dashboard.Winform.Forms
             // 
             // tabPageRolePermissionAssign
             // 
-            tabPageRolePermissionAssign.BackColor = Color.FromArgb(42, 45, 86);
+            tabPageRolePermissionAssign.BackColor = Color.FromArgb(24, 28, 63);
             tabPageRolePermissionAssign.Controls.Add(pnlRolePermissionAssign);
             tabPageRolePermissionAssign.ForeColor = Color.White;
             tabPageRolePermissionAssign.Location = new Point(4, 27);
             tabPageRolePermissionAssign.Name = "tabPageRolePermissionAssign";
             tabPageRolePermissionAssign.Padding = new Padding(3);
-            tabPageRolePermissionAssign.Size = new Size(952, 559);
+            tabPageRolePermissionAssign.Size = new Size(952, 589);
             tabPageRolePermissionAssign.TabIndex = 3;
             tabPageRolePermissionAssign.Text = "Gán quyền cho Role";
             // 
             // pnlRolePermissionAssign
             // 
-            pnlRolePermissionAssign.BackColor = Color.FromArgb(42, 45, 86);
+            pnlRolePermissionAssign.BackColor = Color.FromArgb(24, 28, 63);
+            pnlRolePermissionAssign.Controls.Add(tableLayoutPanel1);
             pnlRolePermissionAssign.Controls.Add(lblSelectedRole);
             pnlRolePermissionAssign.Controls.Add(lblSelectedRoleValue);
-            pnlRolePermissionAssign.Controls.Add(dgvAvailablePermissions);
-            pnlRolePermissionAssign.Controls.Add(btnAssignPermissions);
-            pnlRolePermissionAssign.Controls.Add(btnUnassignPermissions);
             pnlRolePermissionAssign.Dock = DockStyle.Fill;
             pnlRolePermissionAssign.Location = new Point(3, 3);
             pnlRolePermissionAssign.Name = "pnlRolePermissionAssign";
-            pnlRolePermissionAssign.Padding = new Padding(20);
-            pnlRolePermissionAssign.Size = new Size(946, 553);
+            pnlRolePermissionAssign.Padding = new Padding(10);
+            pnlRolePermissionAssign.Size = new Size(946, 583);
             pnlRolePermissionAssign.TabIndex = 0;
+            // 
+            // tableLayoutPanel1
+            // 
+            tableLayoutPanel1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            tableLayoutPanel1.ColumnCount = 3;
+            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 45F));
+            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 10F));
+            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 45F));
+            tableLayoutPanel1.Controls.Add(groupBoxAvailablePermissions, 0, 0);
+            tableLayoutPanel1.Controls.Add(pnlAssignButtons, 1, 0);
+            tableLayoutPanel1.Controls.Add(groupBoxAssignedPermissions, 2, 0);
+            tableLayoutPanel1.Location = new Point(13, 50);
+            tableLayoutPanel1.Name = "tableLayoutPanel1";
+            tableLayoutPanel1.RowCount = 1;
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            tableLayoutPanel1.Size = new Size(920, 520);
+            tableLayoutPanel1.TabIndex = 3;
+            // 
+            // groupBoxAvailablePermissions
+            // 
+            groupBoxAvailablePermissions.Controls.Add(dgvAvailablePermissions);
+            groupBoxAvailablePermissions.Dock = DockStyle.Fill;
+            groupBoxAvailablePermissions.ForeColor = Color.White;
+            groupBoxAvailablePermissions.Location = new Point(3, 3);
+            groupBoxAvailablePermissions.Name = "groupBoxAvailablePermissions";
+            groupBoxAvailablePermissions.Size = new Size(408, 514);
+            groupBoxAvailablePermissions.TabIndex = 0;
+            groupBoxAvailablePermissions.TabStop = false;
+            groupBoxAvailablePermissions.Text = "Quyền có sẵn";
+            // 
+            // dgvAvailablePermissions
+            // 
+            dgvAvailablePermissions.AllowUserToAddRows = false;
+            dgvAvailablePermissions.AllowUserToDeleteRows = false;
+            dgvAvailablePermissions.AllowUserToResizeRows = false;
+            dataGridViewCellStyle7.BackColor = Color.FromArgb(42, 45, 86);
+            dgvAvailablePermissions.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle7;
+            dgvAvailablePermissions.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgvAvailablePermissions.BackgroundColor = Color.FromArgb(42, 45, 86);
+            dgvAvailablePermissions.BorderStyle = BorderStyle.None;
+            dgvAvailablePermissions.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
+            dgvAvailablePermissions.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
+            dataGridViewCellStyle8.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle8.BackColor = Color.FromArgb(42, 45, 86);
+            dataGridViewCellStyle8.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            dataGridViewCellStyle8.ForeColor = Color.FromArgb(124, 141, 181);
+            dataGridViewCellStyle8.SelectionBackColor = Color.FromArgb(42, 45, 86);
+            dataGridViewCellStyle8.SelectionForeColor = Color.FromArgb(124, 141, 181);
+            dataGridViewCellStyle8.WrapMode = DataGridViewTriState.True;
+            dgvAvailablePermissions.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle8;
+            dgvAvailablePermissions.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dataGridViewCellStyle9.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle9.BackColor = Color.FromArgb(42, 45, 86);
+            dataGridViewCellStyle9.Font = new Font("Segoe UI", 9F);
+            dataGridViewCellStyle9.ForeColor = Color.White;
+            dataGridViewCellStyle9.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle9.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle9.WrapMode = DataGridViewTriState.False;
+            dgvAvailablePermissions.DefaultCellStyle = dataGridViewCellStyle9;
+            dgvAvailablePermissions.Dock = DockStyle.Fill;
+            dgvAvailablePermissions.EnableHeadersVisualStyles = false;
+            dgvAvailablePermissions.GridColor = Color.FromArgb(73, 75, 111);
+            dgvAvailablePermissions.Location = new Point(3, 19);
+            dgvAvailablePermissions.Name = "dgvAvailablePermissions";
+            dgvAvailablePermissions.ReadOnly = true;
+            dgvAvailablePermissions.RowHeadersVisible = false;
+            dgvAvailablePermissions.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgvAvailablePermissions.Size = new Size(402, 492);
+            dgvAvailablePermissions.TabIndex = 0;
+            // 
+            // pnlAssignButtons
+            // 
+            pnlAssignButtons.Controls.Add(btnAssignPermissions);
+            pnlAssignButtons.Controls.Add(btnRemovePermissions);
+            pnlAssignButtons.Dock = DockStyle.Fill;
+            pnlAssignButtons.Location = new Point(417, 3);
+            pnlAssignButtons.Name = "pnlAssignButtons";
+            pnlAssignButtons.Size = new Size(86, 514);
+            pnlAssignButtons.TabIndex = 1;
+            // 
+            // btnAssignPermissions
+            // 
+            btnAssignPermissions.Anchor = AnchorStyles.None;
+            btnAssignPermissions.BackColor = Color.FromArgb(107, 83, 255);
+            btnAssignPermissions.FlatStyle = FlatStyle.Flat;
+            btnAssignPermissions.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold);
+            btnAssignPermissions.ForeColor = Color.White;
+            btnAssignPermissions.Location = new Point(18, 200);
+            btnAssignPermissions.Name = "btnAssignPermissions";
+            btnAssignPermissions.Size = new Size(50, 35);
+            btnAssignPermissions.TabIndex = 0;
+            btnAssignPermissions.Text = "→";
+            btnAssignPermissions.UseVisualStyleBackColor = false;
+            // 
+            // btnRemovePermissions
+            // 
+            btnRemovePermissions.Anchor = AnchorStyles.None;
+            btnRemovePermissions.BackColor = Color.FromArgb(220, 53, 69);
+            btnRemovePermissions.FlatStyle = FlatStyle.Flat;
+            btnRemovePermissions.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold);
+            btnRemovePermissions.ForeColor = Color.White;
+            btnRemovePermissions.Location = new Point(18, 260);
+            btnRemovePermissions.Name = "btnRemovePermissions";
+            btnRemovePermissions.Size = new Size(50, 35);
+            btnRemovePermissions.TabIndex = 1;
+            btnRemovePermissions.Text = "←";
+            btnRemovePermissions.UseVisualStyleBackColor = false;
+            // 
+            // groupBoxAssignedPermissions
+            // 
+            groupBoxAssignedPermissions.Controls.Add(dgvAssignedPermissions);
+            groupBoxAssignedPermissions.Dock = DockStyle.Fill;
+            groupBoxAssignedPermissions.ForeColor = Color.White;
+            groupBoxAssignedPermissions.Location = new Point(509, 3);
+            groupBoxAssignedPermissions.Name = "groupBoxAssignedPermissions";
+            groupBoxAssignedPermissions.Size = new Size(408, 514);
+            groupBoxAssignedPermissions.TabIndex = 2;
+            groupBoxAssignedPermissions.TabStop = false;
+            groupBoxAssignedPermissions.Text = "Quyền đã gán";
+            // 
+            // dgvAssignedPermissions
+            // 
+            dgvAssignedPermissions.AllowUserToAddRows = false;
+            dgvAssignedPermissions.AllowUserToDeleteRows = false;
+            dgvAssignedPermissions.AllowUserToResizeRows = false;
+            dgvAssignedPermissions.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgvAssignedPermissions.BackgroundColor = Color.FromArgb(42, 45, 86);
+            dgvAssignedPermissions.BorderStyle = BorderStyle.None;
+            dgvAssignedPermissions.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
+            dgvAssignedPermissions.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
+            dgvAssignedPermissions.Dock = DockStyle.Fill;
+            dgvAssignedPermissions.EnableHeadersVisualStyles = false;
+            dgvAssignedPermissions.GridColor = Color.FromArgb(73, 75, 111);
+            dgvAssignedPermissions.Location = new Point(3, 19);
+            dgvAssignedPermissions.Name = "dgvAssignedPermissions";
+            dgvAssignedPermissions.ReadOnly = true;
+            dgvAssignedPermissions.RowHeadersVisible = false;
+            dgvAssignedPermissions.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgvAssignedPermissions.Size = new Size(402, 492);
+            dgvAssignedPermissions.TabIndex = 0;
             // 
             // lblSelectedRole
             // 
             lblSelectedRole.AutoSize = true;
             lblSelectedRole.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
             lblSelectedRole.ForeColor = Color.FromArgb(124, 141, 181);
-            lblSelectedRole.Location = new Point(23, 23);
+            lblSelectedRole.Location = new Point(13, 13);
             lblSelectedRole.Name = "lblSelectedRole";
             lblSelectedRole.Size = new Size(113, 21);
-            lblSelectedRole.TabIndex = 0;
+            lblSelectedRole.TabIndex = 1;
             lblSelectedRole.Text = "Role đã chọn:";
             // 
             // lblSelectedRoleValue
@@ -491,58 +644,11 @@ namespace Dashboard.Winform.Forms
             lblSelectedRoleValue.AutoSize = true;
             lblSelectedRoleValue.Font = new Font("Segoe UI", 12F);
             lblSelectedRoleValue.ForeColor = Color.White;
-            lblSelectedRoleValue.Location = new Point(137, 23);
+            lblSelectedRoleValue.Location = new Point(127, 13);
             lblSelectedRoleValue.Name = "lblSelectedRoleValue";
             lblSelectedRoleValue.Size = new Size(155, 21);
-            lblSelectedRoleValue.TabIndex = 1;
+            lblSelectedRoleValue.TabIndex = 2;
             lblSelectedRoleValue.Text = "[Chưa chọn role nào]";
-            // 
-            // dgvAvailablePermissions
-            // 
-            dgvAvailablePermissions.AllowUserToAddRows = false;
-            dgvAvailablePermissions.AllowUserToDeleteRows = false;
-            dgvAvailablePermissions.AllowUserToResizeRows = false;
-            dgvAvailablePermissions.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            dgvAvailablePermissions.BackgroundColor = Color.FromArgb(42, 45, 86);
-            dgvAvailablePermissions.BorderStyle = BorderStyle.None;
-            dgvAvailablePermissions.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
-            dgvAvailablePermissions.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
-            dgvAvailablePermissions.EnableHeadersVisualStyles = false;
-            dgvAvailablePermissions.GridColor = Color.FromArgb(73, 75, 111);
-            dgvAvailablePermissions.Location = new Point(23, 60);
-            dgvAvailablePermissions.Name = "dgvAvailablePermissions";
-            dgvAvailablePermissions.RowHeadersVisible = false;
-            dgvAvailablePermissions.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dgvAvailablePermissions.Size = new Size(900, 400);
-            dgvAvailablePermissions.TabIndex = 2;
-            // 
-            // btnAssignPermissions
-            // 
-            btnAssignPermissions.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnAssignPermissions.BackColor = Color.FromArgb(107, 83, 255);
-            btnAssignPermissions.FlatStyle = FlatStyle.Flat;
-            btnAssignPermissions.Font = new Font("Segoe UI", 10F);
-            btnAssignPermissions.ForeColor = Color.White;
-            btnAssignPermissions.Location = new Point(23, 480);
-            btnAssignPermissions.Name = "btnAssignPermissions";
-            btnAssignPermissions.Size = new Size(178, 35);
-            btnAssignPermissions.TabIndex = 3;
-            btnAssignPermissions.Text = "Gán quyền được chọn";
-            btnAssignPermissions.UseVisualStyleBackColor = false;
-            // 
-            // btnUnassignPermissions
-            // 
-            btnUnassignPermissions.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            btnUnassignPermissions.BackColor = Color.FromArgb(220, 53, 69);
-            btnUnassignPermissions.FlatStyle = FlatStyle.Flat;
-            btnUnassignPermissions.Font = new Font("Segoe UI", 10F);
-            btnUnassignPermissions.ForeColor = Color.White;
-            btnUnassignPermissions.Location = new Point(207, 480);
-            btnUnassignPermissions.Name = "btnUnassignPermissions";
-            btnUnassignPermissions.Size = new Size(167, 35);
-            btnUnassignPermissions.TabIndex = 4;
-            btnUnassignPermissions.Text = "Gỡ quyền được chọn";
-            btnUnassignPermissions.UseVisualStyleBackColor = false;
             // 
             // FrmRolePermissionManagement
             // 
@@ -553,7 +659,7 @@ namespace Dashboard.Winform.Forms
             Controls.Add(tabControlMain);
             FormBorderStyle = FormBorderStyle.None;
             Name = "FrmRolePermissionManagement";
-            Padding = new Padding(10, 25, 10, 25);
+            Padding = new Padding(10);
             Text = "Quản lý Role & Permission";
             tabControlMain.ResumeLayout(false);
             tabPageList.ResumeLayout(false);
@@ -572,7 +678,12 @@ namespace Dashboard.Winform.Forms
             tabPageRolePermissionAssign.ResumeLayout(false);
             pnlRolePermissionAssign.ResumeLayout(false);
             pnlRolePermissionAssign.PerformLayout();
+            tableLayoutPanel1.ResumeLayout(false);
+            groupBoxAvailablePermissions.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)dgvAvailablePermissions).EndInit();
+            pnlAssignButtons.ResumeLayout(false);
+            groupBoxAssignedPermissions.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)dgvAssignedPermissions).EndInit();
             ResumeLayout(false);
         }
 
@@ -608,10 +719,15 @@ namespace Dashboard.Winform.Forms
 
         private TabPage tabPageRolePermissionAssign;
         private Panel pnlRolePermissionAssign;
+        private TableLayoutPanel tableLayoutPanel1;
+        private GroupBox groupBoxAvailablePermissions;
+        private DataGridView dgvAvailablePermissions;
+        private Panel pnlAssignButtons;
+        private Button btnAssignPermissions;
+        private Button btnRemovePermissions;
+        private GroupBox groupBoxAssignedPermissions;
+        private DataGridView dgvAssignedPermissions;
         private Label lblSelectedRole;
         private Label lblSelectedRoleValue;
-        private DataGridView dgvAvailablePermissions;
-        private Button btnAssignPermissions;
-        private Button btnUnassignPermissions;
     }
 }

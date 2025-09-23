@@ -1,5 +1,8 @@
 ﻿using Dashboard.Winform.ViewModels;
+using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 
 namespace Dashboard.Winform.ViewModels.RBACModels;
 
@@ -174,7 +177,7 @@ public class RoleViewModel : ViewModelBase
     private DateTime _createdAt;
     private DateTime? _updatedAt;
     private int _permissionCount;
-    private List<PermissionViewModel> _permissions = [];
+    private List<PermissionViewModel> _permissions = new List<PermissionViewModel>();
 
     public long Id
     {
@@ -343,8 +346,8 @@ public class RoleDetailViewModel : ViewModelBase
     private long _id;
     private string _name = string.Empty;
     private string? _description;
-    private List<PermissionViewModel> _allPermissions = [];
-    private List<long> _assignedPermissionIds = [];
+    private List<PermissionViewModel> _allPermissions = new List<PermissionViewModel>();
+    private List<long> _assignedPermissionIds = new List<long>();
     private bool _isDirty = false;
 
     public long Id
@@ -516,7 +519,7 @@ public class PermissionDetailViewModel : ViewModelBase
         get
         {
             if (string.IsNullOrWhiteSpace(Name))
-                return "Tên permission không được để trống";
+                return "Tên quyền không được để trống";
             if (string.IsNullOrWhiteSpace(Resource))
                 return "Resource không được để trống";
             if (string.IsNullOrWhiteSpace(Action))

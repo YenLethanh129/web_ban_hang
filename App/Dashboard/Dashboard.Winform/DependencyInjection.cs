@@ -3,8 +3,14 @@ using Dashboard.BussinessLogic.Services.ProductServices;
 using Dashboard.Common.Options;
 using Dashboard.DataAccess.Helpers;
 using Dashboard.Winform.Forms;
+using Dashboard.Winform.Forms.SupplierFrm;
 using Dashboard.Winform.Mappings;
 using Dashboard.Winform.Presenters;
+using Dashboard.Winform.Presenters.EmployeePresenter;
+using Dashboard.Winform.Presenters.IngredientPresenters;
+using Dashboard.Winform.Presenters.ProductPresenters;
+using Dashboard.Winform.Presenters.RecipePresenters;
+using Dashboard.Winform.Presenters.SupplierPresenters;
 using Dashboard.Winform.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,14 +37,19 @@ namespace Dashboard.Winform
             services.AddTransient<IProductManagementPresenter, ProductManagementPresenter>();
             services.AddTransient<IIngredientDetailPresenter, IngredientDetailPresenter>();
             services.AddTransient<IIngredientManagementPresenter, IngredientManagementPresenter>();
+            services.AddTransient<IRecipeDetailPresenter, RecipeDetailPresenter>();
+            services.AddTransient<ISupplierManagementPresenter, SupplierManagementPresenter>();
+            services.AddTransient<ISupplierDetailPresenter, SupplierDetailPresenter>();
 
-            services.AddScoped<EmployeeManagementPresenter>();
+            services.AddTransient<EmployeeManagementPresenter>();
+
             services.AddTransient<ProductManagementPresenter>();
             services.AddTransient<RecipeManagementPresenter>();
             services.AddTransient<IngredientManagementPresenter>();
             services.AddTransient<ProductDetailPresenter>();
             services.AddTransient<IngredientDetailPresenter>();
-
+            services.AddTransient<SupplierManagementPresenter>();
+            services.AddTransient<SupplierDetailPresenter>();
 
             services.AddScoped<ITokenCleanupService, TokenCleanupService>();
             services.AddHostedService<TokenCleanupBackgroundService>();
@@ -56,6 +67,9 @@ namespace Dashboard.Winform
             services.AddTransient<FrmRolePermissionManagement>();
             services.AddTransient<FrmScheduleEditor>();
             services.AddTransient<FrmLogin>();
+            services.AddTransient<FrmRecipeDetails>();
+            services.AddTransient<FrmSupplierManagement>();
+            services.AddTransient<FrmSupplierDetails>();
 
             var securitySection = configuration.GetSection("Security");
             services.Configure<SecurityOptions>(securitySection);

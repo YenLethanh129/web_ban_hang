@@ -25,7 +25,7 @@ namespace Dashboard.StockWorker.Services
 
         public async Task SendStockAlertsAsync(List<StockAlert> alerts)
         {
-            if (!alerts.Any())
+            if (alerts.Count == 0)
             {
                 _logger.LogInformation("No stock alerts to send");
                 return;

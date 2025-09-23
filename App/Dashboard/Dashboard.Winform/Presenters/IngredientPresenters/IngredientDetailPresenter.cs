@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Dashboard.Winform.Presenters
+namespace Dashboard.Winform.Presenters.IngredientPresenters
 {
     public interface IIngredientDetailPresenter
     {

@@ -13,17 +13,6 @@ using MailKit.Net.Smtp;
 
 namespace Dashboard.StockWorker.Services
 {
-    /// <summary>
-    /// Background worker that calculates ingredient consumption from product sales in the last N days
-    /// (default 7), compares that need to branch & warehouse stocks and flags low-stock ingredients.
-    /// It updates safety_stock in ingredient_warehouse and inventory_thresholds (per branch), and
-    /// sends an email alert (if SMTP configured) with the results.
-    ///
-    /// Design notes:
-    /// - Uses direct SQL queries so the worker can run independently of repository abstractions.
-    /// - Be conservative with updates: set safety_stock to the calculated consumption value.
-    /// - The schedule and lookback window are configurable via appsettings (LowStockAlert section).
-    /// </summary>
     public class LowStockAlertWorker : BackgroundService
     {
         private readonly ILogger<LowStockAlertWorker> _logger;
@@ -56,13 +45,11 @@ namespace Dashboard.StockWorker.Services
 
                     if (alerts.Any())
                     {
-                        // Delegate email / notification to the notification service
                         await _notifier.SendStockAlertsAsync(alerts);
                     }
                 }
                 catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
                 {
-                    // shutting down
                 }
                 catch (Exception ex)
                 {

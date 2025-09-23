@@ -73,6 +73,7 @@ public class UserDto
     public long RoleId { get; set; }
     public string? Password { get; set; } = string.Empty;
     public string RoleName { get; set; } = string.Empty;
+    public string? EmployeeName { get; set; } = string.Empty;
     public long? EmployeeId { get; set; }
     public DateTime CreatedAt { get; set; }
 }

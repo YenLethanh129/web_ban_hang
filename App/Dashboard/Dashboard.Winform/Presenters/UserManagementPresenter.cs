@@ -158,7 +158,7 @@ namespace Dashboard.Winform.Presenters
                     Id = r.Id,
                     Name = r.Name,
                     Description = r.Description,
-                    CreatedAt = r.CreatedAt ?? DateTime.MinValue,
+                    CreatedAt = r.CreatedAt,
                     UpdatedAt = r.LastModified,
                     PermissionCount = r.Permissions?.Count ?? 0,
                     Permissions = (r.Permissions ?? [])
@@ -412,7 +412,7 @@ namespace Dashboard.Winform.Presenters
                 Id = role.Id,
                 Name = role.Name,
                 Description = role.Description,
-                CreatedAt = role.CreatedAt ?? DateTime.MinValue,
+                CreatedAt = role.CreatedAt,
                 UpdatedAt = role.LastModified,
                 PermissionCount = role.Permissions?.Count ?? 0,
                 Permissions = (role.Permissions ?? Enumerable.Empty<PermissionDto>())
@@ -448,7 +448,7 @@ namespace Dashboard.Winform.Presenters
                     Id = r.Id,
                     Name = r.Name,
                     Description = r.Description,
-                    CreatedAt = r.CreatedAt ?? DateTime.MinValue,
+                    CreatedAt = r.CreatedAt,
                     UpdatedAt = r.LastModified,
                     PermissionCount = r.Permissions?.Count ?? 0,
                     Permissions = [.. (r.Permissions ?? Enumerable.Empty<PermissionDto>())

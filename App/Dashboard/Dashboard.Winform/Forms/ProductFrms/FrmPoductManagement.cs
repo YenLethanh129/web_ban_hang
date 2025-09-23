@@ -1,6 +1,7 @@
-﻿using Dashboard.Winform.Events;
+﻿using Dashboard.Common.Constants;
+using Dashboard.Winform.Events;
 using Dashboard.Winform.Forms;
-using Dashboard.Winform.Presenters;
+using Dashboard.Winform.Presenters.ProductPresenters;
 using Dashboard.Winform.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -487,12 +488,12 @@ namespace Dashboard.Winform.Forms
 
         private void ShowError(string message)
         {
-            MessageBox.Show(message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            new FrmToastMessage(ToastType.ERROR, message).Show();
         }
 
         private void ShowInfo(string message)
         {
-            MessageBox.Show(message, "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            new FrmToastMessage(ToastType.INFO, message).Show();
         }
 
         private void SetLoadingState(bool isLoading)
@@ -664,10 +665,7 @@ namespace Dashboard.Winform.Forms
             }
             else
             {
-                MessageBox.Show("Vui lòng chọn một sản phẩm để xem chi tiết.",
-                               "Thông báo",
-                               MessageBoxButtons.OK,
-                               MessageBoxIcon.Information);
+                new FrmToastMessage(ToastType.INFO, "Vui lòng chọn một sản phẩm để xem chi tiết.").Show();
             }
         }
 

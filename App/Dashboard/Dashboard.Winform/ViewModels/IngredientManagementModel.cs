@@ -9,11 +9,9 @@ public class IngredientManagementModel : IManagableModel
     private int _pageSize = 10;
     private int _totalItems = 0;
 
-    // Fix: use proper BindingList initializers
     private BindingList<IngredientViewModel> _ingredients = new BindingList<IngredientViewModel>();
     private IngredientViewModel? _selectedIngredient;
     private string _searchText = string.Empty;
-    // Fix: proper BindingList<string> initialization
     private BindingList<string> _statuses = new BindingList<string>(new[] { "All", "Active", "Inactive" });
     private BindingList<IngredientCategoryViewModel> _categories = new BindingList<IngredientCategoryViewModel>();
 

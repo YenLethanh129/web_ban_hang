@@ -1,4 +1,5 @@
-﻿using Dashboard.Winform.Interfaces;
+﻿using Dashboard.Common.Constants;
+using Dashboard.Winform.Interfaces;
 using Dashboard.Winform.Presenters;
 using Dashboard.Winform.ViewModels;
 using Microsoft.Extensions.Logging;
@@ -259,7 +260,7 @@ public partial class FrmBaseManagement : Form, IBlurLoadingServiceAware
     /// </summary>
     protected void ShowErrorMessage(string message, string title = "Lỗi")
     {
-        MessageBox.Show(message, title, MessageBoxButtons.OK, MessageBoxIcon.Error);
+        new FrmToastMessage(ToastType.ERROR, message).Show();
     }
 
     /// <summary>
@@ -267,14 +268,15 @@ public partial class FrmBaseManagement : Form, IBlurLoadingServiceAware
     /// </summary>
     protected void ShowSuccessMessage(string message, string title = "Thành công")
     {
-        MessageBox.Show(message, title, MessageBoxButtons.OK, MessageBoxIcon.Information);
+        new FrmToastMessage(ToastType.SUCCESS, message).Show();
     }
     /// <summary>
     /// Show confirmation dialog
     /// </summary>
     protected DialogResult ShowConfirmation(string message, string title = "Xác nhận")
     {
-        return MessageBox.Show(message, title, MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+        new FrmToastMessage(ToastType.WARNING, message).Show();
+        return DialogResult.Yes;
     }
     #endregion
 

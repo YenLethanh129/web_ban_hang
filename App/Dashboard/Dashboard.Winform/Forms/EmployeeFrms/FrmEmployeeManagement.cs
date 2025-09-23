@@ -3,7 +3,6 @@ using Dashboard.BussinessLogic.Services.BranchServices;
 using Dashboard.BussinessLogic.Services.EmployeeServices;
 using Dashboard.BussinessLogic.Services.RBACServices;
 using Dashboard.Winform.Events;
-using Dashboard.Winform.Presenters;
 using Dashboard.Winform.ViewModels.EmployeeModels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -12,6 +11,9 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Dashboard.Common.Constants;
+using Dashboard.Winform.Forms;
+using Dashboard.Winform.Presenters.EmployeePresenter;
 
 namespace Dashboard.Winform.Forms
 {
@@ -362,7 +364,7 @@ namespace Dashboard.Winform.Forms
                     }
                     catch (Exception ex)
                     {
-                        MessageBox.Show($"Lỗi khi khôi phục con trỏ: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        new FrmToastMessage(ToastType.ERROR, $"Lỗi khi khôi phục con trỏ: {ex.Message}").Show();
                     }
                 }));
             }
@@ -517,12 +519,12 @@ namespace Dashboard.Winform.Forms
 
         private void ShowError(string message)
         {
-            MessageBox.Show(message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            new FrmToastMessage(ToastType.ERROR, message).Show();
         }
 
-        private void ShowInfo(string message)
+        private void ShowInfo(string message)                                                   
         {
-            MessageBox.Show(message, "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            new FrmToastMessage(ToastType.INFO, message).Show();
         }
 
         private bool AreControlsInitialized()
@@ -754,10 +756,7 @@ namespace Dashboard.Winform.Forms
             }
             else
             {
-                MessageBox.Show("Vui lòng chọn một nhân viên để xem chi tiết.",
-                               "Thông báo",
-                               MessageBoxButtons.OK,
-                               MessageBoxIcon.Information);
+                new FrmToastMessage(ToastType.INFO, "Vui lòng chọn một nhân viên để xem chi tiết.").Show();
             }
         }
 

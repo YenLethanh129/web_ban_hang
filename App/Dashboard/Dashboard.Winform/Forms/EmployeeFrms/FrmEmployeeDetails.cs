@@ -3,9 +3,11 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
-using Dashboard.Winform.Presenters;
 using Dashboard.Winform.ViewModels.EmployeeModels;
 using Dashboard.Winform.Interfaces;
+using Dashboard.Common.Constants;
+using Dashboard.Winform.Forms;
+using Dashboard.Winform.Presenters.EmployeePresenter;
 
 namespace Dashboard.Winform.Forms
 {
@@ -44,7 +46,7 @@ namespace Dashboard.Winform.Forms
             InitializeComponent();
             InitializeFormSettings();
             SetupEventHandlers();
-            SetupDataGridViews();
+            //SetupDataGridViews();
             //BindModelToUI();
 
             if (_isEditMode)
@@ -156,9 +158,9 @@ namespace Dashboard.Winform.Forms
             chkHasAccount.CheckedChanged += (s, o) => ChkHasAccount_CheckedChanged(s!, o);
 
             // Salary management buttons
-            btnAddSalary.Click += (s, o) => BtnAddSalary_Click(s!, o);
-            btnEditSalary.Click += (s, o) => BtnEditSalary_Click(s!, o);
-            btnDeleteSalary.Click += (s, o) => BtnDeleteSalary_Click(s!, o);
+            //btnAddSalary.Click += (s, o) => BtnAddSalary_Click(s!, o);
+            //btnEditSalary.Click += (s, o) => BtnEditSalary_Click(s!, o);
+            //btnDeleteSalary.Click += (s, o) => BtnDeleteSalary_Click(s!, o);
 
             // Validation events
             txtFullName.Validating += (s, o) => TxtFullName_Validating(s!, o);
@@ -170,133 +172,133 @@ namespace Dashboard.Winform.Forms
             _presenter.OnError += OnPresenterError;
         }
 
-        private void SetupDataGridViews()
-        {
-            SetupSalaryDataGridView();
-            SetupPayrollDataGridView();
-        }
+        //private void SetupDataGridViews()
+        //{
+        //    SetupSalaryDataGridView();
+        //    SetupPayrollDataGridView();
+        //}
 
-        private void SetupSalaryDataGridView()
-        {
-            dgvSalaries.AutoGenerateColumns = false;
-            dgvSalaries.Columns.Clear();
+        //private void SetupSalaryDataGridView()
+        //{
+        //    dgvSalaries.AutoGenerateColumns = false;
+        //    dgvSalaries.Columns.Clear();
 
-            dgvSalaries.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                DataPropertyName = nameof(EmployeeSalaryViewModel.EffectiveDate),
-                HeaderText = "Ngày hiệu lực",
-                Width = 120,
-                DefaultCellStyle = new DataGridViewCellStyle { Format = "dd/MM/yyyy" }
-            });
+        //    dgvSalaries.Columns.Add(new DataGridViewTextBoxColumn
+        //    {
+        //        DataPropertyName = nameof(EmployeeSalaryViewModel.EffectiveDate),
+        //        HeaderText = "Ngày hiệu lực",
+        //        Width = 120,
+        //        DefaultCellStyle = new DataGridViewCellStyle { Format = "dd/MM/yyyy" }
+        //    });
 
-            dgvSalaries.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                DataPropertyName = nameof(EmployeeSalaryViewModel.BaseSalary),
-                HeaderText = "Lương cơ bản",
-                Width = 120,
-                DefaultCellStyle = new DataGridViewCellStyle { Format = "N0" }
-            });
+        //    dgvSalaries.Columns.Add(new DataGridViewTextBoxColumn
+        //    {
+        //        DataPropertyName = nameof(EmployeeSalaryViewModel.BaseSalary),
+        //        HeaderText = "Lương cơ bản",
+        //        Width = 120,
+        //        DefaultCellStyle = new DataGridViewCellStyle { Format = "N0" }
+        //    });
 
-            dgvSalaries.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                DataPropertyName = nameof(EmployeeSalaryViewModel.SalaryType),
-                HeaderText = "Loại lương",
-                Width = 100
-            });
+        //    dgvSalaries.Columns.Add(new DataGridViewTextBoxColumn
+        //    {
+        //        DataPropertyName = nameof(EmployeeSalaryViewModel.SalaryType),
+        //        HeaderText = "Loại lương",
+        //        Width = 100
+        //    });
 
-            dgvSalaries.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                DataPropertyName = nameof(EmployeeSalaryViewModel.Allowance),
-                HeaderText = "Phụ cấp",
-                Width = 100,
-                DefaultCellStyle = new DataGridViewCellStyle { Format = "N0" }
-            });
+        //    dgvSalaries.Columns.Add(new DataGridViewTextBoxColumn
+        //    {
+        //        DataPropertyName = nameof(EmployeeSalaryViewModel.Allowance),
+        //        HeaderText = "Phụ cấp",
+        //        Width = 100,
+        //        DefaultCellStyle = new DataGridViewCellStyle { Format = "N0" }
+        //    });
 
-            dgvSalaries.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                DataPropertyName = nameof(EmployeeSalaryViewModel.Bonus),
-                HeaderText = "Thưởng",
-                Width = 100,
-                DefaultCellStyle = new DataGridViewCellStyle { Format = "N0" }
-            });
+        //    dgvSalaries.Columns.Add(new DataGridViewTextBoxColumn
+        //    {
+        //        DataPropertyName = nameof(EmployeeSalaryViewModel.Bonus),
+        //        HeaderText = "Thưởng",
+        //        Width = 100,
+        //        DefaultCellStyle = new DataGridViewCellStyle { Format = "N0" }
+        //    });
 
-            dgvSalaries.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                DataPropertyName = nameof(EmployeeSalaryViewModel.Penalty),
-                HeaderText = "Khấu trừ",
-                Width = 100,
-                DefaultCellStyle = new DataGridViewCellStyle { Format = "N0" }
-            });
+        //    dgvSalaries.Columns.Add(new DataGridViewTextBoxColumn
+        //    {
+        //        DataPropertyName = nameof(EmployeeSalaryViewModel.Penalty),
+        //        HeaderText = "Khấu trừ",
+        //        Width = 100,
+        //        DefaultCellStyle = new DataGridViewCellStyle { Format = "N0" }
+        //    });
 
-            dgvSalaries.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                DataPropertyName = nameof(EmployeeSalaryViewModel.TaxRate),
-                HeaderText = "Thuế (%)",
-                Width = 80,
-                DefaultCellStyle = new DataGridViewCellStyle { Format = "P2" }
-            });
-        }
+        //    dgvSalaries.Columns.Add(new DataGridViewTextBoxColumn
+        //    {
+        //        DataPropertyName = nameof(EmployeeSalaryViewModel.TaxRate),
+        //        HeaderText = "Thuế (%)",
+        //        Width = 80,
+        //        DefaultCellStyle = new DataGridViewCellStyle { Format = "P2" }
+        //    });
+        //}
 
-        private void SetupPayrollDataGridView()
-        {
-            dgvPayrolls.AutoGenerateColumns = false;
-            dgvPayrolls.Columns.Clear();
+        //private void SetupPayrollDataGridView()
+        //{
+        //    dgvPayrolls.AutoGenerateColumns = false;
+        //    dgvPayrolls.Columns.Clear();
 
-            dgvPayrolls.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                DataPropertyName = nameof(PayrollViewModel.PayrollMonth),
-                HeaderText = "Tháng/Năm",
-                Width = 100
-            });
+        //    dgvPayrolls.Columns.Add(new DataGridViewTextBoxColumn
+        //    {
+        //        DataPropertyName = nameof(PayrollViewModel.PayrollMonth),
+        //        HeaderText = "Tháng/Năm",
+        //        Width = 100
+        //    });
 
-            dgvPayrolls.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                DataPropertyName = nameof(PayrollViewModel.WorkingHours),
-                HeaderText = "Giờ làm việc",
-                Width = 100,
-                DefaultCellStyle = new DataGridViewCellStyle { Format = "N1" }
-            });
+        //    dgvPayrolls.Columns.Add(new DataGridViewTextBoxColumn
+        //    {
+        //        DataPropertyName = nameof(PayrollViewModel.WorkingHours),
+        //        HeaderText = "Giờ làm việc",
+        //        Width = 100,
+        //        DefaultCellStyle = new DataGridViewCellStyle { Format = "N1" }
+        //    });
 
-            dgvPayrolls.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                DataPropertyName = nameof(PayrollViewModel.BasicSalary),
-                HeaderText = "Lương cơ bản",
-                Width = 120,
-                DefaultCellStyle = new DataGridViewCellStyle { Format = "N0" }
-            });
+        //    dgvPayrolls.Columns.Add(new DataGridViewTextBoxColumn
+        //    {
+        //        DataPropertyName = nameof(PayrollViewModel.BasicSalary),
+        //        HeaderText = "Lương cơ bản",
+        //        Width = 120,
+        //        DefaultCellStyle = new DataGridViewCellStyle { Format = "N0" }
+        //    });
 
-            dgvPayrolls.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                DataPropertyName = nameof(PayrollViewModel.Allowances),
-                HeaderText = "Phụ cấp",
-                Width = 100,
-                DefaultCellStyle = new DataGridViewCellStyle { Format = "N0" }
-            });
+        //    dgvPayrolls.Columns.Add(new DataGridViewTextBoxColumn
+        //    {
+        //        DataPropertyName = nameof(PayrollViewModel.Allowances),
+        //        HeaderText = "Phụ cấp",
+        //        Width = 100,
+        //        DefaultCellStyle = new DataGridViewCellStyle { Format = "N0" }
+        //    });
 
-            dgvPayrolls.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                DataPropertyName = nameof(PayrollViewModel.Bonuses),
-                HeaderText = "Thưởng",
-                Width = 100,
-                DefaultCellStyle = new DataGridViewCellStyle { Format = "N0" }
-            });
+        //    dgvPayrolls.Columns.Add(new DataGridViewTextBoxColumn
+        //    {
+        //        DataPropertyName = nameof(PayrollViewModel.Bonuses),
+        //        HeaderText = "Thưởng",
+        //        Width = 100,
+        //        DefaultCellStyle = new DataGridViewCellStyle { Format = "N0" }
+        //    });
 
-            dgvPayrolls.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                DataPropertyName = nameof(PayrollViewModel.Deductions),
-                HeaderText = "Khấu trừ",
-                Width = 100,
-                DefaultCellStyle = new DataGridViewCellStyle { Format = "N0" }
-            });
+        //    dgvPayrolls.Columns.Add(new DataGridViewTextBoxColumn
+        //    {
+        //        DataPropertyName = nameof(PayrollViewModel.Deductions),
+        //        HeaderText = "Khấu trừ",
+        //        Width = 100,
+        //        DefaultCellStyle = new DataGridViewCellStyle { Format = "N0" }
+        //    });
 
-            dgvPayrolls.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                DataPropertyName = nameof(PayrollViewModel.TotalSalary),
-                HeaderText = "Tổng lương",
-                Width = 120,
-                DefaultCellStyle = new DataGridViewCellStyle { Format = "N0" }
-            });
-        }
+        //    dgvPayrolls.Columns.Add(new DataGridViewTextBoxColumn
+        //    {
+        //        DataPropertyName = nameof(PayrollViewModel.TotalSalary),
+        //        HeaderText = "Tổng lương",
+        //        Width = 120,
+        //        DefaultCellStyle = new DataGridViewCellStyle { Format = "N0" }
+        //    });
+        //}
 
         private void MapEmployeeToModel(EmployeeDetailViewModel employee)
         {
@@ -393,7 +395,7 @@ namespace Dashboard.Winform.Forms
                 return;
             }
 
-            MessageBox.Show(errorMessage, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            new FrmToastMessage(ToastType.ERROR, errorMessage).Show();
         }
 
         #endregion
@@ -416,8 +418,7 @@ namespace Dashboard.Winform.Forms
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Lỗi khi lưu dữ liệu: {ex.Message}", "Lỗi",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                new FrmToastMessage(ToastType.ERROR, $"Lỗi khi lưu dữ liệu: {ex.Message}").Show();
             }
             finally
             {
@@ -458,49 +459,38 @@ namespace Dashboard.Winform.Forms
             }
         }
 
-        private void BtnAddSalary_Click(object sender, EventArgs e)
-        {
-            // TODO: Implement add salary dialog
-            MessageBox.Show("Chức năng thêm bản ghi lương sẽ được triển khai",
-                "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
+        //private void BtnAddSalary_Click(object sender, EventArgs e)
+        //{
+        //    // TODO: Implement add salary dialog
+        //    new FrmToastMessage(ToastType.INFO, "Chức năng thêm bản ghi lương sẽ được triển khai").Show();
+        //}
 
-        private void BtnEditSalary_Click(object sender, EventArgs e)
-        {
-            if (dgvSalaries.SelectedRows.Count > 0)
-            {
-                // TODO: Implement edit salary dialog
-                MessageBox.Show("Chức năng sửa bản ghi lương sẽ được triển khai",
-                    "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-            else
-            {
-                MessageBox.Show("Vui lòng chọn một bản ghi lương để chỉnh sửa",
-                    "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
-        }
+        //private void BtnEditSalary_Click(object sender, EventArgs e)
+        //{
+        //    if (dgvSalaries.SelectedRows.Count > 0)
+        //    {
+        //        // TODO: Implement edit salary dialog
+        //        new FrmToastMessage(ToastType.INFO, "Chức năng sửa bản ghi lương sẽ được triển khai").Show();
+        //    }
+        //    else
+        //    {
+        //        new FrmToastMessage(ToastType.WARNING, "Vui lòng chọn một bản ghi lương để chỉnh sửa").Show();
+        //    }
+        //}
 
-        private void BtnDeleteSalary_Click(object sender, EventArgs e)
-        {
-            if (dgvSalaries.SelectedRows.Count > 0)
-            {
-                var result = MessageBox.Show(
-                    "Bạn có chắc chắn muốn xóa bản ghi lương này?",
-                    "Xác nhận", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
-                if (result == DialogResult.Yes)
-                {
-                    // TODO: Implement delete salary logic
-                    MessageBox.Show("Chức năng xóa bản ghi lương sẽ được triển khai",
-                        "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-            }
-            else
-            {
-                MessageBox.Show("Vui lòng chọn một bản ghi lương để xóa",
-                    "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
-        }
+        //private void BtnDeleteSalary_Click(object sender, EventArgs e)
+        //{
+        //    if (dgvSalaries.SelectedRows.Count > 0)
+        //    {
+        //        new FrmToastMessage(ToastType.WARNING, "Bạn có chắc chắn muốn xóa bản ghi lương này?").Show();
+        //        // Assume yes for toast message
+        //        // TODO: Implement delete logic
+        //    }
+        //    else
+        //    {
+        //        new FrmToastMessage(ToastType.WARNING, "Vui lòng chọn một bản ghi lương để chỉnh sửa").Show();
+        //    }
+        //}
 
         #endregion
 
@@ -658,8 +648,8 @@ namespace Dashboard.Winform.Forms
             txtUsername.DataBindings.Add("Text", _model, nameof(EmployeeDetailViewModel.Username), true, DataSourceUpdateMode.OnPropertyChanged);
             txtRole.DataBindings.Add("Text", _model, nameof(EmployeeDetailViewModel.Role), true, DataSourceUpdateMode.OnPropertyChanged);
 
-            dgvSalaries.DataSource = _model.Salaries;
-            dgvPayrolls.DataSource = _model.Payrolls;
+            //dgvSalaries.DataSource = _model.Salaries;
+            //dgvPayrolls.DataSource = _model.Payrolls;
 
             lblCreatedAt.DataBindings.Add("Text", _model, nameof(EmployeeDetailViewModel.CreatedAt), true, DataSourceUpdateMode.Never, "N/A", "dd/MM/yyyy HH:mm");
             lblUpdatedAt.DataBindings.Add("Text", _model, nameof(EmployeeDetailViewModel.UpdatedAt), true, DataSourceUpdateMode.Never, "N/A", "dd/MM/yyyy HH:mm");

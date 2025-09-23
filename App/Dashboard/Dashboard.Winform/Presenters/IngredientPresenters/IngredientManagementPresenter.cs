@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Dashboard.Winform.Presenters;
+namespace Dashboard.Winform.Presenters.IngredientPresenters;
 
 public interface IIngredientManagementPresenter : IManagementPresenter<IngredientManagementModel>
 {
@@ -175,7 +175,7 @@ public class IngredientManagementPresenter : IIngredientManagementPresenter
             {
                 Model.Categories.Add(new IngredientCategoryViewModel
                 {
-                    Id = (long)c.Id,
+                    Id = c.Id,
                     Name = c.Name ?? string.Empty,
                     Description = c.Description
                 });
@@ -316,7 +316,7 @@ public class IngredientManagementPresenter : IIngredientManagementPresenter
                 Id = i,
                 Name = $"Nguyên liệu {i}",
                 Unit = i % 2 == 0 ? "kg" : "lít",
-                CategoryId = (i % 3) + 1,
+                CategoryId = i % 3 + 1,
                 CategoryName = (i % 3) switch
                 {
                     0 => "Rau củ",
@@ -325,7 +325,7 @@ public class IngredientManagementPresenter : IIngredientManagementPresenter
                 },
                 Description = $"Mô tả cho nguyên liệu {i}",
                 IsActive = i % 4 != 0,
-                CostPerUnit = (10000 + (i * 500)),
+                CostPerUnit = 10000 + i * 500,
                 CreatedAt = DateTime.Now.AddDays(-i),
                 UpdatedAt = i % 3 == 0 ? DateTime.Now.AddHours(-i) : null
             });

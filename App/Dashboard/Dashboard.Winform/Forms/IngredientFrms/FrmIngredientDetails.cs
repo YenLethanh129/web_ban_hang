@@ -1,4 +1,5 @@
-﻿using Dashboard.Winform.Presenters;
+﻿using Dashboard.Common.Constants;
+using Dashboard.Winform.Presenters.IngredientPresenters;
 using Dashboard.Winform.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -108,8 +109,7 @@ namespace Dashboard.Winform.Forms
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Lỗi khi tải dữ liệu: {ex.Message}", "Lỗi",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                new FrmToastMessage(ToastType.ERROR, $"Lỗi khi tải dữ liệu: {ex.Message}").Show();
             }
             finally
             {
@@ -143,8 +143,7 @@ namespace Dashboard.Winform.Forms
                 cbxCategory.DataSource = categories;
                 cbxCategory.DisplayMember = "Name";
                 cbxCategory.ValueMember = "Id";
-                MessageBox.Show($"Lỗi khi tải danh mục: {ex.Message}", "Lỗi",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                new FrmToastMessage(ToastType.ERROR, $"Lỗi khi tải danh mục: {ex.Message}").Show();
             }
         }
 
@@ -163,8 +162,7 @@ namespace Dashboard.Winform.Forms
         {
             if (!ValidateChildren())
             {
-                MessageBox.Show("Vui lòng kiểm tra lại thông tin nhập vào.", "Thông báo",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                new FrmToastMessage(ToastType.WARNING, "Vui lòng kiểm tra lại thông tin nhập vào.").Show();
                 return;
             }
             try
@@ -183,10 +181,9 @@ namespace Dashboard.Winform.Forms
                 DialogResult = DialogResult.OK;
                 Close();
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Lỗi khi lưu dữ liệu: {ex.Message}", "Lỗi",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            catch (Exception ex)                                                                
+            {                                                                                  
+                new FrmToastMessage(ToastType.ERROR, $"Lỗi khi lưu dữ liệu: {ex.Message}").Show();
             }
             finally
             {

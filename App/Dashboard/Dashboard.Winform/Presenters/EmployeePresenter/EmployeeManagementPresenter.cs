@@ -11,7 +11,7 @@ using Sprache;
 using System.ComponentModel;
 using System.Threading;
 
-namespace Dashboard.Winform.Presenters;
+namespace Dashboard.Winform.Presenters.EmployeePresenter;
 
 public interface IEmployeeManagementPresenter : IManagementPresenter<EmployeeManagementModel>
 {

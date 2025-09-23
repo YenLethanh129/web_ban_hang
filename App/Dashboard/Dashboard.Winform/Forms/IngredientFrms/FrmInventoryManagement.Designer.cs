@@ -29,9 +29,9 @@ namespace Dashboard.Winform.Forms
 
         private void InitializeComponent()
         {
-            DataGridViewCellStyle dataGridViewCellStyle4 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle5 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle6 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
             tabControl = new TabControl();
             tabInventoryTransactions = new TabPage();
             tableLayoutPanel1 = new TableLayoutPanel();
@@ -69,10 +69,12 @@ namespace Dashboard.Winform.Forms
             pnlRequestHeader = new TableLayoutPanel();
             lblTransferTitle = new Label();
             panel6 = new Panel();
+            btnRequestFilter1 = new Button();
             lblRequestFilter1 = new Label();
             cbxRequestFilter1 = new ComboBox();
             panel7 = new Panel();
             lblRequestFilter2 = new Label();
+            btnRequestFilter2 = new Button();
             cbxRequestFilter2 = new ComboBox();
             panel8 = new Panel();
             tbxRequestSearch = new TextBox();
@@ -81,8 +83,6 @@ namespace Dashboard.Winform.Forms
             btnApproveRequest = new Button();
             btnViewRequestDetails = new Button();
             pnlRequestContent = new Panel();
-            btnRequestFilter1 = new Button();
-            btnRequestFilter2 = new Button();
             dgvRequests = new DataGridView();
             pnlRequestPagination = new Panel();
             tableLayoutPanel4 = new TableLayoutPanel();
@@ -404,30 +404,30 @@ namespace Dashboard.Winform.Forms
             dgvTransactions.AllowUserToAddRows = false;
             dgvTransactions.AllowUserToDeleteRows = false;
             dgvTransactions.AllowUserToResizeRows = false;
-            dataGridViewCellStyle4.BackColor = Color.FromArgb(42, 45, 86);
-            dgvTransactions.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle4;
+            dataGridViewCellStyle1.BackColor = Color.FromArgb(42, 45, 86);
+            dgvTransactions.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
             dgvTransactions.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dgvTransactions.BackgroundColor = Color.FromArgb(42, 45, 86);
             dgvTransactions.BorderStyle = BorderStyle.None;
             dgvTransactions.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
             dgvTransactions.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
-            dataGridViewCellStyle5.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle5.BackColor = Color.FromArgb(42, 45, 86);
-            dataGridViewCellStyle5.Font = new Font("Segoe UI", 9F);
-            dataGridViewCellStyle5.ForeColor = Color.FromArgb(124, 141, 181);
-            dataGridViewCellStyle5.SelectionBackColor = Color.FromArgb(42, 45, 86);
-            dataGridViewCellStyle5.SelectionForeColor = Color.FromArgb(124, 141, 181);
-            dataGridViewCellStyle5.WrapMode = DataGridViewTriState.True;
-            dgvTransactions.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle5;
+            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = Color.FromArgb(42, 45, 86);
+            dataGridViewCellStyle2.Font = new Font("Segoe UI", 9F);
+            dataGridViewCellStyle2.ForeColor = Color.FromArgb(124, 141, 181);
+            dataGridViewCellStyle2.SelectionBackColor = Color.FromArgb(42, 45, 86);
+            dataGridViewCellStyle2.SelectionForeColor = Color.FromArgb(124, 141, 181);
+            dataGridViewCellStyle2.WrapMode = DataGridViewTriState.True;
+            dgvTransactions.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle2;
             dgvTransactions.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewCellStyle6.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle6.BackColor = Color.FromArgb(42, 45, 86);
-            dataGridViewCellStyle6.Font = new Font("Segoe UI", 9F);
-            dataGridViewCellStyle6.ForeColor = Color.White;
-            dataGridViewCellStyle6.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle6.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle6.WrapMode = DataGridViewTriState.False;
-            dgvTransactions.DefaultCellStyle = dataGridViewCellStyle6;
+            dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle3.BackColor = Color.FromArgb(42, 45, 86);
+            dataGridViewCellStyle3.Font = new Font("Segoe UI", 9F);
+            dataGridViewCellStyle3.ForeColor = Color.White;
+            dataGridViewCellStyle3.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle3.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle3.WrapMode = DataGridViewTriState.False;
+            dgvTransactions.DefaultCellStyle = dataGridViewCellStyle3;
             dgvTransactions.Dock = DockStyle.Fill;
             dgvTransactions.EnableHeadersVisualStyles = false;
             dgvTransactions.GridColor = Color.FromArgb(73, 75, 111);
@@ -669,6 +669,18 @@ namespace Dashboard.Winform.Forms
             panel6.Size = new Size(92, 53);
             panel6.TabIndex = 0;
             // 
+            // btnRequestFilter1
+            // 
+            btnRequestFilter1.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            btnRequestFilter1.FlatStyle = FlatStyle.Flat;
+            btnRequestFilter1.ForeColor = Color.FromArgb(192, 255, 192);
+            btnRequestFilter1.Location = new Point(0, 26);
+            btnRequestFilter1.Name = "btnRequestFilter1";
+            btnRequestFilter1.Size = new Size(92, 26);
+            btnRequestFilter1.TabIndex = 0;
+            btnRequestFilter1.Text = "Trạng thái";
+            btnRequestFilter1.TextAlign = ContentAlignment.MiddleLeft;
+            // 
             // lblRequestFilter1
             // 
             lblRequestFilter1.AutoSize = true;
@@ -708,6 +720,18 @@ namespace Dashboard.Winform.Forms
             lblRequestFilter2.Size = new Size(90, 23);
             lblRequestFilter2.TabIndex = 1;
             lblRequestFilter2.Text = "Chi nhánh:";
+            // 
+            // btnRequestFilter2
+            // 
+            btnRequestFilter2.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            btnRequestFilter2.FlatStyle = FlatStyle.Flat;
+            btnRequestFilter2.ForeColor = Color.FromArgb(192, 255, 192);
+            btnRequestFilter2.Location = new Point(0, 26);
+            btnRequestFilter2.Name = "btnRequestFilter2";
+            btnRequestFilter2.Size = new Size(96, 26);
+            btnRequestFilter2.TabIndex = 0;
+            btnRequestFilter2.Text = "Chi nhánh";
+            btnRequestFilter2.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // cbxRequestFilter2
             // 
@@ -794,30 +818,6 @@ namespace Dashboard.Winform.Forms
             pnlRequestContent.Name = "pnlRequestContent";
             pnlRequestContent.Size = new Size(966, 481);
             pnlRequestContent.TabIndex = 1;
-            // 
-            // btnRequestFilter1
-            // 
-            btnRequestFilter1.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            btnRequestFilter1.FlatStyle = FlatStyle.Flat;
-            btnRequestFilter1.ForeColor = Color.FromArgb(192, 255, 192);
-            btnRequestFilter1.Location = new Point(0, 26);
-            btnRequestFilter1.Name = "btnRequestFilter1";
-            btnRequestFilter1.Size = new Size(92, 26);
-            btnRequestFilter1.TabIndex = 0;
-            btnRequestFilter1.Text = "Trạng thái";
-            btnRequestFilter1.TextAlign = ContentAlignment.MiddleLeft;
-            // 
-            // btnRequestFilter2
-            // 
-            btnRequestFilter2.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            btnRequestFilter2.FlatStyle = FlatStyle.Flat;
-            btnRequestFilter2.ForeColor = Color.FromArgb(192, 255, 192);
-            btnRequestFilter2.Location = new Point(0, 26);
-            btnRequestFilter2.Name = "btnRequestFilter2";
-            btnRequestFilter2.Size = new Size(96, 26);
-            btnRequestFilter2.TabIndex = 0;
-            btnRequestFilter2.Text = "Chi nhánh";
-            btnRequestFilter2.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // dgvRequests
             // 
@@ -1065,7 +1065,7 @@ namespace Dashboard.Winform.Forms
             btnTransferFilter2.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             btnTransferFilter2.FlatStyle = FlatStyle.Flat;
             btnTransferFilter2.ForeColor = Color.FromArgb(192, 255, 192);
-            btnTransferFilter2.Location = new Point(0, 27);
+            btnTransferFilter2.Location = new Point(0, 28);
             btnTransferFilter2.Name = "btnTransferFilter2";
             btnTransferFilter2.Size = new Size(94, 23);
             btnTransferFilter2.TabIndex = 0;

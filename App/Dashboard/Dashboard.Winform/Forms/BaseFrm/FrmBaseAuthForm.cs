@@ -7,6 +7,8 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Dashboard.Common.Constants;
+using Dashboard.Winform.Forms;
 
 namespace Dashboard.Winform.Forms.BaseFrm;
 
@@ -29,10 +31,7 @@ public partial class FrmBaseAuthForm : Form
             var hasAccess = await CheckFormAuthorizationAsync();
             if (!hasAccess)
             {
-                MessageBox.Show("Bạn không có quyền truy cập chức năng này!",
-                              "Không có quyền",
-                              MessageBoxButtons.OK,
-                              MessageBoxIcon.Warning);
+                new FrmToastMessage(ToastType.WARNING, "Bạn không có quyền truy cập chức năng này!").Show();
                 base.SetVisibleCore(false);
                 return;
             }
@@ -76,10 +75,7 @@ public partial class FrmBaseAuthForm : Form
 
     protected virtual void OnSessionExpired(object? sender, EventArgs e)
     {
-        MessageBox.Show("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
-                       "Hết phiên",
-                       MessageBoxButtons.OK,
-                       MessageBoxIcon.Information);
+        new FrmToastMessage(ToastType.INFO, "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.").Show();
         this.Hide();
         ShowLoginForm();
     }

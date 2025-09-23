@@ -13,6 +13,10 @@ using Dashboard.BussinessLogic.Shared;
 using System.Text.RegularExpressions;
 using Dashboard.Common.Utitlities;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Linq;
+using System;
+using System.Threading.Tasks;
 
 namespace Dashboard.BussinessLogic.Services.ProductServices;
 
@@ -159,7 +163,6 @@ public class ProductService : BaseTransactionalService, IProductService
     {
         return await ExecuteInTransactionAsync(async () =>
         {
-            // Validate and filter image URLs
             var validUrls = new List<string>();
             if (input.ImageUrls?.Any() == true)
             {
@@ -179,7 +182,6 @@ public class ProductService : BaseTransactionalService, IProductService
             var product = _mapper.Map<Product>(input);
             product.CreatedAt = DateTime.UtcNow;
 
-            // Only add images if we have valid URLs
             if (validUrls.Any())
             {
                 product.ProductImages = validUrls
@@ -204,43 +206,56 @@ public class ProductService : BaseTransactionalService, IProductService
             var product = await _productRepository.GetProductWithDetailsAsync(input.Id)
                 ?? throw new ArgumentException($"Product with id {input.Id} not found");
 
-            if (input.ImageUrls != null && input.ImageUrls.Any(u => !string.IsNullOrWhiteSpace(u)))
+            var newUrls = input.ImageUrls?
+                .Where(u => !string.IsNullOrWhiteSpace(u))
+                .Select(u => u!.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList() ?? new List<string>();
+
+            var existingUrls = product.ProductImages?
+                .Select(pi => pi.ImageUrl?.Trim())
+                .Where(s => !string.IsNullOrEmpty(s))
+                .ToHashSet(StringComparer.OrdinalIgnoreCase)
+                ?? new HashSet<string?>(StringComparer.OrdinalIgnoreCase);
+
+            var toAdd = newUrls.Where(u => !existingUrls.Contains(u)).ToList();
+            if (toAdd.Count != 0)
             {
-                var newUrls = input.ImageUrls
-                    .Where(u => !string.IsNullOrWhiteSpace(u))
-                    .Select(u => u!.Trim())
-                    .Distinct(StringComparer.OrdinalIgnoreCase)
-                    .ToList();
-
-                var existingUrls = product.ProductImages?
-                    .Select(pi => pi.ImageUrl?.Trim())
-                    .Where(s => !string.IsNullOrEmpty(s))
-                    .ToHashSet(StringComparer.OrdinalIgnoreCase)
-                    ?? new HashSet<string?>(StringComparer.OrdinalIgnoreCase);
-
-                var toAdd = newUrls.Where(u => !existingUrls.Contains(u)).ToList();
-
-                if (toAdd.Count != 0)
+                product.ProductImages ??= new List<ProductImage>();
+                foreach (var url in toAdd)
                 {
-                    product.ProductImages ??= [];
-
-                    foreach (var url in toAdd)
+                    product.ProductImages.Add(new ProductImage
                     {
-                        product.ProductImages.Add(new ProductImage
-                        {
-                            ProductId = product.Id,
-                            ImageUrl = url,
-                        });
-                    }
-                }
-                else
-                {
-                    _logger.LogInformation("No new product images to add for product {ProductId}", product.Id);
+                        ProductId = product.Id,
+                        ImageUrl = url,
+                    });
                 }
             }
             else
             {
-                _logger.LogDebug("No image URLs provided in update input for product {ProductId}; skipping image changes.", product.Id);
+                _logger.LogInformation("No new product images to add for product {ProductId}", product.Id);
+            }
+
+            var toRemoveUrls = existingUrls.Where(url => !newUrls.Contains(url!)).ToList();
+            if (toRemoveUrls.Count > 0 && product.ProductImages != null)
+            {
+                var imagesToRemove = product.ProductImages
+                    .Where(pi => !string.IsNullOrEmpty(pi.ImageUrl) && toRemoveUrls.Contains(pi.ImageUrl.Trim(), StringComparer.OrdinalIgnoreCase))
+                    .ToList();
+
+                foreach (var img in imagesToRemove)
+                {
+                    product.ProductImages.Remove(img);
+                    try
+                    {
+                        var repo = _unitOfWork.Repository<ProductImage>();
+                        repo.Remove(img);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to explicitly remove product image entity for product {ProductId}", product.Id);
+                    }
+                }
             }
 
             var updateInputCopy = new UpdateProductInput(
@@ -267,8 +282,10 @@ public class ProductService : BaseTransactionalService, IProductService
     public async Task<List<ProductImageDto>> GetProductImagesAsync(long id)
     {
         var productImages = await _unitOfWork.Repository<ProductImage>()
-            .GetQueryable()
-            .Where(pi => pi.ProductId == id).ToListAsync();
+                .GetQueryable()
+                //.AsNoTracking()
+                .Where(pi => pi.ProductId == id)
+                .ToListAsync();
 
         return _mapper.Map<List<ProductImageDto>>(productImages);
     }

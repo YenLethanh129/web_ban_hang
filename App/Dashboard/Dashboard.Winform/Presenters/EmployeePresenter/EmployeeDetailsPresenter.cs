@@ -12,7 +12,7 @@ using System.ComponentModel;
 using System.Threading;
 using System.Windows.Forms.DataVisualization.Charting;
 
-namespace Dashboard.Winform.Presenters
+namespace Dashboard.Winform.Presenters.EmployeePresenter
 {
     public interface IEmployeeDetailsPresenter
     {
