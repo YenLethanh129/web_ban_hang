@@ -4,7 +4,6 @@ import { FooterComponent } from './components/footer/footer.component';
 import { HeaderComponent } from './components/header/header.component';
 import { MaterialModule } from './material.module';
 import { DataLoadingService } from './services/data-loading.service';
-import { AuthInitService } from './services/auth-init.service';
 
 @Component({
   selector: 'app-root',
@@ -16,10 +15,7 @@ import { AuthInitService } from './services/auth-init.service';
 export class AppComponent implements OnInit, AfterViewInit {
   title = 'Chú bé VUI Coffee';
 
-  constructor(
-    private dataLoadingService: DataLoadingService,
-    private authInitService: AuthInitService
-  ) {}
+  constructor(private dataLoadingService: DataLoadingService) {}
 
   ngOnInit() {
     // Initialize app data on startup

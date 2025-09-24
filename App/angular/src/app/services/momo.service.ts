@@ -1,7 +1,7 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { WebEnvironment } from '../environments/WebEnvironment';
-import { MomoInfoOrderDTO, OrderDTO } from '../dtos/order.dto';
+import { MomoInfoOrderDTO, OrderRequestDTO } from '../dtos/order.dto';
 import { Observable } from 'rxjs';
 import { MomoIpnRequestDTO } from '../dtos/momo.dto';
 
@@ -10,7 +10,7 @@ import { MomoIpnRequestDTO } from '../dtos/momo.dto';
 })
 export class MomoService {
   private apiUrl = `${WebEnvironment.momoUrl}`;
-  private currentUser: OrderDTO | null = null;
+  private currentUser: OrderRequestDTO | null = null;
 
   constructor(private http: HttpClient) {}
 

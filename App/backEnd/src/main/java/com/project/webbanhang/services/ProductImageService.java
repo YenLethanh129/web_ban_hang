@@ -39,13 +39,11 @@ public class ProductImageService implements IProductImageService {
 
 	@Override
 	public ProductImage updateProductImage(Long id, ProductImageDTO productDTO) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public void deleteProductImages(Long id) {
-		// TODO Auto-generated method stub
 	}
 
 }

@@ -5,6 +5,8 @@ import com.project.webbanhang.models.Category;
 import com.project.webbanhang.services.Interfaces.ICategoryService;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.ResponseEntity;
@@ -37,11 +39,17 @@ public class CategoryController {
         categoryService.createCategory(categoryDTO);
         return ResponseEntity.ok("Insert category successfully");
     }
-    	
+
+    /**
+     * TOP 10 OWASP 2023
+     * API4:2023 - Unrestricted Resource Consumption
+     * Hacker có thể tấn công từ chối dịch vụ (DoS) bằng cách gửi các yêu cầu lớn hoặc phức tạp
+     * Giải pháp: Giới hạn số lượng bản ghi trả về trong một trang
+     * */
     @GetMapping("")
     public ResponseEntity<List<Category>> getAllCategories(
-            @RequestParam(value = "page", defaultValue = "1") int page,
-            @RequestParam(value = "limit", defaultValue = "10") int limit
+            @RequestParam(value = "page", defaultValue = "1") @Min(1) int page,
+            @RequestParam(value = "limit", defaultValue = "10") @Min(1) @Max(100) int limit
     ) {
     	List<Category> categories =  categoryService.getAllCategories();
         return ResponseEntity.ok(categories);

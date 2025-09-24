@@ -15,6 +15,8 @@ import { NotificationService } from '../../services/notification.service';
 import { AddressAutocompleteComponent } from '../shared/address-autocomplete/address-autocomplete.component';
 import { AddressPrediction } from '../../dtos/address.dto';
 import { UserAddressService } from '../../services/user-address.service';
+import { ValidateDTO } from '../../dtos/validate.dto';
+import { ValidateService } from '../../services/validate.service';
 
 @Component({
   selector: 'app-register',
@@ -37,24 +39,38 @@ export class RegisterComponent implements OnInit, OnDestroy {
   registerData = {
     fullName: '',
     phoneNumber: '',
-    dateOfBirth: '',
+    dateOfBirth: '2000-01-01', // Default is 01/01/2000 (format YYYY-MM-DD for input type="date")
     address: '',
     password: '',
     confirmPassword: '',
   };
 
+  validateUsernameDTO: ValidateDTO = {
+    isValid: false,
+    errors: ['Họ và tên không được để trống'],
+  };
+  validatePhoneNumberDTO: ValidateDTO = {
+    isValid: false,
+    errors: ['Số điện thoại không được để trống'],
+  };
+  validatePasswordDTO: ValidateDTO = {
+    isValid: false,
+    errors: ['Mật khẩu không được để trống'],
+  };
+  validateConfirmPasswordDTO: ValidateDTO = {
+    isValid: false,
+    errors: ['Mật khẩu xác nhận không được để trống'],
+  };
+  validateAddressDTO: ValidateDTO = {
+    isValid: false,
+    errors: ['Địa chỉ không được để trống'],
+  };
+  validateDateOfBirthDTO: ValidateDTO = { isValid: true, errors: [] };
+
   showPassword = false;
   showConfirmPassword = false;
   agreeToTerms = false;
   showAgreeToTermsError = false;
-  showPhoneError = false;
-  showFullNameError = false;
-  showDateOfBirthError = false;
-  showPasswordError = false;
-  showConfirmPasswordError = false;
-  showAddressError = false;
-  showAutofillButton = false;
-
   isLoading = false;
 
   constructor(
@@ -65,40 +81,14 @@ export class RegisterComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    // Kiểm tra xem user đã đăng nhập và có thông tin địa chỉ chưa
     this.userAddressService.userAddress$
       .pipe(takeUntil(this.destroy$))
-      .subscribe((addressInfo) => {
-        this.showAutofillButton = !!addressInfo;
-      });
+      .subscribe((addressInfo) => {});
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-  }
-
-  /**
-   * Tự động điền thông tin từ profile user đã đăng nhập
-   */
-  autofillFromProfile(): void {
-    const addressInfo = this.userAddressService.getCurrentAddress();
-    if (addressInfo) {
-      this.registerData.fullName = addressInfo.fullname;
-      this.registerData.phoneNumber = addressInfo.phoneNumber;
-      this.registerData.address = addressInfo.address;
-      if (addressInfo.dateOfBirth) {
-        this.registerData.dateOfBirth = addressInfo.dateOfBirth;
-      }
-
-      this.notificationService.showSuccess(
-        'Đã tự động điền thông tin từ hồ sơ của bạn!'
-      );
-    } else {
-      this.notificationService.showWarning(
-        'Không tìm thấy thông tin hồ sơ để tự động điền'
-      );
-    }
   }
 
   togglePasswordVisibility(field: 'password' | 'confirmPassword') {
@@ -109,44 +99,72 @@ export class RegisterComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   *
+   * VALIDATE
+   *
+   *
+   */
+
+  validateUsername(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.validateUsernameDTO = ValidateService.validateFullName(input.value);
+  }
+
   validatePhoneNumber(event: Event): void {
     const input = event.target as HTMLInputElement;
-    input.value = input.value.replace(/[^0-9]/g, '');
     this.registerData.phoneNumber = input.value;
+    this.validatePhoneNumberDTO = ValidateService.validatePhoneNumber(
+      input.value
+    );
   }
 
-  validatePassword(): boolean {
-    return this.registerData.password.length >= 6;
+  validatePasswordInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.registerData.password = input.value;
+    this.validatePasswordDTO = ValidateService.validatePassword(input.value);
   }
 
-  validateConfirmPassword(): boolean {
-    return this.registerData.password === this.registerData.confirmPassword;
+  validateConfirmPasswordInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.registerData.confirmPassword = input.value;
+    this.validateConfirmPasswordDTO = ValidateService.validateConfirmPassword(
+      this.registerData.password,
+      input.value
+    );
   }
 
   onAddressSelected(address: AddressPrediction): void {
     this.registerData.address = address.description;
+    // Validate address after selection
+    this.validateAddressInput();
   }
 
-  onAddressFocus(): void {
-    this.showAddressError = true;
+  validateAddressInput(): void {
+    this.validateAddressDTO = ValidateService.validateAddress(
+      this.registerData.address
+    );
   }
 
-  validateAge(): boolean {
-    if (!this.registerData.dateOfBirth) return false;
+  validateDateOfBirth(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.registerData.dateOfBirth = input.value;
+    this.validateDateOfBirthDTO = ValidateService.validateDateOfBirth(
+      input.value
+    );
+  }
 
-    const birthDate = new Date(this.registerData.dateOfBirth);
-    const today = new Date();
-    const age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
+  validateForm(): boolean {
+    const isValid =
+      this.validateUsernameDTO.isValid &&
+      this.validatePhoneNumberDTO.isValid &&
+      this.validatePasswordDTO.isValid &&
+      this.validateConfirmPasswordDTO.isValid &&
+      this.validateAddressDTO.isValid &&
+      this.validateDateOfBirthDTO.isValid;
 
-    if (
-      monthDiff < 0 ||
-      (monthDiff === 0 && today.getDate() < birthDate.getDate())
-    ) {
-      return age - 1 >= 18;
-    }
-
-    return age >= 18;
+    this.notificationService.showInfo('📝 Đang kiểm tra thông tin đăng ký...');
+    return isValid;
   }
 
   onSubmit() {
@@ -157,12 +175,7 @@ export class RegisterComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (
-      this.registerForm.valid &&
-      this.validatePassword() &&
-      this.validateConfirmPassword() &&
-      this.validateAge()
-    ) {
+    if (this.validateForm()) {
       this.isLoading = true;
       this.notificationService.showInfo('⏳ Đang xử lý đăng ký...');
 

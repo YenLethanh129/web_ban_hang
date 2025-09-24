@@ -1,9 +1,12 @@
 package com.project.webbanhang.controllers;
 
 import com.project.webbanhang.dtos.OrderDetailDTO;
+import com.project.webbanhang.models.User;
 import com.project.webbanhang.response.OrderDetailResponse;
 import com.project.webbanhang.services.Interfaces.IOrderDetailService;
 
+import com.project.webbanhang.utils.CookieToken;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -44,12 +47,20 @@ public class OrderDetailController {
         }
     }
 
-    // Done
+    /**
+     * TOP 10 OWASP 2023
+     * API1:2023 - Broken Object Level Authorization (BOLA)
+     * Thay vì truyền userId từ client, ta sẽ lấy userId từ token
+     * Điều này ngăn chặn việc hacker có thể lấy id của người dùng khác và truy cập vào thông tin cá nhân của họ
+     * */
     @GetMapping("/{id}")
-    public ResponseEntity<?> getOrderDetail(@Valid @PathVariable("id") Long id) {
+    public ResponseEntity<?> getOrderDetail(
+            @Valid @PathVariable("id") Long id,
+            HttpServletRequest request
+    ) {
         try {
-        	
-        	 OrderDetailResponse existingOrderDetailResponse = orderDetailService.getOrderDetail(id);
+        	 String extractedToken = CookieToken.extractTokenFromCookies(request);
+        	 OrderDetailResponse existingOrderDetailResponse = orderDetailService.getOrderDetail(extractedToken, id);
         	
             return ResponseEntity.ok(existingOrderDetailResponse);
         } catch (Exception e) {

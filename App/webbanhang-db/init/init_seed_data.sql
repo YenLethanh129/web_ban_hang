@@ -1039,7 +1039,6 @@ PRINT N'Additional data (10 records per table) inserted successfully!';
 GO
 
 -- Insert into order_details
--- Insert into order_details
 INSERT INTO [dbo].[order_details] ([quantity], [order_id], [product_id], [size], [created_at], [last_modified], [note], [total_amount], [unit_price]) VALUES
 (2, 1, 1, NULL, GETDATE(), GETDATE(), N'Không đường', 90000, 45000),
 (1, 1, 5, NULL, GETDATE(), GETDATE(), N'Thêm bơ', 25000, 25000),

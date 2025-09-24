@@ -18,7 +18,7 @@ public interface IUserService {
 
 	boolean updatePassword(String extractedToken, ChangPasswordDTO changPasswordDTO) throws Exception;
 
-	User findByPhoneNumber(String phoneNumber) throws Exception;
+	boolean findByPhoneNumber(String phoneNumber) throws Exception;
 
 	String forgotPassword (String phoneNumber, String otp) throws Exception;
 }

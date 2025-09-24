@@ -1,7 +1,11 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { WebEnvironment } from '../environments/WebEnvironment';
-import { OrderDTO, OrderResponseDTO } from '../dtos/order.dto';
+import {
+  OrderRequestDTO,
+  OrderResponseDTO,
+  OrderConfirmResponseDTO,
+} from '../dtos/order.dto';
 import { Observable } from 'rxjs';
 import { TokenService } from './token.service';
 
@@ -10,39 +14,55 @@ import { TokenService } from './token.service';
 })
 export class OrderService {
   private apiUrl = `${WebEnvironment.apiUrl}/orders`;
-  private currentUser: OrderDTO | null = null;
+  private currentUser: OrderRequestDTO | null = null;
 
   constructor(private http: HttpClient, private tokenService: TokenService) {}
 
-  createOrder(orderDTO: OrderDTO): Observable<any> {
-    const token = this.tokenService.getToken();
-    const headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-      'Accept-Language': 'vi',
-      Authorization: `Bearer ${token}`,
-    });
-    return this.http.post(`${this.apiUrl}`, orderDTO, { headers });
-  }
-
-  getOrderById(orderId: number): Observable<OrderResponseDTO> {
-    const token = this.tokenService.getToken();
-    const headers = new HttpHeaders({
-      'Accept-Language': 'vi',
-      Authorization: `Bearer ${token}`,
-    });
-    return this.http.get<OrderResponseDTO>(`${this.apiUrl}/${orderId}`, {
-      headers,
+  createOrder(orderDTO: OrderRequestDTO): Observable<any> {
+    return this.http.post(`${this.apiUrl}`, orderDTO, {
+      withCredentials: true,
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+      }),
     });
   }
 
-  getOrdersByUserId(userId: number): Observable<OrderResponseDTO[]> {
-    const token = this.tokenService.getToken();
-    const headers = new HttpHeaders({
-      'Accept-Language': 'vi',
-      Authorization: `Bearer ${token}`,
+  getUserOrders(): Observable<OrderResponseDTO[]> {
+    return this.http.post<OrderResponseDTO[]>(
+      `${this.apiUrl}/user`,
+      {},
+      {
+        withCredentials: true,
+        headers: new HttpHeaders({
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+        }),
+      }
+    );
+  }
+
+  getOrderConfirm(orderId: number): Observable<OrderConfirmResponseDTO> {
+    return this.http.get<OrderConfirmResponseDTO>(`${this.apiUrl}/${orderId}`, {
+      withCredentials: true,
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+      }),
     });
-    return this.http.get<OrderResponseDTO[]>(`${this.apiUrl}/user/${userId}`, {
-      headers,
-    });
+  }
+
+  cancelOrder(order_id: number): Observable<any> {
+    return this.http.put(
+      `${this.apiUrl}/cancel/${order_id}`,
+      {},
+      {
+        withCredentials: true,
+        headers: new HttpHeaders({
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+        }),
+      }
+    );
   }
 }

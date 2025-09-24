@@ -4,15 +4,16 @@ import com.project.webbanhang.api.MomoApi;
 import com.project.webbanhang.dtos.momo.CreateMomoRequestDTO;
 import com.project.webbanhang.dtos.momo.MomoInfoOrderDTO;
 import com.project.webbanhang.dtos.momo.MomoIpnRequestDTO;
-import com.project.webbanhang.models.Order;
-import com.project.webbanhang.models.OrderPayment;
-import com.project.webbanhang.models.OrderStatus;
+import com.project.webbanhang.models.orders.Order;
+import com.project.webbanhang.models.orders.OrderPayment;
+import com.project.webbanhang.models.orders.OrderStatus;
 import com.project.webbanhang.models.PaymentStatus;
 import com.project.webbanhang.repositories.OrderPaymentRepository;
 import com.project.webbanhang.repositories.OrderRepository;
 import com.project.webbanhang.response.CreateMomoResponse;
 import com.project.webbanhang.response.OrderResponse;
 import com.project.webbanhang.services.Interfaces.IMomoService;
+import com.project.webbanhang.services.orders.OrderService;
 import com.project.webbanhang.utils.HmacUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,9 +47,14 @@ public class MomoService implements IMomoService {
     private final OrderPaymentRepository orderPaymentRepository;
     private final OrderService orderService;
 
+    /**
+     * TOP 10 OWASP 2023
+     * API10:2023 - Unsafe Consumption of APIs
+     * Hacker có thể khai thác các lỗ hổng trong API của bên thứ ba như Momo
+     * Giải pháp: Kiểm tra và xác thực dữ liệu trả về từ API của bên thứ ba
+     * */
     @Override
     public CreateMomoResponse createQR(MomoInfoOrderDTO momoInfoOrderDTO){
-
         // Lay thong tin don thanh toan
         String orderId = momoInfoOrderDTO.getOrderId().toString();
 
@@ -93,6 +99,12 @@ public class MomoService implements IMomoService {
         return momoApi.createMomoQR(requestDTO);
     }
 
+    /**
+     * TOP 10 OWASP 2023
+     * API3: 2023 - Broken Object Property Level Authorization
+     * Hacker có thể truy cập vào các thuộc tính nhạy cảm của người dùng khác
+     * Giải pháp: Sử dụng Response để chỉ trả về các thuộc tính cần thiết
+     * */
     @Override
     public OrderResponse ipnHandler(MomoIpnRequestDTO momoIpnRequestDTO) {
         Optional<Order> existingOrder = orderRepository.findById(Long.parseLong(momoIpnRequestDTO.getOrderId()));

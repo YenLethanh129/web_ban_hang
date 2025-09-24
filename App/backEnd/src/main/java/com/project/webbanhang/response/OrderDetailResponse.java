@@ -1,7 +1,7 @@
 package com.project.webbanhang.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.project.webbanhang.models.OrderDetail;
+import com.project.webbanhang.models.orders.OrderDetail;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -36,7 +36,6 @@ public class OrderDetailResponse{
 	public static OrderDetailResponse fromEntity(OrderDetail orderDetail) {
 		OrderDetailResponse orderDetailResponse = OrderDetailResponse.builder()
 				.build();
-
 		return orderDetailResponse;
 	}
 }

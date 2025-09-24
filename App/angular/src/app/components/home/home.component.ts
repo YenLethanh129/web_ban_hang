@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { HttpClientModule } from '@angular/common/http';
-import { ProductDTO } from '../../models/product.dto';
+import { ProductDTO } from '../../dtos/product.dto';
 import { ProductService } from '../../services/product.service';
 import { CommonModule } from '@angular/common';
 import { CartService } from '../../services/cart.service';
@@ -14,7 +14,7 @@ import { PaginationComponent } from '../shared/pagination/pagination.component';
 import {
   StoreLocationDTO,
   MOCK_STORE_LOCATIONS,
-} from '../../models/store-location.dto';
+} from '../../dtos/store-location.dto';
 
 @Component({
   selector: 'app-home',

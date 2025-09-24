@@ -8,15 +8,15 @@ import com.project.webbanhang.response.OrderResponse;
 
 public interface IOrderService {
 
-	OrderResponse createOrder(OrderDTO orderDTO) throws Exception;
+	OrderResponse createOrder(String token, OrderDTO orderDTO) throws Exception;
 	
-	OrderResponse getOrderById(Long orderId) throws DataNotFoundException;
+	OrderResponse getOrderById(String extractedToken, Long orderId) throws Exception;
 	
-	List<OrderResponse> findAllByCustomerId(Long userId);
+	List<OrderResponse> findByCustomer(String token) throws Exception;
 	
 	OrderResponse updateOrder(Long orderId, OrderDTO orderDTO) throws DataNotFoundException;
 	
 	List<OrderResponse> getAllOrders();
 	
-	void deleteOrder(Long orderId) throws DataNotFoundException;
+	void cancelOrder(String extractedToken, Long orderId) throws Exception;
 }

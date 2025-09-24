@@ -2,7 +2,7 @@ package com.project.webbanhang.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.project.webbanhang.models.OrderDetail;
+import com.project.webbanhang.models.orders.OrderDetail;
 
 import java.util.List;
 

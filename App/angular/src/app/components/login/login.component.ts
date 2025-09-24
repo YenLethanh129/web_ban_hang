@@ -6,10 +6,10 @@ import { HttpClientModule } from '@angular/common/http';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { UserService } from '../../services/user.service';
-import { LoginDTO } from '../../dtos/login.dto';
-import { LoginResponse } from '../../response/LoginResponse';
-import { TokenService } from '../../services/token.service';
+import { LoginRequestDTO } from '../../dtos/login.dto';
 import { NotificationService } from '../../services/notification.service';
+import { ValidateDTO } from '../../dtos/validate.dto';
+import { ValidateService } from '../../services/validate.service';
 
 @Component({
   selector: 'app-login',
@@ -20,8 +20,8 @@ import { NotificationService } from '../../services/notification.service';
     CommonModule,
     HttpClientModule,
     MatButtonModule,
-    MatIconModule
-],
+    MatIconModule,
+  ],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })
@@ -33,15 +33,22 @@ export class LoginComponent {
     password: '',
   };
 
-  showPassword = false;
+  phoneValidation: ValidateDTO = { isValid: false, errors: [] };
+  passwordValidation: ValidateDTO = { isValid: false, errors: [] };
+
   isLoading = false;
   showPhoneError = false;
+  phoneNumberErrorMessage: string[] = [];
+  showPassword = false;
   showPasswordError = false;
+  passwordErrorMessage: string[] = [];
+
+  showErrorLoginMessage = false;
+  errorLoginMessage = '';
 
   constructor(
     private router: Router,
     private userService: UserService,
-    private tokenService: TokenService,
     private notificationService: NotificationService
   ) {}
 
@@ -51,66 +58,60 @@ export class LoginComponent {
 
   validatePhoneNumber(event: Event): void {
     const input = event.target as HTMLInputElement;
-    input.value = input.value.replace(/[^0-9]/g, '');
-    this.loginData.phoneNumber = input.value;
+    this.phoneValidation = ValidateService.validatePhoneNumber(input.value);
+    this.showPhoneError = !this.phoneValidation.isValid;
+    this.phoneNumberErrorMessage = this.phoneValidation.errors;
+  }
+
+  validatePassword(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.passwordValidation = ValidateService.validatePassword(input.value);
+    this.showPasswordError = !this.passwordValidation.isValid;
+    this.passwordErrorMessage = this.passwordValidation.errors;
   }
 
   validateForm(): boolean {
-    return (
-      this.loginForm?.valid === true &&
-      this.loginData.phoneNumber.length === 10 &&
-      this.loginData.password.length >= 6
-    );
+    return this.phoneValidation.isValid && this.passwordValidation.isValid;
   }
 
   onSubmit() {
     if (!this.validateForm()) {
-      this.showPhoneError = this.loginData.phoneNumber.length !== 10;
-      this.showPasswordError = this.loginData.password.length < 6;
-      
-      if (this.showPhoneError) {
-        this.notificationService.showError('📱 Số điện thoại phải có đúng 10 chữ số');
-      }
-      if (this.showPasswordError) {
-        this.notificationService.showError('🔒 Mật khẩu phải có ít nhất 6 ký tự');
-      }
       return;
     }
 
     this.isLoading = true;
+    this.showErrorLoginMessage = false;
     this.notificationService.showInfo('⏳ Đang xử lý đăng nhập...');
-    
-    const loginDTO: LoginDTO = {
+
+    const loginDTO: LoginRequestDTO = {
       phone_number: this.loginData.phoneNumber,
       password: this.loginData.password,
     };
 
     this.userService.login(loginDTO).subscribe({
-      next: (response: LoginResponse) => {
+      next: (response) => {
         console.log('Đăng nhập thành công:', response);
-        const { token } = response;
-        if (!token) {
-          console.log('Không nhận được token từ máy chủ');
-          this.notificationService.showError('❌ Đăng nhập thất bại: Không nhận được token từ máy chủ');
-          this.isLoading = false;
-          return;
-        }
-        
-        this.tokenService.setToken(token);
-        this.notificationService.showSuccess('🎉 Đăng nhập thành công! Chào mừng bạn trở lại!');
-        this.isLoading = false;
-        
-        // Chuyển hướng sau khi hiển thị thông báo
+        this.notificationService.showSuccess(
+          '🎉 Đăng nhập thành công! Chào mừng bạn trở lại!'
+        );
         setTimeout(() => {
           this.router.navigate(['/']);
-        }, 1500);
+        }, 500);
       },
       error: (error) => {
         this.isLoading = false;
         console.error('Lỗi đăng nhập:', error);
+        if (error.status === 401) {
+          this.errorLoginMessage = 'Thông tin đăng nhập không chính xác';
+        } else if (error.status === 0) {
+          this.errorLoginMessage = 'Không thể kết nối đến máy chủ';
+        } else {
+          this.errorLoginMessage =
+            error.error?.message || 'Đăng nhập thất bại. Vui lòng thử lại.';
+        }
 
-        // Sử dụng service thông báo để xử lý lỗi HTTP một cách thông minh
-        this.notificationService.showHttpError(error, 'Có lỗi xảy ra khi đăng nhập. Vui lòng thử lại sau.');
+        this.showErrorLoginMessage = true;
+        this.notificationService.showError('❌ ' + this.errorLoginMessage);
       },
     });
   }

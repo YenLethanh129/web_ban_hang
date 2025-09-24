@@ -14,6 +14,8 @@ import com.project.webbanhang.services.Interfaces.IProductService;
 
 import com.project.webbanhang.utils.MessageKey;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.PageRequest;
@@ -36,18 +38,39 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * TOP 10 OWASP 2023
+ * API9:2023 - Improper Inventory Management
+ * Hacker có thể khai thác các lỗ hổng trong quản lý kho để truy cập vào các sản phẩm không được phép
+ * Giải pháp: Xác thực và phân quyền người dùng trước khi cho phép truy cập
+ *
+ * @ApiVersion(1)
+ * */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("${api.prefix}/products")
+//@ApiVersion(1)
 public class ProductController {
 	
 	private final IProductService productService;
     private final LocalizationUtil localizationUtil;
 
+    /**
+     * TOP 10 OWASP 2023
+     * API3: 2023 - Broken Object Property Level Authorization
+     * Hacker có thể truy cập vào các thuộc tính nhạy cảm của người dùng khác
+     * Giải pháp: Sử dụng Response để chỉ trả về các thuộc tính cần thiết
+     * */
+    /**
+     * TOP 10 OWASP 2023
+     * API4:2023 - Unrestricted Resource Consumption
+     * Hacker có thể tấn công từ chối dịch vụ (DoS) bằng cách gửi các yêu cầu lớn hoặc phức tạp
+     * Giải pháp: Giới hạn số lượng bản ghi trả về trong một trang
+     * */
     @GetMapping("")
     public ResponseEntity<?> getProducts(
-            @RequestParam(value = "page", defaultValue = "1") int page,
-            @RequestParam(value = "limit", defaultValue = "10") int limit
+            @RequestParam(value = "page", defaultValue = "1") @Min(1) int page,
+            @RequestParam(value = "limit", defaultValue = "10") @Min(1) @Max(100) int limit
     ) {
     	try {
     		PageRequest pageRequest = PageRequest.of(page - 1, limit, Sort.by("categoryId"));
@@ -59,13 +82,19 @@ public class ProductController {
         			.totalPage(totalPages)
                     .totalItem((int)productPage.getTotalElements())
         			.build();
-        	
+
             return ResponseEntity.ok(productListResponse);
 		} catch (Exception e) {
 			return ResponseEntity.badRequest().body(e.getMessage());
 		}
     }
-    
+
+    /**
+     * TOP 10 OWASP 2023
+     * API3: 2023 - Broken Object Property Level Authorization
+     * Hacker có thể truy cập vào các thuộc tính nhạy cảm của người dùng khác
+     * Giải pháp: Sử dụng Response để chỉ trả về các thuộc tính cần thiết
+     * */
     @GetMapping("/category/{id}")
     public ResponseEntity<?> getProductsByCategoryId(
             @PathVariable("id") Long categoryId,
@@ -129,8 +158,13 @@ public class ProductController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
-    
-    // Done
+
+    /**
+     * TOP 10 OWASP 2023
+     * API4:2023 - Unrestricted Resource Consumption
+     * Hacker có thể tấn công từ chối dịch vụ (DoS) bằng cách gửi các yêu cầu lớn hoặc phức tạp
+     * Giải pháp: Giới hạn số lượng file tải lên và kích thước file
+     * */
     @PostMapping(value = "uploads/{id}",
     		consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> uploadImages(
@@ -150,6 +184,7 @@ public class ProductController {
                 if (file.getSize() == 0) {
                     continue;
                 }
+                // Giới hạn kích thước file tải lên (ví dụ: 10MB)
                 if (file.getSize() > 10 * 1024 * 1024) { // 10Mb
                     return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(localizationUtil.getLocalizedMessage(MessageKey.FILE_OVER_SIZE));
                 }

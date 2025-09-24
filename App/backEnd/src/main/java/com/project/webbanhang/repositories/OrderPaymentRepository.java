@@ -1,6 +1,6 @@
 package com.project.webbanhang.repositories;
 
-import com.project.webbanhang.models.OrderPayment;
+import com.project.webbanhang.models.orders.OrderPayment;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

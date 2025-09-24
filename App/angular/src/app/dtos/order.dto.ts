@@ -1,5 +1,4 @@
-export interface OrderDTO {
-  user_id: number;
+export interface OrderRequestDTO {
   full_name: string;
   email: string;
   phone_number: string;
@@ -13,6 +12,9 @@ export interface OrderDTO {
 }
 
 export interface OrderResponseDTO {
+  created_at: string;
+  last_modified: string;
+  order_uuid: string;
   order_id: number;
   note: string;
   status: string;
@@ -20,12 +22,17 @@ export interface OrderResponseDTO {
   order_date: string;
   shipping_method: string;
   payment_method: string;
-  payment_status: string | null;
-  created_at: string;
-  last_modified: string;
+  payment_status: string;
+  order_details: OrderDetailResponseDTO[];
+  receiver_info: {
+    fullname: string;
+    address: string;
+    phone_number: string;
+  };
+  provider: string;
 }
 
-export interface OrderDetailDTO {
+export interface OrderDetailRequestDTO {
   order_id: number;
   product_id: number;
   quantity: number;
@@ -46,4 +53,19 @@ export interface OrderDetailResponseDTO {
 export interface MomoInfoOrderDTO {
   order_id: number;
   amount: number;
+}
+
+export interface OrderConfirmResponseDTO {
+  order_id: number;
+  order_uuid: string;
+  created_at: string;
+  last_modified: string;
+  note: string;
+  status: string;
+  total_money: number;
+  order_date: string;
+  shipping_method: string;
+  payment_method: string;
+  payment_status: string;
+  order_details: OrderDetailResponseDTO[];
 }

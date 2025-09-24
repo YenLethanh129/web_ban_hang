@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule, NgForm } from '@angular/forms';
@@ -8,6 +8,9 @@ import { UpdateUserDTO } from '../../dtos/update-user.dto';
 import { NotificationService } from '../../services/notification.service';
 import { AddressAutocompleteComponent } from '../shared/address-autocomplete/address-autocomplete.component';
 import { AddressPrediction } from '../../dtos/address.dto';
+import { Subject, takeUntil } from 'rxjs';
+import { ValidateDTO } from '../../dtos/validate.dto';
+import { ValidateService } from '../../services/validate.service';
 
 @Component({
   selector: 'app-user-profile',
@@ -21,7 +24,7 @@ import { AddressPrediction } from '../../dtos/address.dto';
   templateUrl: './user-profile.component.html',
   styleUrl: './user-profile.component.scss',
 })
-export class UserProfileComponent implements OnInit {
+export class UserProfileComponent implements OnInit, OnDestroy {
   @ViewChild('updateForm') updateForm!: NgForm;
 
   profile: UserDTO | null = null;
@@ -31,12 +34,28 @@ export class UserProfileComponent implements OnInit {
   showDateOfBirthError = false;
   showAddressError = false;
 
+  // Validation DTOs
+  validateFullNameDTO: ValidateDTO = {
+    isValid: true,
+    errors: [],
+  };
+  validateDateOfBirthDTO: ValidateDTO = {
+    isValid: true,
+    errors: [],
+  };
+  validateAddressDTO: ValidateDTO = {
+    isValid: true,
+    errors: [],
+  };
+
   // Form data for editing
   editData = {
     fullname: '',
     dateOfBirth: '',
     address: '',
   };
+
+  private destroy$ = new Subject<void>();
 
   constructor(
     private router: Router,
@@ -48,24 +67,120 @@ export class UserProfileComponent implements OnInit {
     this.loadUserProfile();
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   loadUserProfile(): void {
+    const currentUser = this.userService.getCurrentUser();
+    if (currentUser) {
+      this.setProfileData(currentUser);
+      return;
+    }
+
+    this.userService.user$.pipe(takeUntil(this.destroy$)).subscribe({
+      next: (user) => {
+        if (user) {
+          this.setProfileData(user);
+        }
+      },
+      error: (error) => {
+        console.error('Error in user subscription:', error);
+      },
+    });
+
+    // Load from server if not available
     this.userService.getUser().subscribe({
       next: (profile) => {
-        this.profile = profile;
-        // Initialize edit form with current data
-        this.editData.fullname = profile.fullname;
-        this.editData.dateOfBirth = this.formatDateForInput(
-          profile.date_of_birth
-        );
-        this.editData.address = profile.address;
+        console.log('UserProfileComponent loaded:', profile);
+        this.setProfileData(profile);
       },
       error: (error) => {
         console.error('Error fetching user profile:', error);
         this.notificationService.showError(
           'Không thể tải thông tin người dùng'
         );
+        // Redirect to login if unable to load profile
+        this.router.navigate(['/login']);
       },
     });
+  }
+
+  private setProfileData(profile: UserDTO): void {
+    this.profile = profile;
+    // Initialize edit form with current data
+    this.editData.fullname = profile.fullname;
+    this.editData.dateOfBirth = this.formatDateForInput(profile.date_of_birth);
+    this.editData.address = profile.address;
+
+    // Validate initial data
+    this.validateFullName();
+    this.validateDateOfBirth();
+    this.validateAddress();
+  }
+
+  /**
+   *
+   * VALIDATE METHODS
+   *
+   */
+
+  validateFullName(event?: Event): void {
+    if (event) {
+      const input = event.target as HTMLInputElement;
+      this.editData.fullname = input.value;
+    }
+    this.validateFullNameDTO = ValidateService.validateFullName(
+      this.editData.fullname
+    );
+  }
+
+  validateDateOfBirth(event?: Event): void {
+    if (event) {
+      const input = event.target as HTMLInputElement;
+      this.editData.dateOfBirth = input.value;
+    }
+    if (
+      this.editData.dateOfBirth &&
+      this.editData.dateOfBirth.trim().length > 0
+    ) {
+      this.validateDateOfBirthDTO = ValidateService.validateDateOfBirth(
+        this.editData.dateOfBirth
+      );
+    } else {
+      this.validateDateOfBirthDTO = { isValid: true, errors: [] };
+    }
+  }
+
+  validateAddress(event?: Event): void {
+    if (event) {
+      const input = event.target as HTMLInputElement;
+      this.editData.address = input.value;
+    }
+    this.validateAddressDTO = ValidateService.validateAddress(
+      this.editData.address
+    );
+  }
+
+  validateForm(): boolean {
+    // Trigger all validations
+    this.validateFullName();
+    this.validateDateOfBirth();
+    this.validateAddress();
+
+    const isValid =
+      this.validateFullNameDTO.isValid &&
+      this.validateDateOfBirthDTO.isValid &&
+      this.validateAddressDTO.isValid;
+
+    if (!isValid) {
+      this.notificationService.showWarning(
+        '⚠️ Vui lòng kiểm tra lại thông tin!'
+      );
+    }
+
+    return isValid;
   }
 
   toggleEdit(): void {
@@ -78,6 +193,11 @@ export class UserProfileComponent implements OnInit {
           this.profile.date_of_birth
         );
         this.editData.address = this.profile.address;
+
+        // Validate after resetting data
+        this.validateFullName();
+        this.validateDateOfBirth();
+        this.validateAddress();
       }
     }
   }
@@ -110,18 +230,32 @@ export class UserProfileComponent implements OnInit {
   }
 
   formatDateForDisplay(date: Date): string {
+    console.log('Formatting date:', date);
     if (!date) return 'Chưa cập nhật';
-    return new Date(date).toLocaleDateString('vi-VN');
+    // Xử lý cả trường hợp date là string ISO hoặc Date object
+    let d: Date;
+    if (typeof date === 'string') {
+      d = new Date(date);
+    } else {
+      d = date;
+    }
+    // Nếu date không hợp lệ, trả về 'Chưa cập nhật'
+    if (isNaN(d.getTime())) return 'Chưa cập nhật';
+    // Hiển thị dạng dd/MM/yyyy
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
   }
 
   onAddressSelected(prediction: AddressPrediction): void {
     this.editData.address = prediction.description;
+    this.validateAddress();
     console.log('Selected address:', prediction);
   }
 
   onSubmit(): void {
-    if (!this.updateForm.valid || !this.validateAge()) {
-      this.notificationService.showWarning('Vui lòng kiểm tra lại thông tin!');
+    if (!this.validateForm()) {
       return;
     }
 
@@ -164,8 +298,11 @@ export class UserProfileComponent implements OnInit {
         this.isEditing = false;
         this.notificationService.showSuccess('Cập nhật thông tin thành công!');
 
-        // Reload profile
+        this.userService.refreshUserSync();
         this.loadUserProfile();
+
+        // Reload website to reflect changes in header
+        window.location.reload();
       },
       error: (error) => {
         this.isLoading = false;
@@ -187,6 +324,11 @@ export class UserProfileComponent implements OnInit {
         this.profile.date_of_birth
       );
       this.editData.address = this.profile.address;
+
+      // Validate after resetting data
+      this.validateFullName();
+      this.validateDateOfBirth();
+      this.validateAddress();
     }
   }
 }

@@ -4,6 +4,8 @@ import { RouterModule, Router } from '@angular/router';
 import { FormsModule, NgForm } from '@angular/forms';
 import { UserService } from '../../services/user.service';
 import { NotificationService } from '../../services/notification.service';
+import { ValidateDTO } from '../../dtos/validate.dto';
+import { ValidateService } from '../../services/validate.service';
 
 @Component({
   selector: 'app-change-password',
@@ -18,6 +20,21 @@ export class ChangePasswordComponent {
   isLoading = false;
   showOldPassword = false;
   showNewPassword = false;
+  showConfirmPassword = false;
+
+  // Validation DTOs - Start with valid state, only show errors after user interaction
+  validateOldPasswordDTO: ValidateDTO = {
+    isValid: true,
+    errors: [],
+  };
+  validateNewPasswordDTO: ValidateDTO = {
+    isValid: true,
+    errors: [],
+  };
+  validateConfirmPasswordDTO: ValidateDTO = {
+    isValid: true,
+    errors: [],
+  };
 
   // Form data
   formData = {
@@ -40,21 +57,69 @@ export class ChangePasswordComponent {
     this.showNewPassword = !this.showNewPassword;
   }
 
-  validateNewPassword(): boolean {
-    return this.formData.new_password.length >= 6;
+  toggleConfirmPasswordVisibility(): void {
+    this.showConfirmPassword = !this.showConfirmPassword;
   }
 
-  validateConfirmPassword(): boolean {
-    return this.formData.new_password === this.formData.confirmPassword;
+  /**
+   *
+   * VALIDATE METHODS
+   *
+   */
+
+  validateOldPassword(event?: Event): void {
+    if (event) {
+      const input = event.target as HTMLInputElement;
+      this.formData.old_password = input.value;
+    }
+    this.validateOldPasswordDTO = ValidateService.validatePassword(
+      this.formData.old_password
+    );
+  }
+
+  validateNewPassword(event?: Event): void {
+    if (event) {
+      const input = event.target as HTMLInputElement;
+      this.formData.new_password = input.value;
+    }
+    this.validateNewPasswordDTO = ValidateService.validatePassword(
+      this.formData.new_password
+    );
+  }
+
+  validateConfirmPassword(event?: Event): void {
+    if (event) {
+      const input = event.target as HTMLInputElement;
+      this.formData.confirmPassword = input.value;
+    }
+    this.validateConfirmPasswordDTO = ValidateService.validateConfirmPassword(
+      this.formData.new_password,
+      this.formData.confirmPassword
+    );
+  }
+
+  validateForm(): boolean {
+    // Trigger all validations before submit
+    this.validateOldPassword();
+    this.validateNewPassword();
+    this.validateConfirmPassword();
+
+    const isValid =
+      this.validateOldPasswordDTO.isValid &&
+      this.validateNewPasswordDTO.isValid &&
+      this.validateConfirmPasswordDTO.isValid;
+
+    if (!isValid) {
+      this.notificationService.showWarning(
+        '⚠️ Vui lòng kiểm tra lại thông tin!'
+      );
+    }
+
+    return isValid;
   }
 
   onSubmit(): void {
-    if (
-      !this.changePasswordForm.valid ||
-      !this.validateNewPassword() ||
-      !this.validateConfirmPassword()
-    ) {
-      this.notificationService.showWarning('Vui lòng kiểm tra lại thông tin!');
+    if (!this.validateForm()) {
       return;
     }
 
@@ -75,11 +140,22 @@ export class ChangePasswordComponent {
 
         // Auto logout after successful password change
         setTimeout(() => {
-          this.userService.logout();
-          this.router.navigate(['/login']);
-          this.notificationService.showInfo(
-            'Vui lòng đăng nhập lại với mật khẩu mới.'
-          );
+          this.userService.logout().subscribe({
+            next: () => {
+              this.router.navigate(['/login']);
+              this.notificationService.showInfo(
+                'Vui lòng đăng nhập lại với mật khẩu mới.'
+              );
+            },
+            error: (logoutError) => {
+              console.error('Logout error after password change:', logoutError);
+              // Vẫn redirect dù logout có lỗi
+              this.router.navigate(['/login']);
+              this.notificationService.showInfo(
+                'Vui lòng đăng nhập lại với mật khẩu mới.'
+              );
+            },
+          });
         }, 2000); // Wait 2 seconds to show success message
       },
       error: (error) => {
