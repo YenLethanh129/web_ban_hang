@@ -741,6 +741,8 @@ CREATE TABLE [dbo].[orders] (
 GO
 
 -- Order Details table
+
+-- Order Details table
 CREATE TABLE [dbo].[order_details] (
     [id] bigint IDENTITY(1,1) NOT NULL,
     [quantity] int NOT NULL,
@@ -757,7 +759,6 @@ CREATE TABLE [dbo].[order_details] (
     CONSTRAINT [FK_order_details_products] FOREIGN KEY ([product_id]) REFERENCES [dbo].[products]([id])
 );
 GO
-
 -- Order Payments table
 CREATE TABLE [dbo].[order_payments] (
     [id] bigint IDENTITY(1,1) NOT NULL,

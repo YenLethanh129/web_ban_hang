@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using Dashboard.BussinessLogic.Dtos.CategoryDto;
 using Dashboard.BussinessLogic.Dtos.ProductDtos;
+using Dashboard.DataAccess.Models.Entities.FinacialAndReports;
 using Dashboard.DataAccess.Models.Entities.Products;
 
 public class ProductMappingProfile : Profile
@@ -22,8 +22,9 @@ public class ProductMappingProfile : Profile
             .ForMember(dest => dest.ProductRecipes, opt => opt.MapFrom(src => src.ProductRecipes));
 
         CreateMap<ProductImage, ProductImageDto>()
-            .ConstructUsing(src => new ProductImageDto(src.Id, false)
+            .ConstructUsing(src => new ProductImageDto(src.Id)
             {
+                ProductId = src.ProductId,
                 ImageUrl = src.ImageUrl ?? string.Empty
             });
 
@@ -35,10 +36,35 @@ public class ProductMappingProfile : Profile
         CreateMap<CreateProductInput, Product>()
             .ForMember(dest => dest.ProductImages, opt => opt.Ignore());
         CreateMap<UpdateProductInput, Product>()
+            .ForMember(dest => dest.TaxId, opt => opt.MapFrom(src => src.TaxId))
             .ForMember(dest => dest.ProductImages, opt => opt.Ignore());
+
         CreateMap<CategoryDto, Category>();
         CreateMap<Category, CategoryDto>();
         CreateMap<Category, CreateCategoryInput>();
         CreateMap<Category, UpdateCategoryInput>();
+        CreateMap<CreateCategoryInput, Category>();
+        CreateMap<UpdateCategoryInput, Category>();
+
+        CreateMap<Taxes, TaxDto>()
+                .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => src.LastModified));
+        CreateMap<TaxDto, Taxes>();
+        CreateMap<CreateTaxInput, Taxes>();
+        CreateMap<UpdateTaxInput, Taxes>();
+
+        CreateMap<Recipe, RecipeDto>()
+            .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name))
+            .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => src.LastModified));
+
+        CreateMap<CreateRecipeInput, Recipe>();
+        CreateMap<UpdateRecipeInput, Recipe>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.CreatedAt, opt => opt.Ignore());
+
+        CreateMap<RecipeIngredient, RecipeIngredientDto>()
+            .ForMember(dest => dest.IngredientName, opt => opt.MapFrom(src => src.Ingredient.Name));
+
+
+
     }
 }

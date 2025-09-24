@@ -4,5 +4,5 @@ public record CreateProductInput(string? Description, decimal Price, int Categor
 {
     public string Name { get; set; } = string.Empty;
     public bool IsActive { get; set; } = true;
-    public List<string> ImageUrls { get; set; } = [];
+    public List<string?> ImageUrls { get; set; } = [];
 }

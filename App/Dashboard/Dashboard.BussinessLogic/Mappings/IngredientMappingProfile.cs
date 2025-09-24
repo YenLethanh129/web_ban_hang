@@ -15,6 +15,31 @@ public class IngredientMappingProfile : Profile
             .ForMember(dest => dest.SafetyStock, opt => opt.MapFrom(src => src.IngredientWarehouse != null ? src.IngredientWarehouse.SafetyStock : 0))
             .ForMember(dest => dest.MaximumStock, opt => opt.MapFrom(src => src.IngredientWarehouse != null ? src.IngredientWarehouse.MaximumStock : 0));
 
+        CreateMap<Ingredient, IngredientDto>()
+            .ForMember(dest => dest.CategoryId,
+                opt => opt.MapFrom(src => src.CategoryId))
+            .ForMember(dest => dest.CategoryName,
+                opt => opt.MapFrom(src => src.Category.Name))
+            .ForMember(dest => dest.CreatedAt,
+                opt => opt.MapFrom(src => src.CreatedAt))
+            .ForMember(dest => dest.UpdatedAt,
+                opt => opt.MapFrom(src => src.LastModified))
+            .ForMember(dest => dest.IsActive,
+                opt => opt.MapFrom(src => src.IsActive));
+
+        CreateMap<IngredientDto, Ingredient>()
+            .ForMember(dest => dest.CategoryId,
+                opt => opt.MapFrom(src => src.CategoryId))
+            .ForMember(dest => dest.IsActive,
+                opt => opt.MapFrom(src => src.IsActive))
+            .ForMember(dest => dest.Name,
+                opt => opt.MapFrom(src => src.Name))
+            .ForMember(dest => dest.Description,
+                opt => opt.MapFrom(src => src.Description))
+            .ForMember(dest => dest.Unit,
+                opt => opt.MapFrom(src => src.Unit))
+            .ForAllOtherMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+
 
 
 

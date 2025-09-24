@@ -1,262 +1,321 @@
-//using Dashboard.BussinessLogic.Dtos.AuthDtos;
-//using Dashboard.BussinessLogic.Dtos.RBACDtos;
-//using Dashboard.BussinessLogic.Services.RBACServices;
-//using Dashboard.BussinessLogic.Shared;
+using System;
+using System.Collections.Concurrent;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows.Forms;
 
-//namespace Dashboard.Winform.Helpers;
+namespace Dashboard.Winform.Helpers;
+public static class AuthorizationHelper
+{
+    public static async Task SetControlVisibilityAsync(Control control, string permission)
+    {
+        var hasPermission = await TryHasPermissionAsync(permission);
+        SetControlVisibilityOnUi(control, hasPermission);
+    }
 
-///// <summary>
-///// Helper class for WinForms authentication management
-///// Provides session management and permission checking for WinForms application
-///// </summary>
-//public static class AuthenticationHelper
-//{
-//    private static SessionDto? _currentSession;
-//    private static IAuthenticationService? _authenticationService;
-//    private static IAuthorizationService? _authorizationService;
+    public static async Task SetControlVisibilityAsync(Control control, string resource, string action)
+    {
+        var permission = $"{resource}_{action}".ToUpperInvariant();
+        var hasPermission = await TryHasPermissionAsync(permission);
+        SetControlVisibilityOnUi(control, hasPermission);
+    }
 
-//    /// <summary>
-//    /// Initialize authentication services
-//    /// </summary>
-//    public static void Initialize(IAuthenticationService authService, IAuthorizationService authzService)
-//    {
-//        _authenticationService = authService;
-//        _authorizationService = authzService;
-//    }
+    public static async Task SetControlEnabledAsync(Control control, string permission)
+    {
+        var hasPermission = await TryHasPermissionAsync(permission);
+        SetControlEnabledOnUi(control, hasPermission);
+    }
 
-//    /// <summary>
-//    /// Current authenticated user session
-//    /// </summary>
-//    public static SessionDto? CurrentSession => _currentSession;
+    public static async Task SetControlEnabledAsync(Control control, string resource, string action)
+    {
+        var permission = $"{resource}_{action}".ToUpperInvariant();
+        var hasAccess = await TryHasPermissionAsync(permission);
+        SetControlEnabledOnUi(control, hasAccess);
+    }
 
-//    /// <summary>
-//    /// Current authenticated user ID
-//    /// </summary>
-//    public static long? CurrentUserId => _currentSession?.UserId;
+    public static async Task SetMenuItemAsync(ToolStripMenuItem menuItem, string permission)
+    {
+        var hasPermission = await TryHasPermissionAsync(permission);
+        if (menuItem.Owner != null && menuItem.Owner.InvokeRequired)
+        {
+            menuItem.Owner.BeginInvoke(new Action(() =>
+            {
+                menuItem.Visible = hasPermission;
+                menuItem.Enabled = hasPermission;
+            }));
+        }
+        else
+        {
+            menuItem.Visible = hasPermission;
+            menuItem.Enabled = hasPermission;
+        }
+    }
 
-//    /// <summary>
-//    /// Current user's role
-//    /// </summary>
-//    public static string? CurrentUserRole => _currentSession?.RoleName;
+    public static async Task ApplyPermissionsAsync(System.Collections.Generic.Dictionary<Control, string> controlPermissions)
+    {
+        // Admin bypass: show everything
+        if (AuthenticationManager.IsAdmin)
+        {
+            foreach (var kvp in controlPermissions)
+            {
+                SetControlVisibilityOnUi(kvp.Key, true);
+                SetControlEnabledOnUi(kvp.Key, true);
+            }
+            return;
+        }
 
-//    /// <summary>
-//    /// Current user's full name
-//    /// </summary>
-//    public static string? CurrentUserName => _currentSession?.FullName;
+        var tasks = controlPermissions.Select(async kvp =>
+        {
+            var hasPermission = await TryHasPermissionAsync(kvp.Value);
+            SetControlVisibilityOnUi(kvp.Key, hasPermission);
+            SetControlEnabledOnUi(kvp.Key, hasPermission);
+        });
 
-//    /// <summary>
-//    /// Check if user is authenticated
-//    /// </summary>
-//    public static bool IsAuthenticated => _currentSession != null && !_currentSession.IsExpired;
+        await Task.WhenAll(tasks);
+    }
 
-//    /// <summary>
-//    /// Check if current user is Admin
-//    /// </summary>
-//    public static bool IsAdmin => CurrentUserRole == Roles.ADMIN;
+    // Keep both original width and height and original margin so we can collapse in either direction and restore later
+    private static readonly ConcurrentDictionary<string, int> _originalWidths = new();
+    private static readonly ConcurrentDictionary<string, int> _originalHeights = new();
+    private static readonly ConcurrentDictionary<string, Padding> _originalMargins = new();
 
-//    /// <summary>
-//    /// Check if current user is Manager
-//    /// </summary>
-//    public static bool IsManager => CurrentUserRole == Roles.MANAGER;
+    private static string GetControlKey(Control control)
+    {
+        return !string.IsNullOrEmpty(control.Name) ? control.Name : control.GetHashCode().ToString();
+    }
 
-//    /// <summary>
-//    /// Check if current user is Employee
-//    /// </summary>
-//    public static bool IsEmployee => CurrentUserRole == Roles.EMPLOYEE;
+    private static void SetControlVisibilityOnUi(Control control, bool visible)
+    {
+        if (control == null) return;
 
-//    /// <summary>
-//    /// Check if current user can manage other users
-//    /// </summary>
-//    public static bool CanManageUsers => IsAdmin;
+        if (control.InvokeRequired)
+        {
+            control.BeginInvoke(new Action(() => SetControlVisibilityOnUi(control, visible)));
+            return;
+        }
 
-//    /// <summary>
-//    /// Check if current user can manage employees
-//    /// </summary>
-//    public static bool CanManageEmployees => IsAdmin || IsManager;
+        control.Visible = visible;
+        control.Enabled = visible;
 
-//    /// <summary>
-//    /// Check if current user can view financial data
-//    /// </summary>
-//    public static bool CanViewFinancials => IsAdmin || IsManager;
+        control.Parent?.PerformLayout();
+    }
 
-//    /// <summary>
-//    /// Authenticate user and create session
-//    /// </summary>
-//    public static async Task<AuthenticationResult> LoginAsync(string username, string password)
-//    {
-//        if (_authenticationService == null)
-//            throw new InvalidOperationException("Authentication service not initialized");
+    private static void SetControlEnabledOnUi(Control control, bool enabled)
+    {
+        if (control == null) return;
 
-//        var loginInput = new LoginInput
-//        {
-//            Username = username,
-//            Password = password
-//        };
+        if (control.InvokeRequired)
+        {
+            control.BeginInvoke(new Action(() => SetControlEnabledOnUi(control, enabled)));
+            return;
+        }
 
-//        var result = await _authenticationService.LoginAsync(loginInput);
-        
-//        if (result.IsSuccess && result.Session != null)
-//        {
-//            _currentSession = result.Session;
-//        }
+        control.Enabled = enabled;
+    }
 
-//        return result;
-//    }
+    /// <summary>
+    /// Collapse a sidebar control by hiding it (Visible=false) and removing margins so FlowLayoutPanel won't reserve space.
+    /// The original size and margin will be saved so it can be restored later.
+    /// Default is vertical collapse because sidebar uses a vertical FlowPanel.
+    /// </summary>
+    public static void CollapseSidebarItem(Control control, bool vertical = true)
+    {
+        if (control == null) return;
+        var key = GetControlKey(control);
 
-//    /// <summary>
-//    /// Logout current user
-//    /// </summary>
-//    public static async Task<bool> LogoutAsync()
-//    {
-//        if (_authenticationService == null || _currentSession == null)
-//            return true;
+        if (control.InvokeRequired)
+        {
+            control.BeginInvoke(new Action(() => CollapseSidebarItem(control, vertical)));
+            return;
+        }
 
-//        var result = await _authenticationService.LogoutAsync(_currentSession.UserId);
-        
-//        if (result)
-//        {
-//            _currentSession = null;
-//        }
+        if (!_originalHeights.ContainsKey(key))
+            _originalHeights[key] = control.Height;
+        if (!_originalWidths.ContainsKey(key))
+            _originalWidths[key] = control.Width;
+        if (!_originalMargins.ContainsKey(key))
+            _originalMargins[key] = control.Margin;
 
-//        return result;
-//    }
+        // Hide + disable so it cannot be clicked/focused
+        control.Visible = false;
+        control.Enabled = false;
 
-//    /// <summary>
-//    /// Validate current session
-//    /// </summary>
-//    public static async Task<bool> ValidateSessionAsync()
-//    {
-//        if (_authenticationService == null || _currentSession == null)
-//            return false;
+        if (vertical)
+            control.Height = 0;
+        else
+            control.Width = 0;
 
-//        var result = await _authenticationService.ValidateSessionAsync(_currentSession.UserId);
-        
-//        if (result.IsSuccess && result.Session != null && !result.Session.IsExpired)
-//        {
-//            _currentSession = result.Session;
-//            return true;
-//        }
+        control.Margin = Padding.Empty;
 
-//        _currentSession = null;
-//        return false;
-//    }
+        control.Parent?.PerformLayout();
+    }
 
-//    /// <summary>
-//    /// Check if current user has specific permission
-//    /// </summary>
-//    public static async Task<bool> HasPermissionAsync(string permission)
-//    {
-//        if (_authorizationService == null || _currentSession == null)
-//            return false;
+    /// <summary>
+    /// Restore a previously collapsed sidebar control to its original size and margin.
+    /// </summary>
+    public static void RestoreSidebarItem(Control control)
+    {
+        if (control == null) return;
+        var key = GetControlKey(control);
 
-//        return await _authorizationService.HasPermissionAsync(_currentSession.UserId, permission);
-//    }
+        if (control.InvokeRequired)
+        {
+            control.BeginInvoke(new Action(() => RestoreSidebarItem(control)));
+            return;
+        }
 
-//    /// <summary>
-//    /// Check if current user can access a resource with specific action
-//    /// </summary>
-//    public static async Task<bool> CanAccessResourceAsync(string resource, string action)
-//    {
-//        if (_authorizationService == null || _currentSession == null)
-//            return false;
+        if (_originalHeights.TryGetValue(key, out var originalHeight))
+        {
+            control.Height = originalHeight;
+            _originalHeights.TryRemove(key, out _);
+        }
 
-//        return await _authorizationService.CanAccessResourceAsync(_currentSession.UserId, resource, action);
-//    }
+        if (_originalWidths.TryGetValue(key, out var originalWidth))
+        {
+            control.Width = originalWidth;
+            _originalWidths.TryRemove(key, out _);
+        }
 
-//    /// <summary>
-//    /// Get current user's permissions
-//    /// </summary>
-//    public static async Task<List<string>> GetUserPermissionsAsync()
-//    {
-//        if (_authorizationService == null || _currentSession == null)
-//            return new List<string>();
+        if (_originalMargins.TryGetValue(key, out var originalMargin))
+        {
+            control.Margin = originalMargin;
+            _originalMargins.TryRemove(key, out _);
+        }
 
-//        return await _authorizationService.GetUserPermissionsAsync(_currentSession.UserId);
-//    }
+        control.Visible = true;
+        control.Enabled = true;
 
-//    /// <summary>
-//    /// Refresh current session from server
-//    /// </summary>
-//    public static async Task<bool> RefreshSessionAsync()
-//    {
-//        if (_authenticationService == null || _currentSession == null)
-//            return false;
+        control.Parent?.PerformLayout();
+    }
 
-//        var session = await _authenticationService.GetCurrentSessionAsync(_currentSession.UserId);
-        
-//        if (session != null && !session.IsExpired)
-//        {
-//            _currentSession = session;
-//            return true;
-//        }
+    /// <summary>
+    /// Evaluate permission and collapse/restore the given sidebar control accordingly.
+    /// Defaults to vertical collapse (height = 0) since the sidebar uses a vertical FlowPanel.
+    /// This method is UI-thread safe (will marshal to UI thread).
+    /// Admin users are always restored (bypass).
+    /// </summary>
+    public static async Task SetSidebarVisibilityAsync(Control control, string permission, bool vertical = true)
+    {
+        if (control == null) return;
 
-//        _currentSession = null;
-//        return false;
-//    }
+        // Admin bypass: always show
+        if (AuthenticationManager.IsAdmin)
+        {
+            if (control.InvokeRequired)
+            {
+                control.BeginInvoke(new Action(() => RestoreSidebarItem(control)));
+                return;
+            }
+            RestoreSidebarItem(control);
+            return;
+        }
 
-//    /// <summary>
-//    /// Clear current session (for logout or session expiry)
-//    /// </summary>
-//    public static void ClearSession()
-//    {
-//        _currentSession = null;
-//    }
+        var hasPermission = await TryHasPermissionAsync(permission);
 
-//    /// <summary>
-//    /// Get display text for current user
-//    /// </summary>
-//    public static string GetUserDisplayText()
-//    {
-//        if (_currentSession == null)
-//            return "Not authenticated";
+        if (control.InvokeRequired)
+        {
+            control.BeginInvoke(new Action(() =>
+            {
+                if (hasPermission) RestoreSidebarItem(control);
+                else CollapseSidebarItem(control, vertical);
+            }));
+            return;
+        }
 
-//        var roleName = _currentSession.RoleName switch
-//        {
-//            Roles.ADMIN => "Quản trị viên",
-//            Roles.MANAGER => "Quản lý",
-//            Roles.EMPLOYEE => "Nhân viên",
-//            _ => _currentSession.RoleName
-//        };
+        if (hasPermission)
+            RestoreSidebarItem(control);
+        else
+            CollapseSidebarItem(control, vertical);
+    }
 
-//        return $"{_currentSession.FullName} ({roleName})";
-//    }
+    public static async Task SetSidebarVisibilityAsync(Control control, string resource, string action, bool vertical = true)
+    {
+        var permission = $"{resource}_{action}".ToUpperInvariant();
+        await SetSidebarVisibilityAsync(control, permission, vertical);
+    }
 
-//    /// <summary>
-//    /// Check permissions for UI elements
-//    /// </summary>
-//    public static class UIPermissions
-//    {
-//        public static async Task<bool> CanViewUserManagement() 
-//            => await HasPermissionAsync(Permissions.MANAGE_USERS);
+    public static async Task ApplySidebarPermissionsAsync(System.Collections.Generic.Dictionary<Control, string> controlPermissionMap, bool vertical = true)
+    {
+        // Admin bypass: restore all panels
+        if (AuthenticationManager.IsAdmin)
+        {
+            foreach (var kvp in controlPermissionMap)
+            {
+                try
+                {
+                    RestoreSidebarItem(kvp.Key);
+                }
+                catch { }
+            }
+            return;
+        }
 
-//        public static async Task<bool> CanCreateUser() 
-//            => await HasPermissionAsync(Permissions.MANAGE_USERS);
+        var tasks = controlPermissionMap.Select(async kvp =>
+        {
+            try
+            {
+                await SetSidebarVisibilityAsync(kvp.Key, kvp.Value, vertical);
+            }
+            catch
+            {
+                // swallow - not to let one control failure break the rest
+            }
+        });
 
-//        public static async Task<bool> CanEditUser() 
-//            => await HasPermissionAsync(Permissions.MANAGE_USERS);
+        await Task.WhenAll(tasks);
+    }
 
-//        public static async Task<bool> CanDeleteUser() 
-//            => await HasPermissionAsync(Permissions.MANAGE_USERS);
+    /// <summary>
+    /// Try permission check with a few common variants so keys match backend's format (with/without underscore).
+    /// Admin bypass: returns true immediately.
+    /// </summary>
+    private static async Task<bool> TryHasPermissionAsync(string permission)
+    {
+        if (string.IsNullOrWhiteSpace(permission)) return false;
 
-//        public static async Task<bool> CanViewReports() 
-//            => await HasPermissionAsync(Permissions.VIEW_BASIC_REPORTS);
+        // Admin bypass
+        if (AuthenticationManager.IsAdmin) return true;
 
-//        public static async Task<bool> CanManageInventory() 
-//            => await HasPermissionAsync(Permissions.MANAGE_INVENTORY);
+        // normalize
+        var perm = permission.Trim().ToUpperInvariant();
 
-//        public static async Task<bool> CanViewOrders() 
-//            => await HasPermissionAsync(Permissions.MANAGE_ORDERS);
+        // try direct
+        if (await SafeHasPermissionAsync(perm)) return true;
 
-//        public static async Task<bool> CanCreateOrder() 
-//            => await HasPermissionAsync(Permissions.MANAGE_ORDERS);
+        // try without underscore
+        var noUnderscore = perm.Replace("_", "");
+        if (!string.Equals(noUnderscore, perm, StringComparison.OrdinalIgnoreCase))
+        {
+            if (await SafeHasPermissionAsync(noUnderscore)) return true;
+        }
 
-//        public static async Task<bool> CanViewExpenses() 
-//            => await HasPermissionAsync(Permissions.MANAGE_EXPENSES);
+        // try some heuristics for splitting
+        if (!perm.Contains("_"))
+        {
+            var tokens = new[] { "DASHBOARD", "ACCOUNT", "ROLE", "PERMISSION", "PRODUCT", "SUPPLIER", "EMPLOYEE", "INGREDIENT", "RECIPE", "USER", "GOODS", "STORAGE" };
+            foreach (var t in tokens)
+            {
+                if (perm.EndsWith(t, StringComparison.OrdinalIgnoreCase) && perm.Length > t.Length)
+                {
+                    var candidate = perm.Substring(0, perm.Length - t.Length) + "_" + t;
+                    if (await SafeHasPermissionAsync(candidate)) return true;
+                }
+            }
+        }
 
-//        public static async Task<bool> CanManageSuppliers() 
-//            => await HasPermissionAsync(Permissions.MANAGE_SUPPLIERS);
+        // nothing matched
+        return false;
+    }
 
-//        public static async Task<bool> CanViewSystemSettings() 
-//            => await HasPermissionAsync(Permissions.MANAGE_SYSTEM_SETTINGS);
-//    }
-//}
+    private static async Task<bool> SafeHasPermissionAsync(string permission)
+    {
+        try
+        {
+            return await AuthenticationManager.HasPermissionAsync(permission);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+}

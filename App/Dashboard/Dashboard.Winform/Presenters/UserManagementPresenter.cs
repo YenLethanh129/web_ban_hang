@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Dashboard.BussinessLogic.Dtos;
+using Dashboard.BussinessLogic.Dtos.EmployeeDtos;
 using Dashboard.BussinessLogic.Dtos.RBACDtos;
 using Dashboard.BussinessLogic.Services.EmployeeServices;
 using Dashboard.BussinessLogic.Services.RBACServices;
@@ -61,6 +62,7 @@ namespace Dashboard.Winform.Presenters
         private long? _currentRoleFilter = null;
         private string _currentSortBy = "Id"; // Default sort by Id
         private bool _sortDescending = false; // Default sort order
+        //private bool _emplo
 
         IManagableModel IManagementPresenter<UserManagementModel>.Model
         {
@@ -156,7 +158,7 @@ namespace Dashboard.Winform.Presenters
                     Id = r.Id,
                     Name = r.Name,
                     Description = r.Description,
-                    CreatedAt = r.CreatedAt ?? DateTime.MinValue,
+                    CreatedAt = r.CreatedAt,
                     UpdatedAt = r.LastModified,
                     PermissionCount = r.Permissions?.Count ?? 0,
                     Permissions = (r.Permissions ?? [])
@@ -371,7 +373,12 @@ namespace Dashboard.Winform.Presenters
             existingUser.IsActive = user.IsActive;
             existingUser.EmployeeId = user.EmployeeId;
             existingUser.RoleId = user.RoleId;
-
+            existingUser.Username = user.Username;
+            if (!string.IsNullOrWhiteSpace(user.Password))
+            {
+                existingUser.Password = user.Password;
+            }
+            
             var input = _mapper.Map<UpdateUserInput>(existingUser);
 
             await _userManagementService.UpdateUserAsync(input);
@@ -381,13 +388,10 @@ namespace Dashboard.Winform.Presenters
 
         public async Task DeleteUserAsync(long id)
         {
-            var user = await _userManagementService.GetUserByIdAsync(id);
-            if (user == null)
-                throw new InvalidOperationException($"Không tìm thấy người dùng với ID: {id}");
-
+            var user = await _userManagementService.GetUserByIdAsync(id) ?? throw new InvalidOperationException($"Không tìm thấy người dùng với ID: {id}");
             user.IsActive = false;
             var input = _mapper.Map<UpdateUserInput>(user);
-            await _userManagementService.UpdateUserAsync(input);
+            var uster = await _userManagementService.UpdateUserAsync(input);
 
             await RefreshCacheAsync();
         }
@@ -408,7 +412,7 @@ namespace Dashboard.Winform.Presenters
                 Id = role.Id,
                 Name = role.Name,
                 Description = role.Description,
-                CreatedAt = role.CreatedAt ?? DateTime.MinValue,
+                CreatedAt = role.CreatedAt,
                 UpdatedAt = role.LastModified,
                 PermissionCount = role.Permissions?.Count ?? 0,
                 Permissions = (role.Permissions ?? Enumerable.Empty<PermissionDto>())
@@ -444,7 +448,7 @@ namespace Dashboard.Winform.Presenters
                     Id = r.Id,
                     Name = r.Name,
                     Description = r.Description,
-                    CreatedAt = r.CreatedAt ?? DateTime.MinValue,
+                    CreatedAt = r.CreatedAt,
                     UpdatedAt = r.LastModified,
                     PermissionCount = r.Permissions?.Count ?? 0,
                     Permissions = [.. (r.Permissions ?? Enumerable.Empty<PermissionDto>())
@@ -501,7 +505,12 @@ namespace Dashboard.Winform.Presenters
 
         public async Task<List<EmployeeSimpleViewModel>> GetEmployeesAsync()
         {
-            var employees = await _employeeManagementService.GetEmployeesAsync();
+            var input = new GetEmployeesInput
+            {
+                PageSize = int.MaxValue,
+                PageNumber = 1
+            };
+            var employees = await _employeeManagementService.GetEmployeesAsync(input);
             return _mapper.Map<List<EmployeeSimpleViewModel>>(employees);
         }
 

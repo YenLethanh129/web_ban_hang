@@ -3,12 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.36408.4
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dashboard.API", "Dashboard.API\Dashboard.API.csproj", "{7BC0AD2D-A059-334A-6AC1-FC13FED31F79}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dashboard.AppHost", "Dashboard.AppHost\Dashboard.AppHost.csproj", "{51EAA638-8FA4-4BEF-990D-ED69A21D87EF}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dashboard.ServiceDefaults", "Dashboard.ServiceDefaults\Dashboard.ServiceDefaults.csproj", "{95DE3418-F94A-A608-1398-CB1CA107988E}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dashboard.DataAccess", "Dashboard.DataAccess\Dashboard.DataAccess.csproj", "{C55EF7F9-9701-4C18-8A09-998FDFEE71BA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dashboard.BussinessLogic", "Dashboard.BussinessLogic\Dashboard.BussinessLogic.csproj", "{E21CAE5C-B061-4736-8E58-3C2B87EA3BE0}"
@@ -25,18 +19,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{7BC0AD2D-A059-334A-6AC1-FC13FED31F79}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7BC0AD2D-A059-334A-6AC1-FC13FED31F79}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7BC0AD2D-A059-334A-6AC1-FC13FED31F79}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7BC0AD2D-A059-334A-6AC1-FC13FED31F79}.Release|Any CPU.Build.0 = Release|Any CPU
-		{51EAA638-8FA4-4BEF-990D-ED69A21D87EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{51EAA638-8FA4-4BEF-990D-ED69A21D87EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{51EAA638-8FA4-4BEF-990D-ED69A21D87EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{51EAA638-8FA4-4BEF-990D-ED69A21D87EF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{95DE3418-F94A-A608-1398-CB1CA107988E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{95DE3418-F94A-A608-1398-CB1CA107988E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{95DE3418-F94A-A608-1398-CB1CA107988E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{95DE3418-F94A-A608-1398-CB1CA107988E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C55EF7F9-9701-4C18-8A09-998FDFEE71BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C55EF7F9-9701-4C18-8A09-998FDFEE71BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C55EF7F9-9701-4C18-8A09-998FDFEE71BA}.Release|Any CPU.ActiveCfg = Release|Any CPU

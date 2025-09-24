@@ -1,46 +1,57 @@
 using Dashboard.DataAccess.Context;
+using Dashboard.DataAccess.Models.Entities.Orders;
 using Dashboard.StockWorker;
 using Dashboard.StockWorker.Services;
+using Dashboard.StockWorker.Workers;
 using Microsoft.EntityFrameworkCore;
 
-// Check if running in test mode
-if (args.Length > 0 && args[0].ToLower() == "test")
-{
-    await TestRunner.RunTestAsync();
-    return;
-}
-
-// Check if running in demo mode
-if (args.Length > 0 && args[0].ToLower() == "demo")
-{
-    await DemoRunner.RunDemoAsync();
-    return;
-}
 var builder = Host.CreateApplicationBuilder(args);
 
-// Add configuration
-builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
-builder.Configuration.AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true);
-builder.Configuration.AddEnvironmentVariables();
+builder.Configuration
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
+    .AddEnvironmentVariables();
 
-// Add DbContext
-builder.Services.AddDbContext<WebbanhangDbContext>(options =>
+Dashboard.DataAccess.DependencyInjection.AddDataAccess(builder);
+Dashboard.BussinessLogic.DependencyInjection.AddBussinessLogicServices(builder);
+
+builder.Services.AddScoped<WebbanhangDbContext>(sp =>
 {
-    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
-        ?? "Server=localhost;Database=webbanHang;Trusted_Connection=true;TrustServerCertificate=true;";
-    options.UseSqlServer(connectionString);
+    var configuration = sp.GetRequiredService<IConfiguration>();
+    var connectionString = configuration.GetConnectionString("WebbanhangDB")
+        ?? throw new InvalidOperationException("Connection string is missing");
+    var encryptionKey = configuration["Encryption:Key"] ??
+                        throw new InvalidOperationException("Encryption key is missing");
+
+    var options = new DbContextOptionsBuilder<WebbanhangDbContext>()
+        .UseSqlServer(connectionString)
+        .Options;
+
+    return new WebbanhangDbContext(options, encryptionKey);
 });
 
-// Add services
 builder.Services.AddScoped<StockCalculationService>();
-builder.Services.AddScoped<EmailNotificationService>();
-builder.Services.AddScoped<InventoryMovementService>();
-builder.Services.AddScoped<DataSeedService>();
+builder.Services.AddScoped<LowStockReportTemplateService>();
+builder.Services.AddScoped<NotificationService>();
+builder.Services.AddScoped<PurchaseEnrichmentService>();
+builder.Services.AddScoped<IFinancialReportTemplateService, FinancialReportTemplateService>();
 
-// Add the worker service
-builder.Services.AddHostedService<Worker>();
+builder.Services.AddScoped<INotificationService>(sp =>
+{
+    var useAdvancedEmail = sp.GetRequiredService<IConfiguration>()
+        .GetValue<bool>("Email:UseAdvancedNotifications", true);
 
-// Add logging
+    return useAdvancedEmail
+        ? sp.GetRequiredService<LowStockReportTemplateService>()
+        : sp.GetRequiredService<NotificationService>();
+});
+
+builder.Services.AddScoped<Dashboard.BussinessLogic.Services.ReportServices.IReportingService,
+    Dashboard.BussinessLogic.Services.ReportServices.ReportingService>();
+
+builder.Services.AddHostedService<LowStockAlertWorker>();
+builder.Services.AddHostedService<FinancialReportingWorker>();
+
 builder.Services.AddLogging(logging =>
 {
     logging.ClearProviders();
@@ -50,32 +61,18 @@ builder.Services.AddLogging(logging =>
 
 var host = builder.Build();
 
-// Ensure database is created
 using (var scope = host.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<WebbanhangDbContext>();
-    var dataSeeder = scope.ServiceProvider.GetRequiredService<DataSeedService>();
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-    
+
     logger.LogInformation("Checking database connection...");
-    var canConnect = await context.Database.CanConnectAsync();
-    
-    if (canConnect)
-    {
-        await context.Database.EnsureCreatedAsync();
-        logger.LogInformation("Database connection verified successfully");
-        
-        await dataSeeder.SeedDataAsync();
-        logger.LogInformation("Initial data seeding completed");
-    }
-    else
+    if (!await context.Database.CanConnectAsync())
     {
         logger.LogError("Cannot connect to database. Please check connection string.");
         throw new InvalidOperationException("Database connection failed");
     }
+    logger.LogInformation("Database connection verified successfully");
 }
-Console.WriteLine("Stock Worker Service is starting...");
-Console.WriteLine("Press Ctrl+C to stop the service");
-Console.WriteLine("To run test mode: dotnet run test");
 
 host.Run();

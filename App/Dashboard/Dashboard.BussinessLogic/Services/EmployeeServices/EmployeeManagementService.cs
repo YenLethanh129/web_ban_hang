@@ -25,14 +25,15 @@ public interface IEmployeeManagementService
     Task UpdateEmployeeAsync(UpdateEmployeeInput employee);
     Task DeleteEmployeeAsync(long id);
     Task<List<PositionDto>> GetAllPositionsAsync();
-
 }
+
 public class EmployeeManagementService : BaseTransactionalService, IEmployeeManagementService
 {
     private readonly IEmployeeRepository _employeeRepository;
     private readonly IBranchRepository _branchRepository;
     private readonly IMapper _mapper;
     private readonly IEmployeeSalaryRepository _employeeSalaryRepository;
+    
     public EmployeeManagementService(
         IUnitOfWork unitOfWork,
         IEmployeeRepository employeeRepository,
@@ -123,7 +124,6 @@ public class EmployeeManagementService : BaseTransactionalService, IEmployeeMana
         };
     }
 
-
     public async Task<EmployeeDto?> GetEmployeeByIdAsync(long id)
     {
         var employee = await _employeeRepository.GetAsync(id);
@@ -138,38 +138,46 @@ public class EmployeeManagementService : BaseTransactionalService, IEmployeeMana
             throw new ArgumentException("Invalid employee data.");
         }
 
-        ; var existingEmployee = await _employeeRepository.GetAsync(employee.EmployeeId) ?? throw new ArgumentException($"Employee with ID {employee.EmployeeId} does not exist.");
-        
-        if (employee.BranchId.HasValue)
-        {
-            _ = await _branchRepository.GetAsync(employee.BranchId.Value)
-                ?? throw new ArgumentException($"Branch with ID {employee.BranchId.Value} does not exist.");
-            existingEmployee.BranchId = employee.BranchId.Value;
-        }
-
-        if (existingEmployee == null)
-        {
-            throw new ArgumentException($"Employee with ID {employee.EmployeeId} does not exist.");
-        }
-
         await ExecuteInTransactionAsync(async () =>
         {
+            var existingEmployee = await _employeeRepository.GetAsync(employee.EmployeeId)
+                ?? throw new ArgumentException($"Employee with ID {employee.EmployeeId} does not exist.");
+
+            if (employee.BranchId.HasValue)
+            {
+                _ = await _branchRepository.GetAsync(employee.BranchId.Value)
+                    ?? throw new ArgumentException($"Branch with ID {employee.BranchId.Value} does not exist.");
+                existingEmployee.BranchId = employee.BranchId.Value;
+            }
+
             if (employee.BaseSalary.HasValue && !string.IsNullOrEmpty(employee.SalaryType))
             {
                 var currentSalary = await _employeeSalaryRepository.GetCurrentSalaryAsync(existingEmployee.Id);
-                var newSalary = new EmployeeSalary
+                
+                if (currentSalary != null)
                 {
-                    EmployeeId = existingEmployee.Id,
-                    BaseSalary = employee.BaseSalary.Value,
-                    SalaryType = employee.SalaryType,
-                    EffectiveDate = DateTime.UtcNow,
-                    CreatedAt = currentSalary != null ? currentSalary.CreatedAt : DateTime.UtcNow,
-                    LastModified = DateTime.UtcNow
-                };
-                await _employeeSalaryRepository.UpdateSalaryAsync(newSalary);
+                    currentSalary.BaseSalary = employee.BaseSalary.Value;
+                    currentSalary.SalaryType = employee.SalaryType;
+                    currentSalary.EffectiveDate = DateTime.UtcNow;
+                    currentSalary.LastModified = DateTime.UtcNow;
+                    
+                    _employeeSalaryRepository.Update(currentSalary);
+                }
+                else
+                {
+                    var newSalary = new EmployeeSalary
+                    {
+                        EmployeeId = existingEmployee.Id,
+                        BaseSalary = employee.BaseSalary.Value,
+                        SalaryType = employee.SalaryType,
+                        EffectiveDate = DateTime.UtcNow,
+                        CreatedAt = DateTime.UtcNow,
+                        LastModified = DateTime.UtcNow
+                    };
+                    await _employeeSalaryRepository.AddAsync(newSalary);
+                }
             }
 
-            
             existingEmployee.FullName = employee.FullName ?? existingEmployee.FullName;
             existingEmployee.PhoneNumber = employee.Phone ?? existingEmployee.PhoneNumber;
             existingEmployee.Email = employee.Email ?? existingEmployee.Email;
@@ -180,12 +188,10 @@ public class EmployeeManagementService : BaseTransactionalService, IEmployeeMana
             existingEmployee.Status = employee.Status ?? existingEmployee.Status;
 
             _employeeRepository.Update(existingEmployee);
+            
         });
-
-
-        await _employeeRepository.SaveChangesAsync();
-
     }
+
     public async Task<List<PositionDto>> GetAllPositionsAsync()
     {
         var positions = await _unitOfWork.Repository<EmployeePosition>().GetAllAsync();

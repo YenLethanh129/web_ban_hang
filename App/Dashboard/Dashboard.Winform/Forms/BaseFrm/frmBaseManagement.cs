@@ -1,4 +1,5 @@
-﻿using Dashboard.Winform.Interfaces;
+﻿using Dashboard.Common.Constants;
+using Dashboard.Winform.Interfaces;
 using Dashboard.Winform.Presenters;
 using Dashboard.Winform.ViewModels;
 using Microsoft.Extensions.Logging;
@@ -52,8 +53,6 @@ public partial class FrmBaseManagement : Form, IBlurLoadingServiceAware
     }
     private void SetupCommonEventHandlers()
     {
-        btnGetDetails.Click += (s, e) => BtnSearch_Click(s!, e);
-
         btnAdd.Click += (s, e) => BtnAdd_Click(s!, e);
         btnGetDetails.Click += (s, e) => BtnGetDetails_Click(s!, e);
         btnOrderBy.Click += (s, e) => BtnOrderBy_Click(s!, e);
@@ -102,7 +101,6 @@ public partial class FrmBaseManagement : Form, IBlurLoadingServiceAware
         cbxFilter1.SelectedIndexChanged += (s, o) => CbxFilterByGoodsStatusSelectedIndexChanged(s!, o);
         cbxFilter2.SelectedIndexChanged += (s, o) => CbxFilterByStockStatusSelectedIndexChanged(s!, o);
         cbxNumbRecordsPerPage.SelectedIndexChanged += (s, o) => CbxNumbRecordsPerPageSelectedIndexChanged(s!, o);
-        tbxFindString.TextChanged += async (s, o) => await TbxFindString_TextChanged(s!, o);
     }
 
     protected virtual void CbxNumbRecordsPerPageSelectedIndexChanged(object v, EventArgs o)
@@ -262,7 +260,7 @@ public partial class FrmBaseManagement : Form, IBlurLoadingServiceAware
     /// </summary>
     protected void ShowErrorMessage(string message, string title = "Lỗi")
     {
-        MessageBox.Show(message, title, MessageBoxButtons.OK, MessageBoxIcon.Error);
+        new FrmToastMessage(ToastType.ERROR, message).Show();
     }
 
     /// <summary>
@@ -270,14 +268,15 @@ public partial class FrmBaseManagement : Form, IBlurLoadingServiceAware
     /// </summary>
     protected void ShowSuccessMessage(string message, string title = "Thành công")
     {
-        MessageBox.Show(message, title, MessageBoxButtons.OK, MessageBoxIcon.Information);
+        new FrmToastMessage(ToastType.SUCCESS, message).Show();
     }
     /// <summary>
     /// Show confirmation dialog
     /// </summary>
     protected DialogResult ShowConfirmation(string message, string title = "Xác nhận")
     {
-        return MessageBox.Show(message, title, MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+        new FrmToastMessage(ToastType.WARNING, message).Show();
+        return DialogResult.Yes;
     }
     #endregion
 

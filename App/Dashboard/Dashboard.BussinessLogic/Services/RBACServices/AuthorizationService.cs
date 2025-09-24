@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Text;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Dashboard.BussinessLogic.Dtos.RBACDtos;
@@ -20,6 +23,7 @@ namespace Dashboard.BussinessLogic.Services.RBACServices
         Task<List<string>> GetUserPermissionsAsync(string token);
         Task<SessionDto?> GetUserFromTokenAsync(string token);
         Task<bool> CanAccessResourceAsync(string token, string resource, string action);
+        Task<SessionDto> GetUserFromTokenAsync();
     }
 
     public class AuthorizationService : IAuthorizationService
@@ -112,45 +116,107 @@ namespace Dashboard.BussinessLogic.Services.RBACServices
 
         public async Task<SessionDto?> GetUserFromTokenAsync(string token)
         {
-            if (string.IsNullOrWhiteSpace(token)) return null;
-
             try
             {
-                var handler = new JwtSecurityTokenHandler();
-                var jwtToken = handler.ReadJwtToken(NormalizeToken(token));
-
-                var userIdClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-                if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
+                token = NormalizeToken(token);
+                if (string.IsNullOrWhiteSpace(token))
+                {
+                    _logger.LogWarning("GetUserFromTokenAsync: token is empty");
                     return null;
+                }
 
-                var userSpec = new Specification<EmployeeUserAccount>(u => u.Id == userId && u.IsActive);
-                userSpec.IncludeStrings.Add("Role");
-                userSpec.IncludeStrings.Add("Role.RolePermissions");
-                userSpec.IncludeStrings.Add("Role.RolePermissions.Permission");
+                var secret = _config["JwtSettings:SecretKey"] ?? _config["JwtSettings:Secret"];
+                var issuer = _config["JwtSettings:Issuer"];
+                var audience = _config["JwtSettings:Audience"];
 
-                var user = await _userRepository.GetWithSpecAsync(userSpec);
-                if (user == null) return null;
+                ClaimsPrincipal? principal = null;
+                var handler = new JwtSecurityTokenHandler();
 
-                var permissions = user.Role?.RolePermissions
-                    .Select(rp => rp.Permission?.Name ?? string.Empty)
-                    .Where(n => !string.IsNullOrEmpty(n))
-                    .ToList() ?? new List<string>();
+                if (!string.IsNullOrWhiteSpace(secret) && !string.IsNullOrWhiteSpace(issuer) && !string.IsNullOrWhiteSpace(audience))
+                {
+                    var key = Encoding.UTF8.GetBytes(secret);
+                    var parameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidIssuer = issuer,
+                        ValidateAudience = true,
+                        ValidAudience = audience,
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(key),
+                        ValidateLifetime = true,
+                        ClockSkew = TimeSpan.Zero
+                    };
 
-                return new SessionDto
+                    try
+                    {
+                        principal = handler.ValidateToken(token, parameters, out _);
+                    }
+                    catch (SecurityTokenException ste)
+                    {
+                        _logger.LogWarning(ste, "GetUserFromTokenAsync: token validation failed");
+                        return null;
+                    }
+                }
+                else
+                {
+                    _logger.LogWarning("GetUserFromTokenAsync: JWT configuration missing, reading token without validation");
+                    var jwt = handler.ReadJwtToken(token);
+                    var identity = new ClaimsIdentity(jwt.Claims);
+                    principal = new ClaimsPrincipal(identity);
+                }
+
+                if (principal == null)
+                {
+                    _logger.LogWarning("GetUserFromTokenAsync: unable to obtain principal from token");
+                    return null;
+                }
+
+                var sub = principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value ?? principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                long userId = 0;
+                if (!string.IsNullOrWhiteSpace(sub)) long.TryParse(sub, out userId);
+
+                var username = principal.FindFirst(JwtRegisteredClaimNames.UniqueName)?.Value ?? principal.Identity?.Name;
+                var role = principal.FindFirst(ClaimTypes.Role)?.Value;
+                var permissions = principal.FindAll("permission").Select(c => c.Value).ToList();
+
+                var tokenRepo = _unitOfWork.Repository<Dashboard.DataAccess.Models.Entities.RBAC.Token>();
+                var dbToken = await tokenRepo.GetQueryable()
+                    .FirstOrDefaultAsync(t => t.TokenValue == token);
+
+                if (dbToken == null)
+                {
+                    _logger.LogWarning("GetUserFromTokenAsync: token not found in database");
+                    return null;
+                }
+
+                if (dbToken.Revoked || dbToken.Expired || (dbToken.ExpirationDate.HasValue && dbToken.ExpirationDate <= DateTime.UtcNow))
+                {
+                    _logger.LogWarning("GetUserFromTokenAsync: token is revoked or expired in database");
+                    return null;
+                }
+
+                var session = new SessionDto
                 {
                     Token = token,
-                    UserId = user.Id,
-                    Username = user.Username,
-                    Role = user.Role?.Name ?? string.Empty,
-                    Permissions = permissions,
-                    Expiration = jwtToken.ValidTo
+                    UserId = userId,
+                    Username = username ?? string.Empty,
+                    Role = role ?? string.Empty,
+                    Permissions = permissions ?? new List<string>(),
+                    Expiration = dbToken.ExpirationDate ?? DateTime.UtcNow
                 };
+
+                return session;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error decoding token {Token}", token);
+                _logger.LogError(ex, "GetUserFromTokenAsync: unexpected error");
                 return null;
             }
+        }
+
+        public Task<SessionDto> GetUserFromTokenAsync()
+        {
+            throw new NotImplementedException("GetUserFromTokenAsync without token is not supported in AuthorizationService");
         }
 
         public async Task<bool> CanAccessResourceAsync(string token, string resource, string action)
@@ -158,20 +224,12 @@ namespace Dashboard.BussinessLogic.Services.RBACServices
             var session = await GetUserFromTokenAsync(NormalizeToken(token));
             if (session == null) return false;
 
-            var requiredPermission = $"{resource}_{action}";
-            if (session.Permissions != null && session.Permissions.Contains(requiredPermission, StringComparer.OrdinalIgnoreCase))
-                return true;
+            var requiredPermission = $"{resource}_{action}".ToUpperInvariant();
 
-            return session.Role?.ToUpperInvariant() switch
-            {
-                "ADMIN" => true,
-                "MANAGER" => !string.Equals(resource, "SYSTEM", StringComparison.OrdinalIgnoreCase),
-                "EMPLOYEE" => new[] { "INVENTORY", "ORDERS", "CUSTOMERS" }.Contains(resource?.ToUpperInvariant())
-                               && !string.Equals(action, "DELETE", StringComparison.OrdinalIgnoreCase)
-                               && !string.Equals(action, "MANAGE", StringComparison.OrdinalIgnoreCase),
-                _ => false
-            };
+            return session.Role?.ToUpperInvariant() == "ADMIN"
+                || (session.Permissions?.Contains(requiredPermission, StringComparer.OrdinalIgnoreCase) ?? false);
         }
+
     }
 }
 

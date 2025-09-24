@@ -32,6 +32,7 @@ public class ReportingService : BaseTransactionalService, IReportingService
     private readonly IOrderRepository _orderRepository;
     private readonly IExpenseService _expenseService;
     private readonly IMapper _mapper;
+
     public ReportingService(
         IUnitOfWork unitOfWork,
         IIngredientRepository ingredientRepository,
@@ -49,13 +50,13 @@ public class ReportingService : BaseTransactionalService, IReportingService
         _mapper = mapper;
     }
 
-    public async Task<DashboardSummaryDto> GetDashboardSummaryAsync(DateTime? fromDate = null, DateTime? toDate  = null)
+    public async Task<DashboardSummaryDto> GetDashboardSummaryAsync(DateTime? fromDate = null, DateTime? toDate = null)
     {
         var startDate = fromDate ?? DateTime.MinValue;
         var endDate = toDate ?? DateTime.Today;
 
         var summaryData = await GetDashboardDataAsync(startDate, endDate);
-       
+
         return new DashboardSummaryDto
         {
             TotalRevenue = summaryData.RevenueSummary,
@@ -133,7 +134,6 @@ public class ReportingService : BaseTransactionalService, IReportingService
         return result;
     }
 
-
     private static DateTime FirstDateOfWeek(DateTime date)
     {
         var diff = (7 + (date.DayOfWeek - DayOfWeek.Monday)) % 7;
@@ -172,25 +172,26 @@ public class ReportingService : BaseTransactionalService, IReportingService
         };
 
         var report = await GetFinacialReportAsync(reportInput);
-        return [.. report.Items];
+        return report.Items.ToList();
     }
 
     private async Task<DashboardSummaryData> GetDashboardDataAsync(DateTime fromDate, DateTime toDate)
     {
         var orders = await _orderService.GetOrderSummaryAsync(fromDate, toDate);
         var topProducts = await GetTopProductsAsync(fromDate, toDate, 5);
+
+        // FIXED: Set Period explicitly for dashboard data
         var finacialReports = await GetFinacialReportAsync(new GetRevenueReportInput
         {
             FromDate = fromDate,
             ToDate = toDate,
+            Period = ReportPeriodEnum.Daily, // FIXED: Add missing Period
             PageNumber = 1,
             PageSize = int.MaxValue,
         });
-        var nonZeroExpenses = finacialReports.Items
-            .Where(f => f.TotalExpenses != 0)
-            .ToList();
 
         var lowStockIngredients = await _ingredientRepository.GetLowStockWarehouseIngredientsAsync();
+
         return new DashboardSummaryData
         {
             OrderSummary = orders,
@@ -198,7 +199,7 @@ public class ReportingService : BaseTransactionalService, IReportingService
             ExpenseSummary = finacialReports.Items.Sum(f => f.TotalExpenses),
             ProfitSummary = finacialReports.Items.Sum(f => f.NetProfit),
             TopProducts = topProducts,
-            FinacialReports = [.. finacialReports.Items],
+            FinacialReports = finacialReports.Items.ToList(),
             UnderstockIngredientsDto = _mapper.Map<List<LowStockIngredientDto>>(lowStockIngredients)
         };
     }
@@ -206,7 +207,7 @@ public class ReportingService : BaseTransactionalService, IReportingService
     private async Task<List<TopSellingProductDto>> GetTopProductsAsync(DateTime fromDate, DateTime toDate, int numberOfRanks)
     {
         var orders = await GetOrdersAsync(fromDate, toDate);
-        return [.. orders
+        return orders
             .SelectMany(o => o.OrderDetails!)
             .GroupBy(od => new { od.ProductId, od.Product!.Name })
             .Select(g => new TopSellingProductDto
@@ -217,24 +218,21 @@ public class ReportingService : BaseTransactionalService, IReportingService
                 Revenue = g.Sum(od => od.UnitPrice * od.Quantity)
             })
             .OrderByDescending(p => p.QuantitySold)
-            .Take(numberOfRanks)];
+            .Take(numberOfRanks)
+            .ToList();
     }
 
     private async Task<List<Order>> GetOrdersAsync(DateTime fromDate, DateTime toDate, long? branchId = null)
     {
+        // FIXED: Apply branchId filter properly
         var spec = new Specification<Order>(o =>
             o.CreatedAt >= fromDate &&
-            o.CreatedAt <= toDate);
+            o.CreatedAt <= toDate &&
+            (branchId == null || o.BranchId == branchId)); // FIXED: Added missing branchId filter
 
-        if (branchId.HasValue)
-        {
-            spec = new Specification<Order>(o =>
-                o.CreatedAt >= fromDate &&
-                o.CreatedAt <= toDate);
-        }
         spec.Includes.Add(o => o.Include(order => order.OrderDetails!).ThenInclude(od => od.Product!));
         var orders = await _unitOfWork.Repository<Order>().GetAllWithSpecAsync(spec, true) ?? [];
-        return [.. orders];
+        return orders.ToList();
     }
 
     private async Task<List<ExpenseDto>> GetExpensesAsync(DateTime fromDate, DateTime toDate, long? branchId = null)
@@ -280,7 +278,9 @@ public class ReportingService : BaseTransactionalService, IReportingService
 
     private static List<ExpenseBredownDto> GroupExpenseBreakdown(IEnumerable<ExpenseDto> expenses, decimal totalExpenses)
     {
-        return [.. expenses
+        // FIXED: Only include expenses with amount > 0 to avoid showing empty categories
+        return expenses
+            .Where(e => e.Amount > 0) // Filter out zero amounts
             .GroupBy(e => e.ExpenseType)
             .Select(g => new ExpenseBredownDto
             {
@@ -288,7 +288,9 @@ public class ReportingService : BaseTransactionalService, IReportingService
                 Amount = g.Sum(e => e.Amount),
                 Percentage = totalExpenses > 0 ? g.Sum(e => e.Amount) / totalExpenses * 100 : 0
             })
-            .OrderByDescending(e => e.Amount)];
+            .Where(e => e.Amount > 0) // Filter again after grouping
+            .OrderByDescending(e => e.Amount)
+            .ToList();
     }
 
     private static (DateTime fromDate, DateTime toDate) ValidateDates(DateTime? fromDate, DateTime? toDate)
@@ -300,14 +302,14 @@ public class ReportingService : BaseTransactionalService, IReportingService
     {
         return new PagedList<FinacialReportDto>
         {
-            Items = [.. data.Skip((pageNumber - 1) * pageSize).Take(pageSize)],
+            Items = data.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList(),
             TotalRecords = data.Count,
             PageNumber = pageNumber,
             PageSize = pageSize
         };
     }
-
 }
+
 internal class DashboardSummaryData
 {
     public OrderSummaryDto OrderSummary { get; set; } = null!;

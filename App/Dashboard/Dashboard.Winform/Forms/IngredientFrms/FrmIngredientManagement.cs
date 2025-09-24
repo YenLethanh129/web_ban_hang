@@ -1,13 +1,17 @@
-﻿using Dashboard.Winform.Events;
-using Dashboard.Winform.Presenters;
+﻿using Dashboard.BussinessLogic.Services.GoodsAndStockServcies;
+using Dashboard.Winform.Events;
 using Dashboard.Winform.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Dashboard.Common.Constants;
+using Dashboard.Winform.Forms;
+using Dashboard.Winform.Presenters.IngredientPresenters;
 
 namespace Dashboard.Winform.Forms
 {
@@ -16,6 +20,9 @@ namespace Dashboard.Winform.Forms
     {
         private readonly IngredientManagementModel _model;
         private readonly IServiceProvider _serviceProvider;
+        private System.Windows.Forms.Timer? _searchTimer;
+        private bool _isInitialized = false;
+        private bool _isLoading = false;
 
         public FrmIngredientManagement(
             IServiceProvider serviceProvider,
@@ -27,31 +34,29 @@ namespace Dashboard.Winform.Forms
             _serviceProvider = serviceProvider;
 
             InitializeBaseComponents();
+            InitializeSearchTimer();
 
             _presenter.OnDataLoaded += (s, e) =>
             {
                 try
                 {
-                    if (e is IngredientsLoadedEventArgs args)
+                    if (InvokeRequired)
                     {
-                        if (InvokeRequired)
+                        Invoke(new Action(() =>
                         {
-                            Invoke(new Action(() =>
+                            try
                             {
-                                try
-                                {
-                                    ApplyIngredientsToModel(args.Ingredients);
-                                }
-                                catch (Exception ex)
-                                {
-                                    ShowError($"Lỗi khi cập nhật dữ liệu: {ex.Message}");
-                                }
-                            }));
-                        }
-                        else
-                        {
-                            ApplyIngredientsToModel(args.Ingredients);
-                        }
+                                UpdateDataGridViewSafely();
+                            }
+                            catch (Exception ex)
+                            {
+                                ShowError($"Lỗi khi cập nhật giao diện: {ex.Message}");
+                            }
+                        }));
+                    }
+                    else
+                    {
+                        UpdateDataGridViewSafely();
                     }
                 }
                 catch (Exception ex)
@@ -71,13 +76,20 @@ namespace Dashboard.Winform.Forms
             OverrideTextUI();
             OverrideComboBoxItem();
             SetupDataBindings();
-            SetupDgvListItem();
+
+            if (dgvListItems != null)
+            {
+                SetupDgvListItem();
+            }
+
             FinalizeFormSetup();
+            SetupContextMenu();
+            SetupAdditionalEvents();
+
+            // no timer disposal needed
         }
 
-        /// <summary>
-        /// Override để khởi tạo components riêng của Ingredient Management
-        /// </summary>
+
         protected override void InitializeDerivedComponents()
         {
             InitializeDgvListItem();
@@ -91,6 +103,16 @@ namespace Dashboard.Winform.Forms
             Text = "Quản lý nguyên liệu";
         }
 
+        private void InitializeSearchTimer()
+        {
+            _searchTimer = new System.Windows.Forms.Timer
+            {
+                Interval = 300
+            };
+            _searchTimer.Tick += SearchTimer_Tick;
+        }
+
+
         private void SetupDataBindings()
         {
             cbxFilter1.DataSource = _model.Statuses;
@@ -100,17 +122,16 @@ namespace Dashboard.Winform.Forms
             cbxFilter2.DisplayMember = "Name";
             cbxFilter2.ValueMember = "Id";
 
-            tbxFindString.DataBindings.Add(
-                "Text", _model,
-                nameof(_model.SearchText),
-                false, DataSourceUpdateMode.OnPropertyChanged
-            );
+            // Fix: bind textbox to model.SearchText so the presenter can read the latest value if needed
+            tbxFindString.DataBindings.Clear();
+            tbxFindString.DataBindings.Add("Text", _model, nameof(IngredientManagementModel.SearchText), false, DataSourceUpdateMode.OnPropertyChanged);
         }
 
         private void OverrideComboBoxItem()
         {
             cbxOrderBy.Items.Clear();
-            cbxOrderBy.Items.AddRange(["ID", "Name", "Category", "Unit", "Status", "Created Date"]);
+            // Fix: proper AddRange syntax for C#
+            cbxOrderBy.Items.AddRange(new object[] { "ID", "Name", "Category", "Unit", "Status", "Created Date" });
             if (cbxOrderBy.Items.Count > 0)
                 cbxOrderBy.SelectedIndex = 0;
         }
@@ -122,70 +143,246 @@ namespace Dashboard.Winform.Forms
                 throw new InvalidOperationException("dgvListItems must be initialized before calling SetupDgvListItem()");
             }
 
+            dgvListItems.ColumnHeaderMouseClick -= DgvIngredient_ColumnHeaderMouseClick;
+            dgvListItems.CellDoubleClick -= DgvListItems_CellDoubleClick;
+            dgvListItems.SelectionChanged -= DgvListItems_SelectionChanged;
+            dgvListItems.DataError -= DgvListItems_DataError;
+
             dgvListItems.AutoGenerateColumns = false;
             dgvListItems.Columns.Clear();
 
-            dgvListItems.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                DataPropertyName = nameof(IngredientViewModel.Id),
-                HeaderText = "ID",
-                Width = 50,
-                AutoSizeMode = DataGridViewAutoSizeColumnMode.None
-            });
+            dgvListItems.DataSource = null;
 
-            dgvListItems.Columns.Add(new DataGridViewTextBoxColumn
+            try
             {
-                DataPropertyName = nameof(IngredientViewModel.Name),
-                HeaderText = "Tên nguyên liệu",
-                Width = 200
-            });
+                dgvListItems.Columns.Add(new DataGridViewTextBoxColumn
+                {
+                    Name = "Id",
+                    DataPropertyName = "Id",
+                    HeaderText = "ID",
+                    Width = 50,
+                    AutoSizeMode = DataGridViewAutoSizeColumnMode.None
+                });
 
-            dgvListItems.Columns.Add(new DataGridViewTextBoxColumn
+                dgvListItems.Columns.Add(new DataGridViewTextBoxColumn
+                {
+                    Name = "Name",
+                    DataPropertyName = "Name",
+                    HeaderText = "Tên nguyên liệu",
+                    Width = 200
+                });
+
+                dgvListItems.Columns.Add(new DataGridViewTextBoxColumn
+                {
+                    Name = "CategoryName",
+                    DataPropertyName = "CategoryName",
+                    HeaderText = "Danh mục",
+                    Width = 120
+                });
+
+                dgvListItems.Columns.Add(new DataGridViewTextBoxColumn
+                {
+                    Name = "Unit",
+                    DataPropertyName = "Unit",
+                    HeaderText = "Đơn vị",
+                    Width = 80
+                });
+
+                dgvListItems.Columns.Add(new DataGridViewTextBoxColumn
+                {
+                    Name = "Description",
+                    DataPropertyName = "Description",
+                    HeaderText = "Mô tả",
+                    Width = 150
+                });
+
+                dgvListItems.Columns.Add(new DataGridViewCheckBoxColumn
+                {
+                    Name = "IsActive",
+                    DataPropertyName = "IsActive",
+                    HeaderText = "Hoạt động",
+                    Width = 80
+                });
+
+                dgvListItems.Columns.Add(new DataGridViewTextBoxColumn
+                {
+                    Name = "CreatedAt",
+                    DataPropertyName = "CreatedAt",
+                    HeaderText = "Ngày tạo",
+                    Width = 100,
+                    DefaultCellStyle = new DataGridViewCellStyle { Format = "dd/MM/yyyy" }
+                });
+
+                dgvListItems.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+                dgvListItems.MultiSelect = false;
+
+                if (_model?.Ingredients != null)
+                {
+                    dgvListItems.DataSource = _model.Ingredients;
+                }
+            }
+            catch (Exception ex)
             {
-                DataPropertyName = nameof(IngredientViewModel.CategoryName),
-                HeaderText = "Danh mục",
-                Width = 120
-            });
+                ShowError($"Lỗi khi thiết lập DataGridView: {ex.Message}");
+                return;
+            }
 
-            dgvListItems.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                DataPropertyName = nameof(IngredientViewModel.Unit),
-                HeaderText = "Đơn vị",
-                Width = 80
-            });
+            dgvListItems.ColumnHeaderMouseClick += DgvIngredient_ColumnHeaderMouseClick;
+            dgvListItems.CellDoubleClick += DgvListItems_CellDoubleClick;
+            dgvListItems.SelectionChanged += DgvListItems_SelectionChanged;
+            dgvListItems.DataError += DgvListItems_DataError;
 
-            dgvListItems.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                DataPropertyName = nameof(IngredientViewModel.Description),
-                HeaderText = "Mô tả",
-                Width = 150
-            });
-
-            dgvListItems.Columns.Add(new DataGridViewCheckBoxColumn
-            {
-                DataPropertyName = nameof(IngredientViewModel.IsActive),
-                HeaderText = "Hoạt động",
-                Width = 80
-            });
-
-            dgvListItems.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                DataPropertyName = nameof(IngredientViewModel.CreatedAt),
-                HeaderText = "Ngày tạo",
-                Width = 100,
-                DefaultCellStyle = new DataGridViewCellStyle { Format = "dd/MM/yyyy" }
-            });
-
-            dgvListItems.DataSource = _model.Ingredients;
             dgvListItems.Refresh();
         }
 
-        #region Override Event Handlers Base Class
 
-        protected override void BtnSearch_Click(object sender, EventArgs e)
+        private void UpdateDataGridViewSafely()
         {
-            PerformSearch();
+            if (dgvListItems == null || _model?.Ingredients == null)
+                return;
+
+            try
+            {
+                dgvListItems.SuspendLayout();
+
+                dgvListItems.DataSource = null;
+                dgvListItems.DataSource = _model.Ingredients;
+
+                UpdatePaginationInfo();
+            }
+            finally
+            {
+                dgvListItems.ResumeLayout();
+            }
         }
+
+        private async void DgvIngredient_ColumnHeaderMouseClick(object? sender, DataGridViewCellMouseEventArgs e)
+        {
+            try
+            {
+                if (dgvListItems == null || e.ColumnIndex < 0 || e.ColumnIndex >= dgvListItems.Columns.Count)
+                    return;
+
+                string sortBy = e.ColumnIndex switch
+                {
+                    0 => "id",
+                    1 => "name",
+                    2 => "category",
+                    3 => "unit",
+                    4 => "description",
+                    5 => "isactive",
+                    6 => "createdat",
+                    _ => "id"
+                };
+
+                SetLoadingState(true);
+                await _presenter.SortBy(sortBy);
+                UpdatePaginationInfo();
+            }
+            catch (Exception ex)
+            {
+                ShowError($"Lỗi khi sắp xếp: {ex.Message}");
+            }
+            finally
+            {
+                SetLoadingState(false);
+            }
+        }
+
+        private async void SearchTimer_Tick(object? sender, EventArgs e)
+        {
+            _searchTimer?.Stop();
+
+            if (_isLoading) return;
+
+            var focusState = new
+            {
+                HasFocus = tbxFindString?.Focused ?? false,
+                CursorPosition = tbxFindString?.SelectionStart ?? 0,
+                Text = tbxFindString?.Text ?? string.Empty
+            };
+
+            try
+            {
+                _isLoading = true;
+                var searchText = focusState.Text.Trim();
+
+                await _presenter.SearchAsync(searchText);
+
+
+                if (InvokeRequired)
+                {
+                    BeginInvoke(new Action(() =>
+                    {
+                        UpdatePaginationInfo();
+                        RestoreFocusAndCursor(focusState.HasFocus, focusState.CursorPosition);
+                    }));
+                }
+                else
+                {
+                    UpdatePaginationInfo();
+                    RestoreFocusAndCursor(focusState.HasFocus, focusState.CursorPosition);
+                }
+            }
+            catch (Exception ex)
+            {
+                if (InvokeRequired)
+                {
+                    BeginInvoke(new Action(() =>
+                    {
+                        ShowError($"Lỗi khi tìm kiếm: {ex.Message}");
+                        RestoreFocusAndCursor(focusState.HasFocus, focusState.CursorPosition);
+                    }));
+                }
+                else
+                {
+                    ShowError($"Lỗi khi tìm kiếm: {ex.Message}");
+                    RestoreFocusAndCursor(focusState.HasFocus, focusState.CursorPosition);
+                }
+            }
+            finally
+            {
+                _isLoading = false;
+            }
+        }
+
+        private void RestoreFocusAndCursor(bool hadFocus, int cursorPosition)
+        {
+            if (!hadFocus || tbxFindString == null || tbxFindString.IsDisposed)
+                return;
+
+            BeginInvoke((MethodInvoker)(() =>
+            {
+                try
+                {
+                    tbxFindString.Focus();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Focus restore error: {ex.Message}");
+                }
+            }));
+
+            BeginInvoke((MethodInvoker)(() =>
+            {
+                try
+                {
+                    if (cursorPosition <= tbxFindString.Text.Length)
+                    {
+                        tbxFindString.SelectionStart = cursorPosition;
+                        tbxFindString.SelectionLength = 0;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Cursor restore error: {ex.Message}");
+                }
+            }));
+        }
+
+
+
+        #region Override Event Handlers Base Class
 
         protected override void Btnfilter1_Click(object sender, EventArgs e)
         {
@@ -225,44 +422,52 @@ namespace Dashboard.Winform.Forms
         protected override void InitializeEvents()
         {
             base.InitializeEvents();
-            cbxFilter1.SelectedIndexChanged += (s, e) => ApplyStatusFilter();
-            cbxFilter2.SelectedIndexChanged += (s, e) => ApplyCategoryFilter();
-            cbxOrderBy.SelectedIndexChanged += (s, e) => ApplySorting();
+
+            if (tbxFindString != null)
+            {
+                tbxFindString.TextChanged -= TbxFindString_TextChanged_Handler;
+                tbxFindString.TextChanged += TbxFindString_TextChanged_Handler;
+            }
+
+
+            cbxFilter1.SelectedIndexChanged += async (s, e) =>
+            {
+                if (_isInitialized) await ApplyStatusFilter();
+            };
+
+            cbxFilter2.SelectedIndexChanged += async (s, e) =>
+            {
+                if (_isInitialized) await ApplyCategoryFilter();
+            };
+
+            cbxOrderBy.SelectedIndexChanged += async (s, e) =>
+            {
+                if (_isInitialized) await ApplySorting();
+            };
         }
 
-        protected override async Task TbxFindString_TextChanged(object? sender, EventArgs e)
+        private async void TbxFindString_TextChanged_Handler(object? sender, EventArgs e)
         {
-            var textBox = sender as TextBox;
-            var searchText = textBox?.Text;
-            if (string.IsNullOrEmpty(searchText))
-                return;
-            await _presenter.SearchAsync(searchText);
+            await TbxFindString_TextChanged(sender, e);
         }
+
+        protected override Task TbxFindString_TextChanged(object? sender, EventArgs e)
+        {
+            if (!_isInitialized)
+                return Task.CompletedTask;
+            _searchTimer?.Stop();
+            _searchTimer?.Start();
+            return Task.CompletedTask;
+        }
+
 
         #endregion
 
         #region Ingredient Management Specific Methods
-
-        private async void PerformSearch()
+        private async Task ApplyStatusFilter()
         {
-            try
-            {
-                SetLoadingState(true);
-                await _presenter.SearchAsync(_model.SearchText);
-                UpdatePaginationInfo();
-            }
-            catch (Exception ex)
-            {
-                ShowError($"Lỗi khi tìm kiếm: {ex.Message}");
-            }
-            finally
-            {
-                SetLoadingState(false);
-            }
-        }
+            if (_isLoading) return;
 
-        private async void ApplyStatusFilter()
-        {
             try
             {
                 if (cbxFilter1.SelectedItem == null) return;
@@ -278,12 +483,15 @@ namespace Dashboard.Winform.Forms
             }
             finally
             {
+                _isLoading = false;
                 SetLoadingState(false);
             }
         }
 
-        private async void ApplyCategoryFilter()
+        private async Task ApplyCategoryFilter()
         {
+            if (_isLoading) return;
+
             try
             {
                 if (cbxFilter2.SelectedValue == null) return;
@@ -294,6 +502,11 @@ namespace Dashboard.Winform.Forms
                     await _presenter.FilterByCategoryAsync(categoryId);
                     UpdatePaginationInfo();
                 }
+                else if (long.TryParse(cbxFilter2.SelectedValue.ToString(), out var parsed))
+                {
+                    await _presenter.FilterByCategoryAsync(parsed);
+                    UpdatePaginationInfo();
+                }
             }
             catch (Exception ex)
             {
@@ -301,12 +514,15 @@ namespace Dashboard.Winform.Forms
             }
             finally
             {
+                _isLoading = false;
                 SetLoadingState(false);
             }
         }
 
-        private async void ApplySorting()
+        private async Task ApplySorting()
         {
+            if (_isLoading) return;
+
             try
             {
                 if (cbxOrderBy.SelectedItem == null) return;
@@ -322,12 +538,15 @@ namespace Dashboard.Winform.Forms
             }
             finally
             {
+                _isLoading = false;
                 SetLoadingState(false);
             }
         }
 
         private async void GoToNextPage()
         {
+            if (_isLoading) return;
+
             try
             {
                 SetLoadingState(true);
@@ -340,12 +559,15 @@ namespace Dashboard.Winform.Forms
             }
             finally
             {
+                _isLoading = false;
                 SetLoadingState(false);
             }
         }
 
         private async void GoToPreviousPage()
         {
+            if (_isLoading) return;
+
             try
             {
                 SetLoadingState(true);
@@ -358,12 +580,14 @@ namespace Dashboard.Winform.Forms
             }
             finally
             {
+                _isLoading = false;
                 SetLoadingState(false);
             }
         }
 
         private async void UpdatePageSize()
         {
+            if (_isLoading) return;
             try
             {
                 if (cbxNumbRecordsPerPage.SelectedItem == null) return;
@@ -381,12 +605,14 @@ namespace Dashboard.Winform.Forms
             }
             finally
             {
+                _isLoading = false;
                 SetLoadingState(false);
             }
         }
 
         private async void RefreshData()
         {
+            if (_isLoading) return;
             try
             {
                 SetLoadingState(true);
@@ -401,6 +627,7 @@ namespace Dashboard.Winform.Forms
             finally
             {
                 SetLoadingState(false);
+                _isLoading = false;
             }
         }
 
@@ -420,19 +647,38 @@ namespace Dashboard.Winform.Forms
             }
         }
 
-        private void ShowError(string message)
+        private void ShowError(string message)                                                  
         {
-            MessageBox.Show(message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            new FrmToastMessage(ToastType.ERROR, message).Show();
         }
 
         private void ShowInfo(string message)
+        {                                                                                      
+            new FrmToastMessage(ToastType.INFO, message).Show();
+        }
+
+        private bool AreControlsInitialized()
         {
-            MessageBox.Show(message, "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return dgvListItems != null &&
+                   btnGetDetails != null &&
+                   btnAdd != null &&
+                   cbxFilter1 != null &&
+                   cbxFilter2 != null &&
+                   cbxOrderBy != null &&
+                   cbxNumbRecordsPerPage != null &&
+                   tbxFindString != null;
         }
 
         private void SetLoadingState(bool isLoading)
         {
-            btnGetDetails.Enabled = !isLoading;
+            if (!AreControlsInitialized())
+            {
+                this.Cursor = isLoading ? Cursors.WaitCursor : Cursors.Default;
+                return;
+            }
+
+            dgvListItems.Enabled = !isLoading;
+            btnGetDetails.Enabled = !isLoading && dgvListItems.SelectedRows.Count > 0;
             btnAdd.Enabled = !isLoading;
             cbxFilter1.Enabled = !isLoading;
             cbxFilter2.Enabled = !isLoading;
@@ -444,25 +690,37 @@ namespace Dashboard.Winform.Forms
 
         private IngredientViewModel? GetSelectedIngredient()
         {
-            if (dgvListItems.SelectedRows.Count > 0)
+            try
             {
-                var selectedRow = dgvListItems.SelectedRows[0];
-                return selectedRow.DataBoundItem as IngredientViewModel;
+                if (dgvListItems.SelectedRows.Count > 0)
+                {
+                    var selectedRow = dgvListItems.SelectedRows[0];
+                    return selectedRow.DataBoundItem as IngredientViewModel;
+                }
+                return null;
             }
-            return null;
+            catch (Exception ex)
+            {
+                ShowError($"Lỗi khi lấy nguyên liệu được chọn: {ex.Message}");
+                return null;
+            }
         }
+
         #endregion
 
         #region Event Handlers
 
         private async void FrmIngredientManagement_Load(object? sender, EventArgs e)
         {
+            if (_isLoading) return;
             _dataLoadingCompletionSource = new TaskCompletionSource<bool>();
             try
             {
+                _isLoading = true;
                 SetLoadingState(true);
-                await _presenter.LoadDataAsync(page: _model.CurrentPage, pageSize: _model.PageSize);
+                await _presenter.LoadDataAsync(page: _model.CurrentPage, pageSize: _model.PageSize, forceRefresh: true);
                 UpdatePaginationInfo();
+                _isInitialized = true;
                 _dataLoadingCompletionSource.SetResult(true);
             }
             catch (Exception ex)
@@ -472,19 +730,25 @@ namespace Dashboard.Winform.Forms
             }
             finally
             {
+                _isLoading = false;
                 SetLoadingState(false);
             }
         }
 
         private void ApplyIngredientsToModel(List<IngredientViewModel> ingredients)
         {
-            _model.Ingredients.Clear();
-            foreach (var ingredient in ingredients)
+            try
             {
-                _model.Ingredients.Add(ingredient);
+                _model.Ingredients.Clear();
+                foreach (var ingredient in ingredients)
+                {
+                    _model.Ingredients.Add(ingredient);
+                }
             }
-
-            UpdatePaginationInfo();
+            catch (Exception ex)
+            {
+                ShowError($"Lỗi khi cập nhật danh sách nguyên liệu: {ex.Message}");
+            }
         }
 
         #endregion
@@ -495,6 +759,18 @@ namespace Dashboard.Winform.Forms
         {
             var contextMenu = new ContextMenuStrip();
             contextMenu.Items.Add("Làm mới dữ liệu", null, (s, e) => RefreshData());
+            contextMenu.Items.Add("Xem chi tiết", null, (s, e) =>
+            {
+                var selectedIngredient = GetSelectedIngredient();
+                if (selectedIngredient != null)
+                {
+                    OpenIngredientDetailsDialog(selectedIngredient);
+                }
+                else
+                {
+                    ShowInfo("Vui lòng chọn một nguyên liệu để xem chi tiết.");
+                }
+            });
             dgvListItems.ContextMenuStrip = contextMenu;
         }
 
@@ -502,19 +778,13 @@ namespace Dashboard.Winform.Forms
 
         #region Dialog Integration Methods
 
-        private async void OpenIngredientDetailsDialog(IngredientViewModel? selectedIngredient = null)
+        private void OpenIngredientDetailsDialog(IngredientViewModel? selectedIngredient = null)
         {
             try
             {
                 SetLoadingState(true);
-                await Task.Delay(50);
-                // TODO: Create IngredientDetailsPresenter when backend services are ready
-                // var detailsPresenter = new IngredientDetailsPresenter(
-                //     _serviceProvider.GetRequiredService<IIngredientManagementService>(),
-                //     _serviceProvider.GetRequiredService<IIngredientCategoryService>(),
-                //     _serviceProvider.GetRequiredService<ITaxService>(),
-                //     _serviceProvider.GetRequiredService<IMapper>()
-                // );
+
+                var presenter = _serviceProvider.GetRequiredService<IIngredientDetailPresenter>();
 
                 long? ingredientId = selectedIngredient?.Id;
                 IngredientDetailViewModel? initialModel = null;
@@ -536,24 +806,24 @@ namespace Dashboard.Winform.Forms
                     };
                 }
 
-                var detailForm = new FrmIngredientDetails(selectedIngredient?.Id, initialModel);
-
-
+                var detailForm = new FrmIngredientDetails(presenter, selectedIngredient?.Id, initialModel);
                 var result = detailForm.ShowDialog(this);
+
                 if (result == DialogResult.OK)
                 {
-                    var updatedIngredient = detailForm.Ingredient;
-                    if (selectedIngredient != null)
+                    _ = Task.Run(async () =>
                     {
-                        await HandleIngredientUpdate(updatedIngredient);
-                        ShowInfo("Cập nhật thông tin nguyên liệu thành công!");
-                    }
-                    else
-                    {
-                        await HandleIngredientAdd(updatedIngredient);
-                        ShowInfo("Thêm nguyên liệu mới thành công!");
-                    }
-                    RefreshData();
+                        await Task.Delay(300);
+
+                        if (InvokeRequired)
+                        {
+                            Invoke(new Action(async () => await RefreshDataSafely()));
+                        }
+                        else
+                        {
+                            await RefreshDataSafely();
+                        }
+                    });
                 }
             }
             catch (Exception ex)
@@ -566,39 +836,25 @@ namespace Dashboard.Winform.Forms
             }
         }
 
-        private async Task HandleIngredientAdd(IngredientDetailViewModel? ingredient)
+        private async Task RefreshDataSafely()
         {
-            if (ingredient == null)
-                throw new ArgumentException("Ingredient cannot be null for addition.");
-            await _presenter.AddIngredientAsync(
-                ingredient.Name,
-                ingredient.Unit,
-                ingredient.CategoryId,
-                ingredient.Description,
-                ingredient.IsActive,
-                ingredient.TaxId
-            );
+            if (_isLoading) return;
 
-            var logInfo = $"Thêm nguyên liệu: {ingredient.Name}, Đơn vị: {ingredient.Unit}, Danh mục: {ingredient.CategoryName}";
-            Console.WriteLine(logInfo);
-        }
-
-        private async Task HandleIngredientUpdate(IngredientDetailViewModel? ingredient)
-        {
-            if (ingredient == null)
-                throw new ArgumentException("Ingredient or Ingredient ID cannot be null for update.");
-            await _presenter.UpdateIngredientAsync(
-                ingredient.Id,
-                ingredient.Name,
-                ingredient.Unit,
-                ingredient.CategoryId,
-                ingredient.Description,
-                ingredient.IsActive,
-                ingredient.TaxId
-            );
-
-            var logInfo = $"Cập nhật nguyên liệu ID {ingredient.Id}: {ingredient.Name}, Đơn vị: {ingredient.Unit}";
-            Console.WriteLine(logInfo);
+            try
+            {
+                SetLoadingState(true);
+                await _presenter.RefreshCacheAsync();
+                UpdatePaginationInfo();
+            }
+            catch (Exception ex)
+            {
+                ShowError($"Lỗi khi làm mới dữ liệu: {ex.Message}");
+            }
+            finally
+            {
+                SetLoadingState(false);
+                _isLoading = false;
+            }
         }
 
         #endregion
@@ -620,14 +876,11 @@ namespace Dashboard.Winform.Forms
             }
             else
             {
-                MessageBox.Show("Vui lòng chọn một nguyên liệu để xem chi tiết.",
-                               "Thông báo",
-                               MessageBoxButtons.OK,
-                               MessageBoxIcon.Information);
+                new FrmToastMessage(ToastType.INFO, "Vui lòng chọn một nguyên liệu để xem chi tiết.").Show();
             }
         }
 
-        private void DgvListItems_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        private void DgvListItems_CellDoubleClick(object? sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex >= 0)
             {
@@ -639,34 +892,53 @@ namespace Dashboard.Winform.Forms
             }
         }
 
+        private void DgvListItems_SelectionChanged(object? sender, EventArgs e)
+        {
+            if (btnGetDetails != null)
+                btnGetDetails.Enabled = dgvListItems.SelectedRows.Count > 0;
+        }
+
+        private void DgvListItems_DataError(object? sender, DataGridViewDataErrorEventArgs e)
+        {
+            e.Cancel = true; // Prevent the default error dialog
+
+            Console.WriteLine($"DataGridView Error - Column: {e.ColumnIndex}, Row: {e.RowIndex}, Exception: {e.Exception?.Message}");
+
+            if (e.Exception != null)
+            {
+                ShowError($"Lỗi hiển thị dữ liệu tại dòng {e.RowIndex + 1}: {e.Exception.Message}");
+            }
+        }
+
         #endregion
 
         #region Additional Helper Methods
 
-        /// <summary>
-        /// Setup thêm event cho DataGridView double-click
-        /// </summary>
         private void SetupAdditionalEvents()
         {
             if (dgvListItems != null)
             {
-                dgvListItems.CellDoubleClick += (s, o) => DgvListItems_CellDoubleClick(s!, o);
-
-                dgvListItems.SelectionChanged += (s, e) =>
-                {
-                    btnGetDetails.Enabled = dgvListItems.SelectedRows.Count > 0;
-                };
+                if (btnGetDetails != null)
+                    btnGetDetails.Enabled = false;
             }
         }
 
         private void FinalizeFormSetup()
         {
             SetupAdditionalEvents();
-
-            if (btnGetDetails != null)
-                btnGetDetails.Enabled = false;
         }
 
         #endregion
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _searchTimer?.Stop();
+                _searchTimer?.Dispose();
+                _searchTimer = null;
+            }
+            base.Dispose(disposing);
+        }
     }
 }

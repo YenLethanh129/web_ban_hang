@@ -77,7 +77,6 @@ public interface IEmployeeSalaryRepository : IRepository<EmployeeSalary>
     Task<EmployeeSalary?> GetCurrentSalaryAsync(long employeeId);
     Task<List<EmployeeSalary>> GetSalaryHistoryAsync(long employeeId);
     Task<EmployeeSalary?> GetSalaryByDateAsync(long employeeId, DateTime date);
-    Task UpdateSalaryAsync(EmployeeSalary salary);
 }
 
 public class EmployeeSalaryRepository : Repository<EmployeeSalary>, IEmployeeSalaryRepository
@@ -111,12 +110,5 @@ public class EmployeeSalaryRepository : Repository<EmployeeSalary>, IEmployeeSal
             .Where(s => s.EmployeeId == employeeId && s.EffectiveDate <= date)
             .OrderByDescending(s => s.EffectiveDate)
             .FirstOrDefaultAsync();
-    }
-    public async Task UpdateSalaryAsync(EmployeeSalary salary)
-    {
-        _ = await _context.EmployeeSalaries.FirstOrDefaultAsync(s => s.Id == salary.Id)
-            ?? throw new ArgumentException($"Salary record with ID {salary.Id} does not exist.");
-        _context.EmployeeSalaries.Update(salary);
-        await _context.SaveChangesAsync();
     }
 }

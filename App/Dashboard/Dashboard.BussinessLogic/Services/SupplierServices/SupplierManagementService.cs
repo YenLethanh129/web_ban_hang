@@ -5,6 +5,7 @@ using Dashboard.BussinessLogic.Shared;
 using Dashboard.BussinessLogic.Specifications;
 using Dashboard.DataAccess.Data;
 using Dashboard.DataAccess.Models.Entities.Suppliers;
+using System.Text.RegularExpressions;
 
 namespace Dashboard.BussinessLogic.Services.SupplierServices;
 
@@ -107,6 +108,15 @@ public class SupplierManagementService : BaseTransactionalService, ISupplierMana
         if (string.IsNullOrEmpty(input.Name))
             throw new ArgumentException("Supplier name is required");
 
+        if (!string.IsNullOrWhiteSpace(input.Phone))
+        {
+            var trimmedPhone = input.Phone.Trim();
+            if (!Regex.IsMatch(trimmedPhone, @"^\d{6,20}$"))
+            {
+                throw new ArgumentException("Phone number must be digits only and between 6 to 20 characters.");
+            }
+        }
+
         // Check for duplicate name
         if (await SupplierExistsAsync(input.Name))
             throw new InvalidOperationException($"Supplier with name '{input.Name}' already exists");
@@ -133,6 +143,15 @@ public class SupplierManagementService : BaseTransactionalService, ISupplierMana
         if (string.IsNullOrEmpty(input.Name))
             throw new ArgumentException("Supplier name is required");
 
+        if (!string.IsNullOrEmpty(input.Phone))
+        {
+            var trimmedPhone = input.Phone.Trim();
+            if (!Regex.IsMatch(trimmedPhone, @"^\d{6,20}$"))
+            {
+                throw new ArgumentException("Phone number must be digits only and between 6 to 20 characters.");
+            }
+        }
+
         var existingSupplier = await _unitOfWork.Repository<Supplier>().GetAsync(input.Id);
         if (existingSupplier == null)
             throw new InvalidOperationException($"Supplier with ID {input.Id} not found");
@@ -150,8 +169,7 @@ public class SupplierManagementService : BaseTransactionalService, ISupplierMana
             throw new ArgumentException("Invalid phone format");
 
         _mapper.Map(input, existingSupplier);
-        _unitOfWork.Repository<Supplier>().Remove(existingSupplier);
-        _unitOfWork.Repository<Supplier>().Add(existingSupplier);
+        _unitOfWork.Repository<Supplier>().Update(existingSupplier);
         await _unitOfWork.SaveChangesAsync();
 
         return await GetSupplierByIdAsync(input.Id)

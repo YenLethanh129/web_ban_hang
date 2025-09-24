@@ -4,9 +4,11 @@ using Dashboard.BussinessLogic.Services.BranchServices;
 using Dashboard.BussinessLogic.Services.Customers;
 using Dashboard.BussinessLogic.Services.EmployeeServices;
 using Dashboard.BussinessLogic.Services.GoodsAndStockServcies;
+using Dashboard.BussinessLogic.Services.ProductServices;
 using Dashboard.BussinessLogic.Services.RBACServices;
 using Dashboard.BussinessLogic.Services.ReportServices;
 using Dashboard.BussinessLogic.Services.SupplierServices;
+using Dashboard.Common.Utitlities;
 using Dashboard.DataAccess.Data;
 using FluentValidation;
 using MediatR;
@@ -34,6 +36,7 @@ public static class DependencyInjection
         builder.Services.AddMediatR(Assembly.GetExecutingAssembly());
 
         builder.Services.AddScoped<IProductService, ProductService>();
+        builder.Services.AddScoped<ITaxService, TaxService>();
         builder.Services.AddScoped<ICategoryService, CategoryService>();
         builder.Services.AddScoped<IBranchService, BranchService>();
         builder.Services.AddScoped<IExpenseService, ExpenseService>();
@@ -41,7 +44,11 @@ public static class DependencyInjection
         builder.Services.AddScoped<IOrderService, OrderService>();
         builder.Services.AddScoped<ICustomerService, CustomerService>();
         builder.Services.AddScoped<IReportingService, ReportingService>();
+        builder.Services.AddScoped<IRecipeService, RecipeService>();
+        builder.Services.AddScoped<IRecipeService, RecipeService>();
+        builder.Services.AddHttpClient<IImageUrlValidator, ImageUrlValidator>();
 
+       
 
         // Ingredient-related services
         builder.Services.AddScoped<IIngredientManagementService, IngredientManagementService>();
@@ -59,6 +66,8 @@ public static class DependencyInjection
         builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
         builder.Services.AddScoped<IAuthorizationService, AuthorizationService>();
         builder.Services.AddScoped<IUserManagementService, UserManagementService>();
+        builder.Services.AddScoped<IRoleManagementService, RoleManagementService>();
+        builder.Services.AddScoped<IPermissionManagementService, PermissionManagementService>();
 
         // Employee Shift and Payroll services
         builder.Services.AddScoped<IEmployeeShiftService, EmployeeShiftService>();

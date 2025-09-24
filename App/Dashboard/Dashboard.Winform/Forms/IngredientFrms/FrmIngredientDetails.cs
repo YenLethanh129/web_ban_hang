@@ -1,7 +1,10 @@
-﻿using Dashboard.Winform.ViewModels;
+﻿using Dashboard.Common.Constants;
+using Dashboard.Winform.Presenters.IngredientPresenters;
+using Dashboard.Winform.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml.Linq;
 
@@ -9,28 +12,35 @@ namespace Dashboard.Winform.Forms
 {
     public partial class FrmIngredientDetails : Form
     {
-        public IngredientDetailViewModel? Ingredient { get; private set; }
+        private readonly IIngredientDetailPresenter _presenter;
+        private readonly IngredientDetailViewModel _viewModel;
+        private readonly bool _isEditMode;
 
-        private readonly long? _ingredientId;
-        private readonly IngredientDetailViewModel? _initialModel;
-        private bool _isEditMode;
+        public IngredientDetailViewModel? SavedIngredient { get; private set; }
 
-        public FrmIngredientDetails(long? ingredientId = null, IngredientDetailViewModel? initialModel = null)
+        private IEnumerable<IngredientCategoryViewModel>? _categories;
+
+        public FrmIngredientDetails(
+                    IIngredientDetailPresenter presenter,
+                    long? ingredientId = null,
+                    IngredientDetailViewModel? initialModel = null)
         {
-            _ingredientId = ingredientId;
-            _initialModel = initialModel;
+            _presenter = presenter;
             _isEditMode = ingredientId.HasValue && initialModel != null;
+
+            _viewModel = initialModel ?? new IngredientDetailViewModel();
 
             InitializeComponent();
             SetupForm();
+            SetupDataBindings();
             LoadData();
         }
 
+
         private void SetupForm()
         {
-            Text = _isEditMode ? "Cập nhật nguyên liệu" : "Thêm nguyên liệu mới";
+            Text = _isEditMode ? "Lưu nguyên liệu" : "Thêm nguyên liệu mới";
 
-            // Hide ID fields if not in edit mode
             if (!_isEditMode)
             {
                 lblId.Visible = false;
@@ -42,129 +52,202 @@ namespace Dashboard.Winform.Forms
             }
         }
 
-        private void LoadData()
+        private void SetupDataBindings()
         {
-            // Load categories (mock data for now)
-            LoadCategories();
+            txtId.DataBindings.Clear();
+            txtName.DataBindings.Clear();
+            txtUnit.DataBindings.Clear();
+            txtDescription.DataBindings.Clear();
+            chkIsActive.DataBindings.Clear();
+            txtCreated.DataBindings.Clear();
+            txtUpdated.DataBindings.Clear();
 
-            // Load existing data if in edit mode
-            if (_isEditMode && _initialModel != null)
+            txtId.DataBindings.Add("Text", _viewModel, nameof(_viewModel.Id), false, DataSourceUpdateMode.Never);
+            txtName.DataBindings.Add("Text", _viewModel, nameof(_viewModel.Name), false, DataSourceUpdateMode.OnPropertyChanged);
+            txtUnit.DataBindings.Add("Text", _viewModel, nameof(_viewModel.Unit), false, DataSourceUpdateMode.OnPropertyChanged);
+            txtDescription.DataBindings.Add("Text", _viewModel, nameof(_viewModel.Description), false, DataSourceUpdateMode.OnPropertyChanged);
+            chkIsActive.DataBindings.Add("Checked", _viewModel, nameof(_viewModel.IsActive), false, DataSourceUpdateMode.OnPropertyChanged);
+            txtCreated.DataBindings.Add("Text", _viewModel, nameof(_viewModel.CreatedAtFormatted), false, DataSourceUpdateMode.Never);
+            txtUpdated.DataBindings.Add("Text", _viewModel, nameof(_viewModel.UpdatedAtFormatted), false, DataSourceUpdateMode.Never);
+        }
+
+        public async Task SetCategories(IEnumerable<IngredientCategoryViewModel> categories)
+        {
+            _categories = categories ?? Array.Empty<IngredientCategoryViewModel>();
+            if (IsHandleCreated)
             {
-                LoadInitialData();
+                await LoadCategories();
             }
-            else
-            {
-                // Set default values for new ingredient
-                chkIsActive.Checked = true;
-                if (cbxCategory.Items.Count > 0)
-                {
-                    cbxCategory.SelectedIndex = 0;
-                }
-            }
         }
 
-        private void LoadCategories()
-        {
-            var categories = new List<CategoryViewModel>
-            {
-                new() { Id = 1, Name = "Thịt" },
-                new() { Id = 2, Name = "Rau củ" },
-                new() { Id = 3, Name = "Gia vị" },
-                new() { Id = 4, Name = "Hải sản" },
-                new() { Id = 5, Name = "Đồ khô" }
-            };
 
-            cbxCategory.DataSource = categories;
-            cbxCategory.DisplayMember = "Name";
-            cbxCategory.ValueMember = "Id";
-        }
-
-        private void LoadInitialData()
-        {
-            if (_initialModel == null) return;
-
-            txtId.Text = _initialModel.Id.ToString();
-            txtName.Text = _initialModel.Name;
-            txtUnit.Text = _initialModel.Unit;
-            cbxCategory.SelectedValue = _initialModel.CategoryId;
-            txtDescription.Text = _initialModel.Description ?? "";
-            chkIsActive.Checked = _initialModel.IsActive;
-            txtCreated.Text = _initialModel.CreatedAt.ToString("dd/MM/yyyy HH:mm");
-            txtUpdated.Text = _initialModel.UpdatedAt?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa cập nhật";
-        }
-
-        private void BtnSave_Click(object sender, EventArgs e)
+        private async void LoadData()
         {
             try
             {
-                if (ValidateInput())
+                SetLoadingState(true);
+                await LoadCategories();
+
+                if (!_isEditMode)
                 {
-                    var ingredient = CreateIngredientFromInput();
-                    Ingredient = ingredient;
-                    DialogResult = DialogResult.OK;
-                    Close();
+                    _viewModel.IsActive = true;
+                    _viewModel.CreatedAt = DateTime.Now;
+                    if (cbxCategory.Items.Count > 0)
+                    {
+                        cbxCategory.SelectedIndex = 0;
+                    }
+                }
+                else if (cbxCategory.Items.Count > 0)
+                {
+                    var category = cbxCategory.Items.Cast<IngredientCategoryViewModel>()
+                        .FirstOrDefault(c => c.Id == _viewModel.CategoryId);
+                    if (category != null)
+                    {
+                        cbxCategory.SelectedItem = category;
+                    }
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Lỗi khi lưu dữ liệu: {ex.Message}", "Lỗi",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                new FrmToastMessage(ToastType.ERROR, $"Lỗi khi tải dữ liệu: {ex.Message}").Show();
+            }
+            finally
+            {
+                SetLoadingState(false);
             }
         }
 
-        private void BtnCancel_Click(object sender, EventArgs e)
+        private async Task LoadCategories()
+        {
+            try
+            {
+                List<IngredientCategoryViewModel> categories;
+
+                if (_presenter != null)
+                {
+                    categories = await _presenter.LoadCategoriesAsync();
+                }
+                else
+                {
+                    // Use default categories if no presenter
+                    categories = GetDefaultCategories();
+                }
+
+                cbxCategory.DataSource = categories;
+                cbxCategory.DisplayMember = "Name";
+                cbxCategory.ValueMember = "Id";
+            }
+            catch (Exception ex)
+            {
+                var categories = GetDefaultCategories();
+                cbxCategory.DataSource = categories;
+                cbxCategory.DisplayMember = "Name";
+                cbxCategory.ValueMember = "Id";
+                new FrmToastMessage(ToastType.ERROR, $"Lỗi khi tải danh mục: {ex.Message}").Show();
+            }
+        }
+
+        private List<IngredientCategoryViewModel> GetDefaultCategories()
+        {
+            return new List<IngredientCategoryViewModel>
+            {
+                new() { Id = 1, Name = "Rau củ", Description = "Các loại rau củ quả" },
+                new() { Id = 2, Name = "Thịt cá", Description = "Thịt và hải sản" },
+                new() { Id = 3, Name = "Gia vị", Description = "Các loại gia vị" },
+                new() { Id = 4, Name = "Ngũ cốc", Description = "Gạo, bột, ngũ cốc" }
+            };
+        }
+
+        private async void BtnSave_Click(object? sender, EventArgs e)
+        {
+            if (!ValidateChildren())
+            {
+                new FrmToastMessage(ToastType.WARNING, "Vui lòng kiểm tra lại thông tin nhập vào.").Show();
+                return;
+            }
+            try
+            {
+                SetLoadingState(true);
+
+                if (cbxCategory.SelectedItem is IngredientCategoryViewModel selectedCategory)
+                {
+                    _viewModel.CategoryId = selectedCategory.Id;
+                    _viewModel.CategoryName = selectedCategory.Name;
+                }
+
+
+                await _presenter.SaveIngredientAsync(_viewModel);
+
+                DialogResult = DialogResult.OK;
+                Close();
+            }
+            catch (Exception ex)                                                                
+            {                                                                                  
+                new FrmToastMessage(ToastType.ERROR, $"Lỗi khi lưu dữ liệu: {ex.Message}").Show();
+            }
+            finally
+            {
+                SetLoadingState(false);
+            }
+        }
+
+
+        private void BtnCancel_Click(object? sender, EventArgs e)
         {
             DialogResult = DialogResult.Cancel;
             Close();
         }
 
-        private bool ValidateInput()
+        private void TxtName_Validating(object? sender, System.ComponentModel.CancelEventArgs e)
         {
             if (string.IsNullOrWhiteSpace(txtName.Text))
             {
-                MessageBox.Show("Vui lòng nhập tên nguyên liệu.", "Thông báo",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                txtName.Focus();
-                return false;
+                errorProvider.SetError(txtName, "Tên nguyên liệu không được để trống");
+                e.Cancel = true;
             }
-
-            if (string.IsNullOrWhiteSpace(txtUnit.Text))
+            else
             {
-                MessageBox.Show("Vui lòng nhập đơn vị tính.", "Thông báo",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                txtUnit.Focus();
-                return false;
+                errorProvider.SetError(txtName, string.Empty);
             }
-
-            if (cbxCategory.SelectedValue == null)
-            {
-                MessageBox.Show("Vui lòng chọn danh mục.", "Thông báo",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                cbxCategory.Focus();
-                return false;
-            }
-
-            return true;
         }
 
-        private IngredientDetailViewModel CreateIngredientFromInput()
+        private void TxtUnit_Validating(object? sender, System.ComponentModel.CancelEventArgs e)
         {
-            var selectedCategory = cbxCategory.SelectedItem as CategoryViewModel;
-
-            var ingredient = new IngredientDetailViewModel
+            if (string.IsNullOrWhiteSpace(txtUnit.Text))
             {
-                Id = _isEditMode ? _initialModel?.Id ?? 0 : 0,
-                Name = txtName.Text.Trim(),
-                Unit = txtUnit.Text.Trim(),
-                CategoryId = selectedCategory?.Id ?? 1,
-                CategoryName = selectedCategory?.Name ?? "",
-                Description = txtDescription.Text.Trim(),
-                IsActive = chkIsActive.Checked,
-                CreatedAt = _isEditMode ? (_initialModel?.CreatedAt ?? DateTime.Now) : DateTime.Now,
-                UpdatedAt = _isEditMode ? DateTime.Now : null
-            };
+                errorProvider.SetError(txtUnit, "Đơn vị không được để trống");
+                e.Cancel = true;
+            }
+            else
+            {
+                errorProvider.SetError(txtUnit, string.Empty);
+            }
+        }
 
-            return ingredient;
+        private void CbxCategory_Validating(object? sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if (cbxCategory.SelectedItem == null)
+            {
+                errorProvider.SetError(cbxCategory, "Vui lòng chọn danh mục");
+                e.Cancel = true;
+            }
+            else
+            {
+                errorProvider.SetError(cbxCategory, string.Empty);
+            }
+        }
+
+        private void SetLoadingState(bool isLoading)
+        {
+            btnSave.Enabled = !isLoading;
+            btnCancel.Enabled = !isLoading;
+            txtName.Enabled = !isLoading;
+            txtUnit.Enabled = !isLoading;
+            cbxCategory.Enabled = !isLoading;
+            txtDescription.Enabled = !isLoading;
+            chkIsActive.Enabled = !isLoading;
+
+            Cursor = isLoading ? Cursors.WaitCursor : Cursors.Default;
         }
     }
 }

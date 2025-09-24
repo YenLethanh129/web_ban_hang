@@ -68,7 +68,6 @@ namespace Dashboard.Winform.ViewModels.EmployeeModels
         #region Account Information
 
         public bool HasAccount { get; set; }
-        public string PhoneAsUsername { get; set; } = string.Empty;
         public string Role { get; set; } = string.Empty;
         public string HashedPassword { get; set; } = string.Empty;
         public string AuthToken { get; set; } = string.Empty;
@@ -192,7 +191,7 @@ namespace Dashboard.Winform.ViewModels.EmployeeModels
         public decimal Deductions { get; set; }
         public decimal TotalSalary { get; set; }
         public DateTime PayrollDate { get; set; }
-        public string Status { get; set; } = string.Empty;
+        //public string Status { get; set; } = string.Empty;
 
         #region Calculated Properties
 
@@ -200,7 +199,7 @@ namespace Dashboard.Winform.ViewModels.EmployeeModels
 
         public decimal NetAmount => GrossAmount - Deductions;
 
-        public bool IsPaid => Status?.ToUpper() == "PAID";
+        //public bool IsPaid => Status?.ToUpper() == "PAID";
 
         public string MonthYearDisplay
         {

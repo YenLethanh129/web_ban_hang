@@ -194,21 +194,23 @@ namespace Dashboard.Winform.ViewModels
     public class ProductDetailViewModel
     {
         public long Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
+        public string? Name { get; set; }
+        public string? Description { get; set; }
         public decimal Price { get; set; }
         public bool IsActive { get; set; }
         public long? CategoryId { get; set; }
         public string? CategoryName { get; set; }
         public long? TaxId { get; set; }
         public string? TaxName { get; set; }
-        public string? Thumbnail { get; set; }
+        public string? ThumbnailPath { get; set; }
+
+        public BindingList<ProductImageViewModel>? ProductImages { get; set; }
+        public BindingList<RecipeViewModel>? Recipes { get; set; }
+        public BindingList<ProductRecipeViewModel>? ProductRecipes { get; set; }
+
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
-
-        public BindingList<ProductImageViewModel> ProductImages { get; set; } = new();
-        public BindingList<RecipeViewModel> Recipes { get; set; } = new();
-        public BindingList<ProductRecipeViewModel> ProductRecipes { get; set; } = new();
+        public bool ImagesModified { get; set; } = false;
     }
 
     public class ProductImageViewModel

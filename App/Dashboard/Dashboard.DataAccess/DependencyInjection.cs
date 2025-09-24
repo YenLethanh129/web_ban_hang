@@ -35,21 +35,25 @@ public static class DependencyInjection
         builder.Services.AddScoped<IIngredientRepository, IngredientRepository>();
         builder.Services.AddScoped<IExpenseRepository, ExpenseRepository>();
         builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+        builder.Services.AddScoped<ITaxRepository, TaxRepository>();
         builder.Services.AddScoped<IIngredientTransferRepository, IngredientTransferRepository>();
         builder.Services.AddScoped<IIngredientTransferRequestRepository, IngredientTransferRequestRepository>();
         builder.Services.AddScoped<IEmployeeShiftRepository, EmployeeShiftRepository>();
         builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
         builder.Services.AddScoped<IPayrollRepository, PayrollRepository>();
         builder.Services.AddScoped<IEmployeeSalaryRepository, EmployeeSalaryRepository>();
-        builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+        builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();
         builder.Services.AddScoped<IRoleRepository, RoleRepository>();
-        builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
         builder.Services.AddScoped<IUserRepository, UserRepository>();
+        builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+        builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
         builder.Services.AddDbContext<WebbanhangDbContext>((sp, options) =>
         {
             options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
             options.UseSqlServer(Context);
+            options.EnableServiceProviderCaching(false); 
+            options.EnableSensitiveDataLogging(false);
         });
 
         builder.Services.AddScoped(sp =>

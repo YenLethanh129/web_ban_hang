@@ -18,21 +18,26 @@ namespace Dashboard.Winform.Helpers
         /// <summary>
         /// Sets up a TabControl with dark theme drawing
         /// </summary>
-        /// <param name="tabControl">The TabControl to setup</param>
         public static void SetupDarkTheme(TabControl tabControl)
         {
             if (tabControl == null) return;
 
+            // Clear old handlers để tránh đăng ký nhiều lần
+            CleanupDarkTheme(tabControl);
+
             tabControl.DrawMode = TabDrawMode.OwnerDrawFixed;
+            tabControl.Appearance = TabAppearance.Normal;
+
+            // Đăng ký event
             tabControl.DrawItem += TabControl_DrawItem;
             tabControl.Paint += TabControl_Paint;
+
             ApplyDarkThemeToTabs(tabControl);
         }
 
         /// <summary>
         /// Removes the dark theme event handlers from a TabControl
         /// </summary>
-        /// <param name="tabControl">The TabControl to cleanup</param>
         public static void CleanupDarkTheme(TabControl tabControl)
         {
             if (tabControl == null) return;
@@ -46,33 +51,21 @@ namespace Dashboard.Winform.Helpers
         /// </summary>
         private static void TabControl_DrawItem(object? sender, DrawItemEventArgs e)
         {
-            if (sender is not TabControl tabControl)
-                return;
+            if (sender is not TabControl tabControl) return;
 
             TabPage tabPage = tabControl.TabPages[e.Index];
             Rectangle tabRect = tabControl.GetTabRect(e.Index);
             bool isSelected = e.Index == tabControl.SelectedIndex;
 
             // Fill tab background
-            using (SolidBrush brush = new SolidBrush(isSelected ? SelectedTabBackColor : TabBackColor))
-            {
+            using (SolidBrush brush = new(isSelected ? SelectedTabBackColor : TabBackColor))
                 e.Graphics.FillRectangle(brush, tabRect);
-            }
 
             // Draw border for selected tab
             if (isSelected)
             {
                 using Pen pen = new(BorderColor, 2);
-                using GraphicsPath path = new();
-                int radius = 6;
-
-                // Create rounded rectangle path
-                path.AddArc(tabRect.X, tabRect.Y, radius, radius, 180, 90);
-                path.AddArc(tabRect.Right - radius, tabRect.Y, radius, radius, 270, 90);
-                path.AddArc(tabRect.Right - radius, tabRect.Bottom - radius, radius, radius, 0, 90);
-                path.AddArc(tabRect.X, tabRect.Bottom - radius, radius, radius, 90, 90);
-                path.CloseFigure();
-
+                using GraphicsPath path = RoundedRect(tabRect, 6);
                 e.Graphics.DrawPath(pen, path);
             }
 
@@ -88,12 +81,16 @@ namespace Dashboard.Winform.Helpers
         }
 
         /// <summary>
-        /// Handles the Paint event for the TabControl border
+        /// Handles the Paint event for the TabControl border + nền sau tab
         /// </summary>
         private static void TabControl_Paint(object? sender, PaintEventArgs e)
         {
             if (sender is not TabControl tabControl) return;
 
+            // Xóa nền trắng sau tab item
+            e.Graphics.Clear(TabBackColor);
+
+            // Vẽ border ngoài TabControl
             using Pen pen = new(BorderColor, 2);
             Rectangle rect = tabControl.ClientRectangle;
             rect.Width -= 1;
@@ -111,7 +108,23 @@ namespace Dashboard.Winform.Helpers
             foreach (TabPage tabPage in tabControl.TabPages)
             {
                 tabPage.BackColor = SelectedTabBackColor;
+                tabPage.ForeColor = TabTextColor;
             }
+        }
+
+        /// <summary>
+        /// Helper tạo path bo góc
+        /// </summary>
+        private static GraphicsPath RoundedRect(Rectangle bounds, int radius)
+        {
+            int d = radius * 2;
+            GraphicsPath path = new();
+            path.AddArc(bounds.X, bounds.Y, d, d, 180, 90);
+            path.AddArc(bounds.Right - d, bounds.Y, d, d, 270, 90);
+            path.AddArc(bounds.Right - d, bounds.Bottom - d, d, d, 0, 90);
+            path.AddArc(bounds.X, bounds.Bottom - d, d, d, 90, 90);
+            path.CloseFigure();
+            return path;
         }
     }
 }

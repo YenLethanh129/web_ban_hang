@@ -1,5 +1,7 @@
-﻿using Dashboard.Winform.Presenters;
+﻿using Dashboard.Common.Constants;
+using Dashboard.Winform.Presenters;
 using Dashboard.Winform.ViewModels.ScheduleModels;
+using Dashboard.Winform.Forms;
 
 namespace Dashboard.Winform.Forms
 {
@@ -89,8 +91,7 @@ namespace Dashboard.Winform.Forms
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Lỗi khi tải dữ liệu: {ex.Message}", "Lỗi",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                new FrmToastMessage(ToastType.ERROR, $"Lỗi khi tải dữ liệu: {ex.Message}").Show();
             }
         }
 
@@ -112,27 +113,21 @@ namespace Dashboard.Winform.Forms
                     employeeId, shiftDate, startTime, endTime,
                     _isEditMode ? _existingSchedule.Id : null);
 
-                if (hasConflict)
+                if (hasConflict)                                                                
                 {
-                    MessageBox.Show(
-                        "Nhân viên đã có lịch làm việc trong khoảng thời gian này!\nVui lòng chọn thời gian khác.",
-                        "Xung đột lịch làm việc",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Warning);
+                    new FrmToastMessage(ToastType.WARNING, "Nhân viên đã có lịch làm việc trong khoảng thời gian này!\nVui lòng chọn thời gian khác.").Show();
                     return;
                 }
 
                 if (_isEditMode)
                 {
                     await _presenter.UpdateScheduleAsync(_existingSchedule.Id, shiftDate, startTime, endTime, status!);
-                    MessageBox.Show("Cập nhật lịch làm việc thành công!", "Thành công",
-                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    new FrmToastMessage(ToastType.SUCCESS, "Lưu lịch làm việc thành công!").Show();
                 }
                 else
                 {
                     await _presenter.AddScheduleAsync(employeeId, shiftDate, startTime, endTime, status!);
-                    MessageBox.Show("Thêm lịch làm việc thành công!", "Thành công",
-                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    new FrmToastMessage(ToastType.SUCCESS, "Thêm lịch làm việc thành công!").Show();
                 }
 
                 DialogResult = DialogResult.OK;
@@ -148,10 +143,9 @@ namespace Dashboard.Winform.Forms
         private bool ValidateInput()
         {
             // Validate employee selection
-            if (cbxEmployee.SelectedValue == null)
+            if (cbxEmployee.SelectedValue == null)                                              
             {
-                MessageBox.Show("Vui lòng chọn nhân viên.", "Thông báo",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                new FrmToastMessage(ToastType.WARNING, "Vui lòng chọn nhân viên.").Show();
                 cbxEmployee.Focus();
                 return false;
             }
@@ -171,28 +165,24 @@ namespace Dashboard.Winform.Forms
             // Validate reasonable working hours
             var duration = endTime - startTime;
             if (duration.TotalHours > 12)
-            {
-                MessageBox.Show("Ca làm việc không thể dài quá 12 tiếng.", "Thông báo",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            {                                                                                   new FrmToastMessage(ToastType.WARNING, "Ca làm việc không thể dài quá 12 tiếng.").Show();
                 dtpEndTime.Focus();
                 return false;
             }
 
-            if (duration.TotalHours < 0.5)
+            if (duration.TotalHours < 0.5)                                                      
             {
-                MessageBox.Show("Ca làm việc phải ít nhất 30 phút.", "Thông báo",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                dtpEndTime.Focus();
+                new FrmToastMessage(ToastType.WARNING, "Ca làm việc phải ít nhất 30 phút.").Show();
+                dtpEndTime.Focus();                                                             
                 return false;
             }
 
             // Validate status selection
-            if (cbxStatus.SelectedItem == null)
+            if (cbxStatus.SelectedItem == null)                                                 
             {
-                MessageBox.Show("Vui lòng chọn trạng thái.", "Thông báo",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                new FrmToastMessage(ToastType.WARNING, "Vui lòng chọn trạng thái.").Show();
                 cbxStatus.Focus();
-                return false;
+                return false;                                                                   
             }
 
             return true;

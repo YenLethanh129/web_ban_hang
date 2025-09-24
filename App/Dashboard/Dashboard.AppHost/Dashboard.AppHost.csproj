@@ -11,11 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aspire.Hosting.AppHost"/>
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Dashboard.API\Dashboard.API.csproj" />
+    <PackageReference Include="Aspire.Hosting.AppHost" />
   </ItemGroup>
 
 </Project>

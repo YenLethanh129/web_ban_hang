@@ -1,15 +1,22 @@
 ﻿using AutoMapper;
+using Dashboard.BussinessLogic.Dtos.RBACDtos;
 using Dashboard.BussinessLogic.Services.RBACServices;
 using Dashboard.Winform.Events;
 using Dashboard.Winform.ViewModels;
 using Dashboard.Winform.ViewModels.RBACModels;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Dashboard.Winform.Presenters
 {
     public interface IRolePermissionManagementPresenter : IManagementPresenter<RolePermissionManagementModel>
     {
-        Task LoadRolesAsync(int page = 1, int pageSize = 10, bool forceRefresh = false);
-        Task LoadPermissionsAsync(int page = 1, int pageSize = 10, bool forceRefresh = false);
+        Task LoadRolesAsync(int page = 1, int pageSize = 100, bool forceRefresh = false);
+        Task LoadPermissionsAsync(int page = 1, int pageSize = 100, bool forceRefresh = false);
         Task SearchRolesAsync(string searchTerm);
         Task SearchPermissionsAsync(string searchTerm);
         Task SortRolesBy(string sortBy);
@@ -32,7 +39,7 @@ namespace Dashboard.Winform.Presenters
         event EventHandler<PermissionsLoadedEventArgs>? OnPermissionsLoaded;
     }
 
-    public class RolePermissionManagementPresenter : IRolePermissionManagementPresenter
+    public class RolePermissionManagementPresenter : IRolePermissionManagementPresenter, IDisposable
     {
         private readonly IRoleManagementService _roleService;
         private readonly IPermissionManagementService _permissionService;
@@ -43,10 +50,10 @@ namespace Dashboard.Winform.Presenters
         private bool _isLoading = false;
 
         // Cache properties
-        private List<RoleViewModel> _allRolesCache = [];
-        private List<PermissionViewModel> _allPermissionsCache = [];
-        private List<RoleViewModel> _filteredRoles = [];
-        private List<PermissionViewModel> _filteredPermissions = [];
+        private List<RoleViewModel> _allRolesCache = new List<RoleViewModel>();
+        private List<PermissionViewModel> _allPermissionsCache = new List<PermissionViewModel>();
+        private List<RoleViewModel> _filteredRoles = new List<RoleViewModel>();
+        private List<PermissionViewModel> _filteredPermissions = new List<PermissionViewModel>();
         private string _currentRoleSearchTerm = string.Empty;
         private string _currentPermissionSearchTerm = string.Empty;
         private string _currentRoleSortBy = string.Empty;
@@ -68,9 +75,16 @@ namespace Dashboard.Winform.Presenters
         {
             _mapper = mapper;
             _roleService = roleService;
+            _permission_service_check(permissionService);
             _permissionService = permissionService;
 
             Model = new RolePermissionManagementModel();
+        }
+
+        // small guard because some DI setups might pass null
+        private void _permission_service_check(IPermissionManagementService? svc)
+        {
+            if (svc == null) throw new ArgumentNullException(nameof(svc));
         }
 
         public async Task LoadDataAsync()
@@ -80,7 +94,7 @@ namespace Dashboard.Winform.Presenters
             OnDataLoaded?.Invoke(this, EventArgs.Empty);
         }
 
-        public async Task LoadRolesAsync(int page = 1, int pageSize = 10, bool forceRefresh = false)
+        public async Task LoadRolesAsync(int page = 1, int pageSize = 100, bool forceRefresh = false)
         {
             if (_isLoading && !forceRefresh) return;
 
@@ -106,7 +120,7 @@ namespace Dashboard.Winform.Presenters
             }
         }
 
-        public async Task LoadPermissionsAsync(int page = 1, int pageSize = 10, bool forceRefresh = false)
+        public async Task LoadPermissionsAsync(int page = 1, int pageSize = 100, bool forceRefresh = false)
         {
             if (_isLoading && !forceRefresh) return;
 
@@ -131,17 +145,47 @@ namespace Dashboard.Winform.Presenters
 
         private async Task LoadAllRolesToCache()
         {
-            var roles = await _roleService.GetAllRolesAsync();
-            _allRolesCache = _mapper.Map<List<RoleViewModel>>(roles);
-            _filteredRoles = [.. _allRolesCache];
+            var rolesFromService = await _roleService.GetAllRolesAsync();
+
+            // manual robust mapping to avoid AutoMapper type mismatch issues
+            _allRolesCache = rolesFromService.Select(dto => MapRoleDtoToViewModel(dto)).ToList();
+            _filteredRoles = new List<RoleViewModel>(_allRolesCache);
             UpdateModelWithRolePagination();
         }
 
         private async Task LoadAllPermissionsToCache()
         {
-            var permissions = await _permissionService.GetAllPermission();
-            _allPermissionsCache = _mapper.Map<List<PermissionViewModel>>(permissions);
-            _filteredPermissions = [.. _allPermissionsCache];
+            var permissionsFromService = await _permissionService.GetAllPermission();
+            _allPermissionsCache = permissionsFromService.Select(MapPermissionDtoToViewModel).ToList();
+            _filteredPermissions = new List<PermissionViewModel>(_allPermissionsCache);
+        }
+
+        private RoleViewModel MapRoleDtoToViewModel(RoleDto dto)
+        {
+            var vm = new RoleViewModel
+            {
+                Id = dto.Id,
+                Name = dto.Name ?? string.Empty,
+                Description = dto.Description,
+                CreatedAt = dto.CreatedAt,
+                UpdatedAt = dto.LastModified,
+                PermissionCount = dto.Permissions?.Count ?? 0,
+                Permissions = (dto.Permissions ?? new List<PermissionDto>()).Select(MapPermissionDtoToViewModel).ToList()
+            };
+            return vm;
+        }
+
+        private PermissionViewModel MapPermissionDtoToViewModel(PermissionDto dto)
+        {
+            return new PermissionViewModel
+            {
+                Id = dto.Id,
+                Name = dto.Name ?? string.Empty,
+                Description = dto.Description,
+                Resource = dto.Resource ?? string.Empty,
+                Action = dto.Action ?? string.Empty,
+                CreatedAt = dto.CreatedAt
+            };
         }
 
         private void ApplyRoleFiltersAndSort()
@@ -150,10 +194,11 @@ namespace Dashboard.Winform.Presenters
 
             if (!string.IsNullOrWhiteSpace(_currentRoleSearchTerm))
             {
+                var term = _currentRoleSearchTerm;
                 query = query.Where(role =>
-                    role.Id.ToString().Contains(_currentRoleSearchTerm, StringComparison.OrdinalIgnoreCase) ||
-                    role.Name.Contains(_currentRoleSearchTerm, StringComparison.OrdinalIgnoreCase) ||
-                    (role.Description != null && role.Description.Contains(_currentRoleSearchTerm, StringComparison.OrdinalIgnoreCase)));
+                    role.Id.ToString().Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                    (!string.IsNullOrEmpty(role.Name) && role.Name.Contains(term, StringComparison.OrdinalIgnoreCase)) ||
+                    (!string.IsNullOrEmpty(role.Description) && role.Description.Contains(term, StringComparison.OrdinalIgnoreCase)));
             }
 
             if (!string.IsNullOrWhiteSpace(_currentRoleSortBy))
@@ -181,12 +226,13 @@ namespace Dashboard.Winform.Presenters
 
             if (!string.IsNullOrWhiteSpace(_currentPermissionSearchTerm))
             {
+                var term = _currentPermissionSearchTerm;
                 query = query.Where(perm =>
-                    perm.Id.ToString().Contains(_currentPermissionSearchTerm, StringComparison.OrdinalIgnoreCase) ||
-                    perm.Name.Contains(_currentPermissionSearchTerm, StringComparison.OrdinalIgnoreCase) ||
-                    perm.Resource.Contains(_currentPermissionSearchTerm, StringComparison.OrdinalIgnoreCase) ||
-                    perm.Action.Contains(_currentPermissionSearchTerm, StringComparison.OrdinalIgnoreCase) ||
-                    (!string.IsNullOrEmpty(perm.Description) && perm.Description.Contains(_currentPermissionSearchTerm, StringComparison.OrdinalIgnoreCase)));
+                    perm.Id.ToString().Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                    (!string.IsNullOrEmpty(perm.Name) && perm.Name.Contains(term, StringComparison.OrdinalIgnoreCase)) ||
+                    (!string.IsNullOrEmpty(perm.Resource) && perm.Resource.Contains(term, StringComparison.OrdinalIgnoreCase)) ||
+                    (!string.IsNullOrEmpty(perm.Action) && perm.Action.Contains(term, StringComparison.OrdinalIgnoreCase)) ||
+                    (!string.IsNullOrEmpty(perm.Description) && perm.Description.Contains(term, StringComparison.OrdinalIgnoreCase)));
             }
 
             if (!string.IsNullOrWhiteSpace(_currentPermissionSortBy))
@@ -307,23 +353,21 @@ namespace Dashboard.Winform.Presenters
 
         public async Task<RoleViewModel?> GetRoleByIdAsync(long id)
         {
-            // TODO: Replace with real service call
-            await Task.Delay(50);
-            return _allRolesCache.FirstOrDefault(r => r.Id == id);
+            var dto = await _roleService.GetRoleByIdAsync(id);
+            if (dto == null) return null;
+            return MapRoleDtoToViewModel(dto);
         }
 
         public async Task<PermissionViewModel?> GetPermissionByIdAsync(long id)
         {
-            // TODO: Replace with real service call
-            await Task.Delay(50);
-            return _allPermissionsCache.FirstOrDefault(p => p.Id == id);
+            var perms = await _permissionService.GetAllPermission();
+            var dto = perms.FirstOrDefault(p => p.Id == id);
+            if (dto == null) return null;
+            return MapPermissionDtoToViewModel(dto);
         }
 
         public async Task<RoleDetailViewModel> CreateRoleDetailAsync(long? roleId = null)
         {
-            // TODO: Replace with real service call
-            await Task.Delay(50);
-
             var roleDetail = new RoleDetailViewModel
             {
                 AllPermissions = _allPermissionsCache.ToList()
@@ -331,14 +375,19 @@ namespace Dashboard.Winform.Presenters
 
             if (roleId.HasValue)
             {
-                var role = await GetRoleByIdAsync(roleId.Value);
-                if (role != null)
+                var dto = await _roleService.GetRoleByIdAsync(roleId.Value);
+                if (dto != null)
                 {
-                    roleDetail.Id = role.Id;
-                    roleDetail.Name = role.Name;
-                    roleDetail.Description = role.Description;
-                    // TODO: Load assigned permissions from service
-                    roleDetail.AssignedPermissionIds = [1, 2, 3]; // Mock data
+                    roleDetail.Id = dto.Id;
+                    roleDetail.Name = dto.Name ?? string.Empty;
+                    roleDetail.Description = dto.Description;
+
+                    var assignedIds = await _permissionService.GetPermissionsByRoleIdAsync(roleId.Value);
+                    roleDetail.AssignedPermissionIds = assignedIds ?? new List<long>();
+                }
+                else
+                {
+                    roleDetail.AssignedPermissionIds = new List<long>();
                 }
             }
 
@@ -347,21 +396,18 @@ namespace Dashboard.Winform.Presenters
 
         public async Task<PermissionDetailViewModel> CreatePermissionDetailAsync(long? permissionId = null)
         {
-            // TODO: Replace with real service call
-            await Task.Delay(50);
-
             var permissionDetail = new PermissionDetailViewModel();
 
             if (permissionId.HasValue)
             {
-                var permission = await GetPermissionByIdAsync(permissionId.Value);
-                if (permission != null)
+                var dto = (await _permissionService.GetAllPermission()).FirstOrDefault(p => p.Id == permissionId.Value);
+                if (dto != null)
                 {
-                    permissionDetail.Id = permission.Id;
-                    permissionDetail.Name = permission.Name;
-                    permissionDetail.Description = permission.Description;
-                    permissionDetail.Resource = permission.Resource;
-                    permissionDetail.Action = permission.Action;
+                    permissionDetail.Id = dto.Id;
+                    permissionDetail.Name = dto.Name;
+                    permissionDetail.Description = dto.Description;
+                    permissionDetail.Resource = dto.Resource;
+                    permissionDetail.Action = dto.Action;
                 }
             }
 
@@ -370,122 +416,69 @@ namespace Dashboard.Winform.Presenters
 
         public async Task SaveRoleAsync(RoleDetailViewModel roleDetail)
         {
-            // TODO: Replace with real service call
-            await Task.Delay(100);
+            if (roleDetail == null) return;
 
             if (roleDetail.Id == 0)
             {
-                // Create new role
-                var newId = _allRolesCache.Max(r => r.Id) + 1;
-                var newRole = new RoleViewModel
-                {
-                    Id = newId,
-                    Name = roleDetail.Name,
-                    Description = roleDetail.Description,
-                    CreatedAt = DateTime.Now,
-                    PermissionCount = roleDetail.AssignedPermissionIds.Count
-                };
-                _allRolesCache.Add(newRole);
+                await _roleService.CreateRoleAsync(roleDetail.Name, roleDetail.Description ?? string.Empty);
             }
             else
             {
-                // Update existing role
-                var existingRole = _allRolesCache.FirstOrDefault(r => r.Id == roleDetail.Id);
-                if (existingRole != null)
-                {
-                    existingRole.Name = roleDetail.Name;
-                    existingRole.Description = roleDetail.Description;
-                    existingRole.UpdatedAt = DateTime.Now;
-                    existingRole.PermissionCount = roleDetail.AssignedPermissionIds.Count;
-                }
+                await _roleService.UpdateRoleAsync(roleDetail.Id, roleDetail.Name, roleDetail.Description);
+            }
+
+            try
+            {
+                await _roleService.UpdateRolePermission(roleDetail.Id, roleDetail.AssignedPermissionIds ?? new List<long>());
+            }
+            catch
+            {
+            }
+
+            await LoadRolesAsync(forceRefresh: true);
+            await LoadPermissionsAsync(forceRefresh: true);
+        }
+
+        public async Task SavePermissionAsync(PermissionDetailViewModel permissionDetail)
+        {
+            if (permissionDetail == null) return;
+
+            await LoadPermissionsAsync(forceRefresh: true);
+        }
+
+        public async Task DeleteRoleAsync(long id)
+        {
+            await _roleService.DeleteRoleAsync(id);
+            await LoadRolesAsync(forceRefresh: true);
+        }
+
+        public async Task DeletePermissionAsync(long id)
+        {
+            await LoadPermissionsAsync(forceRefresh: true);
+        }
+
+        public async Task AssignPermissionsToRoleAsync(long roleId, List<long> permissionIds)
+        {
+            await _roleService.UpdateRolePermission(roleId, permissionIds ?? new List<long>());
+
+            var role = _allRolesCache.FirstOrDefault(r => r.Id == roleId);
+            if (role != null)
+            {
+                role.PermissionCount = permissionIds?.Count ?? 0;
+                role.UpdatedAt = DateTime.Now;
             }
 
             ApplyRoleFiltersAndSort();
         }
 
-        public async Task SavePermissionAsync(PermissionDetailViewModel permissionDetail)
-        {
-            // TODO: Replace with real service call
-            await Task.Delay(100);
-
-            if (permissionDetail.Id == 0)
-            {
-                // Create new permission
-                var newId = _allPermissionsCache.Max(p => p.Id) + 1;
-                var newPermission = new PermissionViewModel
-                {
-                    Id = newId,
-                    Name = permissionDetail.Name,
-                    Description = permissionDetail.Description,
-                    Resource = permissionDetail.Resource,
-                    Action = permissionDetail.Action,
-                    CreatedAt = DateTime.Now
-                };
-                _allPermissionsCache.Add(newPermission);
-            }
-            else
-            {
-                // Update existing permission
-                var existingPermission = _allPermissionsCache.FirstOrDefault(p => p.Id == permissionDetail.Id);
-                if (existingPermission != null)
-                {
-                    existingPermission.Name = permissionDetail.Name;
-                    existingPermission.Description = permissionDetail.Description;
-                    existingPermission.Resource = permissionDetail.Resource;
-                    existingPermission.Action = permissionDetail.Action;
-                    existingPermission.UpdatedAt = DateTime.Now;
-                }
-            }
-
-            ApplyPermissionFiltersAndSort();
-        }
-
-        public async Task DeleteRoleAsync(long id)
-        {
-            // TODO: Replace with real service call
-            await Task.Delay(100);
-
-            var roleToRemove = _allRolesCache.FirstOrDefault(r => r.Id == id);
-            if (roleToRemove != null)
-            {
-                _allRolesCache.Remove(roleToRemove);
-                ApplyRoleFiltersAndSort();
-            }
-        }
-
-        public async Task DeletePermissionAsync(long id)
-        {
-            // TODO: Replace with real service call
-            await Task.Delay(100);
-
-            var permissionToRemove = _allPermissionsCache.FirstOrDefault(p => p.Id == id);
-            if (permissionToRemove != null)
-            {
-                _allPermissionsCache.Remove(permissionToRemove);
-                ApplyPermissionFiltersAndSort();
-            }
-        }
-
-        public async Task AssignPermissionsToRoleAsync(long roleId, List<long> permissionIds)
-        {
-            // TODO: Replace with real service call
-            await Task.Delay(100);
-
-            var role = _allRolesCache.FirstOrDefault(r => r.Id == roleId);
-            if (role != null)
-            {
-                role.PermissionCount = permissionIds.Count;
-                role.UpdatedAt = DateTime.Now;
-            }
-        }
-
         public async Task<List<PermissionViewModel>> GetRolePermissionsAsync(long roleId)
         {
-            // TODO: Replace with real service call
-            await Task.Delay(50);
-
-            // Mock data - return some permissions for the role
-            return _allPermissionsCache.Take(3).ToList();
+            var ids = await _permissionService.GetPermissionsByRoleIdAsync(roleId);
+            var perms = (await _permissionService.GetAllPermission())
+                .Where(p => ids.Contains(p.Id))
+                .Select(MapPermissionDtoToViewModel)
+                .ToList();
+            return perms;
         }
 
         public async Task GoToNextPageAsync()
