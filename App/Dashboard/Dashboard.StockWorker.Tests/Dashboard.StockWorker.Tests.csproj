@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <IsPackable>false</IsPackable>
     <!-- Disable central package version management for this test project so it can restore independently -->
     <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>

@@ -1,4 +1,136 @@
+x-logging:
+  &default-logging
+  options:
+    max-size: "100k"
+    max-file: "5"
+  driver: json-file
+
 services:
+  traefik:
+    image: traefik:v3.5.2
+    container_name: traefik
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    environment:
+      - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN}
+      - CF_API_EMAIL=${CF_API_EMAIL}
+      - ACME_CA_SERVER=${ACME_CA_SERVER}
+    volumes:
+      - ./App/ReverseProxy/config/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./App/ReverseProxy/config/middlewares.yml:/etc/traefik/middlewares.yml:ro
+      - ./App/ReverseProxy/data/traefik/certs:/var/traefik/certs:rw 
+      - ./App/ReverseProxy/data/traefik/log:/var/log/traefik:rw
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks: 
+      - app-network
+    logging: *default-logging
+
+  frontend:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - ./App/angular:/app
+      - /app/node_modules
+    command: sh -c "npm install && npm start -- --host 0.0.0.0 --disable-host-check"
+    ports:
+      - "4200:4200"
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+    depends_on:
+      - backend
+    labels:
+    - "traefik.enable=true"
+    - "traefik.docker.network=app-network"
+    - "traefik.http.routers.angular.rule=Host(`webbanhang.kythuat.vn`)"
+    - "traefik.http.routers.angular.entrypoints=web"
+    - "traefik.http.routers.angular.service=angular-service"
+    # - "traefik.http.routers.angular.middlewares=secureHeaders@file,cloudflareRealIp@file"
+    - "traefik.http.services.angular-service.loadbalancer.server.port=4200"
+
+    networks:
+      - app-network
+    restart: unless-stopped
+    # healthcheck:
+    #   test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:4200", "||", "exit", "1"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 3
+    #   start_period: 60s
+    logging: *default-logging
+
+  backend:
+    build:
+      context: ./App/backend
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    depends_on:
+      webbanhang-db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION}
+      SERVER_PORT: ${SERVER_PORT}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      SPRING_JPA_DATABASE_PLATFORM: ${SPRING_JPA_HIBERNATE_PROPERTIES_DIALECT}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: none
+      # Server configuration
+      SERVER_ADDRESS: 0.0.0.0
+      JAVA_OPTS: "-Xmx512m -Xms256m -Dserver.address=0.0.0.0"
+    volumes:
+      - ./App/backend:/app
+      - ~/.m2:/root/.m2
+    working_dir: /app
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=app-network" 
+      - "traefik.http.routers.backend.rule=Host(`api.kythuat.vn`)"
+      - "traefik.http.routers.backend.entrypoints=web"
+      - "traefik.http.routers.backend.service=backend-service"
+      # - "traefik.http.routers.backend.middlewares=secureHeaders@file,cloudflareRealIp@file" 
+      - "traefik.http.services.backend-service.loadbalancer.server.port=1609"
+    command: >
+      mvn spring-boot:run
+      -Dspring-boot.run.fork=false
+      -DskipTests
+      -Djava.security.egd=file:/dev/./urandom
+    networks:
+      - app-network
+    restart: unless-stopped
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:1609/actuator/health", "||", "exit", "1"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 5
+    #   start_period: 120s
+    logging: *default-logging
+
+  cloudflared:
+    image: cloudflare/cloudflared:1767-80b1634515ba
+    container_name: cloudflared
+    restart: unless-stopped
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+    depends_on:
+      - traefik
+    networks:
+      - app-network
+    volumes:
+      - ./App/cloudflare/data/cert.pem:${TUNNEL_ORIGIN_CERT}
+      - ./App/cloudflare/data/${TUNNEL_ID}.json:/etc/cloudflared/${TUNNEL_ID}.json:ro
+      - ./App/cloudflare/config/config.yml:/etc/cloudflared/config.yml:ro
+    command: tunnel run  
+    logging: *default-logging
+
   webbanhang-db:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: webbanhang-db
@@ -19,6 +151,57 @@ services:
       start_period: 10s
     networks:
       - app-network
+    logging: *default-logging
+
+  otp-service:
+    build:
+      context: ./App/OTP-service
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    ports: 
+      - "8081:8080"
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Production}
+      - ConnectionStrings__Redis=redis:6379
+      - SpeedSMS__AccessToken=${SpeedSMS__AccessToken}
+      - SpeedSMS__Type=${SpeedSMS__Type:-2}
+      - SpeedSMS__BrandName=${SpeedSMS__BrandName:-OTP-Service}
+      - OTPDefaultLength=${OTPDefaultLength:-6}
+      - OTPDefaultExpirationMinutes=${OTPDefaultExpirationMinutes:-5}
+      - OTP__MaxExpirationMinutes=${OTP__MaxExpirationMinutes:-30}
+      - SMS__DefaultMessage=${SMS__DefaultMessage}
+      - RateLimitMaxRequestsPerHour=${RateLimitMaxRequestsPerHour:-5}
+      - RateLimitMaxRequestsPerDay=${RateLimitMaxRequestsPerDay:-20}
+      - CORS__AllowedOrigins=${CORS__AllowedOrigins}
+      - SERVER_PORT=${SERVER_PORT:-8080}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=app-network"
+      - "traefik.http.routers.otp-service.rule=Host(`otp.kythuat.vn`)"
+      - "traefik.http.routers.otp-service.entrypoints=web"
+      - "traefik.http.routers.otp-service.service=otp-service"
+      - "traefik.http.services.otp-service.loadbalancer.server.port=8080"
+      - "traefik.http.services.otp-service.loadbalancer.healthcheck.scheme=http"
+      - "traefik.http.services.otp-service.loadbalancer.healthcheck.path=/health"
+      - "traefik.http.services.otp-service.loadbalancer.healthcheck.interval=30s"
+      - "traefik.http.services.otp-service.loadbalancer.healthcheck.timeout=5s"
+    volumes:
+      - ./.env:/app/.env:ro
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5  # Increased retries
+      start_period: 60s  # Increased start period
+    logging: *default-logging
+
 
   webbanhang-db.configurator:
     build:
@@ -47,96 +230,7 @@ services:
       rm -f /tmp/*_parsed.sql && echo "All done!"'
     networks:
       - app-network
-
-  backend:
-    build:
-      context: ./App/backend
-      dockerfile: Dockerfile
-    env_file:
-      - .env
-    depends_on:
-      webbanhang-db:
-        condition: service_healthy
-    environment:
-      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
-      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
-      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
-      JWT_SECRET: ${JWT_SECRET}
-      JWT_EXPIRATION: ${JWT_EXPIRATION}
-      SERVER_PORT: ${SERVER_PORT}
-      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
-      SPRING_JPA_DATABASE_PLATFORM: ${SPRING_JPA_HIBERNATE_PROPERTIES_DIALECT}
-      SPRING_JPA_HIBERNATE_DDL_AUTO: none
-      # MAVEN_OPTS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
-    volumes:
-      - ./App/backend:/app
-      - ~/.m2:/root/.m2
-    working_dir: /app
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.backend.rule=Host(`api.localhost`)"
-      - "traefik.http.services.backend.loadbalancer.server.port=1609"
-      # Rate limiting: 100 requests / 10s
-      - "traefik.http.middlewares.backend-ratelimit.ratelimit.average=10"
-      - "traefik.http.middlewares.backend-ratelimit.ratelimit.burst=20"
-      - "traefik.http.middlewares.backend-ratelimit.ratelimit.period=1s"
-      # IP strategy to prevent fake IPs
-      - "traefik.http.middlewares.backend-ip.ipstrategy.depth=1"
-      # Security headers to prevent common attacks
-      - "traefik.http.middlewares.backend-security.headers.customrequestheaders.X-Forwarded-Proto=https"
-      - "traefik.http.middlewares.backend-security.headers.customresponseheaders.X-Frame-Options=DENY"
-      - "traefik.http.middlewares.backend-security.headers.customresponseheaders.X-Content-Type-Options=nosniff"
-      - "traefik.http.middlewares.backend-security.headers.customresponseheaders.Content-Security-Policy=default-src 'self'"
-      # Compression to reduce bandwidth usage
-      - "traefik.http.middlewares.backend-compress.compress=true"
-      - "traefik.http.routers.backend.middlewares=backend-ratelimit@docker,backend-ip@docker,backend-security@docker,backend-compress@docker"
-    # command: sh -c "mvn spring-boot:run -Dspring-boot.run.fork=false -DskipTests"
-    command: >
-      mvn spring-boot:run
-      -Dspring-boot.run.fork=false
-      -DskipTests
-      -Djava.security.egd=file:/dev/./urandom
-    ports:
-      # -Dagentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
-      - "1609:1609"
-    networks:
-      - app-network
-
-  frontend:
-    image: node:20-alpine
-    working_dir: /app
-    volumes:
-      - ./App/angular:/app
-      - /app/node_modules
-    command: sh -c "npm install && npm start -- --host 0.0.0.0 --disable-host-check"
-    ports:
-      - "4200:4200"
-    environment:
-      - CHOKIDAR_USEPOLLING=true
-      - WATCHPACK_POLLING=true
-    depends_on:
-      - backend
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.frontend.rule=Host(`web.localhost`)"
-      - "traefik.http.services.frontend.loadbalancer.server.port=4200"
-      # Rate limiting: 50 requests / 10s for frontend
-      - "traefik.http.middlewares.frontend-ratelimit.ratelimit.average=5"
-      - "traefik.http.middlewares.frontend-ratelimit.ratelimit.burst=10"
-      - "traefik.http.middlewares.frontend-ratelimit.ratelimit.period=1s"
-      # IP strategy to prevent fake IPs
-      - "traefik.http.middlewares.frontend-ip.ipstrategy.depth=1"
-      # Security headers to prevent common attacks
-      - "traefik.http.middlewares.frontend-security.headers.customrequestheaders.X-Forwarded-Proto=https"
-      - "traefik.http.middlewares.frontend-security.headers.customresponseheaders.X-Frame-Options=DENY"
-      - "traefik.http.middlewares.frontend-security.headers.customresponseheaders.X-Content-Type-Options=nosniff"
-      - "traefik.http.middlewares.frontend-security.headers.customresponseheaders.Content-Security-Policy=default-src 'self'"
-      # Compression to reduce bandwidth usage
-      - "traefik.http.middlewares.frontend-compress.compress=true"
-      - "traefik.http.routers.frontend.middlewares=frontend-ratelimit@docker,frontend-ip@docker,frontend-security@docker,frontend-compress@docker"
-    networks:
-      - app-network
-
+    logging: *default-logging
 
   redis:
     image: redis:8.0-rc1
@@ -148,9 +242,17 @@ services:
     restart: unless-stopped
     networks:
       - app-network
+    logging: *default-logging
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
 networks:
   app-network:
+    name: app-network  
     driver: bridge
 
 volumes:

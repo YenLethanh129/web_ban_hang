@@ -7,18 +7,21 @@ using Microsoft.Extensions.Logging;
 using MimeKit;
 using System.Data;
 using System.Text;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Dashboard.Common.Options;
 
 namespace Dashboard.StockWorker.Services
 {
     public class LowStockReportTemplateService : INotificationService
     {
-        private readonly IConfiguration _configuration;
+        private readonly EmailOptions _email;
         private readonly ILogger<LowStockReportTemplateService> _logger;
         private readonly PurchaseEnrichmentService _purchaseEnrichment;
 
-        public LowStockReportTemplateService(IConfiguration configuration, ILogger<LowStockReportTemplateService> logger, PurchaseEnrichmentService purchaseEnrichment)
+        public LowStockReportTemplateService(IOptions<EmailOptions> emailOptions, ILogger<LowStockReportTemplateService> logger, PurchaseEnrichmentService purchaseEnrichment)
         {
-            _configuration = configuration;
+            _email = emailOptions?.Value ?? new EmailOptions();
             _logger = logger;
             _purchaseEnrichment = purchaseEnrichment;
         }
@@ -62,6 +65,7 @@ namespace Dashboard.StockWorker.Services
 
             await SendEmailAsync(subject, htmlBody, attachmentData);
         }
+
 
         private async Task SendConsolidatedStockAlertsAsync(List<StockAlert> alerts)
         {
@@ -617,7 +621,7 @@ namespace Dashboard.StockWorker.Services
 
         private async Task SendEmailAsync(string subject, string htmlBody, byte[]? attachmentData = null)
         {
-            var dryRun = _configuration.GetValue<bool?>("Email:DryRun") ?? false;
+            var dryRun = _email.DryRun;
             if (dryRun)
             {
                 try
@@ -643,7 +647,6 @@ namespace Dashboard.StockWorker.Services
                 return;
             }
 
-            // Validate configuration
             var emailConfig = ValidateEmailConfiguration();
             if (emailConfig == null)
             {
@@ -676,11 +679,8 @@ namespace Dashboard.StockWorker.Services
             
             // Create multipart message with HTML body and attachment
             var multipart = new Multipart("mixed");
-            
-            // Add HTML body
             multipart.Add(new TextPart("html") { Text = htmlBody });
             
-            // Add CSV attachment if provided
             if (attachmentData != null)
             {
                 var attachment = new MimePart("text", "csv")
@@ -717,8 +717,7 @@ namespace Dashboard.StockWorker.Services
             }
             catch (MailKit.Security.AuthenticationException ex)
             {
-                _logger.LogError(ex, "SMTP Authentication failed. Please check your credentials. " +
-                    "For Gmail, make sure you're using an App Password instead of your regular password.");
+                _logger.LogError(ex, "SMTP Authentication failed. Please check your credentials. For Gmail, use App Password.");
                 throw;
             }
             catch (Exception ex)
@@ -730,13 +729,14 @@ namespace Dashboard.StockWorker.Services
 
         private EmailConfiguration? ValidateEmailConfiguration()
         {
-            var smtpHost = _configuration["Email:SmtpHost"];
-            var smtpPort = _configuration.GetValue<int?>("Email:SmtpPort");
-            var fromEmail = _configuration["Email:FromEmail"];
-            var fromName = _configuration["Email:FromName"] ?? "Hệ Thống Quản Lý Kho";
-            var username = _configuration["Email:Username"] ?? fromEmail;
-            var password = _configuration["Email:AppPassword"] ?? _configuration["Email:Password"];
-            var toEmails = _configuration.GetSection("Email:AlertRecipients").Get<string[]>();
+            // Read from _email options and support both nested and flat smtp config
+            var smtpHost = _email.Smtp?.Host ?? _email.SmtpHost;
+            var smtpPort = _email.Smtp?.Port != 0 ? _email.Smtp!.Port : (_email.SmtpPort != 0 ? _email.SmtpPort : (int?)null);
+            var fromEmail = _email.FromEmail ?? _email.AlertsFromAddress;
+            var fromName = _email.FromName ?? "Hệ thống quản lý kho";
+            var username = _email.Smtp?.Username ?? _email.Username ?? fromEmail;
+            var password = _email.AppPassword ?? _email.Password ?? _email.Smtp?.Password;
+            var toEmails = _email.AlertRecipients ?? (_email.AlertsToAddress != null ? new[] { _email.AlertsToAddress } : null);
 
             var missingConfigs = new List<string>();
 

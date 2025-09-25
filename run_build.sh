@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Default values
-DOCKER_COMPOSE_FILE="docker-compose.dev.yml"
+DOCKER_COMPOSE_FILE="docker-compose.yml"
 ENV_FILE=".env"
 SERVICE=""
 DB_TIMEOUT=20  # Timeout in seconds for database initialization
@@ -16,7 +16,7 @@ LOG_SUFFIX=".log"
 show_help() {
   echo "Usage: $0 [options]"
   echo "Options:"
-  echo "  -c, --compose FILE   Specify Docker Compose file (default: docker-compose.dev.yml)"
+  echo "  -c, --compose FILE   Specify Docker Compose file (default: docker-compose.yml)"
   echo "  -e, --env FILE       Specify environment file (default: .env)"
   echo "  -s, --service NAME   Specify service to build (default: backend)"
   echo "  -t, --timeout SEC    Specify database initialization timeout in seconds (default: 20)"
@@ -110,7 +110,7 @@ echo "Building service: $SERVICE"
 if [ "$LOG_TO_FILE" = true ]; then
     echo "Building and logging to: $NEW_LOG_FILE"
     # Execute Docker Compose command with logging to file
-    docker-compose.exe -f "$DOCKER_COMPOSE_FILE" --env-file "$ENV_FILE" up --build $SERVICE > "$NEW_LOG_FILE" 2>&1
+    docker compose down -v --remove-orphans && docker-compose.exe -f "$DOCKER_COMPOSE_FILE" --env-file "$ENV_FILE" up --build $SERVICE > "$NEW_LOG_FILE" 2>&1
     
     # Check exit status
     if [ $? -eq 0 ]; then
@@ -120,7 +120,7 @@ if [ "$LOG_TO_FILE" = true ]; then
     fi
 else
     # Execute Docker Compose command with console output
-    docker-compose.exe -f "$DOCKER_COMPOSE_FILE" --env-file "$ENV_FILE" up --build $SERVICE
+    docker compose down -v --remove-orphans && docker-compose.exe -f "$DOCKER_COMPOSE_FILE" --env-file "$ENV_FILE" up --build $SERVICE
     
     # Check exit status
     if [ $? -eq 0 ]; then

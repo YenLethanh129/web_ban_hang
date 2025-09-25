@@ -21,6 +21,7 @@ COPY ["Dashboard.BussinessLogic/Dashboard.BussinessLogic.csproj", "Dashboard.Bus
 COPY ["Dashboard.DataAccess/Dashboard.DataAccess.csproj", "Dashboard.DataAccess/"]
 COPY ["Dashboard.Common/Dashboard.Common.csproj", "Dashboard.Common/"]
 COPY ["Dashboard.ServiceDefaults/Dashboard.ServiceDefaults.csproj", "Dashboard.ServiceDefaults/"]
+COPY ["Dashboard.StockWorker/Dashboard.StockWorker.csproj", "Dashboard.StockWorker/"]
 
 # Restore dependencies              
 RUN dotnet restore "Dashboard.sln"
@@ -33,18 +34,25 @@ WORKDIR /src/Dashboard.API
 RUN dotnet build "Dashboard.API.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # Publish stage
-FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
+# ---------- API ----------
+FROM build AS api-build
+WORKDIR /src/Dashboard.API
 RUN dotnet publish "Dashboard.API.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
-# Final runtime stage
-FROM base AS final
+
+FROM base AS api-final
 WORKDIR /app
-COPY --from=publish /app/publish .
+COPY --from=api-build /app/publish .
 
-# Set environment variables
-ENV DOTNET_RUNNING_IN_CONTAINER=true
-ENV ASPNETCORE_URLS=http://+:80
-
-# Entry point for the application
 ENTRYPOINT ["dotnet", "Dashboard.API.dll"]
+
+# ---------- Worker ----------
+FROM build AS worker-build
+WORKDIR /src/Dashboard.StockWorker
+RUN dotnet publish "Dashboard.StockWorker.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+
+FROM base AS worker-final
+WORKDIR /app
+COPY --from=worker-build /app/publish .
+
+ENTRYPOINT ["dotnet", "Dashboard.StockWorker.dll"]
