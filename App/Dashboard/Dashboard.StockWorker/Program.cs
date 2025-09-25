@@ -3,7 +3,9 @@ using Dashboard.DataAccess.Models.Entities.Orders;
 using Dashboard.StockWorker;
 using Dashboard.StockWorker.Services;
 using Dashboard.StockWorker.Workers;
+using Dashboard.Common.Options;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 var builder = Host.CreateApplicationBuilder(args);
 
@@ -11,6 +13,12 @@ builder.Configuration
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
     .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
     .AddEnvironmentVariables();
+
+builder.Services.Configure<EncryptionOptions>(builder.Configuration.GetSection("Encryption"));
+builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection("Email"));
+builder.Services.Configure<StockWorkerOptions>(builder.Configuration.GetSection("StockWorker"));
+builder.Services.Configure<FinancialReportingOptions>(builder.Configuration.GetSection("FinancialReporting"));
+builder.Services.Configure<SecurityOptions>(builder.Configuration.GetSection("Security"));
 
 Dashboard.DataAccess.DependencyInjection.AddDataAccess(builder);
 Dashboard.BussinessLogic.DependencyInjection.AddBussinessLogicServices(builder);
@@ -20,8 +28,9 @@ builder.Services.AddScoped<WebbanhangDbContext>(sp =>
     var configuration = sp.GetRequiredService<IConfiguration>();
     var connectionString = configuration.GetConnectionString("WebbanhangDB")
         ?? throw new InvalidOperationException("Connection string is missing");
-    var encryptionKey = configuration["Encryption:Key"] ??
-                        throw new InvalidOperationException("Encryption key is missing");
+
+    var encryptionOptions = sp.GetRequiredService<IOptions<EncryptionOptions>>().Value;
+    var encryptionKey = encryptionOptions?.Key ?? throw new InvalidOperationException("Encryption key is missing");
 
     var options = new DbContextOptionsBuilder<WebbanhangDbContext>()
         .UseSqlServer(connectionString)
@@ -30,6 +39,7 @@ builder.Services.AddScoped<WebbanhangDbContext>(sp =>
     return new WebbanhangDbContext(options, encryptionKey);
 });
 
+// Services
 builder.Services.AddScoped<StockCalculationService>();
 builder.Services.AddScoped<LowStockReportTemplateService>();
 builder.Services.AddScoped<NotificationService>();
@@ -38,8 +48,8 @@ builder.Services.AddScoped<IFinancialReportTemplateService, FinancialReportTempl
 
 builder.Services.AddScoped<INotificationService>(sp =>
 {
-    var useAdvancedEmail = sp.GetRequiredService<IConfiguration>()
-        .GetValue<bool>("Email:UseAdvancedNotifications", true);
+    var emailOptions = sp.GetRequiredService<IOptions<EmailOptions>>().Value;
+    var useAdvancedEmail = emailOptions?.UseAdvancedNotifications ?? true;
 
     return useAdvancedEmail
         ? sp.GetRequiredService<LowStockReportTemplateService>()

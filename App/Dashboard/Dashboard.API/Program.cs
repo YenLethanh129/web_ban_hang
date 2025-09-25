@@ -1,11 +1,19 @@
 using Dashboard.DataAccess;
 using Dashboard.DataAccess.Context;
-using Dashboard.BussinessLogic; 
+using Dashboard.BussinessLogic;
+using Dashboard.Common.Options;
 using Microsoft.EntityFrameworkCore;
 using Dashboard.API.Middleware;
 using Dashboard.ServiceDefaults;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.Configure<EncryptionOptions>(builder.Configuration.GetSection("Encryption"));
+builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection("Email"));
+builder.Services.Configure<StockWorkerOptions>(builder.Configuration.GetSection("StockWorker"));
+builder.Services.Configure<FinancialReportingOptions>(builder.Configuration.GetSection("FinancialReporting"));
+builder.Services.Configure<SecurityOptions>(builder.Configuration.GetSection("Security"));
 
 builder.AddServiceDefaults();
 builder.AddDataAccess();

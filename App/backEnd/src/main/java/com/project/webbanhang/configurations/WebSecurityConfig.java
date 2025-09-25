@@ -37,7 +37,7 @@ public class WebSecurityConfig {
 	@Bean
 	public CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration configuration = new CorsConfiguration();
-		configuration.setAllowedOriginPatterns(List.of("http://localhost:4200"));
+		configuration.setAllowedOriginPatterns(List.of("https://webbanhang.kythuat.vn", "http://localhost:4200", "http://frontend:4200", "hhttp://127.0.0.1:6379"));
 		configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
 		configuration.setAllowedHeaders(List.of("*"));
 		configuration.setAllowCredentials(true);

@@ -1,10 +1,13 @@
 # MOST IMPORTANT STUFF!
 .env
-credentials.ini
+credentials
 config.json
 .github/instructions
 .gitignore
 *.md
+credentials*
+/volumes/traefik/acme/acme.json 
+/cloudflared/*.json
 
 # OS and temp files 
 .DS_Store # macOS

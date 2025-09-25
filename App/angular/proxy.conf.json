@@ -1,6 +1,6 @@
 {
   "/api": {
-    "target": "http://backend:1609",
+    "target": "https://api.kythuat.vn",
     "secure": false,
     "changeOrigin": true
   }

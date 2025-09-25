@@ -1,34 +1,28 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Data.SqlClient;
-using System.Text;
-using MimeKit;
-using MailKit.Net.Smtp;
+using Microsoft.Extensions.Options;
+using Dashboard.Common.Options;
 
 namespace Dashboard.StockWorker.Services
 {
     public class LowStockAlertWorker : BackgroundService
     {
         private readonly ILogger<LowStockAlertWorker> _logger;
-        private readonly IConfiguration _config;
         private readonly TimeSpan _interval;
         private readonly StockCalculationService _stockCalc;
         private readonly INotificationService _notifier;
 
-        public LowStockAlertWorker(ILogger<LowStockAlertWorker> logger, IConfiguration config, StockCalculationService stockCalc, INotificationService notifier)
+        public LowStockAlertWorker(ILogger<LowStockAlertWorker> logger, IOptions<StockWorkerOptions> stockOptions, StockCalculationService stockCalc, INotificationService notifier)
         {
             _logger = logger;
-            _config = config;
             _stockCalc = stockCalc;
             _notifier = notifier;
 
-            var minutes = _config.GetValue<int?>("LowStockAlert:IntervalMinutes") ?? 60;
+            var minutes = stockOptions?.Value?.CheckIntervalMinutes ?? 60;
             _interval = TimeSpan.FromMinutes(Math.Max(1, minutes));
         }
 

@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 
 namespace Dashboard.DataAccess;
 public static class DependencyInjection
@@ -18,9 +19,6 @@ public static class DependencyInjection
     {
         var Context = builder.Configuration.GetConnectionString("WebbanhangDB");
         Guard.Against.Null(Context, message: "Connection string 'WebbanhangDB' not found.");
-
-        var encryptionKey = builder.Configuration["Encryption:Key"];
-        Guard.Against.NullOrEmpty(encryptionKey, nameof(encryptionKey));
 
         builder.Services.Configure<SecurityOptions>(builder.Configuration.GetSection("Security").Bind);
 
@@ -59,8 +57,11 @@ public static class DependencyInjection
         builder.Services.AddScoped(sp =>
         {
             var options = sp.GetRequiredService<DbContextOptions<WebbanhangDbContext>>();
+            var encryptionOptions = sp.GetRequiredService<IOptions<EncryptionOptions>>().Value;
+            var encryptionKey = encryptionOptions?.Key ?? throw new InvalidOperationException("Encryption key is missing");
             return new WebbanhangDbContext(options, encryptionKey);
         });
+
 
         builder.Services.AddSingleton(TimeProvider.System);
 
