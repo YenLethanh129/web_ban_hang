@@ -5,11 +5,66 @@ x-logging:
     max-file: "5"
   driver: json-file
 
+networks:
+  app-network:
+    name: app-network  
+    driver: bridge
+
+
 services:
+  # 
+  cloudflared:
+    image: cloudflare/cloudflared:1767-80b1634515ba
+    container_name: cloudflared
+    restart: unless-stopped
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+    depends_on:
+      - traefik
+    networks:
+      - app-network
+    volumes:
+      - ./App/cloudflare/data/cert.pem:${TUNNEL_ORIGIN_CERT}
+      - ./App/cloudflare/data/${TUNNEL_ID}.json:/etc/cloudflared/${TUNNEL_ID}.json:ro
+      - ./App/cloudflare/config/config.yml:/etc/cloudflared/config.yml:ro
+    command: tunnel run  
+    logging: *default-logging
+
   traefik:
     image: traefik:v3.5.2
     container_name: traefik
     restart: unless-stopped
+    command:
+      - "--log.level=INFO"
+      - "--api.insecure=true"
+      - "--api.dashboard=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.file.directory=/etc/traefik"
+      - "--providers.file.watch=true"
+
+      - "--certificatesresolvers.letsencrypt.acme.dnschallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.dnschallenge.provider=cloudflare"
+      - "--certificatesresolvers.letsencrypt.acme.dnschallenge.resolver=1.1.1.1:53,1.0.0.1:53"
+      - "--certificatesResolvers.letsencrypt.acme.dnschallenge.delayBeforeCheck=20"
+
+      - "--certificatesresolvers.letsencrypt.acme.email=${CF_API_EMAIL}"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/var/traefik/certs/acme.json"
+      - "--certificatesresolvers.letsencrypt.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+
+      - "--entrypoints.websecure.http.tls=true"
+      - "--entrypoints.websecure.http.tls.certresolver=letsencrypt"
+      - "--entrypoints.websecure.http.tls.domains[0].main=kythuat.vn"
+      - "--entrypoints.websecure.http.tls.domains[0].sans=*.kythuat.vn"
+
+      # - "--metrics.prometheus=true"
+      # - "--metrics.prometheus.addEntryPointsLabels=true"
+      # - "--metrics.prometheus.addServicesLabels=true"
     ports:
       - "80:80"
       - "443:443"
@@ -17,7 +72,6 @@ services:
     environment:
       - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN}
       - CF_API_EMAIL=${CF_API_EMAIL}
-      - ACME_CA_SERVER=${ACME_CA_SERVER}
     volumes:
       - ./App/ReverseProxy/config/traefik.yml:/etc/traefik/traefik.yml:ro
       - ./App/ReverseProxy/config/middlewares.yml:/etc/traefik/middlewares.yml:ro
@@ -28,9 +82,60 @@ services:
       - app-network
     logging: *default-logging
 
+  otp-service:
+    build:
+      context: ./App/OTP-service
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    ports: 
+      - "8081:8080"
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - REDIS_CONNECTION_STRING=${REDIS_HOST}:${REDIS_PORT}
+
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION}
+      - SMS_SANDBOX_PHONE_NUMBER=${SMS_SANDBOX_PHONE_NUMBER}
+      - OTP_EXPIRATION_MINUTES=${OTP_EXPIRATION_MINUTES}
+      - OTP_LENGTH=${OTP_LENGTH}
+      - OTP_MAX_VERIFICATION_ATTEMPTS=${OTP_MAX_VERIFICATION_ATTEMPTS}
+
+      - RATE_LIMIT_MAX_REQUESTS_PER_HOUR=${RATE_LIMIT_MAX_REQUESTS_PER_HOUR}
+      - RATE_LIMIT_MAX_REQUESTS_PER_DAY=${RATE_LIMIT_MAX_REQUESTS_PER_DAY}
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=app-network"
+      - "traefik.http.routers.otp.rule=Host(`otp.kythuat.vn`)"
+      - "traefik.http.routers.otp.entrypoints=websecure"
+      - "traefik.http.routers.otp.service=otp"
+      - "traefik.http.services.otp.loadbalancer.server.port=8080"
+      # Health check configuration
+      - "traefik.http.services.otp.loadbalancer.healthcheck.scheme=http"
+      - "traefik.http.services.otp.loadbalancer.healthcheck.path=/health"
+      - "traefik.http.services.otp.loadbalancer.healthcheck.interval=30s"
+      - "traefik.http.services.otp.loadbalancer.healthcheck.timeout=5s"
+    volumes:
+      - ./.env:/app/.env:ro
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    logging: *default-logging
+
   frontend:
     image: node:20-alpine
-    working_dir: /app
+    working_dir: /app 
     volumes:
       - ./App/angular:/app
       - /app/node_modules
@@ -46,7 +151,7 @@ services:
     - "traefik.enable=true"
     - "traefik.docker.network=app-network"
     - "traefik.http.routers.angular.rule=Host(`webbanhang.kythuat.vn`)"
-    - "traefik.http.routers.angular.entrypoints=web"
+    - "traefik.http.routers.angular.entrypoints=websecure"
     - "traefik.http.routers.angular.service=angular-service"
     # - "traefik.http.routers.angular.middlewares=secureHeaders@file,cloudflareRealIp@file"
     - "traefik.http.services.angular-service.loadbalancer.server.port=4200"
@@ -94,7 +199,7 @@ services:
       - "traefik.enable=true"
       - "traefik.docker.network=app-network" 
       - "traefik.http.routers.backend.rule=Host(`api.kythuat.vn`)"
-      - "traefik.http.routers.backend.entrypoints=web"
+      - "traefik.http.routers.backend.entrypoints=websecure"
       - "traefik.http.routers.backend.service=backend-service"
       # - "traefik.http.routers.backend.middlewares=secureHeaders@file,cloudflareRealIp@file" 
       - "traefik.http.services.backend-service.loadbalancer.server.port=1609"
@@ -114,23 +219,22 @@ services:
     #   start_period: 120s
     logging: *default-logging
 
-  cloudflared:
-    image: cloudflare/cloudflared:1767-80b1634515ba
-    container_name: cloudflared
-    restart: unless-stopped
-    environment:
-      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+  report-worker:
+    build:
+      context: ./App/Dashboard
+      dockerfile: Dockerfile
+    env_file:
+      - .env
     depends_on:
-      - traefik
+      webbanhang-db:
+        condition: service_healthy
     networks:
       - app-network
-    volumes:
-      - ./App/cloudflare/data/cert.pem:${TUNNEL_ORIGIN_CERT}
-      - ./App/cloudflare/data/${TUNNEL_ID}.json:/etc/cloudflared/${TUNNEL_ID}.json:ro
-      - ./App/cloudflare/config/config.yml:/etc/cloudflared/config.yml:ro
-    command: tunnel run  
+    restart: unless-stopped
     logging: *default-logging
 
+
+  # Infrastructure services
   webbanhang-db:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: webbanhang-db
@@ -152,56 +256,6 @@ services:
     networks:
       - app-network
     logging: *default-logging
-
-  otp-service:
-    build:
-      context: ./App/OTP-service
-      dockerfile: Dockerfile
-    env_file:
-      - .env
-    ports: 
-      - "8081:8080"
-    depends_on:
-      redis:
-        condition: service_healthy
-    environment:
-      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Production}
-      - ConnectionStrings__Redis=redis:6379
-      - SpeedSMS__AccessToken=${SpeedSMS__AccessToken}
-      - SpeedSMS__Type=${SpeedSMS__Type:-2}
-      - SpeedSMS__BrandName=${SpeedSMS__BrandName:-OTP-Service}
-      - OTPDefaultLength=${OTPDefaultLength:-6}
-      - OTPDefaultExpirationMinutes=${OTPDefaultExpirationMinutes:-5}
-      - OTP__MaxExpirationMinutes=${OTP__MaxExpirationMinutes:-30}
-      - SMS__DefaultMessage=${SMS__DefaultMessage}
-      - RateLimitMaxRequestsPerHour=${RateLimitMaxRequestsPerHour:-5}
-      - RateLimitMaxRequestsPerDay=${RateLimitMaxRequestsPerDay:-20}
-      - CORS__AllowedOrigins=${CORS__AllowedOrigins}
-      - SERVER_PORT=${SERVER_PORT:-8080}
-    labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=app-network"
-      - "traefik.http.routers.otp-service.rule=Host(`otp.kythuat.vn`)"
-      - "traefik.http.routers.otp-service.entrypoints=web"
-      - "traefik.http.routers.otp-service.service=otp-service"
-      - "traefik.http.services.otp-service.loadbalancer.server.port=8080"
-      - "traefik.http.services.otp-service.loadbalancer.healthcheck.scheme=http"
-      - "traefik.http.services.otp-service.loadbalancer.healthcheck.path=/health"
-      - "traefik.http.services.otp-service.loadbalancer.healthcheck.interval=30s"
-      - "traefik.http.services.otp-service.loadbalancer.healthcheck.timeout=5s"
-    volumes:
-      - ./.env:/app/.env:ro
-    networks:
-      - app-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 5  # Increased retries
-      start_period: 60s  # Increased start period
-    logging: *default-logging
-
 
   webbanhang-db.configurator:
     build:
@@ -250,12 +304,155 @@ services:
       retries: 5
       start_period: 30s
 
-networks:
-  app-network:
-    name: app-network  
-    driver: bridge
+  # Monitoring services
+  # prometheus:
+  #   image: prom/prometheus:v2.47.0
+  #   container_name: prometheus
+  #   restart: unless-stopped
+  #   ports:
+  #     - "9090:9090"
+  #   volumes:
+  #     - ./App/Monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+  #     - ./App/Monitoring/alert-rules.yml:/etc/prometheus/alert-rules.yml:ro
+  #     - prometheus-data:/prometheus
+  #   command:
+  #     - '--config.file=/etc/prometheus/prometheus.yml'
+  #     - '--storage.tsdb.path=/prometheus'
+  #     - '--web.console.libraries=/etc/prometheus/console_libraries'
+  #     - '--web.console.templates=/etc/prometheus/consoles'
+  #     - '--web.enable-lifecycle'
+  #     - '--web.enable-admin-api'
+  #     - '--storage.tsdb.retention.time=30d'
+  #     - '--storage.tsdb.retention.size=10GB'
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.docker.network=app-network"
+  #     - "traefik.http.routers.prometheus.rule=Host(`prometheus.kythuat.vn`)"
+  #     - "traefik.http.routers.prometheus.entrypoints=websecure"
+  #     - "traefik.http.routers.prometheus.service=prometheus"
+  #     - "traefik.http.routers.prometheus.middlewares=auth-basic@file"
+  #     - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
+  #   networks:
+  #     - app-network
+  #   logging: *default-logging
+
+  # grafana:
+  #   image: grafana/grafana:10.1.0
+  #   container_name: grafana
+  #   restart: unless-stopped
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     - GF_SECURITY_ADMIN_USER=admin
+  #     - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+  #     - GF_USERS_ALLOW_SIGN_UP=false
+  #     - GF_SECURITY_ALLOW_EMBEDDING=true
+  #     - GF_SECURITY_COOKIE_SECURE=true
+  #     - GF_SECURITY_COOKIE_SAMESITE=strict
+  #     - GF_SERVER_ROOT_URL=https://monitor.kythuat.vn
+  #     - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource,grafana-worldmap-panel
+  #   volumes:
+  #     - grafana-data:/var/lib/grafana
+  #     - ./App/Monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+  #     - ./App/Monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.docker.network=app-network"
+  #     - "traefik.http.routers.grafana.rule=Host(`monitor.kythuat.vn`)"
+  #     - "traefik.http.routers.grafana.entrypoints=websecure"
+  #     - "traefik.http.routers.grafana.service=grafana"
+  #     - "traefik.http.routers.grafana.middlewares=secureHeaders@file"
+  #     - "traefik.http.services.grafana.loadbalancer.server.port=3000"
+  #   depends_on:
+  #     - prometheus
+  #   networks:
+  #     - app-network
+  #   logging: *default-logging
+
+  # # Node Exporter để collect system metrics
+  # node-exporter:
+  #   image: prom/node-exporter:v1.6.1
+  #   container_name: node-exporter
+  #   restart: unless-stopped
+  #   volumes:
+  #     - /proc:/host/proc:ro
+  #     - /sys:/host/sys:ro
+  #     - /:/rootfs:ro
+  #   command:
+  #     - '--path.procfs=/host/proc'
+  #     - '--path.rootfs=/rootfs'
+  #     - '--path.sysfs=/host/sys'
+  #     - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+  #   ports:
+  #     - "9100:9100"
+  #   networks:
+  #     - app-network
+  #   logging: *default-logging
+
+  # # cAdvisor để monitor containers
+  # cadvisor:
+  #   image: gcr.io/cadvisor/cadvisor:v0.47.0
+  #   container_name: cadvisor
+  #   restart: unless-stopped
+  #   privileged: true
+  #   devices:
+  #     - /dev/kmsg:/dev/kmsg
+  #   volumes:
+  #     - /:/rootfs:ro
+  #     - /var/run:/var/run:ro
+  #     - /sys:/sys:ro
+  #     - /var/lib/docker/:/var/lib/docker:ro
+  #     - /cgroup:/cgroup:ro
+  #   ports:
+  #     - "8082:8080"
+  #   networks:
+  #     - app-network
+  #   logging: *default-logging
+
+  # # AlertManager để gửi alerts
+  # alertmanager:
+  #   image: prom/alertmanager:v0.25.0
+  #   container_name: alertmanager
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ./App/Monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+  #     - alertmanager-data:/alertmanager
+  #   command:
+  #     - '--config.file=/etc/alertmanager/alertmanager.yml'
+  #     - '--storage.path=/alertmanager'
+  #     - '--web.external-url=https://alerts.kythuat.vn'
+  #   ports:
+  #     - "9093:9093"
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.docker.network=app-network"
+  #     - "traefik.http.routers.alertmanager.rule=Host(`alerts.kythuat.vn`)"
+  #     - "traefik.http.routers.alertmanager.entrypoints=websecure"
+  #     - "traefik.http.routers.alertmanager.middlewares=auth-basic@file"
+  #     - "traefik.http.services.alertmanager.loadbalancer.server.port=9093"
+  #   networks:
+  #     - app-network
+  #   logging: *default-logging
+
+  # redis-exporter:
+  #   image: oliver006/redis_exporter:v1.54.0
+  #   container_name: redis-exporter
+  #   restart: unless-stopped
+  #   environment:
+  #     - REDIS_ADDR=redis:6379
+  #     - REDIS_PASSWORD=${REDIS_PASSWORD}
+  #   ports:
+  #     - "9121:9121"
+  #   depends_on:
+  #     - redis
+  #   networks:
+  #     - app-network
+  #   logging: *default-logging
 
 volumes:
   webbanhang_data:
   maven-repo:
   cache_data:
+  # prometheus-data:
+  # grafana-data:
+  # alertmanager-data:

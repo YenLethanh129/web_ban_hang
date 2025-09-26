@@ -1,178 +1,94 @@
-﻿// SmsService.cs - Fixed configuration binding
-using Microsoft.Extensions.Caching.Distributed;
-using System.Diagnostics.CodeAnalysis;
-using System.Net;
-using System.Text;
+using Amazon.SimpleNotificationService;
+using Amazon.SimpleNotificationService.Model;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace OTP_service.Services;
 
-[JsonSerializable(typeof(string[]))]
-[JsonSerializable(typeof(string))]
-[JsonSerializable(typeof(int))]
-public partial class SmsServiceJsonContext : JsonSerializerContext
-{
-}
-
 public interface ISmsService
 {
-    Task<bool> SendSmsAsync(string phoneNumber, string message);
+    Task<bool> SendOtpAsync(string phoneNumber, string otpCode);
 }
 
 public class SmsService : ISmsService
 {
-    private const string SPEEDSMS_API_URL = "https://api.speedsms.vn/index.php";
-    private const int TYPE_QC = 1;
-    private const int TYPE_CSKH = 2;
-    private const int TYPE_BRANDNAME = 3;
-    private const int TYPE_BRANDNAME_NOTIFY = 4;
-    private const int TYPE_GATEWAY = 5;
-
-    private readonly ILogger<SmsService> _logger;
+    private readonly IAmazonSimpleNotificationService _snsClient;
     private readonly IConfiguration _configuration;
-    private readonly string _accessToken;
+    private readonly ILogger<SmsService> _logger;
+    private readonly string _sandboxPhoneNumber;
 
-    public SmsService(ILogger<SmsService> logger, IConfiguration configuration)
+    public SmsService(
+        IAmazonSimpleNotificationService snsClient,
+        IConfiguration configuration,
+        ILogger<SmsService> logger)
     {
-        _logger = logger;
+        _snsClient = snsClient;
         _configuration = configuration;
-
-        // FIXED: Use consistent configuration approach
-        _accessToken = _configuration["SpeedSMS:AccessToken"] ??
-                      throw new InvalidOperationException("SpeedSMS access token is required");
+        _logger = logger;
+        
+        // Get sandbox phone number from configuration
+        _sandboxPhoneNumber = _configuration["SMS:SandboxPhoneNumber"] 
+                            ?? Environment.GetEnvironmentVariable("SMS_SANDBOX_PHONE_NUMBER")
+                            ?? throw new InvalidOperationException("SMS sandbox phone number not configured");
     }
 
-    public async Task<bool> SendSmsAsync(string phoneNumber, string message)
+    public async Task<bool> SendOtpAsync(string phoneNumber, string otpCode)
     {
         try
         {
-            var formattedNumber = FormatPhoneNumber(phoneNumber);
-
-            // FIXED: Use consistent configuration approach
-            var smsType = _configuration.GetValue<int>("SpeedSMS:Type", TYPE_CSKH);
-            var brandName = "";
-
-            if (smsType == TYPE_BRANDNAME || smsType == TYPE_BRANDNAME_NOTIFY)
+            // Tạo nội dung tin nhắn với format JSON như yêu cầu
+            var messageContent = new
             {
-                brandName = _configuration["SpeedSMS:BrandName"] ?? "OTP-Service";
-            }
+                otp_code = otpCode,
+                target_number = phoneNumber
+            };
 
-            var response = await SendSmsHttpRequest(formattedNumber, message, smsType, brandName);
-            var success = IsResponseSuccessful(response);
+            var message = $"OTP Code: {otpCode}\nTarget: {phoneNumber}\nExpires in 5 minutes.";
+            
+            _logger.LogInformation("Sending OTP to sandbox number {SandboxNumber} with data: {MessageData}", 
+                _sandboxPhoneNumber, JsonSerializer.Serialize(messageContent));
 
-            if (success)
+            // Tạo request với SMS Type là Promotional
+            var publishRequest = new PublishRequest
             {
-                _logger.LogInformation("SMS sent successfully to {PhoneNumber} via SpeedSMS",
-                    MaskPhoneNumber(phoneNumber));
-            }
-            else
-            {
-                _logger.LogWarning("Failed to send SMS to {PhoneNumber} via SpeedSMS. Response: {Response}",
-                    MaskPhoneNumber(phoneNumber), response);
-            }
+                PhoneNumber = _sandboxPhoneNumber, // Gửi tới số đã verify trong sandbox
+                Message = message,
+                MessageAttributes = new Dictionary<string, MessageAttributeValue>
+                {
+                    {
+                        "AWS.SNS.SMS.SMSType",
+                        new MessageAttributeValue
+                        {
+                            StringValue = "Promotional", // Set SMS type as Promotional
+                            DataType = "String"
+                        }
+                    },
+                    {
+                        "AWS.SNS.SMS.MaxPrice",
+                        new MessageAttributeValue
+                        {
+                            StringValue = "0.50", // Set max price per SMS (USD)
+                            DataType = "Number"
+                        }
+                    }
+                }
+            };
 
-            return success;
+            var response = await _snsClient.PublishAsync(publishRequest);
+            
+            if (!string.IsNullOrEmpty(response.MessageId))
+            {
+                _logger.LogInformation("Promotional SMS sent successfully. MessageId: {MessageId}, TargetPhone: {TargetPhone}", 
+                    response.MessageId, phoneNumber);
+                return true;
+            }
+            
+            _logger.LogWarning("SMS sending returned no MessageId for phone: {PhoneNumber}", phoneNumber);
+            return false;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to send SMS to {PhoneNumber} via SpeedSMS",
-                MaskPhoneNumber(phoneNumber));
+            _logger.LogError(ex, "Failed to send promotional SMS to phone: {PhoneNumber}", phoneNumber);
             return false;
         }
-    }
-
-    // FIXED: Use source-generated JSON serialization
-    private async Task<string> SendSmsHttpRequest(string phoneNumber, string message, int type, string sender)
-    {
-        using var client = new HttpClient();
-
-        var credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_accessToken}::x"));
-        client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", credentials);
-
-        var payload = new
-        {
-            to = new[] { phoneNumber },
-            content = Uri.EscapeDataString(message),
-            type = type,
-            sender = sender
-        };
-
-        // Use source-generated context for better AOT performance
-        var jsonContent = JsonSerializer.Serialize(payload, SmsServiceJsonContext.Default.Options);
-        var stringContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-        var response = await client.PostAsync($"{SPEEDSMS_API_URL}/sms/send", stringContent);
-        return await response.Content.ReadAsStringAsync();
-    }
-
-    private static string FormatPhoneNumber(string phoneNumber)
-    {
-        var digits = new string(phoneNumber.Where(char.IsDigit).ToArray());
-
-        if (digits.StartsWith("84"))
-        {
-            digits = "0" + digits.Substring(2);
-        }
-        else if (!digits.StartsWith("0"))
-        {
-            digits = "0" + digits;
-        }
-
-        return digits;
-    }
-
-    private static bool IsResponseSuccessful(string response)
-    {
-        if (string.IsNullOrEmpty(response))
-            return false;
-
-        try
-        {
-            using var doc = JsonDocument.Parse(response);
-            var root = doc.RootElement;
-
-            // Check for success status
-            if (root.TryGetProperty("status", out var statusElement))
-            {
-                var status = statusElement.GetString();
-                return string.Equals(status, "success", StringComparison.OrdinalIgnoreCase);
-            }
-
-            // Check for error property
-            if (root.TryGetProperty("error", out _))
-            {
-                return false;
-            }
-
-            // Check for message ID
-            if (root.TryGetProperty("message_id", out var messageIdElement) ||
-                root.TryGetProperty("messageId", out messageIdElement))
-            {
-                return !string.IsNullOrEmpty(messageIdElement.GetString());
-            }
-
-            return true;
-        }
-        catch (JsonException)
-        {
-            // Fallback to string checking
-            var lowerResponse = response.ToLower();
-            return lowerResponse.Contains("success") &&
-                   !lowerResponse.Contains("error") &&
-                   !lowerResponse.Contains("fail");
-        }
-    }
-
-    private static string MaskPhoneNumber(string phoneNumber)
-    {
-        if (string.IsNullOrEmpty(phoneNumber) || phoneNumber.Length < 4)
-            return phoneNumber;
-
-        var start = phoneNumber.Substring(0, Math.Min(4, phoneNumber.Length));
-        var end = phoneNumber.Length > 4 ? phoneNumber.Substring(phoneNumber.Length - 2) : "";
-        var middle = new string('*', Math.Max(0, phoneNumber.Length - 6));
-
-        return start + middle + end;
     }
 }

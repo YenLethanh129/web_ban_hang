@@ -3,7 +3,7 @@ global:
   sendAnonymousUsage: false
 
 log:
-  level: DEBUG
+  level: INFO
   format: common
   # filePath: "/var/log/traefik/traefik.log"
 
@@ -42,6 +42,29 @@ entryPoints:
         - "10.0.0.0/8"
         - "172.16.0.0/12"
         - "192.168.0.0/16"
+  websecure:
+    address: ":443"
+    forwardedHeaders:
+      trustedIPs:
+        - "173.245.48.0/20"
+        - "103.21.244.0/22"
+        - "103.22.200.0/22"
+        - "103.31.4.0/22"
+        - "141.101.64.0/18"
+        - "108.162.192.0/18"
+        - "190.93.240.0/20"
+        - "188.114.96.0/20"
+        - "197.234.240.0/22"
+        - "198.41.128.0/17"
+        - "162.158.0.0/15"
+        - "104.16.0.0/13"
+        - "104.24.0.0/14"
+        - "172.64.0.0/13"
+        - "131.0.72.0/22"
+        - "127.0.0.1/32"
+        - "10.0.0.0/8"
+        - "172.16.0.0/12"
+        - "192.168.0.0/16"
 
 providers:
   docker:
@@ -52,5 +75,16 @@ providers:
   #   filename: /etc/traefik/middlewares.yml
   #   watch: true
 
+tls:
+  options:
+    default:
+      minVersion: VersionTLS13
+      sniStrict: true
+      cipherSuites:
+        - "TLS_AES_256_GCM_SHA384"
+        - "TLS_CHACHA20_POLY1305_SHA256"
+      curvePreferences:
+        - "X25519"
+        - "secp384r1"
 ping:
   entryPoint: "web"
