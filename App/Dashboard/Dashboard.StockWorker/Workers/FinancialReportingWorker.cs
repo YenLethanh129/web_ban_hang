@@ -73,7 +73,7 @@ public class FinancialReportingWorker : BackgroundService
 
     private FinancialReportConfig GetReportConfiguration()
     {
-        var reportType = _configuration.GetValue<string>("FinancialReporting:ReportType", "Monthly");
+        var reportType = _configuration.GetValue<string>("FinancialReporting:ReportType", "Monthly") ?? "Monthly";
         var customDays = _configuration.GetValue<int>("FinancialReporting:CustomDays", 30);
 
         DateTime fromDate, toDate;

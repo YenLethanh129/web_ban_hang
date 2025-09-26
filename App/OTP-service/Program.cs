@@ -1,47 +1,37 @@
-using DotNetEnv;
+﻿using DotNetEnv;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.OpenApi;
-using Microsoft.AspNetCore.Routing.Constraints;
 using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.Caching.StackExchangeRedis;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.OpenApi.Models;
 using OTP_service.Models;
 using OTP_service.Services;
-using System;
 using System.ComponentModel.DataAnnotations;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Text.Json.Serialization.Metadata;
-using System.Collections.Generic;
+using Amazon.SimpleNotificationService;
+using Amazon;
 
+// Load environment variables from .env file first
 Env.Load();
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
 // Configure services
 builder.Services.AddRouting();
-builder.Services.Configure<RouteOptions>(options =>
-{
-    options.SetParameterPolicy<RegexInlineRouteConstraint>("regex");
-});
 
 // Configure JSON options
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
-    options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);
+    options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+    options.SerializerOptions.WriteIndented = true;
 });
 
-// FIXED: Add configuration sources in correct order (JSON first, then env vars override)
+// Add configuration sources - .env variables will override appsettings
 builder.Configuration
     .AddJsonFile("appsettings.json", optional: true)
     .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
-    .AddEnvironmentVariables(); // Environment variables should override JSON settings
+    .AddEnvironmentVariables();
 
-// Configure services
+// Configure Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -49,8 +39,10 @@ builder.Services.AddSwaggerGen(c =>
 });
 builder.Services.AddOpenApi();
 
-// FIXED: Redis Configuration - use consistent approach
-var redisConnectionString = builder.Configuration.GetConnectionString("Redis") ?? "localhost:6379";
+// Redis Configuration - prioritize environment variable
+var redisConnectionString = Environment.GetEnvironmentVariable("REDIS_CONNECTION_STRING") 
+    ?? builder.Configuration.GetConnectionString("Redis") 
+    ?? "localhost:6379";
 
 builder.Services.AddStackExchangeRedisCache(options =>
 {
@@ -65,17 +57,49 @@ builder.Services.AddStackExchangeRedisCache(options =>
     };
 });
 
+// AWS SNS Configuration
+var awsAccessKey = Environment.GetEnvironmentVariable("AWS_ACCESS_KEY_ID");
+var awsSecretKey = Environment.GetEnvironmentVariable("AWS_SECRET_ACCESS_KEY");
+var awsRegion = Environment.GetEnvironmentVariable("AWS_REGION") ?? builder.Configuration["AWS:Region"] ?? "ap-southeast-1";
+
+if (!string.IsNullOrEmpty(awsAccessKey) && !string.IsNullOrEmpty(awsSecretKey))
+{
+    // Use explicit credentials from environment variables
+    builder.Services.AddSingleton<IAmazonSimpleNotificationService>(_ =>
+    {
+        var config = new AmazonSimpleNotificationServiceConfig
+        {
+            RegionEndpoint = RegionEndpoint.GetBySystemName(awsRegion)
+        };
+        return new AmazonSimpleNotificationServiceClient(awsAccessKey, awsSecretKey, config);
+    });
+}
+else
+{
+    // Use default credential chain (IAM roles, profiles, etc.)
+    builder.Services.AddSingleton<IAmazonSimpleNotificationService>(_ =>
+    {
+        var config = new AmazonSimpleNotificationServiceConfig
+        {
+            RegionEndpoint = RegionEndpoint.GetBySystemName(awsRegion)
+        };
+        return new AmazonSimpleNotificationServiceClient(config);
+    });
+}
+
 // Register services
 builder.Services.AddScoped<IOtpService, OtpService>();
-builder.Services.AddScoped<ISmsService, SmsService>();
 builder.Services.AddScoped<IRateLimitService, RateLimitService>();
+builder.Services.AddScoped<ISmsService, SmsService>();
 
 // Health checks
 builder.Services.AddHealthChecks()
     .AddRedis(redisConnectionString, name: "redis", tags: ["ready"]);
 
-// FIXED: CORS Configuration
-var allowedOrigins = builder.Configuration["CORS:AllowedOrigins"]?.Split(',', StringSplitOptions.RemoveEmptyEntries) ?? ["*"];
+// CORS Configuration
+var allowedOrigins = Environment.GetEnvironmentVariable("CORS_ALLOWED_ORIGINS")?.Split(',', StringSplitOptions.RemoveEmptyEntries) 
+    ?? builder.Configuration["CORS:AllowedOrigins"]?.Split(',', StringSplitOptions.RemoveEmptyEntries) 
+    ?? ["*"];
 
 builder.Services.AddCors(options =>
 {
@@ -112,12 +136,8 @@ app.MapHealthChecks("/health");
 // OTP API Endpoints
 var otpGroup = app.MapGroup("/api/otp").WithTags("OTP Management");
 
-otpGroup.MapPost("/send", async (
-    SendOtpRequest request,
-    IOtpService otpService,
-    ISmsService smsService,
-    IRateLimitService rateLimitService,
-    IConfiguration config) =>
+// Send OTP endpoint
+otpGroup.MapPost("/send", async (SendOtpRequest request, IOtpService otpService, ISmsService smsService, IRateLimitService rateLimitService) =>
 {
     // Validate request
     var validationResults = new List<ValidationResult>();
@@ -139,81 +159,233 @@ otpGroup.MapPost("/send", async (
         });
     }
 
-    // Rate limiting check
-    if (!await rateLimitService.IsAllowedAsync(request.PhoneNumber))
+    try
     {
-        var payload = new ApiResponse<object>
+        // Check rate limiting
+        if (!await rateLimitService.IsAllowedAsync(request.PhoneNumber))
+        {
+            return Results.Json(
+                new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Too many requests. Please try again later.",
+                    Errors = ["Rate limit exceeded"]
+                },
+                statusCode: 429
+            );
+        }
+
+        // Generate OTP
+        var otpLength = Math.Max(4, Math.Min(8, request.Length));
+        var otp = otpService.GenerateOtp(otpLength);
+        
+        // Get expiration time from config
+        var expirationMinutes = int.TryParse(Environment.GetEnvironmentVariable("OTP_EXPIRATION_MINUTES"), out var expMin) 
+            ? expMin 
+            : 5;
+        var expiration = TimeSpan.FromMinutes(expirationMinutes);
+
+        // Store OTP
+        await otpService.StoreOtpAsync(request.PhoneNumber, otp, expiration);
+
+        // Send SMS
+        var smsSent = await smsService.SendOtpAsync(request.PhoneNumber, otp);
+        
+        if (smsSent)
+        {
+            // Track request for rate limiting
+            await rateLimitService.TrackRequestAsync(request.PhoneNumber);
+
+            return Results.Ok(new ApiResponse<SendOtpResponse>
+            {
+                Success = true,
+                Message = "OTP sent successfully",
+                Data = new SendOtpResponse
+                {
+                    Success = true,
+                    Message = "OTP has been sent to your phone number",
+                    ExpiresAt = DateTime.UtcNow.Add(expiration),
+                    RemainingAttempts = await rateLimitService.GetRemainingRequestsAsync(request.PhoneNumber),
+                    MaskedPhoneNumber = MaskPhoneNumber(request.PhoneNumber)
+                }
+            });
+        }
+        else
+        {
+            // Clear stored OTP if SMS sending failed
+            await otpService.ClearOtpAsync(request.PhoneNumber);
+            
+            return Results.Problem(
+                detail: "Unable to send OTP at this time. Please try again later.",
+                statusCode: 500,
+                title: "SMS Sending Failed");
+        }
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(
+            detail: ex.Message,
+            statusCode: 500,
+            title: "Internal Server Error");
+    }
+})
+.WithName("SendOtp")
+.WithSummary("Send OTP to phone number");
+
+// Verify OTP endpoint
+otpGroup.MapPost("/verify", async (VerifyOtpRequest request, IOtpService otpService, IRateLimitService rateLimitService) =>
+{
+    // Validate request
+    var validationResults = new List<ValidationResult>();
+    var validationContext = new ValidationContext(request);
+    var isValid = Validator.TryValidateObject(request, validationContext, validationResults, true);
+
+    if (!isValid)
+    {
+        var errors = validationResults
+            .Where(v => !string.IsNullOrEmpty(v.ErrorMessage))
+            .Select(v => v.ErrorMessage!)
+            .ToList();
+
+        return Results.BadRequest(new ApiResponse<object>
         {
             Success = false,
-            Message = "Too many OTP requests. Please try again later."
-        };
-        var jsonTypeInfo = GetJsonTypeInfo(typeof(ApiResponse<object>));
-        return Results.Json(payload, jsonTypeInfo, statusCode: 429);
+            Message = "Validation failed",
+            Errors = errors
+        });
     }
 
     try
     {
-        // FIXED: Use consistent configuration reading
-        var otpLength = config.GetValue<int>("OTP:DefaultLength", 6);
-        var defaultExpiration = config.GetValue<int>("OTP:DefaultExpirationMinutes", 5);
-        var maxExpiration = config.GetValue<int>("OTP:MaxExpirationMinutes", 30);
-
-        // Generate OTP
-        var otp = otpService.GenerateOtp(otpLength);
-        var expirationMinutes = Math.Min(request.ExpirationMinutes ?? defaultExpiration, maxExpiration);
-
-        // Store OTP in cache
-        await otpService.StoreOtpAsync(request.PhoneNumber, otp, TimeSpan.FromMinutes(expirationMinutes));
-
-        // FIXED: Use consistent configuration for SMS message
-        var defaultMessage = config["SMS:DefaultMessage"] ?? "Your verification code is: {otp}. Valid for {expiration} minutes.";
-
-        // Send SMS
-        var message = request.CustomMessage ?? defaultMessage;
-        message = message.Replace("{otp}", otp).Replace("{expiration}", expirationMinutes.ToString());
-
-        var success = await smsService.SendSmsAsync(request.PhoneNumber, message);
-
-        if (!success)
+        // Check if OTP exists
+        if (!await otpService.OtpExistsAsync(request.PhoneNumber))
         {
-            var payload = new ApiResponse<object>
+            return Results.BadRequest(new ApiResponse<VerifyOtpResponse>
             {
                 Success = false,
-                Message = "Failed to send SMS"
-            };
-            var jsonTypeInfo = GetJsonTypeInfo(typeof(ApiResponse<object>));
-            return Results.Json(payload, jsonTypeInfo, statusCode: 500);
+                Message = "No OTP found for this phone number or OTP has expired",
+                Data = new VerifyOtpResponse
+                {
+                    IsValid = false,
+                    Message = "OTP not found or expired",
+                    RemainingAttempts = await rateLimitService.GetRemainingRequestsAsync(request.PhoneNumber)
+                }
+            });
         }
 
-        await rateLimitService.TrackRequestAsync(request.PhoneNumber);
-        await rateLimitService.TrackRequestAsync(request.PhoneNumber);
+        // Verify OTP
+        var isValidOtp = await otpService.VerifyOtpAsync(request.PhoneNumber, request.Otp);
+        var remainingAttempts = await otpService.GetVerificationAttemptsAsync(request.PhoneNumber);
+        var maxAttempts = int.TryParse(Environment.GetEnvironmentVariable("OTP_MAX_VERIFICATION_ATTEMPTS"), out var max) ? max : 3;
 
-        return Results.Ok(new ApiResponse<SendOtpResponse>
+        if (isValidOtp)
+        {
+            // Clear OTP if verification successful and requested
+            if (request.ClearAfterVerification)
+            {
+                await otpService.ClearOtpAsync(request.PhoneNumber);
+            }
+
+            return Results.Ok(new ApiResponse<VerifyOtpResponse>
+            {
+                Success = true,
+                Message = "OTP verified successfully",
+                Data = new VerifyOtpResponse
+                {
+                    IsValid = true,
+                    Message = "Verification successful",
+                    VerifiedAt = DateTime.UtcNow,
+                    RemainingAttempts = maxAttempts - remainingAttempts
+                }
+            });
+        }
+        else
+        {
+            var attemptsLeft = Math.Max(0, maxAttempts - remainingAttempts);
+            var message = attemptsLeft > 0
+                ? $"Invalid OTP. {attemptsLeft} attempts remaining."
+                : "Maximum verification attempts exceeded. Please request a new OTP.";
+
+            return Results.BadRequest(new ApiResponse<VerifyOtpResponse>
+            {
+                Success = false,
+                Message = message,
+                Data = new VerifyOtpResponse
+                {
+                    IsValid = false,
+                    Message = message,
+                    RemainingAttempts = attemptsLeft
+                }
+            });
+        }
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(
+            detail: ex.Message,
+            statusCode: 500,
+            title: "Verification Error");
+    }
+})
+.WithName("VerifyOtp")
+.WithSummary("Verify OTP code");
+
+// Get OTP status endpoint
+otpGroup.MapGet("/status/{phoneNumber}", async (string phoneNumber, IOtpService otpService, IRateLimitService rateLimitService) =>
+{
+    try
+    {
+        var exists = await otpService.OtpExistsAsync(phoneNumber);
+        var expiration = await otpService.GetOtpExpirationAsync(phoneNumber);
+        var remainingAttempts = await rateLimitService.GetRemainingRequestsAsync(phoneNumber);
+
+        return Results.Ok(new ApiResponse<OtpStatusResponse>
         {
             Success = true,
-            Message = "OTP sent successfully",
-            Data = new SendOtpResponse
+            Message = exists ? "OTP status retrieved successfully" : "No active OTP found",
+            Data = new OtpStatusResponse
             {
-                RequestId = Guid.NewGuid().ToString(),
-                ExpiresAt = DateTime.UtcNow.AddMinutes(expirationMinutes),
-                PhoneNumber = MaskPhoneNumber(request.PhoneNumber)
+                Exists = exists,
+                ExpiresAt = expiration,
+                RemainingAttempts = remainingAttempts,
+                PhoneNumber = MaskPhoneNumber(phoneNumber)
             }
         });
     }
     catch (Exception ex)
     {
-        var payload = new ApiResponse<object>
-        {
-            Success = false,
-            Message = "Internal server error",
-            Errors = [ex.Message]
-        };
-        var jsonTypeInfo = GetJsonTypeInfo(typeof(ApiResponse<object>));
-        return Results.Json(payload, jsonTypeInfo, statusCode: 500);
+        return Results.Problem(
+            detail: ex.Message,
+            statusCode: 500,
+            title: "Status Retrieval Error");
     }
 })
-.WithName("SendOtp")
-.WithSummary("Send OTP via SMS");
+.WithName("GetOtpStatus")
+.WithSummary("Check OTP status for a phone number");
+
+// Clear OTP endpoint
+otpGroup.MapDelete("/{phoneNumber}", async (string phoneNumber, IOtpService otpService) =>
+{
+    try
+    {
+        await otpService.ClearOtpAsync(phoneNumber);
+
+        return Results.Ok(new ApiResponse<object>
+        {
+            Success = true,
+            Message = "OTP cleared successfully"
+        });
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(
+            detail: ex.Message,
+            statusCode: 500,
+            title: "OTP Clear Error");
+    }
+})
+.WithName("ClearOtp")
+.WithSummary("Clear OTP for a phone number");
 
 app.Run();
 
@@ -223,16 +395,9 @@ static string MaskPhoneNumber(string phoneNumber)
         return phoneNumber;
 
     var start = phoneNumber[..Math.Min(4, phoneNumber.Length)];
-    var end = phoneNumber.Length > 4 ? phoneNumber.Substring(phoneNumber.Length - 2) : "";
+    string phoneNumber1 = phoneNumber;
+    var end = phoneNumber.Length > 4 ? phoneNumber[(phoneNumber1.Length - 2)..] : "";
     var middle = new string('*', Math.Max(0, phoneNumber.Length - 6));
 
     return start + middle + end;
-}
-
-static JsonTypeInfo GetJsonTypeInfo(Type t)
-{
-    var info = AppJsonSerializerContext.Default?.GetTypeInfo(t);
-    if (info is null)
-        throw new InvalidOperationException($"Missing generated JsonTypeInfo for type '{t.FullName}'. Ensure AppJsonSerializerContext has a JsonSerializable attribute for the type.");
-    return info;
 }

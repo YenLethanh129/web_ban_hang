@@ -18,17 +18,19 @@ public class RateLimitService : IRateLimitService
     public RateLimitService(IDistributedCache cache, IConfiguration configuration)
     {
         _cache = cache;
-
-        // FIXED: Use consistent configuration approach with proper fallback
-        _maxRequestsPerHour = configuration.GetValue<int>("RateLimit:MaxRequestsPerHour", 5);
-        _maxRequestsPerDay = configuration.GetValue<int>("RateLimit:MaxRequestsPerDay", 20);
+        _maxRequestsPerHour = int.TryParse(Environment.GetEnvironmentVariable("RATE_LIMIT_MAX_REQUESTS_PER_HOUR"), out var hourly) 
+            ? hourly 
+            : configuration.GetValue<int>("RateLimit:MaxRequestsPerHour", 5);
+            
+        _maxRequestsPerDay = int.TryParse(Environment.GetEnvironmentVariable("RATE_LIMIT_MAX_REQUESTS_PER_DAY"), out var daily) 
+            ? daily 
+            : configuration.GetValue<int>("RateLimit:MaxRequestsPerDay", 20);
     }
 
     public async Task<bool> IsAllowedAsync(string phoneNumber)
     {
         var hourlyCount = await GetRequestCountAsync(phoneNumber, TimeSpan.FromHours(1));
         var dailyCount = await GetRequestCountAsync(phoneNumber, TimeSpan.FromDays(1));
-
         return hourlyCount < _maxRequestsPerHour && dailyCount < _maxRequestsPerDay;
     }
 
@@ -42,10 +44,8 @@ public class RateLimitService : IRateLimitService
     {
         var hourlyCount = await GetRequestCountAsync(phoneNumber, TimeSpan.FromHours(1));
         var dailyCount = await GetRequestCountAsync(phoneNumber, TimeSpan.FromDays(1));
-
         var remainingHourly = Math.Max(0, _maxRequestsPerHour - hourlyCount);
         var remainingDaily = Math.Max(0, _maxRequestsPerDay - dailyCount);
-
         return Math.Min(remainingHourly, remainingDaily);
     }
 
@@ -56,17 +56,14 @@ public class RateLimitService : IRateLimitService
         return string.IsNullOrEmpty(countStr) ? 0 : int.Parse(countStr);
     }
 
-    // FIXED: More efficient increment logic
     private async Task IncrementCountAsync(string phoneNumber, TimeSpan timeSpan)
     {
         var key = GetRateLimitKey(phoneNumber, timeSpan);
         var currentCount = await GetRequestCountAsync(phoneNumber, timeSpan);
-
         var options = new DistributedCacheEntryOptions
         {
             AbsoluteExpirationRelativeToNow = timeSpan
         };
-
         await _cache.SetStringAsync(key, (currentCount + 1).ToString(), options);
     }
 

@@ -1,31 +1,33 @@
-# http:
-#   middlewares:
-#     secureHeaders:
-#       headers:
-#         customRequestHeaders:
-#           X-Forwarded-Proto: "https"
-#         customResponseHeaders:
-#           X-Frame-Options: "SAMEORIGIN"
-#           X-Content-Type-Options: "nosniff"
-#           X-XSS-Protection: "1; mode=block"
-#           Referrer-Policy: "strict-origin-when-cross-origin"
-#           Strict-Transport-Security: "max-age=31536000; includeSubDomains"
-#         frameDeny: false
-#         contentTypeNosniff: true
-#         browserXssFilter: true
-#         sslRedirect: false
+http:
+  middlewares:
+    secureHeaders:
+      headers:
+        customRequestHeaders:
+          X-Forwarded-Proto: "https"
+        customResponseHeaders:
+          X-Frame-Options: "SAMEORIGIN"
+          X-Content-Type-Options: "nosniff"
+          X-XSS-Protection: "1; mode=block"
+          Referrer-Policy: "strict-origin-when-cross-origin"
+          Strict-Transport-Security: "max-age=31536000; includeSubDomains"
+        frameDeny: false
+        contentTypeNosniff: true
+        browserXssFilter: true
+        sslRedirect: false
 
-#     cloudflareRealIp:
-#       headers:
-#         customRequestHeaders:
-#           X-Forwarded-Proto: "https"
-#           X-Real-IP: "{{.Request.Header.CF-Connecting-IP}}"
-#           X-Forwarded-For: "{{.Request.Header.CF-Connecting-IP}}"
+    cloudflareRealIp:
+      headers:
+        customRequestHeaders:
+          X-Forwarded-Proto: "https"
+          X-Real-IP: "{{.Request.Header.CF-Connecting-IP}}"
+          X-Forwarded-For: "{{.Request.Header.CF-Connecting-IP}}"
 
-#     compressResponse:
-#       compress: {}
+    compressResponse:
+      compress: {}
 
-#     rateLimit:
-#       rateLimit:
-#         burst: 100
-#         average: 50
+    rateLimit:
+      rateLimit:
+        burst: 5
+        average: 2
+        sourceCriterion:
+          requestHeaderName: "X-Forwarded-For"
