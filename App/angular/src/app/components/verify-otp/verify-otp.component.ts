@@ -43,7 +43,7 @@ export class VerifyOtpComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    console.log('VerifyOTP Component initialized');
+    
     this.getPhoneNumber();
   }
 
@@ -53,23 +53,23 @@ export class VerifyOtpComponent implements OnInit, OnDestroy {
   }
 
   private getPhoneNumber(): void {
-    console.log('Getting phone number...');
+    
 
     // Lấy phone number từ router state (được truyền từ forgot-password component)
     const navigation = this.router.getCurrentNavigation();
     const state = navigation?.extras?.state || {};
-    console.log('Navigation state:', state);
+    
 
     // Fallback: nếu không có state, thử lấy từ history state (chỉ trong browser)
     if (!state['phoneNumber'] && isPlatformBrowser(this.platformId)) {
       const historyState = window.history.state;
-      console.log('History state:', historyState);
+      
       this.phoneNumber = historyState?.phoneNumber || '';
 
       // Thêm fallback từ localStorage
       if (!this.phoneNumber) {
         this.phoneNumber = localStorage.getItem('forgot_password_phone') || '';
-        console.log('Phone from localStorage:', this.phoneNumber);
+        
       }
     } else {
       this.phoneNumber = state['phoneNumber'] || '';
@@ -80,7 +80,7 @@ export class VerifyOtpComponent implements OnInit, OnDestroy {
       }
     }
 
-    console.log('Phone number retrieved:', this.phoneNumber);
+    
 
     // Nếu không có phone number, redirect về forgot-password
     if (!this.phoneNumber) {
@@ -287,7 +287,7 @@ export class VerifyOtpComponent implements OnInit, OnDestroy {
         })
         .subscribe({
           next: (response: any) => {
-            console.log('API Response:', response);
+            
             this.isLoading = false;
             this.successMessage = response.message || 'Xác thực thành công!';
 
@@ -295,7 +295,7 @@ export class VerifyOtpComponent implements OnInit, OnDestroy {
             if (response.new_password) {
               this.newPassword = response.new_password;
               this.otpVerificationSuccess = true; // Ẩn form OTP khi thành công
-              console.log('New password received:', this.newPassword);
+              
 
               // Bắt đầu countdown 10 giây
               this.startRedirectCountdown();
@@ -450,7 +450,7 @@ export class VerifyOtpComponent implements OnInit, OnDestroy {
     this.otpVerificationSuccess = true; // Ẩn form OTP trong test
     this.isLoading = false;
     this.errorMessage = '';
-    console.log('Test password display activated');
+    
   }
 
   // Method để reset về trạng thái ban đầu (để test)
@@ -463,6 +463,6 @@ export class VerifyOtpComponent implements OnInit, OnDestroy {
     this.hasAttemptedSubmit = false;
     this.redirectCountdown = 0;
     this.redirectSubscription?.unsubscribe();
-    console.log('Reset to initial state');
+    
   }
 }

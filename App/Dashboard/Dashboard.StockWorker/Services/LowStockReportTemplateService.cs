@@ -729,26 +729,22 @@ namespace Dashboard.StockWorker.Services
 
         private EmailConfiguration? ValidateEmailConfiguration()
         {
-            // Read from _email options and support both nested and flat smtp config
-            var smtpHost = _email.Smtp?.Host ?? _email.SmtpHost;
-            var smtpPort = _email.Smtp?.Port != 0 ? _email.Smtp!.Port : (_email.SmtpPort != 0 ? _email.SmtpPort : (int?)null);
-            var fromEmail = _email.FromEmail ?? _email.AlertsFromAddress;
+            var smtpHost = _email.Smtp.Host ?? _email.SmtpHost;
+            var smtpPort = _email.Smtp.Port;
+            var fromEmail = _email.FromEmail;
             var fromName = _email.FromName ?? "Hệ thống quản lý kho";
-            var username = _email.Smtp?.Username ?? _email.Username ?? fromEmail;
-            var password = _email.AppPassword ?? _email.Password ?? _email.Smtp?.Password;
-            var toEmails = _email.AlertRecipients ?? (_email.AlertsToAddress != null ? new[] { _email.AlertsToAddress } : null);
+            var username = _email.Smtp.Username ?? _email.Username ?? fromEmail;
+            var password = _email.Password ?? _email.Smtp.Password;
+            var toEmails = _email.AlertRecipients;
 
             var missingConfigs = new List<string>();
 
             if (string.IsNullOrEmpty(smtpHost))
                 missingConfigs.Add("Email:SmtpHost");
-            
-            if (!smtpPort.HasValue || smtpPort <= 0)
-                missingConfigs.Add("Email:SmtpPort");
-            
+
             if (string.IsNullOrEmpty(fromEmail))
                 missingConfigs.Add("Email:FromEmail");
-            
+
             if (toEmails == null || !toEmails.Any())
                 missingConfigs.Add("Email:AlertRecipients");
 
@@ -758,10 +754,11 @@ namespace Dashboard.StockWorker.Services
                 return null;
             }
 
+
             return new EmailConfiguration
             {
                 SmtpHost = smtpHost!,
-                SmtpPort = smtpPort!.Value,
+                SmtpPort = smtpPort,
                 FromEmail = fromEmail!,
                 FromName = fromName,
                 Username = username,

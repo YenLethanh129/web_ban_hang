@@ -300,26 +300,26 @@ INSERT INTO [dbo].[branch_expenses] ([branch_id], [expense_type], [amount], [sta
 GO
 
 -- Insert additional users first for more customers
-INSERT INTO [dbo].[users] ([employee_id], [is_active], [date_of_birth], [role_id], [phone_number], [fullname], [address], [password], [created_at], [last_modified]) VALUES
-(NULL, 1, '1990-03-15', 4, '0923456789', N'Nguyễn Thị F', N'111 Nguyễn Du, Quận 1, TP.HCM', 'hashed_password_8', GETDATE(), GETDATE()),
-(NULL, 1, '1985-07-20', 4, '0934567890', N'Trần Văn G', N'222 Lý Tự Trọng, Quận 1, TP.HCM', 'hashed_password_9', GETDATE(), GETDATE()),
-(NULL, 1, '1992-11-12', 4, '0945678901', N'Lê Thị H', N'333 Đồng Khởi, Quận 1, TP.HCM', 'hashed_password_10', GETDATE(), GETDATE()),
-(NULL, 1, '1987-08-25', 4, '0956789012', N'Phạm Văn I', N'444 Cống Quỳnh, Quận 1, TP.HCM', 'hashed_password_11', GETDATE(), GETDATE()),
-(1, 1, '1990-01-15', 1, '0901111111', N'Nguyễn Văn A', N'123 Nguyễn Huệ, Quận 1, TP.HCM', 'hashed_password_1', GETDATE(), GETDATE()),
-(2, 1, '1992-05-20', 3, '0901111112', N'Trần Thị B', N'456 Lê Lợi, Quận 1, TP.HCM', 'hashed_password_2', GETDATE(), GETDATE()),
-(NULL, 1, '1995-03-10', 4, '0912345678', N'Khách hàng VIP 1', N'789 Hai Bà Trưng, Quận 3, TP.HCM', 'hashed_password_3', GETDATE(), GETDATE()),
-(NULL, 1, '1988-12-25', 4, '0912345679', N'Khách hàng VIP 2', N'321 Pasteur, Quận 1, TP.HCM', 'hashed_password_4', GETDATE(), GETDATE()),
-(3, 1, '1993-07-18', 3, '0901111113', N'Lê Văn C', N'654 Nguyễn Thị Minh Khai, Quận 3, TP.HCM', 'hashed_password_5', GETDATE(), GETDATE()),
-(NULL, 1, '1991-09-05', 4, '0912345680', N'Phạm Thị D', N'987 Võ Văn Tần, Quận 3, TP.HCM', 'hashed_password_6', GETDATE(), GETDATE()),
-(4, 1, '1994-04-12', 3, '0901111114', N'Hoàng Văn E', N'147 Cách Mạng Tháng 8, Quận 10, TP.HCM', 'hashed_password_7', GETDATE(), GETDATE()),
-(NULL, 1, '1987-04-12', 4, '0945678901', N'Phan Thị P', N'666 Trần Hưng Đạo, Quận 1, TP.HCM', 'hashed_password_13', GETDATE(), GETDATE()),
-(NULL, 1, '1993-11-08', 4, '0956789012', N'Đặng Văn Q', N'777 Nguyễn Văn Cừ, Quận 5, TP.HCM', 'hashed_password_14', GETDATE(), GETDATE()),
-(NULL, 1, '1990-02-28', 4, '0967890123', N'Lý Thị R', N'888 Lê Lợi, Quận 1, TP.HCM', 'hashed_password_15', GETDATE(), GETDATE()),
-(6, 1, '1991-06-15', 2, '0901111116', N'Võ Thị K', N'111 Lê Văn Sỹ, Quận 3, TP.HCM', 'hashed_password_8', GETDATE(), GETDATE()),
-(7, 1, '1994-07-01', 3, '0901111117', N'Đỗ Văn L', N'222 Cách Mạng Tháng 8, Quận 10, TP.HCM', 'hashed_password_9', GETDATE(), GETDATE()),
-(8, 1, '1996-08-10', 3, '0901111118', N'Bùi Thị M', N'333 Nguyễn Trãi, Quận 5, TP.HCM', 'hashed_password_10', GETDATE(), GETDATE()),
-(9, 1, '1992-09-05', 3, '0901111119', N'Cao Văn N', N'444 Võ Văn Tần, Quận 3, TP.HCM', 'hashed_password_11', GETDATE(), GETDATE()),
-(10, 1, '1989-10-01', 3, '0901111120', N'Đinh Thị O', N'555 Hoàng Hoa Thám, Quận Tân Bình, TP.HCM', 'hashed_password_12', GETDATE(), GETDATE());
+INSERT INTO [dbo].[users] ([employee_id], [is_active], [date_of_birth], [role_id], [phone_number], [fullname], [password], [created_at], [last_modified]) VALUES
+(NULL, 1, '1990-03-15', 4, '0923456789', N'Nguyễn Thị F', 'hashed_password_8', GETDATE(), GETDATE()),
+(NULL, 1, '1985-07-20', 4, '0934567890', N'Trần Văn G', 'hashed_password_9', GETDATE(), GETDATE()),
+(NULL, 1, '1992-11-12', 4, '0945678901', N'Lê Thị H', 'hashed_password_10', GETDATE(), GETDATE()),
+(NULL, 1, '1987-08-25', 4, '0956789012', N'Phạm Văn I', 'hashed_password_11', GETDATE(), GETDATE()),
+(1, 1, '1990-01-15', 1, '0901111111', N'Nguyễn Văn A', 'hashed_password_1', GETDATE(), GETDATE()),
+(2, 1, '1992-05-20', 3, '0901111112', N'Trần Thị B', 'hashed_password_2', GETDATE(), GETDATE()),
+(NULL, 1, '1995-03-10', 4, '0912345678', N'Khách hàng VIP 1', 'hashed_password_3', GETDATE(), GETDATE()),
+(NULL, 1, '1988-12-25', 4, '0912345679', N'Khách hàng VIP 2', 'hashed_password_4', GETDATE(), GETDATE()),
+(3, 1, '1993-07-18', 3, '0901111113', N'Lê Văn C', 'hashed_password_5', GETDATE(), GETDATE()),
+(NULL, 1, '1991-09-05', 4, '0912345680', N'Phạm Thị D', 'hashed_password_6', GETDATE(), GETDATE()),
+(4, 1, '1994-04-12', 3, '0901111114', N'Hoàng Văn E', 'hashed_password_7', GETDATE(), GETDATE()),
+(NULL, 1, '1987-04-12', 4, '0945678901', N'Phan Thị P', 'hashed_password_13', GETDATE(), GETDATE()),
+(NULL, 1, '1993-11-08', 4, '0956789012', N'Đặng Văn Q', 'hashed_password_14', GETDATE(), GETDATE()),
+(NULL, 1, '1990-02-28', 4, '0967890123', N'Lý Thị R', 'hashed_password_15', GETDATE(), GETDATE()),
+(6, 1, '1991-06-15', 2, '0901111116', N'Võ Thị K', 'hashed_password_8', GETDATE(), GETDATE()),
+(7, 1, '1994-07-01', 3, '0901111117', N'Đỗ Văn L', 'hashed_password_9', GETDATE(), GETDATE()),
+(8, 1, '1996-08-10', 3, '0901111118', N'Bùi Thị M', 'hashed_password_10', GETDATE(), GETDATE()),
+(9, 1, '1992-09-05', 3, '0901111119', N'Cao Văn N', 'hashed_password_11', GETDATE(), GETDATE()),
+(10, 1, '1989-10-01', 3, '0901111120', N'Đinh Thị O', 'hashed_password_12', GETDATE(), GETDATE());
 GO
 
 -- Insert into customers (uses manual id to match user_id)
@@ -854,19 +854,19 @@ GO
 
 -- Insert into products
 INSERT INTO [dbo].[products] ([price], [category_id], [tax_id], [description], [name], [thumbnail], [created_at], [last_modified]) VALUES
-(45000, 1, 1, N'Cà phê hạt đậm đà, hương vị mạnh mẽ', N'Cà phê đen', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
-(45000, 1, 1, N'Cà phê hạt đậm đà, hương vị mạnh mẽ', N'Cà phê sữa', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
-(45000, 1, 1, N'Cà phê hạt đậm đà, hương vị mạnh mẽ', N'Bạc xỉu', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
-(45000, 1, 1, N'Cà phê hạt đậm đà, hương vị mạnh mẽ', N'Cà phê trứng', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
-(45000, 1, 1, N'Cà phê hạt đậm đà, hương vị mạnh mẽ', N'Cà phê dừa', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
-(45000, 1, 1, N'Cà phê hạt đậm đà, hương vị mạnh mẽ', N'Latte', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
-(45000, 1, 1, N'Cà phê hạt đậm đà, hương vị mạnh mẽ', N'Capucchino', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(45000, 1, 1, N'Cà phê hạt đậm đà, hương vị mạnh mẽ', N'Cà phê đen', 'https://media.istockphoto.com/id/1143290013/photo/coffee-cup-isolated.jpg?s=612x612&w=0&k=20&c=fEsmHH_kDh-vPxukZuaMs54D0kg2BTEDgS8lnWu8bBs=', GETDATE(), GETDATE()),
+(45000, 1, 1, N'Cà phê hạt đậm đà, hương vị mạnh mẽ', N'Cà phê sữa', 'https://media.istockphoto.com/id/1143290013/photo/coffee-cup-isolated.jpg?s=612x612&w=0&k=20&c=fEsmHH_kDh-vPxukZuaMs54D0kg2BTEDgS8lnWu8bBs=', GETDATE(), GETDATE()),
+(45000, 1, 1, N'Cà phê hạt đậm đà, hương vị mạnh mẽ', N'Bạc xỉu', 'https://media.istockphoto.com/id/1143290013/photo/coffee-cup-isolated.jpg?s=612x612&w=0&k=20&c=fEsmHH_kDh-vPxukZuaMs54D0kg2BTEDgS8lnWu8bBs=', GETDATE(), GETDATE()),
+(45000, 1, 1, N'Cà phê hạt đậm đà, hương vị mạnh mẽ', N'Cà phê trứng', 'https://i.guim.co.uk/img/media/45f1be3d8992f27c63bd0a6ea604c9febe073e44/0_326_5568_3341/master/5568.jpg?width=1200&height=1200&quality=85&auto=format&fit=crop&s=77a610a2e384fb6a905c5938b8268055', GETDATE(), GETDATE()),
+(45000, 1, 1, N'Cà phê hạt đậm đà, hương vị mạnh mẽ', N'Cà phê dừa', 'https://i.guim.co.uk/img/media/45f1be3d8992f27c63bd0a6ea604c9febe073e44/0_326_5568_3341/master/5568.jpg?width=1200&height=1200&quality=85&auto=format&fit=crop&s=77a610a2e384fb6a905c5938b8268055', GETDATE(), GETDATE()),
+(45000, 1, 1, N'Cà phê hạt đậm đà, hương vị mạnh mẽ', N'Latte', 'https://i.guim.co.uk/img/media/45f1be3d8992f27c63bd0a6ea604c9febe073e44/0_326_5568_3341/master/5568.jpg?width=1200&height=1200&quality=85&auto=format&fit=crop&s=77a610a2e384fb6a905c5938b8268055', GETDATE(), GETDATE()),
+(45000, 1, 1, N'Cà phê hạt đậm đà, hương vị mạnh mẽ', N'Capucchino', 'https://i.guim.co.uk/img/media/45f1be3d8992f27c63bd0a6ea604c9febe073e44/0_326_5568_3341/master/5568.jpg?width=1200&height=1200&quality=85&auto=format&fit=crop&s=77a610a2e384fb6a905c5938b8268055', GETDATE(), GETDATE()),
 (45000, 1, 1, N'Cà phê hạt đậm đà, hương vị mạnh mẽ', N'Cà phê Cacao', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
-(45000, 1, 1, N'Cà phê hạt đậm đà, hương vị mạnh mẽ', N'Espresso', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(45000, 1, 1, N'Cà phê hạt đậm đà, hương vị mạnh mẽ', N'Espresso', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRDt7rtSR59pIBmBv1iuODay6lDie_PJGlSsg&s', GETDATE(), GETDATE()),
 (55000, 1, 1, N'Cà phê cappuccino với lớp foam mịn màng', N'Cappuccino', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
-(25000, 2, 1, N'Trà đào tươi mát, vị ngọt dịu, hương thơm đặc trưng', N'Trà đào', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
-(25000, 2, 1, N'Trà vải thanh mát, vị ngọt tự nhiên, hương vải đặc trưng', N'Trà vải', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
-(25000, 2, 1, N'Trà dâu chua ngọt nhẹ nhàng, hương vị trái cây tươi mới', N'Trà dâu', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
+(25000, 2, 1, N'Trà đào tươi mát, vị ngọt dịu, hương thơm đặc trưng', N'Trà đào', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:https://theteahouse.com.vn/wp-content/uploads/2021/08/tra-dao-tth-1200x1200.png&s', GETDATE(), GETDATE()),
+(25000, 2, 1, N'Trà vải thanh mát, vị ngọt tự nhiên, hương vải đặc trưng', N'Trà vải', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:https://theteahouse.com.vn/wp-content/uploads/2021/08/tra-dao-tth-1200x1200.png&s', GETDATE(), GETDATE()),
+(25000, 2, 1, N'Trà dâu chua ngọt nhẹ nhàng, hương vị trái cây tươi mới', N'Trà dâu', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:https://theteahouse.com.vn/wp-content/uploads/2021/08/tra-dao-tth-1200x1200.png&s', GETDATE(), GETDATE()),
 (25000, 2, 1, N'Trà đào kết hợp cam sả, hương thơm dễ chịu, vị chua ngọt hòa quyện', N'Trà đào cam sả', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
 (20000, 2, 1, N'Trà Lipton truyền thống, kết hợp hương chanh tươi mát', N'Lipton chanh', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),
 (27000, 2, 1, N'Trà mãn cầu thơm ngon, vị chua ngọt tự nhiên, giải nhiệt tốt', N'Trà Mãn Cầu', 'https://media.istockphoto.com/id/1400194993/photo/cappuccino-art.jpg?s=612x612&w=0&k=20&c=_nYOcyQ15cYEeUYgUzkC5qG946nkCwU06NiWKt1s8SE=', GETDATE(), GETDATE()),

@@ -10,7 +10,7 @@ export class LoginGuard {
   constructor(private router: Router, private userService: UserService) {}
 
   canActivate(): Observable<boolean> {
-    console.log('🔍 LoginGuard: canActivate called');
+    
 
     // Kiểm tra sync trước
     const isAuthenticated = this.userService.isAuthenticated();
@@ -25,7 +25,7 @@ export class LoginGuard {
 
     // Nếu đã authenticated và có user info, redirect ngay
     if (isAuthenticated && currentUser) {
-      console.log('� LoginGuard: User đã đăng nhập, redirect to home');
+      
       this.router.navigate(['/home']);
       return of(false);
     }
@@ -33,10 +33,10 @@ export class LoginGuard {
     // Nếu chưa authenticated hoặc chưa có user info, kiểm tra với server
     return this.userService.checkAuthenticationStatus().pipe(
       map((authStatus) => {
-        console.log('🔍 LoginGuard: Server auth check result:', authStatus);
+        
 
         if (authStatus) {
-          console.log('🔄 LoginGuard: Server confirmed auth, redirect to home');
+          
           this.router.navigate(['/home']);
           return false;
         } else {

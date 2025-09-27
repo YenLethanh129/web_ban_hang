@@ -19,7 +19,7 @@ export class GuestGuard {
       return of(true);
     }
 
-    console.log('🔍 GuestGuard: canActivate called');
+    
 
     // Kiểm tra sync trước
     const isAuthenticated = this.userService.isAuthenticated();
@@ -34,7 +34,7 @@ export class GuestGuard {
 
     // Nếu đã authenticated và có user info, redirect ngay
     if (isAuthenticated && currentUser) {
-      console.log('🔄 GuestGuard: User đã đăng nhập, redirect to home');
+      
       this.router.navigate(['/home']);
       return of(false);
     }
@@ -42,10 +42,10 @@ export class GuestGuard {
     // Nếu chưa authenticated hoặc chưa có user info, kiểm tra với server
     return this.userService.checkAuthenticationStatus().pipe(
       map((authStatus) => {
-        console.log('🔍 GuestGuard: Server auth check result:', authStatus);
+        
 
         if (authStatus) {
-          console.log('🔄 GuestGuard: Server confirmed auth, redirect to home');
+          
           this.router.navigate(['/home']);
           return false;
         } else {

@@ -1,16 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
-using System.Net.Mail;
 using System.Text;
 using System.Threading.Tasks;
 using Dashboard.StockWorker.Models;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using Dashboard.Common.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using MimeKit;
+using MailKit.Net.Smtp;
+using MailKit.Security;
 
 namespace Dashboard.StockWorker.Services
 {
@@ -25,7 +24,7 @@ namespace Dashboard.StockWorker.Services
         public NotificationService(IOptionsMonitor<EmailOptions> emailOptionsMonitor, ILogger<NotificationService>? logger = null)
         {
             _emailOptionsMonitor = emailOptionsMonitor ?? throw new ArgumentNullException(nameof(emailOptionsMonitor));
-            _logger = logger;
+            _logger = logger ?? throw new ArgumentNullException(nameof(emailOptionsMonitor));
 
             var email = _emailOptionsMonitor.CurrentValue;
             _usePickup = email.UsePickupDirectory;
@@ -55,29 +54,24 @@ namespace Dashboard.StockWorker.Services
                 return;
 
             var subject = $"Stock alerts ({alerts.Count}) - {DateTime.UtcNow:yyyy-MM-dd}";
-
             var sb = new StringBuilder();
-            sb.AppendLine("<h2>Stock Alerts</h2>");
-            sb.AppendLine("<ul>");
+            sb.AppendLine("<h2>Stock Alerts</h2><ul>");
             foreach (var a in alerts)
             {
                 sb.AppendLine($"<li><strong>{a.IngredientName}</strong> - Current: {a.CurrentStock} / Safety: {a.SafetyStock} - Branch: {a.BranchName}</li>");
             }
             sb.AppendLine("</ul>");
-
             var html = sb.ToString();
 
             await SendEmailAsync(GetFromAddress(), GetToAddress(), subject, html);
         }
 
-                public async Task SendLowStockEmailAsync(StockAlert alert)
+        public async Task SendLowStockEmailAsync(StockAlert alert)
         {
             if (alert == null) return;
-
             var templatePath = Path.Combine(AppContext.BaseDirectory, "Templates", "low-stock.html");
             var html = File.Exists(templatePath) ? await File.ReadAllTextAsync(templatePath) : $"<h2>Low stock alert</h2><p>{alert.IngredientName}</p>";
             var subject = $"Low stock: {alert.IngredientName} - {alert.BranchName}";
-
             await SendEmailAsync(GetFromAddress(), GetToAddress(), subject, html);
         }
 
@@ -87,7 +81,6 @@ namespace Dashboard.StockWorker.Services
             var templatePath = Path.Combine(AppContext.BaseDirectory, "Templates", "low-stock.html");
             var html = File.Exists(templatePath) ? await File.ReadAllTextAsync(templatePath) : $"<h2>Critical stock alert</h2><p>{alert.IngredientName}</p>";
             var subject = $"CRITICAL stock: {alert.IngredientName} - {alert.BranchName}";
-
             await SendEmailAsync(GetFromAddress(), GetToAddress(), subject, html);
         }
 
@@ -97,62 +90,24 @@ namespace Dashboard.StockWorker.Services
             var templatePath = Path.Combine(AppContext.BaseDirectory, "Templates", "low-stock.html");
             var html = File.Exists(templatePath) ? await File.ReadAllTextAsync(templatePath) : $"<h2>Out of stock alert</h2><p>{alert.IngredientName}</p>";
             var subject = $"OUT OF STOCK: {alert.IngredientName} - {alert.BranchName}";
-
             await SendEmailAsync(GetFromAddress(), GetToAddress(), subject, html);
         }
 
         private string GetFromAddress()
         {
             var email = _emailOptionsMonitor.CurrentValue;
-            return email.AlertsFromAddress ?? email.FromEmail ?? "noreply@example.com";
+            return string.IsNullOrWhiteSpace(email.FromEmail) ? "noreply@kythuat.vn" : email.FromEmail;
         }
 
         private string GetToAddress()
         {
             var email = _emailOptionsMonitor.CurrentValue;
-            // Prefer AlertsToAddress (single), fallback to AlertRecipients array if present
-            if (!string.IsNullOrWhiteSpace(email.AlertsToAddress))
-                return email.AlertsToAddress!;
             if (email.AlertRecipients != null && email.AlertRecipients.Length > 0)
                 return string.Join(",", email.AlertRecipients);
             return "admin@example.com";
         }
 
-        private async Task<string> BuildHtmlFromTemplateAsync(string templatePath, StockAlert alert)
-        {
-            string template = null!;
-            try
-            {
-                if (File.Exists(templatePath))
-                {
-                    template = await File.ReadAllTextAsync(templatePath);
-                }
-                else
-                {
-                    template = "<h2>Low stock alert</h2><p>Ingredient: {{IngredientName}}</p><p>Branch: {{BranchName}}</p><p>Current stock: {{CurrentStock}}</p><p>Safety stock: {{SafetyStock}}</p><p>Date: {{Date}}</p>";
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger?.LogWarning(ex, "Could not read template {path}", templatePath);
-                template = "<h2>Low stock alert</h2><p>Ingredient: {{IngredientName}}</p><p>Branch: {{BranchName}}</p><p>Current stock: {{CurrentStock}}</p><p>Safety stock: {{SafetyStock}}</p><p>Date: {{Date}}</p>";
-            }
-
-            template = template.Replace("{{IngredientName}}", WebUtility.HtmlEncode(alert.IngredientName ?? string.Empty))
-                .Replace("{{BranchName}}", WebUtility.HtmlEncode(alert.BranchName ?? string.Empty))
-                .Replace("{{CurrentStock}}", alert.CurrentStock.ToString())
-                .Replace("{{SafetyStock}}", alert.SafetyStock.ToString())
-                .Replace("{{Date}}", DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"));
-
-            return template;
-        }
-
-        private async Task SendEmailAsync(string from, string to, string subject, string htmlBody)
-        {
-            await SendEmailAsync(from, to, subject, htmlBody, null);
-        }
-
-        private async Task SendEmailAsync(string from, string to, string subject, string htmlBody, Dictionary<string, byte[]>? attachments = null)
+        private async Task SendEmailAsync(string from, string toCsv, string subject, string htmlBody, Dictionary<string, byte[]>? attachments = null)
         {
             var emailCfg = _emailOptionsMonitor.CurrentValue;
 
@@ -166,7 +121,7 @@ namespace Dashboard.StockWorker.Services
                     var sb = new StringBuilder();
                     sb.AppendLine($"<!-- Subject: {subject} -->");
                     sb.AppendLine($"<!-- From: {from} -->");
-                    sb.AppendLine($"<!-- To: {to} -->");
+                    sb.AppendLine($"<!-- To: {toCsv} -->");
                     sb.AppendLine(htmlBody);
                     await File.WriteAllTextAsync(path, sb.ToString(), Encoding.UTF8);
                     _logger?.LogInformation("Dry-run email written to {Path}", path);
@@ -185,51 +140,89 @@ namespace Dashboard.StockWorker.Services
                 var sb = new StringBuilder();
                 sb.AppendLine($"<!-- Subject: {subject} -->");
                 sb.AppendLine($"<!-- From: {from} -->");
-                sb.AppendLine($"<!-- To: {to} -->");
+                sb.AppendLine($"<!-- To: {toCsv} -->");
                 sb.AppendLine(htmlBody);
                 await File.WriteAllTextAsync(path, sb.ToString(), Encoding.UTF8);
-                _logger?.LogInformation("Wrote pickup email and {count} attachments to {dir}", attachments?.Count ?? 0, _pickupDirectory);
+                _logger?.LogInformation("Wrote pickup email to {dir}", _pickupDirectory);
                 return;
             }
 
+            // Build MimeMessage
+            var message = new MimeMessage();
             try
             {
-                using var msg = new MailMessage(from, to, subject, htmlBody) { IsBodyHtml = true };
+                message.From.Add(MailboxAddress.Parse(from));
+            }
+            catch
+            {
+                message.From.Add(new MailboxAddress("", from));
+            }
 
-                if (attachments != null)
+            foreach (var addr in toCsv.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                try { message.To.Add(MailboxAddress.Parse(addr.Trim())); }
+                catch { message.To.Add(new MailboxAddress("", addr.Trim())); }
+            }
+
+            message.Subject = subject;
+
+            var bodyBuilder = new BodyBuilder { HtmlBody = htmlBody };
+
+            if (attachments != null)
+            {
+                foreach (var kv in attachments)
                 {
-                    foreach (var kv in attachments)
+                    bodyBuilder.Attachments.Add(kv.Key, kv.Value);
+                }
+            }
+
+            message.Body = bodyBuilder.ToMessageBody();
+
+            // Determine SMTP config (prefer Smtp nested)
+            var smtpHost = emailCfg.Smtp?.Host ?? emailCfg.SmtpHost;
+            var smtpPort = emailCfg.Smtp?.Port ?? emailCfg.SmtpPort;
+            var enableSsl = emailCfg.Smtp?.EnableSsl ?? true;
+            var username = emailCfg.Smtp?.Username ?? emailCfg.Username;
+            // prefer AppPassword then Password
+            var password = !string.IsNullOrEmpty(emailCfg.AppPassword) ? emailCfg.AppPassword : (emailCfg.Smtp?.Password ?? emailCfg.Password);
+
+            // Redact for logs
+            string Redact(string v) => string.IsNullOrEmpty(v) ? "<empty>" : (v.Length > 4 ? v.Substring(0, 2) + "..." + v.Substring(v.Length - 2) : "****");
+
+            _logger!.LogDebug("SMTP connect {Host}:{Port} user={User}", smtpHost, smtpPort, Redact(username));
+
+            // Send using MailKit
+            try
+            {
+                using var client = new MailKit.Net.Smtp.SmtpClient();
+
+                // Accept all certificates? only for local/dev troubleshooting — don't use in production without thought.
+                // client.ServerCertificateValidationCallback = (s, c, h, e) => true;
+
+                var socketOptions = enableSsl ? SecureSocketOptions.StartTls : SecureSocketOptions.Auto;
+                await client.ConnectAsync(smtpHost ?? "localhost", smtpPort == 0 ? 25 : smtpPort, socketOptions);
+
+                if (!string.IsNullOrWhiteSpace(username))
+                {
+                    try
                     {
-                        var ms = new MemoryStream(kv.Value);
-                        var attach = new Attachment(ms, kv.Key);
-                        msg.Attachments.Add(attach);
+                        await client.AuthenticateAsync(username, password ?? string.Empty);
+                    }
+                    catch (MailKit.Security.AuthenticationException aex)
+                    {
+                        _logger!.LogError(aex, "SMTP Authentication failed. user={UserMasked}", Redact(username));
+                        throw; // rethrow for caller to handle/log
                     }
                 }
 
-                // Resolve SMTP settings from options
-                var smtpHost = emailCfg.Smtp?.Host ?? emailCfg.SmtpHost;
-                var smtpPort = emailCfg.Smtp?.Port ?? emailCfg.SmtpPort;
-                var enableSsl = emailCfg.Smtp?.EnableSsl ?? false;
-                var user = emailCfg.Smtp?.Username ?? emailCfg.Username;
-                var pass = emailCfg.Smtp?.Password ?? emailCfg.AppPassword ?? emailCfg.Password;
+                await client.SendAsync(message);
+                await client.DisconnectAsync(true);
 
-                using var smtp = new SmtpClient(smtpHost ?? "localhost", smtpPort == 0 ? 25 : smtpPort)
-                {
-                    EnableSsl = enableSsl
-                };
-
-                if (!string.IsNullOrWhiteSpace(user))
-                {
-                    smtp.Credentials = new NetworkCredential(user, pass);
-                }
-
-                // Send synchronously in Task.Run to avoid blocking threads
-                await Task.Run(() => smtp.Send(msg));
-                _logger?.LogInformation("Sent email to {to} via SMTP host {host}:{port}", to, smtpHost, smtpPort);
+                _logger!.LogInformation("Sent email to {To} via SMTP {Host}:{Port}", toCsv, smtpHost, smtpPort);
             }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, "Failed to send email {subject} to {to}", subject, to);
+                _logger!.LogError(ex, "Failed to send mail to {To}", toCsv);
                 throw;
             }
         }

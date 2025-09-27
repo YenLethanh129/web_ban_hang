@@ -11,7 +11,7 @@
     + Dưới đây là một ví dụ đơn giản về cách hàm này có thể được sử dụng:
         this.registerService.register(someRegisterDTO).subscribe(
             response => {
-                console.log('Đăng ký thành công:', response);
+                
             },
             error => {
                 console.error('Đăng ký thất bại:', error);

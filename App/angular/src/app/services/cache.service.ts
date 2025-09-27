@@ -48,7 +48,7 @@ export class CacheService {
     // Use setTimeout(0) to ensure it runs after constructor completes
     setTimeout(() => {
       this.loadFromLocalStorage();
-      console.log('💾 CacheService initialized and loaded from localStorage');
+      
     }, 0);
   }
 

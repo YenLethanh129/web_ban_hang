@@ -1,4 +1,6 @@
 ﻿using Dashboard.Common.Constants;
+using Dashboard.Winform.Attributes;
+using Dashboard.Winform.Forms.BaseFrm;
 using Dashboard.Winform.Presenters.IngredientPresenters;
 using Dashboard.Winform.ViewModels;
 using System;
@@ -10,7 +12,9 @@ using System.Xml.Linq;
 
 namespace Dashboard.Winform.Forms
 {
-    public partial class FrmIngredientDetails : Form
+    [RequireRole("ADMIN")]
+    [RequirePermission("PRODUCT_UPDATE")]
+    public partial class FrmIngredientDetails : FrmBaseAuthForm
     {
         private readonly IIngredientDetailPresenter _presenter;
         private readonly IngredientDetailViewModel _viewModel;

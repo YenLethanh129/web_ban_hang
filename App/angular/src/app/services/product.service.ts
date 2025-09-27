@@ -43,12 +43,12 @@ export class ProductService {
     // Check cache first
     const cachedProducts = this.cacheService.getProducts();
     if (cachedProducts.length > 0 && this.allProductsLoaded) {
-      console.log(`📦 Using cached products: ${cachedProducts.length} items`);
+      
       return of(cachedProducts);
     }
 
     // Fetch all products from server (try different strategies)
-    console.log('🌐 Fetching all products from API...');
+    
 
     // First try with high limit
     const params = new HttpParams().set('page', '1').set('limit', '1000');
@@ -76,7 +76,7 @@ export class ProductService {
       return; // Already loaded
     }
 
-    console.log('🚀 Loading all products in background for complete search...');
+    
 
     // First, try to get total count and all products in one call
     const params = new HttpParams().set('page', '1').set('limit', '1000');
@@ -179,7 +179,7 @@ export class ProductService {
             loadBatch(); // Load next batch
           } else {
             // Finished loading all products
-            console.log(`✅ Batch loaded ${allProducts.length} products total`);
+            
             this.cacheService.setProducts(allProducts);
             this.allProductsLoaded = true;
           }
@@ -263,13 +263,13 @@ export class ProductService {
     const cachedProducts = this.cacheService.getProducts();
 
     if (cachedProducts.length > 0) {
-      console.log(`✅ Found ${cachedProducts.length} cached products`);
+      
       this.allProductsLoaded = true;
       return;
     }
 
     // If no cache, load all products in background
-    console.log('🚀 Initializing product cache with all products...');
+    
     this.loadAllProductsInBackground();
   }
 

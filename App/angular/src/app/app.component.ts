@@ -32,20 +32,20 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   private async initializeApp() {
     try {
-      console.log('🚀 Starting app initialization...');
+      
 
       // Initialize core data
       const result = await this.dataLoadingService.initializeAppData();
 
-      console.log('✅ App initialization completed:', result);
+      
 
       // Check connectivity and adjust caching strategy
       this.dataLoadingService.checkConnectivityAndCache().subscribe({
         next: (isOnline) => {
           if (isOnline) {
-            console.log('📶 App is online - full functionality available');
+            
           } else {
-            console.log('📵 App is offline - using cached data');
+            
           }
         },
         error: (error) => {

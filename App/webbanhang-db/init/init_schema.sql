@@ -338,7 +338,6 @@ CREATE TABLE [dbo].[users] (
     [role_id] bigint NOT NULL,
     [phone_number] varchar(20) NOT NULL,
     [fullname] nvarchar(100) COLLATE Vietnamese_CI_AS,
-    [address] nvarchar(200) COLLATE Vietnamese_CI_AS,
     [password] varchar(200) NOT NULL,
     [created_at] datetime2(6) NOT NULL DEFAULT GETDATE(),
     [last_modified] datetime2(6) NOT NULL DEFAULT GETDATE(),

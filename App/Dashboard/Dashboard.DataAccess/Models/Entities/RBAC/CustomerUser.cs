@@ -36,10 +36,6 @@ public partial class CustomerUser : BaseAuditableEntity
     [StringLength(100)]
     public string? Fullname { get; set; }
 
-    [Column("address")]
-    [StringLength(200)]
-    public string? Address { get; set; }
-
     [Column("password")]
     [StringLength(200)]
     [Unicode(false)]

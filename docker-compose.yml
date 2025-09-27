@@ -12,114 +12,92 @@ networks:
 
 
 services:
-  # 
-  cloudflared:
-    image: cloudflare/cloudflared:1767-80b1634515ba
-    container_name: cloudflared
-    restart: unless-stopped
-    environment:
-      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
-    depends_on:
-      - traefik
-    networks:
-      - app-network
-    volumes:
-      - ./App/cloudflare/data/cert.pem:${TUNNEL_ORIGIN_CERT}
-      - ./App/cloudflare/data/${TUNNEL_ID}.json:/etc/cloudflared/${TUNNEL_ID}.json:ro
-      - ./App/cloudflare/config/config.yml:/etc/cloudflared/config.yml:ro
-    command: tunnel run  
-    logging: *default-logging
+#   cloudflared:
+#     build:
+#       context: ./App/cloudflare
+#       dockerfile: Dockerfile
+#     container_name: cloudflared
+#     restart: unless-stopped
+#     env_file:
+#       - ./environments/cloudflared.env
+#     depends_on:
+#       - traefik
+#     networks:
+#       - app-network
+#     volumes:
+#       - ./App/cloudflare/data/cert.pem:/etc/cloudflare/certs/cert.pem:ro
+#       - ./App/cloudflare/data/${TUNNEL_ID}.json:/etc/cloudflared/${TUNNEL_ID}.json:ro
+#       - ./App/cloudflare/config/config.yml:/etc/cloudflared/config.yml.template:ro
+#     command: tunnel run
+#     logging: *default-logging
 
   traefik:
-    image: traefik:v3.5.2
-    container_name: traefik
-    restart: unless-stopped
-    command:
-      - "--log.level=INFO"
-      - "--api.insecure=true"
-      - "--api.dashboard=true"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--providers.file.directory=/etc/traefik"
-      - "--providers.file.watch=true"
-
-      - "--certificatesresolvers.letsencrypt.acme.dnschallenge=true"
-      - "--certificatesresolvers.letsencrypt.acme.dnschallenge.provider=cloudflare"
-      - "--certificatesresolvers.letsencrypt.acme.dnschallenge.resolver=1.1.1.1:53,1.0.0.1:53"
-      - "--certificatesResolvers.letsencrypt.acme.dnschallenge.delayBeforeCheck=20"
-
-      - "--certificatesresolvers.letsencrypt.acme.email=${CF_API_EMAIL}"
-      - "--certificatesresolvers.letsencrypt.acme.storage=/var/traefik/certs/acme.json"
-      - "--certificatesresolvers.letsencrypt.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
-
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
-      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
-
-      - "--entrypoints.websecure.http.tls=true"
-      - "--entrypoints.websecure.http.tls.certresolver=letsencrypt"
-      - "--entrypoints.websecure.http.tls.domains[0].main=kythuat.vn"
-      - "--entrypoints.websecure.http.tls.domains[0].sans=*.kythuat.vn"
-
-      # - "--metrics.prometheus=true"
-      # - "--metrics.prometheus.addEntryPointsLabels=true"
-      # - "--metrics.prometheus.addServicesLabels=true"
+    build:
+      context: ./App/ReverseProxy
+      dockerfile: Dockerfile
+    container_name: traefik-tunnel
+    restart: ${RESTART_POLICY}
     ports:
       - "80:80"
       - "443:443"
       - "8080:8080"
-    environment:
-      - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN}
-      - CF_API_EMAIL=${CF_API_EMAIL}
+    env_file:
+      - ./environments/traefik.env
     volumes:
-      - ./App/ReverseProxy/config/traefik.yml:/etc/traefik/traefik.yml:ro
-      - ./App/ReverseProxy/config/middlewares.yml:/etc/traefik/middlewares.yml:ro
-      - ./App/ReverseProxy/data/traefik/certs:/var/traefik/certs:rw 
-      - ./App/ReverseProxy/data/traefik/log:/var/log/traefik:rw
+      - ${DATA_PATH}/ssl:/etc/traefik/ssl
+      - ${DATA_PATH}/logs/traefik:/var/log/traefik
+      - ${CONFIG_PATH}/conf.d:/etc/traefik/conf.d
       - /var/run/docker.sock:/var/run/docker.sock
+      - ./App/ReverseProxy/data/cloudflare/cert.pem:/etc/cloudflared/cert.pem
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=app-network"
+      - "traefik.http.routers.traefik-dashboard.rule=Host(`traefik.kythuat.vn`)"
+      - "traefik.http.routers.traefik-dashboard.entrypoints=websecure"
+      - "traefik.http.routers.traefik-dashboard.service=api@internal"
+      - "traefik.http.routers.traefik-dashboard.tls.certresolver=internal"
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     networks: 
       - app-network
-    logging: *default-logging
 
   otp-service:
     build:
       context: ./App/OTP-service
       dockerfile: Dockerfile
-    env_file:
-      - .env
     ports: 
       - "8081:8080"
+    expose:
+      - 8080
     depends_on:
       redis:
         condition: service_healthy
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - REDIS_CONNECTION_STRING=${REDIS_HOST}:${REDIS_PORT}
-
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-      - AWS_REGION=${AWS_REGION}
-      - SMS_SANDBOX_PHONE_NUMBER=${SMS_SANDBOX_PHONE_NUMBER}
-      - OTP_EXPIRATION_MINUTES=${OTP_EXPIRATION_MINUTES}
-      - OTP_LENGTH=${OTP_LENGTH}
-      - OTP_MAX_VERIFICATION_ATTEMPTS=${OTP_MAX_VERIFICATION_ATTEMPTS}
-
-      - RATE_LIMIT_MAX_REQUESTS_PER_HOUR=${RATE_LIMIT_MAX_REQUESTS_PER_HOUR}
-      - RATE_LIMIT_MAX_REQUESTS_PER_DAY=${RATE_LIMIT_MAX_REQUESTS_PER_DAY}
-      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}
+    env_file:
+      - ./environments/redis.env
+      - ./environments/otp-service.env
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=app-network"
-      - "traefik.http.routers.otp.rule=Host(`otp.kythuat.vn`)"
-      - "traefik.http.routers.otp.entrypoints=websecure"
-      - "traefik.http.routers.otp.service=otp"
+      - "traefik.http.routers.otp-secure.rule=Host(`otp-service.kythuat.vn`)"
+      - "traefik.http.routers.otp-secure.entrypoints=websecure"
+      - "traefik.http.routers.otp-secure.service=otp"
+      - "traefik.http.routers.otp-secure.tls.certresolver=internal"
+      - "traefik.http.routers.otp-insecure.rule=Host(`otp-service.kythuat.vn`)"
+      - "traefik.http.routers.otp-insecure.entrypoints=web"
+      # - "traefik.http.routers.otp-insecure.middlewares=https-redirect@file"
       - "traefik.http.services.otp.loadbalancer.server.port=8080"
-      # Health check configuration
-      - "traefik.http.services.otp.loadbalancer.healthcheck.scheme=http"
-      - "traefik.http.services.otp.loadbalancer.healthcheck.path=/health"
-      - "traefik.http.services.otp.loadbalancer.healthcheck.interval=30s"
-      - "traefik.http.services.otp.loadbalancer.healthcheck.timeout=5s"
     volumes:
       - ./.env:/app/.env:ro
     networks:
@@ -142,20 +120,24 @@ services:
     command: sh -c "npm install && npm start -- --host 0.0.0.0 --disable-host-check"
     ports:
       - "4200:4200"
-    environment:
-      - CHOKIDAR_USEPOLLING=true
-      - WATCHPACK_POLLING=true
+    env_file:
+      - ./environments/web-frontend.env
     depends_on:
       - backend
     labels:
-    - "traefik.enable=true"
-    - "traefik.docker.network=app-network"
-    - "traefik.http.routers.angular.rule=Host(`webbanhang.kythuat.vn`)"
-    - "traefik.http.routers.angular.entrypoints=websecure"
-    - "traefik.http.routers.angular.service=angular-service"
-    # - "traefik.http.routers.angular.middlewares=secureHeaders@file,cloudflareRealIp@file"
-    - "traefik.http.services.angular-service.loadbalancer.server.port=4200"
-
+      - "traefik.enable=true"
+      - "traefik.docker.network=app-network"
+      - "traefik.http.routers.angular.rule=Host(`web.kythuat.vn`)"
+      - "traefik.http.routers.angular.entrypoints=websecure"
+      - "traefik.http.routers.angular.service=angular-service"
+      - "traefik.http.routers.angular.tls.certresolver=internal"
+      # HTTP redirect
+      - "traefik.http.routers.angular-http.rule=Host(`web.kythuat.vn`)"
+      - "traefik.http.routers.angular-http.entrypoints=web"
+      # - "traefik.http.routers.angular-http.middlewares=https-redirect"
+      - "traefik.http.services.angular-service.loadbalancer.server.port=4200"
+    expose:
+      - 4200
     networks:
       - app-network
     restart: unless-stopped
@@ -172,25 +154,15 @@ services:
       context: ./App/backend
       dockerfile: Dockerfile
     env_file:
-      - .env
+      - ./environments/web-backend.env
+      - ./environments/redis.env
+    ports:
+      - "1609:1609"
     depends_on:
       webbanhang-db:
         condition: service_healthy
       redis:
         condition: service_healthy
-    environment:
-      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
-      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
-      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
-      JWT_SECRET: ${JWT_SECRET}
-      JWT_EXPIRATION: ${JWT_EXPIRATION}
-      SERVER_PORT: ${SERVER_PORT}
-      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
-      SPRING_JPA_DATABASE_PLATFORM: ${SPRING_JPA_HIBERNATE_PROPERTIES_DIALECT}
-      SPRING_JPA_HIBERNATE_DDL_AUTO: none
-      # Server configuration
-      SERVER_ADDRESS: 0.0.0.0
-      JAVA_OPTS: "-Xmx512m -Xms256m -Dserver.address=0.0.0.0"
     volumes:
       - ./App/backend:/app
       - ~/.m2:/root/.m2
@@ -198,11 +170,17 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=app-network" 
-      - "traefik.http.routers.backend.rule=Host(`api.kythuat.vn`)"
-      - "traefik.http.routers.backend.entrypoints=websecure"
+      - "traefik.http.routers.backend.rule=Host(`web-api.kythuat.vn`)"
+      - "traefik.http.routers.backend.entrypoints=websecure" 
       - "traefik.http.routers.backend.service=backend-service"
-      # - "traefik.http.routers.backend.middlewares=secureHeaders@file,cloudflareRealIp@file" 
+      - "traefik.http.routers.backend.tls.certresolver=internal" 
+      # HTTP redirect
+      - "traefik.http.routers.backend-http.rule=Host(`web-api.kythuat.vn`)"
+      - "traefik.http.routers.backend-http.entrypoints=web"
+      # - "traefik.http.routers.backend-http.middlewares=https-redirect"
       - "traefik.http.services.backend-service.loadbalancer.server.port=1609"
+
+
     command: >
       mvn spring-boot:run
       -Dspring-boot.run.fork=false
@@ -218,13 +196,16 @@ services:
     #   retries: 5
     #   start_period: 120s
     logging: *default-logging
+    # expose:
+    #   - 1609
 
   report-worker:
     build:
       context: ./App/Dashboard
       dockerfile: Dockerfile
+    # Map environment variables (values read from host env or from .env via docker-compose)
     env_file:
-      - .env
+      - ./environments/report-worker.env
     depends_on:
       webbanhang-db:
         condition: service_healthy
@@ -238,17 +219,15 @@ services:
   webbanhang-db:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: webbanhang-db
-    environment:
-      - ACCEPT_EULA=Y
-      - SA_PASSWORD=${SA_PASSWORD}
-      - MSSQL_PID=Developer
+    env_file:
+      - ./environments/db.env
     ports:
       - 1433:1433
     volumes:
       - webbanhang_data:/var/opt/mssql
     restart: unless-stopped
     healthcheck:
-      test: /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P "$${SA_PASSWORD}" -Q "SELECT 1" -b -o /dev/null
+      test: /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P "TaoSieudeptrai@bit4oth4oDuoi" -Q "SELECT 1" -b -o /dev/null
       interval: 10s
       timeout: 3s
       retries: 10
@@ -264,12 +243,8 @@ services:
     container_name: webbanhang-db.configurator
     volumes:
       - ./App/webbanhang-db/init:/init-sql
-    environment:
-      - ACCEPT_EULA=Y
-      - SA_PASSWORD=${SA_PASSWORD}
-      - DB_NAME=${DB_NAME}
-      - APP_USER_LOGIN_PASSWORD=${APP_USER_LOGIN_PASSWORD}
-      - APP_USER=${APP_USER}
+    env_file:
+      - ./environments/db.env
     depends_on:
       webbanhang-db:
         condition: service_healthy
@@ -453,6 +428,8 @@ volumes:
   webbanhang_data:
   maven-repo:
   cache_data:
+  traefik-certs:
+  traefik_config:
   # prometheus-data:
   # grafana-data:
   # alertmanager-data:

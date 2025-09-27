@@ -18,8 +18,8 @@ using Dashboard.Winform.Attributes;
 
 namespace Dashboard.Winform.Forms;
 
-//[RequireRole("ADMIN")]
-public partial class FrmUserManagement : Form
+[RequireRole("ADMIN")]
+public partial class FrmUserManagement : FrmBaseAuthForm
 {
     private readonly ILogger<FrmUserManagement> _logger;
     private readonly IUserManagementPresenter _presenter;

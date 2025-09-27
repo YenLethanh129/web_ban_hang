@@ -90,7 +90,7 @@ export class LoginComponent {
 
     this.userService.login(loginDTO).subscribe({
       next: (response) => {
-        console.log('Đăng nhập thành công:', response);
+        
         this.notificationService.showSuccess(
           '🎉 Đăng nhập thành công! Chào mừng bạn trở lại!'
         );
