@@ -1,5 +1,5 @@
 ### Variables
-@baseUrl = https://otp.kythuat.vn
+@baseUrl = https://otp-service.kythuat.vn
 @phoneNumber = 0987657937
 
 ### 1. Health Check

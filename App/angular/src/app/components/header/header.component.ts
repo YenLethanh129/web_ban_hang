@@ -59,7 +59,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     // Initialize authentication state check
     this.userService.checkAuthenticationStatus().subscribe({
       next: (isAuth) => {
-        console.log('🔍 Initial auth check:', isAuth);
+        
       },
       error: (error) => {
         console.error('❌ Initial auth check failed:', error);
@@ -89,7 +89,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   logout(): void {
-    console.log('🚪 Header: Starting logout...');
+    
 
     // Đóng dropdown trước
     this.isDropdownOpen = false;
@@ -97,7 +97,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     // Gọi logout service với Observable
     this.userService.logout().subscribe({
       next: (response) => {
-        console.log('✅ Header: Logout successful:', response);
+        
 
         // Clear local state
         this.username = '';

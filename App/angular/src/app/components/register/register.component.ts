@@ -192,7 +192,7 @@ export class RegisterComponent implements OnInit, OnDestroy {
 
       this.userService.register(registerDTO).subscribe({
         next: (response) => {
-          console.log('Đăng ký thành công:', response);
+          
           this.isLoading = false;
           this.notificationService.showSuccess(
             'Đăng ký thành công! Vui lòng đăng nhập để tiếp tục.'
@@ -220,7 +220,7 @@ export class RegisterComponent implements OnInit, OnDestroy {
 
   // TEST METHOD FOR NOTIFICATION
   testNotification(type: string) {
-    console.log('Testing notification:', type);
+    
     switch (type) {
       case 'success':
         this.notificationService.showSuccess('🎉 Đây là thông báo thành công!');

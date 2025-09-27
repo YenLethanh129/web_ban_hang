@@ -67,12 +67,12 @@ export class UserService {
         retry(1), // Thử lại 1 lần nếu thất bại
         tap((response) => {
           if (response) {
-            console.log('🔐 Login successful, getting user info...');
+            
             this.getUserFromServer().subscribe({
               next: (reponse) => {
                 this.setCurrentUser(reponse);
                 this.isAuthenticatedSubject.next(true);
-                console.log('👤 User info loaded:', reponse.fullname);
+                
               },
               error: (error) => {
                 console.error('❌ Error loading user info after login:', error);
@@ -90,30 +90,30 @@ export class UserService {
 
   // Khởi tạo trạng thái xác thực khi ứng dụng khởi động
   private initializeAuthState(): void {
-    console.log('🚀 UserService: Initializing auth state...');
+    
 
     if (isPlatformBrowser(this.platformId)) {
       // Kiểm tra cache trước
       const cachedUser = this.cacheService.getUser();
       if (cachedUser) {
-        console.log('👤 UserService: Found cached user:', cachedUser.fullname);
+        
         this.setCurrentUser(cachedUser);
         this.isAuthenticatedSubject.next(true);
       } else {
-        console.log('🔍 UserService: No cached user, checking with server...');
+        
       }
 
       // Luôn kiểm tra với server để đảm bảo
       this.checkAuthenticationStatus().subscribe({
         next: (isAuth) => {
-          console.log('🔍 UserService: Initial auth check result:', isAuth);
+          
         },
         error: (error) => {
           console.error('❌ UserService: Initial auth check failed:', error);
         },
       });
     } else {
-      console.log('🖥️ UserService: Not in browser, skipping auth init');
+      
     }
   }
 
@@ -133,7 +133,7 @@ export class UserService {
       )
       .pipe(
         tap((response) => {
-          console.log('🔍 Full backend response:', response);
+          
           if (response && response.user) {
             this.setCurrentUser(response.user);
             this.isAuthenticatedSubject.next(true);
@@ -148,11 +148,11 @@ export class UserService {
             console.log(
               '🚫 Forbidden - JWT cookie might be missing or invalid'
             );
-            console.log('Check if login set cookie properly');
+            
           } else if (error.status === 401) {
-            console.log('🔒 Unauthorized - JWT token expired or invalid');
+            
           } else if (error.status === 400) {
-            console.log('❌ Bad Request - Check request format');
+            
           }
 
           this.clearAuthenticationState();
@@ -163,7 +163,7 @@ export class UserService {
 
   // Xóa trạng thái xác thực và dữ liệu người dùng
   private clearAuthenticationState(): void {
-    console.log('🧹 Clearing authentication state...');
+    
     this.performLocalCleanup();
   }
 
@@ -201,7 +201,7 @@ export class UserService {
       )
       .pipe(
         map((response) => {
-          console.log('🔍 getUserFromServer response:', response);
+          
           if (response && response.user) {
             return response.user as UserDTO;
           }
@@ -244,12 +244,12 @@ export class UserService {
 
   // Clear user cache on logout
   logout(): Observable<any> {
-    console.log('🚪 Starting logout process...');
+    
 
     // Gọi API logout backend trước
     return this.logoutFromServer().pipe(
       tap((response) => {
-        console.log('✅ Server logout successful:', response);
+        
       }),
       catchError((error) => {
         console.warn(
@@ -286,7 +286,7 @@ export class UserService {
 
   // Thực hiện cleanup tất cả dữ liệu local
   private performLocalCleanup(): void {
-    console.log('🧹 Performing comprehensive local cleanup...');
+    
 
     // Clear authentication state
     this.currentUser = null;
@@ -307,7 +307,7 @@ export class UserService {
               module.UserAddressService
             );
             userAddressService.clearUserAddress();
-            console.log('✅ User address cache cleared');
+            
           })
           .catch((error) => {
             console.warn('Could not clear user address cache:', error);
@@ -323,7 +323,7 @@ export class UserService {
             const cartService = this.injector.get(module.CartService);
             if (cartService && typeof cartService.clearCart === 'function') {
               cartService.clearCart();
-              console.log('✅ Cart cleared');
+              
             }
           })
           .catch((error) => {
@@ -362,10 +362,10 @@ export class UserService {
 
         keysToRemove.forEach((key) => {
           localStorage.removeItem(key);
-          console.log(`🗑️ Removed localStorage key: ${key}`);
+          
         });
 
-        console.log('✅ localStorage cleanup completed');
+        
       } catch (error) {
         console.warn('Could not access localStorage:', error);
       }
@@ -373,13 +373,13 @@ export class UserService {
       // Clear sessionStorage
       try {
         sessionStorage.clear();
-        console.log('✅ sessionStorage cleared');
+        
       } catch (error) {
         console.warn('Could not access sessionStorage:', error);
       }
     }
 
-    console.log('🚪 Complete logout cleanup finished - all user data cleared');
+    
   }
 
   // Force refresh user from server

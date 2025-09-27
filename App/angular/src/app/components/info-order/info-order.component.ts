@@ -64,7 +64,7 @@ export class InfoOrderComponent implements OnInit {
       return;
     }
 
-    console.log('Loading user orders for:', currentUser.fullname);
+    
 
     this.orderService.getUserOrders().subscribe({
       next: (orders) => {
@@ -73,7 +73,7 @@ export class InfoOrderComponent implements OnInit {
           (a, b) =>
             new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         );
-        console.log('Orders loaded successfully:', this.orders);
+        
         this.isLoading = false;
       },
       error: (error) => {
@@ -181,7 +181,7 @@ export class InfoOrderComponent implements OnInit {
 
   // New methods for actions
   viewOrderDetails(order: OrderResponseDTO): void {
-    console.log('Viewing order details:', order);
+    
     this.selectedOrder = order;
     this.showOrderModal = true;
   }
@@ -192,14 +192,14 @@ export class InfoOrderComponent implements OnInit {
   }
 
   editOrder(order: OrderResponseDTO): void {
-    console.log('Editing order:', order);
+    
     // Navigate to edit order page
     this.router.navigate(['/edit-order', order.order_uuid]);
   }
 
   // Function mới để xử lý khi user click button hủy đơn hàng
   handleCancelOrder(order: OrderResponseDTO): void {
-    console.log('Handle cancel order clicked for:', order.order_uuid);
+    
 
     // Hiển thị confirmation dialog
     const confirmMessage = `Bạn có chắc chắn muốn hủy đơn hàng ${order.order_uuid.substring(
@@ -214,11 +214,11 @@ export class InfoOrderComponent implements OnInit {
 
   // Function xử lý logic hủy đơn hàng
   private processCancelOrder(order: OrderResponseDTO): void {
-    console.log('Processing cancel order:', order.order_uuid);
+    
 
     this.orderService.cancelOrder(order.order_id).subscribe({
       next: (response) => {
-        console.log('Thông báo:', response.message);
+        
         this.updateOrderStatusAfterCancel(order.order_uuid);
         this.showSuccessMessage('Đơn hàng đã được hủy thành công!');
 
@@ -275,7 +275,7 @@ export class InfoOrderComponent implements OnInit {
 
   reorder(orderUuid: string): void {
     // Implement reorder logic
-    console.log('Reorder:', orderUuid);
+    
     this.router.navigate(['/order-details', orderUuid], {
       queryParams: { reorder: true },
     });

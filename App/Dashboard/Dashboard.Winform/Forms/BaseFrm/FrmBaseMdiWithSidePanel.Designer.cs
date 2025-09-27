@@ -13,36 +13,36 @@ namespace Dashboard.Winform
         /// Clean up any resources being used.
         /// </summary>
         /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                try
-                {
-                    // Dispose custom resources
-                    _blurLoadingOverlay?.Dispose();
-                    activeForm?.Dispose();
-                    _loadingStopwatch?.Stop();
+        //protected override void Dispose(bool disposing)
+        //{
+        //    if (disposing)
+        //    {
+        //        try
+        //        {
+        //            // Dispose custom resources
+        //            _blurLoadingOverlay?.Dispose();
+        //            activeForm?.Dispose();
+        //            _loadingStopwatch?.Stop();
 
-                    // Dispose components
-                    if (components != null)
-                    {
-                        components.Dispose();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger?.LogError(ex, "Error during disposal");
+        //            // Dispose components
+        //            if (components != null)
+        //            {
+        //                components.Dispose();
+        //            }
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            _logger?.LogError(ex, "Error during disposal");
 
-                    // Still dispose components even if custom disposal fails
-                    if (components != null)
-                    {
-                        components.Dispose();
-                    }
-                }
-            }
-            base.Dispose(disposing);
-        }
+        //            // Still dispose components even if custom disposal fails
+        //            if (components != null)
+        //            {
+        //                components.Dispose();
+        //            }
+        //        }
+        //    }
+        //    base.Dispose(disposing);
+        //}
 
         #region Windows Form Designer generated code
 

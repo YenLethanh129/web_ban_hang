@@ -1,5 +1,6 @@
 # MOST IMPORTANT STUFF!
-.env
+*.env
+!*.env.example
 credentials
 config.json
 .github/instructions
@@ -8,7 +9,7 @@ config.json
 credentials*
 /volumes/traefik/acme/acme.json 
 /cloudflared/*.json
-
+baocao/
 # OS and temp files 
 .DS_Store # macOS
 Thumbs.db # Windows

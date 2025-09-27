@@ -1,6 +1,6 @@
 {
   "/api": {
-    "target": "https://api.kythuat.vn",
+    "target": "https://web-api.kythuat.vn",
     "secure": false,
     "changeOrigin": true
   }

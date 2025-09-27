@@ -14,16 +14,31 @@ builder.Configuration
     .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
     .AddEnvironmentVariables();
 
-builder.Services.Configure<EncryptionOptions>(builder.Configuration.GetSection("Encryption"));
 builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection("Email"));
 builder.Services.Configure<StockWorkerOptions>(builder.Configuration.GetSection("StockWorker"));
 builder.Services.Configure<FinancialReportingOptions>(builder.Configuration.GetSection("FinancialReporting"));
-builder.Services.Configure<SecurityOptions>(builder.Configuration.GetSection("Security"));
+builder.Services.Configure<EmailSimpleOptions>(builder.Configuration.GetSection("EmailSimple"));
+
+
+builder.Services.PostConfigure<EmailOptions>(opts =>
+{
+    var raw = builder.Configuration["Email:AlertRecipients"];
+
+    if (!string.IsNullOrWhiteSpace(raw))
+    {
+        opts.AlertRecipients = raw
+            .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+            .Select(s => s.Trim())
+            .Where(s => !string.IsNullOrEmpty(s))
+            .ToArray();
+    }
+
+});
 
 Dashboard.DataAccess.DependencyInjection.AddDataAccess(builder);
 Dashboard.BussinessLogic.DependencyInjection.AddBussinessLogicServices(builder);
 
-builder.Services.AddScoped<WebbanhangDbContext>(sp =>
+builder.Services.AddScoped(sp =>
 {
     var configuration = sp.GetRequiredService<IConfiguration>();
     var connectionString = configuration.GetConnectionString("WebbanhangDB")
@@ -75,11 +90,13 @@ using (var scope = host.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<WebbanhangDbContext>();
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+    var connFromContext = context.Database.GetDbConnection().ConnectionString;
 
     logger.LogInformation("Checking database connection...");
     if (!await context.Database.CanConnectAsync())
     {
-        logger.LogError("Cannot connect to database. Please check connection string.");
+        logger.LogError($"Cannot connect to database. Please check connection string: {connFromContext}");
         throw new InvalidOperationException("Database connection failed");
     }
     logger.LogInformation("Database connection verified successfully");

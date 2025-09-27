@@ -244,7 +244,7 @@ export class OrderComponent implements OnInit, OnDestroy {
     // Load from server if not available
     this.userService.getUser().subscribe({
       next: (user) => {
-        console.log('Order component - loaded user:', user);
+        
         this.setUserData(user);
       },
       error: (error) => {
@@ -269,7 +269,7 @@ export class OrderComponent implements OnInit, OnDestroy {
     this.validatePhoneNumber();
     this.validateShippingAddress();
 
-    console.log('Order data updated with user info:', this.orderData);
+    
   }
 
   private async loadCartItems() {
@@ -334,13 +334,13 @@ export class OrderComponent implements OnInit, OnDestroy {
       payment_status: this.orderData.paymentStatus,
     };
 
-    console.log('OrderRequestDTO: ', orderDTO);
+    
     this.orderService.createOrder(orderDTO).subscribe({
       next: (response: any) => {
         this.notificationService.showSuccess(
           'Đơn hàng đã được tạo thành công!'
         );
-        console.log('Đơn hàng đã được tạo:', response);
+        
         this.orderId = response.order_id;
         this.momoInfoOrderDTO = {
           order_id: response.order_id ?? response.orderId,
@@ -367,10 +367,10 @@ export class OrderComponent implements OnInit, OnDestroy {
         size: item.size ?? 'L',
       };
 
-      console.log('OrderDetailRequestDTO: ', orderDetailDTO);
+      
       this.orderDetailService.createOrderDetail(orderDetailDTO).subscribe({
         next: (response) => {
-          console.log('Đơn hàng chi tiết đã được tạo:', response);
+          
         },
         error: (error) => {
           console.error('Lỗi khi tạo đơn hàng chi tiết:', error);
@@ -382,7 +382,7 @@ export class OrderComponent implements OnInit, OnDestroy {
     if (this.momoInfoOrderDTO) {
       this.momoService.createQR(this.momoInfoOrderDTO).subscribe({
         next: (response: CreateMomoResponse) => {
-          console.log('Mã thanh toán MoMo:', response);
+          
           if (response.payUrl) {
             // Chuyển hướng đến URL thanh toán MoMo
             window.location.href = response.payUrl;

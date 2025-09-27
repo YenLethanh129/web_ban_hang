@@ -57,24 +57,24 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
     // Chỉ thêm token cho các API cần authentication
     if (needsAuth) {
       const token = tokenService.getToken();
-      console.log('🔐 JWT Interceptor: Need auth for', req.url);
-      console.log('🔐 JWT Interceptor: Token exists:', !!token);
+      
+      
 
       if (token && tokenService.isTokenValid(token)) {
-        console.log('🔐 JWT Interceptor: Adding valid token to request');
+        
         finalRequest = req.clone({
           headers: req.headers.set('Authorization', `Bearer ${token}`),
         });
       } else {
-        console.log('🔐 JWT Interceptor: No valid token available');
+        
         if (token) {
-          console.log('🔐 JWT Interceptor: Token exists but invalid');
+          
         } else {
-          console.log('🔐 JWT Interceptor: No token found');
+          
         }
       }
     } else {
-      console.log('🔐 JWT Interceptor: No auth needed for', req.url);
+      
     }
   }
 
@@ -132,7 +132,7 @@ function isTokenExpiredError(error: HttpErrorResponse): boolean {
 }
 
 function handleTokenExpired(router: Router): void {
-  console.log('🚨 JWT Token expired - Auto logout initiated');
+  
 
   // Clear localStorage manually
   localStorage.removeItem('token');

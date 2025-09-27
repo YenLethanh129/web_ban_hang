@@ -377,7 +377,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     if (startIndex >= maxItemsAllowed) {
       this.hasMoreProducts = false;
-      console.log(`📱 Reached maximum cached items limit: ${maxItemsAllowed}`);
+      
       return;
     }
 

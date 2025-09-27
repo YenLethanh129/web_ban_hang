@@ -32,6 +32,10 @@ namespace Dashboard.Winform
 
         private Form? activeForm = null;
 
+        // Cache for opened forms to improve performance
+        private readonly Dictionary<Type, Form> _formCache = new Dictionary<Type, Form>();
+        private readonly HashSet<Type> _loadingForms = new HashSet<Type>(); // Track forms currently loading
+
         private Button? CurrentSelectedSidebarButton = null;
         private PictureBox? CurrentSelectedPictureBox = null;
         private Dictionary<Button, PictureBox> _buttonIconMap = new();
@@ -45,6 +49,7 @@ namespace Dashboard.Winform
         ];
 
         public bool IsLoading => _isLoading;
+
         public FrmBaseMdiWithSidePanel(IServiceProvider serviceProvider)
         {
             InitializeComponent();
@@ -68,7 +73,6 @@ namespace Dashboard.Winform
                 {btnSBRolePermission, iconSBRolePermission }
             };
 
-
             // Anti-aliasing for sidebar transition 
             EnableDoubleBuffering();
             typeof(Panel).InvokeMember("DoubleBuffered",
@@ -83,11 +87,194 @@ namespace Dashboard.Winform
                 | System.Reflection.BindingFlags.NonPublic,
                 null, pnSBHeader, [true]);
 
-
             InitializeEvents();
         }
 
+        #region Form Cache Management
+
+        /// <summary>
+        /// Get or create cached form instance
+        /// </summary>
+        private async Task<T> GetOrCreateCachedFormAsync<T>() where T : Form
+        {
+            var formType = typeof(T);
+
+            // If form is already cached, return it
+            if (_formCache.TryGetValue(formType, out var cachedForm))
+            {
+                _logger?.LogInformation($"Using cached form: {formType.Name}");
+                return (T)cachedForm;
+            }
+
+            // Check if form is currently being loaded to prevent duplicate loading
+            if (_loadingForms.Contains(formType))
+            {
+                _logger?.LogWarning($"Form {formType.Name} is already being loaded, waiting...");
+                // Wait for the form to be loaded
+                while (_loadingForms.Contains(formType))
+                {
+                    await Task.Delay(50);
+                }
+
+                // Try to get from cache again after waiting
+                if (_formCache.TryGetValue(formType, out var waitedForm))
+                {
+                    return (T)waitedForm;
+                }
+            }
+
+            // Mark form as being loaded
+            _loadingForms.Add(formType);
+
+            try
+            {
+                _logger?.LogInformation($"Creating new form instance: {formType.Name}");
+
+                var newForm = await Task.Run(() => _serviceProvider.GetRequiredService<T>());
+
+                // Cache the form
+                _formCache[formType] = newForm;
+
+                // Setup form properties for child form usage
+                SetupChildFormProperties(newForm);
+
+                _logger?.LogInformation($"Successfully created and cached form: {formType.Name}");
+
+                return newForm;
+            }
+            finally
+            {
+                // Remove from loading set
+                _loadingForms.Remove(formType);
+            }
+        }
+
+        /// <summary>
+        /// Setup properties for child form usage
+        /// </summary>
+        private void SetupChildFormProperties(Form form)
+        {
+            form.TopLevel = false;
+            form.FormBorderStyle = FormBorderStyle.None;
+            form.Dock = DockStyle.Fill;
+
+            if (form is IBlurLoadingServiceAware blurAwareForm)
+            {
+                blurAwareForm.SetBlurLoadingService(this);
+            }
+        }
+
+        /// <summary>
+        /// Clear all cached forms (use when signing out)
+        /// </summary>
+        private void ClearFormCache()
+        {
+            _logger?.LogInformation("Clearing form cache...");
+
+            foreach (var kvp in _formCache)
+            {
+                try
+                {
+                    if (kvp.Value != null && !kvp.Value.IsDisposed)
+                    {
+                        kvp.Value.Hide();
+                        kvp.Value.Dispose();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogWarning(ex, $"Error disposing cached form: {kvp.Key.Name}");
+                }
+            }
+
+            _formCache.Clear();
+            _loadingForms.Clear();
+
+            _logger?.LogInformation("Form cache cleared successfully");
+        }
+
+        /// <summary>
+        /// Refresh a specific cached form (useful for data updates)
+        /// </summary>
+        public async Task RefreshCachedFormAsync<T>() where T : Form
+        {
+            var formType = typeof(T);
+
+            if (_formCache.TryGetValue(formType, out var cachedForm))
+            {
+                _logger?.LogInformation($"Refreshing cached form: {formType.Name}");
+
+                try
+                {
+                    // Hide and dispose old form
+                    cachedForm.Hide();
+                    cachedForm.Dispose();
+
+                    // Remove from cache
+                    _formCache.Remove(formType);
+
+                    // If this is the currently active form, reload it
+                    if (activeForm?.GetType() == formType)
+                    {
+                        var newForm = await GetOrCreateCachedFormAsync<T>();
+                        await ShowCachedFormAsync(newForm);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogError(ex, $"Error refreshing cached form: {formType.Name}");
+                    throw;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Show cached form with data loading
+        /// </summary>
+        private async Task ShowCachedFormAsync<T>(T form) where T : Form
+        {
+            try
+            {
+                // Hide current active form if different
+                if (activeForm != null && activeForm != form)
+                {
+                    activeForm.Hide();
+                }
+
+                // Set as active form
+                activeForm = form;
+
+                // Clear container and add form if not already added
+                if (!pnMainContainer.Controls.Contains(form))
+                {
+                    pnMainContainer.Controls.Clear();
+                    pnMainContainer.Controls.Add(form);
+                }
+
+                form.BringToFront();
+                form.Show();
+
+                // Wait for data loading if form supports it
+                if (form is IDataLoadingAware dataLoadingForm)
+                {
+                    await dataLoadingForm.WaitForDataLoadingComplete();
+                }
+
+                _logger?.LogInformation($"Successfully showed cached form: {typeof(T).Name}");
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, $"Error showing cached form: {typeof(T).Name}");
+                throw;
+            }
+        }
+
+        #endregion
+
         #region Setup out side regions
+        // ... (keep all existing methods like EnableDoubleBuffering, ExecuteWithLoadingAsync, etc.)
+        // I'm not including them here to save space, but they should remain unchanged
+
         #region Double Buffering and Blur Loading Methods
 
         private void EnableDoubleBuffering()
@@ -170,7 +357,7 @@ namespace Dashboard.Winform
         /// </summary>
         public async Task HideLoadingAsync(bool useFadeEffect = false)
         {
-            if (!_isLoading) return; // Nothing to hide
+            if (!_isLoading) return;
 
             try
             {
@@ -322,7 +509,6 @@ namespace Dashboard.Winform
             }
             finally
             {
-                // Always restore cursor
                 Cursor = Cursors.Default;
                 Activate();
                 Focus();
@@ -344,7 +530,6 @@ namespace Dashboard.Winform
             }
             finally
             {
-                // Always restore cursor
                 Cursor = Cursors.Default;
                 Activate();
                 Focus();
@@ -430,6 +615,7 @@ namespace Dashboard.Winform
         }
         #endregion
         #endregion
+
         private void FrmBaseManagement_Load(object sender, EventArgs e)
         {
 
@@ -454,29 +640,8 @@ namespace Dashboard.Winform
                 {
                     await ExecuteWithLoadingAsync(async () =>
                     {
-                        FrmLandingDashboard frmLandingDashboard = null!;
-
-                        await Task.Run(() =>
-                        {
-                            if (InvokeRequired)
-                            {
-                                Invoke(new Action(() =>
-                                {
-                                    frmLandingDashboard = _serviceProvider.GetRequiredService<FrmLandingDashboard>();
-                                    OpenChildForm(frmLandingDashboard);
-                                }));
-                            }
-                            else
-                            {
-                                frmLandingDashboard = _serviceProvider.GetRequiredService<FrmLandingDashboard>();
-                                OpenChildForm(frmLandingDashboard);
-                            }
-                        });
-
-                        if (frmLandingDashboard != null)
-                        {
-                            await frmLandingDashboard.WaitForDataLoadingComplete();
-                        }
+                        var frmLandingDashboard = await GetOrCreateCachedFormAsync<FrmLandingDashboard>();
+                        await ShowCachedFormAsync(frmLandingDashboard);
                     }, "Đang tải Dashboard...", true);
                 }
                 catch (Exception ex)
@@ -520,29 +685,8 @@ namespace Dashboard.Winform
         {
             await ExecuteWithLoadingInternalAsync(async () =>
             {
-                FrmRolePermissionManagement frmRolePermissionManagement = null!;
-
-                await Task.Run(() =>
-                {
-                    if (InvokeRequired)
-                    {
-                        Invoke(new Action(() =>
-                        {
-                            frmRolePermissionManagement = _serviceProvider.GetRequiredService<FrmRolePermissionManagement>();
-                            OpenChildForm(frmRolePermissionManagement);
-                        }));
-                    }
-                    else
-                    {
-                        frmRolePermissionManagement = _serviceProvider.GetRequiredService<FrmRolePermissionManagement>();
-                        OpenChildForm(frmRolePermissionManagement);
-                    }
-                });
-
-                if (frmRolePermissionManagement != null)
-                {
-                    await frmRolePermissionManagement.WaitForDataLoadingComplete();
-                }
+                var frmRolePermissionManagement = await GetOrCreateCachedFormAsync<FrmRolePermissionManagement>();
+                await ShowCachedFormAsync(frmRolePermissionManagement);
             }, "Đang tải quản lý Role & Permission...", true);
         }
 
@@ -552,24 +696,17 @@ namespace Dashboard.Winform
             {
                 await ExecuteWithLoadingInternalAsync(async () =>
                 {
-                    if (activeForm != null)
-                    {
-                        activeForm.Close();
-                        activeForm.Dispose();
-                        activeForm = null;
-                    }
-
+                    // Clear form cache and hide current form
+                    ClearFormCache();
+                    activeForm = null;
                     pnMainContainer.Controls.Clear();
 
                     await AuthenticationManager.LogoutAsync();
 
-
                 }, "Đang đăng xuất...", true);
 
                 Hide();
-
                 ShowLoginForm();
-
             }
             catch (Exception ex)
             {
@@ -593,13 +730,45 @@ namespace Dashboard.Winform
 
                 try
                 {
-                    var landing = _serviceProvider.GetRequiredService<FrmLandingDashboard>();
-                    OpenChildForm(landing);
+                    // Use cached form after re-login
+                    Task.Run(async () =>
+                    {
+                        try
+                        {
+                            var landing = await GetOrCreateCachedFormAsync<FrmLandingDashboard>();
 
-                    ResetSidebarUI();
-                    Show();
+                            if (InvokeRequired)
+                            {
+                                Invoke(new Action(async () =>
+                                {
+                                    await ShowCachedFormAsync(landing);
+                                    ResetSidebarUI();
+                                    Show();
+                                }));
+                            }
+                            else
+                            {
+                                await ShowCachedFormAsync(landing);
+                                ResetSidebarUI();
+                                Show();
+                            }
 
-                    _logger?.LogInformation("Successfully logged in and loaded dashboard after sign out");
+                            _logger?.LogInformation("Successfully logged in and loaded cached dashboard after sign out");
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger?.LogWarning(ex, "Failed to open FrmLandingDashboard after re-login");
+
+                            if (InvokeRequired)
+                            {
+                                Invoke(new Action(() => new FrmToastMessage(ToastType.WARNING, "Không thể tải dashboard sau khi đăng nhập").Show()));
+                            }
+                            else
+                            {
+                                new FrmToastMessage(ToastType.WARNING, "Không thể tải dashboard sau khi đăng nhập").Show();
+                            }
+                        }
+                    });
                 }
                 catch (Exception ex)
                 {
@@ -623,7 +792,7 @@ namespace Dashboard.Winform
                     var button = kvp.Key;
                     var pictureBox = kvp.Value;
 
-                    button.BackColor = _sidebarColors[0]; 
+                    button.BackColor = _sidebarColors[0];
                     button.ForeColor = _sidebarColors[1];
 
                     if (pictureBox != null)
@@ -638,20 +807,19 @@ namespace Dashboard.Winform
                 if (!SidebarTransitionActive)
                 {
                     SidebarTransitionActive = true;
-                    SBTransition.Start(); 
+                    SBTransition.Start();
                 }
 
-                // Reset container states
                 if (!UserManagementTransitionActive)
                 {
                     UserManagementTransitionActive = true;
                     fpnUserManagementContainer.Height = 50;
                 }
 
-                if (!IngredientTransitionActive)                 
+                if (!IngredientTransitionActive)
                 {
                     IngredientTransitionActive = true;
-                    fpnSBIngredientContainer.Height = 50; 
+                    fpnSBIngredientContainer.Height = 50;
                 }
 
                 _logger?.LogInformation("Sidebar UI state reset successfully");
@@ -661,7 +829,6 @@ namespace Dashboard.Winform
                 _logger?.LogWarning(ex, "Error resetting sidebar UI state");
             }
         }
-
 
         private void SetSBButtonUI(object sender)
         {
@@ -689,6 +856,9 @@ namespace Dashboard.Winform
 
             CurrentSelectedSidebarButton = btn;
         }
+
+        // ... (keep all existing animation methods like SBUserManagementTransition_Tick, etc.)
+        // These remain unchanged
 
         private void SBUserManagementTransition_Tick(object sender, EventArgs e)
         {
@@ -836,223 +1006,103 @@ namespace Dashboard.Winform
             }
         }
 
+        // Updated form launch methods using cached forms
         private async void LaunchLandingForm(object sender, EventArgs e)
         {
             await ExecuteWithLoadingInternalAsync(async () =>
             {
-                FrmLandingDashboard frmLandingDashboard = null!;
-
-                await Task.Run(() =>
-                {
-                    if (InvokeRequired)
-                    {
-                        Invoke(new Action(() =>
-                        {
-                            frmLandingDashboard = _serviceProvider.GetRequiredService<FrmLandingDashboard>();
-                            OpenChildForm(frmLandingDashboard);
-                        }));
-                    }
-                    else
-                    {
-                        frmLandingDashboard = _serviceProvider.GetRequiredService<FrmLandingDashboard>();
-                        OpenChildForm(frmLandingDashboard);
-                    }
-                });
-
-                if (frmLandingDashboard != null)
-                {
-                    await frmLandingDashboard.WaitForDataLoadingComplete();
-                }
+                var frmLandingDashboard = await GetOrCreateCachedFormAsync<FrmLandingDashboard>();
+                await ShowCachedFormAsync(frmLandingDashboard);
             }, "Đang tải Dashboard...", true);
         }
+
         private async void LaunchProductForm(object sender, EventArgs e)
         {
             await ExecuteWithLoadingInternalAsync(async () =>
             {
-                FrmProductManagement frmProductManagement = null!;
-                await Task.Run(() =>
-                {
-                    if (InvokeRequired)
-                    {
-                        Invoke(new Action(() =>
-                        {
-                            frmProductManagement = _serviceProvider.GetRequiredService<FrmProductManagement>();
-                            OpenChildForm(frmProductManagement);
-                        }));
-                    }
-                    else
-                    {
-                        frmProductManagement = _serviceProvider.GetRequiredService<FrmProductManagement>();
-                        OpenChildForm(frmProductManagement);
-                    }
-                });
-                if (frmProductManagement != null)
-                {
-                    await frmProductManagement.WaitForDataLoadingComplete();
-                }
-            }, "Đang tải Dashboard...", true);
+                var frmProductManagement = await GetOrCreateCachedFormAsync<FrmProductManagement>();
+                await ShowCachedFormAsync(frmProductManagement);
+            }, "Đang tải quản lý sản phẩm...", true);
         }
+
         private async void LaunchIngredientForm(object sender, EventArgs e)
         {
             await ExecuteWithLoadingInternalAsync(async () =>
             {
-                FrmIngredientManagement frmIngredientManagement = null!;
-                await Task.Run(() =>
-                {
-                    if (InvokeRequired)
-                    {
-                        Invoke(new Action(() =>
-                        {
-                            frmIngredientManagement = _serviceProvider.GetRequiredService<FrmIngredientManagement>();
-                            OpenChildForm(frmIngredientManagement);
-                        }));
-                    }
-                    else
-                    {
-                        frmIngredientManagement = _serviceProvider.GetRequiredService<FrmIngredientManagement>();
-                        OpenChildForm(frmIngredientManagement);
-                    }
-                });
-                if (frmIngredientManagement != null)
-                {
-                    await frmIngredientManagement.WaitForDataLoadingComplete();
-                }
-            }, "Đang tải Dashboard...", true);
+                var frmIngredientManagement = await GetOrCreateCachedFormAsync<FrmIngredientManagement>();
+                await ShowCachedFormAsync(frmIngredientManagement);
+            }, "Đang tải quản lý nguyên liệu...", true);
         }
+
         private async void LaunchEmployeeForm(object sender, EventArgs e)
         {
             await ExecuteWithLoadingInternalAsync(async () =>
             {
-                FrmEmployeeManagement frmEmployeeManagement = null!;
-
-                await Task.Run(() =>
-                {
-                    if (InvokeRequired)
-                    {
-                        Invoke(new Action(() =>
-                        {
-                            frmEmployeeManagement = _serviceProvider.GetRequiredService<FrmEmployeeManagement>();
-                            OpenChildForm(frmEmployeeManagement);
-                        }));
-                    }
-                    else
-                    {
-                        frmEmployeeManagement = _serviceProvider.GetRequiredService<FrmEmployeeManagement>();
-                        OpenChildForm(frmEmployeeManagement);
-                    }
-                });
-
-                if (frmEmployeeManagement != null)
-                {
-                    await frmEmployeeManagement.WaitForDataLoadingComplete();
-                }
-            }, "Đang tải Dashboard...", true);
+                var frmEmployeeManagement = await GetOrCreateCachedFormAsync<FrmEmployeeManagement>();
+                await ShowCachedFormAsync(frmEmployeeManagement);
+            }, "Đang tải quản lý nhân viên...", true);
         }
+
         private async void LaunchUserManagementForm(object sender, EventArgs e)
         {
             await ExecuteWithLoadingInternalAsync(async () =>
             {
-                FrmUserManagement frmUserManagement = null!;
-                await Task.Run(() =>
-                {
-                    if (InvokeRequired)
-                    {
-                        Invoke(new Action(() =>
-                        {
-                            frmUserManagement = _serviceProvider.GetRequiredService<FrmUserManagement>();
-                            OpenChildForm(frmUserManagement);
-                        }));
-                    }
-                    else
-                    {
-                        frmUserManagement = _serviceProvider.GetRequiredService<FrmUserManagement>();
-                        OpenChildForm(frmUserManagement);
-                    }
-                });
-                if (frmUserManagement != null)
-                {
-                    await frmUserManagement.WaitForDataLoadingComplete();
-                }
-            });
-
+                var frmUserManagement = await GetOrCreateCachedFormAsync<FrmUserManagement>();
+                await ShowCachedFormAsync(frmUserManagement);
+            }, "Đang tải quản lý người dùng...", true);
         }
+
         private async void LaunchSupplierForm(object sender, EventArgs e)
         {
             await ExecuteWithLoadingInternalAsync(async () =>
             {
-                FrmSupplierManagement frmSupplierManagement = null!;
-                await Task.Run(() =>
-                {
-                    if (InvokeRequired)
-                    {
-                        Invoke(new Action(() =>
-                        {
-                            frmSupplierManagement = _serviceProvider.GetRequiredService<FrmSupplierManagement>();
-                            OpenChildForm(frmSupplierManagement);
-                        }));
-                    }
-                    else
-                    {
-                        frmSupplierManagement = _serviceProvider.GetRequiredService<FrmSupplierManagement>();
-                        OpenChildForm(frmSupplierManagement);
-                    }
-                });
-                if (frmSupplierManagement != null)
-                {
-                    await frmSupplierManagement.WaitForDataLoadingComplete();
-                }
-            }, "Đang tải Dashboard...", true);
+                var frmSupplierManagement = await GetOrCreateCachedFormAsync<FrmSupplierManagement>();
+                await ShowCachedFormAsync(frmSupplierManagement);
+            }, "Đang tải quản lý nhà cung cấp...", true);
         }
+
         private async void LaunchUserForm(object sender, EventArgs e)
         {
             await ExecuteWithLoadingInternalAsync(async () =>
             {
-                FrmUserManagement frmUserManagement = null!;
-                await Task.Run(() =>
-                {
-                    if (InvokeRequired)
-                    {
-                        Invoke(new Action(() =>
-                        {
-                            frmUserManagement = _serviceProvider.GetRequiredService<FrmUserManagement>();
-                            OpenChildForm(frmUserManagement);
-                        }));
-                    }
-                    else
-                    {
-                        frmUserManagement = _serviceProvider.GetRequiredService<FrmUserManagement>();
-                        OpenChildForm(frmUserManagement);
-                    }
-                });
-                if (frmUserManagement != null)
-                {
-                    await frmUserManagement.WaitForDataLoadingComplete();
-                }
-            }, "Đang tải Dashboard...", true);
+                var frmUserManagement = await GetOrCreateCachedFormAsync<FrmUserManagement>();
+                await ShowCachedFormAsync(frmUserManagement);
+            }, "Đang tải quản lý tài khoản...", true);
         }
 
+        /// <summary>
+        /// Legacy OpenChildForm method - kept for compatibility but now uses caching internally
+        /// </summary>
         private void OpenChildForm(Form childForm)
         {
             try
             {
-                if (activeForm != null)
+                // Hide current active form instead of disposing
+                if (activeForm != null && activeForm != childForm)
                 {
-                    activeForm.Close();
-                    activeForm.Dispose();
+                    activeForm.Hide();
                 }
 
                 activeForm = childForm;
-                childForm.TopLevel = false;
-                childForm.FormBorderStyle = FormBorderStyle.None;
-                childForm.Dock = DockStyle.Fill;
+
+                // Setup child form properties if not already set
+                if (childForm.TopLevel)
+                {
+                    SetupChildFormProperties(childForm);
+                }
 
                 if (childForm is IBlurLoadingServiceAware blurAwareForm)
                 {
                     blurAwareForm.SetBlurLoadingService(this);
                 }
 
-                pnMainContainer.Controls.Clear();
-                pnMainContainer.Controls.Add(childForm);
+                // Only clear and add if form is not already in container
+                if (!pnMainContainer.Controls.Contains(childForm))
+                {
+                    pnMainContainer.Controls.Clear();
+                    pnMainContainer.Controls.Add(childForm);
+                }
+
                 childForm.BringToFront();
                 childForm.Show();
 
@@ -1064,6 +1114,136 @@ namespace Dashboard.Winform
                 new FrmToastMessage(ToastType.ERROR, $"Không thể mở form: {ex.Message}").Show();
             }
         }
+
+        #endregion
+
+        #region Public Methods for External Use
+
+        /// <summary>
+        /// Get current active form
+        /// </summary>
+        public Form? GetActiveForm()
+        {
+            return activeForm;
+        }
+
+        /// <summary>
+        /// Check if a specific form type is cached
+        /// </summary>
+        public bool IsFormCached<T>() where T : Form
+        {
+            return _formCache.ContainsKey(typeof(T));
+        }
+
+        /// <summary>
+        /// Get cached form count for debugging
+        /// </summary>
+        public int GetCachedFormCount()
+        {
+            return _formCache.Count;
+        }
+
+        /// <summary>
+        /// Force refresh all cached forms (useful for major data updates)
+        /// </summary>
+        public async Task RefreshAllCachedFormsAsync()
+        {
+            _logger?.LogInformation("Refreshing all cached forms...");
+
+            var cachedFormTypes = _formCache.Keys.ToList();
+            var currentActiveFormType = activeForm?.GetType();
+
+            try
+            {
+                // Clear all cached forms
+                ClearFormCache();
+
+                // If there was an active form, recreate and show it
+                if (currentActiveFormType != null)
+                {
+                    _logger?.LogInformation($"Recreating active form: {currentActiveFormType.Name}");
+
+                    // Use reflection to call the generic method
+                    var method = typeof(FrmBaseMdiWithSidePanel).GetMethod(nameof(GetOrCreateCachedFormAsync),
+                        System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    var genericMethod = method?.MakeGenericMethod(currentActiveFormType);
+
+                    if (genericMethod != null)
+                    {
+                        var task = (Task)genericMethod.Invoke(this, null)!;
+                        await task;
+
+                        var property = task.GetType().GetProperty("Result");
+                        var recreatedForm = (Form)property?.GetValue(task)!;
+
+                        if (recreatedForm != null)
+                        {
+                            await ShowCachedFormAsync(recreatedForm);
+                        }
+                    }
+                }
+
+                _logger?.LogInformation("All cached forms refreshed successfully");
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error refreshing all cached forms");
+                throw;
+            }
+        }
+
+        #endregion
+
+        #region Dispose and Cleanup
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                try
+                {
+                    // Clear all cached forms
+                    ClearFormCache();
+
+                    // Dispose blur loading overlay
+                    _loadingStopwatch?.Stop();
+                    _blurLoadingOverlay?.Dispose();
+
+                    _logger?.LogInformation("Form disposed successfully with all cached forms cleaned up");
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogError(ex, "Error during disposal");
+
+                    if (components != null)
+                    {
+                        components.Dispose();
+                    }
+                }
+            }
+
+            base.Dispose(disposing);
+        }
         #endregion
     }
+
+    #region Helper Interfaces
+
+    /// <summary>
+    /// Interface for forms that support data loading awareness
+    /// </summary>
+    public interface IDataLoadingAware
+    {
+        Task WaitForDataLoadingComplete();
+    }
+
+    /// <summary>
+    /// Interface for forms that need blur loading service
+    /// </summary>
+    public interface IBlurLoadingServiceAware
+    {
+        void SetBlurLoadingService(IBlurLoadingService service);
+    }
+
+    #endregion
 }

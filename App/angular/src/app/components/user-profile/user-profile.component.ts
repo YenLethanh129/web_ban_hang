@@ -93,7 +93,7 @@ export class UserProfileComponent implements OnInit, OnDestroy {
     // Load from server if not available
     this.userService.getUser().subscribe({
       next: (profile) => {
-        console.log('UserProfileComponent loaded:', profile);
+        
         this.setProfileData(profile);
       },
       error: (error) => {
@@ -230,7 +230,7 @@ export class UserProfileComponent implements OnInit, OnDestroy {
   }
 
   formatDateForDisplay(date: Date): string {
-    console.log('Formatting date:', date);
+    
     if (!date) return 'Chưa cập nhật';
     // Xử lý cả trường hợp date là string ISO hoặc Date object
     let d: Date;
@@ -251,7 +251,7 @@ export class UserProfileComponent implements OnInit, OnDestroy {
   onAddressSelected(prediction: AddressPrediction): void {
     this.editData.address = prediction.description;
     this.validateAddress();
-    console.log('Selected address:', prediction);
+    
   }
 
   onSubmit(): void {

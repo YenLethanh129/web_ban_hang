@@ -10,9 +10,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Dashboard.BussinessLogic.Dtos.RBACDtos;
 using Dashboard.DataAccess.Data;
-using Dashboard.DataAccess.Models.Entities.RBAC;
-using Dashboard.DataAccess.Repositories;
-using Dashboard.DataAccess.Specification;
 
 namespace Dashboard.BussinessLogic.Services.RBACServices
 {
@@ -28,24 +25,15 @@ namespace Dashboard.BussinessLogic.Services.RBACServices
 
     public class AuthorizationService : IAuthorizationService
     {
-        private readonly IUserRepository _userRepository;
-        private readonly IRoleRepository _roleRepository;
-        private readonly IPermissionRepository _permissionRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IConfiguration _config;
         private readonly ILogger<AuthorizationService> _logger;
 
         public AuthorizationService(
-            IUserRepository userRepository,
-            IRoleRepository roleRepository,
-            IPermissionRepository permissionRepository,
             IUnitOfWork unitOfWork,
             IConfiguration config,
             ILogger<AuthorizationService> logger)
         {
-            _userRepository = userRepository;
-            _roleRepository = roleRepository;
-            _permissionRepository = permissionRepository;
             _unitOfWork = unitOfWork;
             _config = config;
             _logger = logger;
@@ -175,13 +163,37 @@ namespace Dashboard.BussinessLogic.Services.RBACServices
                 long userId = 0;
                 if (!string.IsNullOrWhiteSpace(sub)) long.TryParse(sub, out userId);
 
-                var username = principal.FindFirst(JwtRegisteredClaimNames.UniqueName)?.Value ?? principal.Identity?.Name;
-                var role = principal.FindFirst(ClaimTypes.Role)?.Value;
-                var permissions = principal.FindAll("permission").Select(c => c.Value).ToList();
+                // Try multiple claim types for username/role/permissions
+                var username = principal.FindFirst(JwtRegisteredClaimNames.UniqueName)?.Value
+                               ?? principal.FindFirst(ClaimTypes.Name)?.Value
+                               ?? principal.Identity?.Name;
+
+                // Role claims may have different types depending on issuer/handler
+                var roleClaim = principal.FindFirst(ClaimTypes.Role)?.Value
+                                ?? principal.FindFirst("role")?.Value
+                                ?? principal.FindFirst("roles")?.Value
+                                ?? principal.FindFirst("http://schemas.microsoft.com/ws/2008/06/identity/claims/role")?.Value;
+
+                var permissions = new List<string>();
+                permissions.AddRange(principal.FindAll("permission").Select(c => c.Value));
+                permissions.AddRange(principal.FindAll("permissions").Select(c => c.Value));
+                permissions.AddRange(principal.FindAll("Permission").Select(c => c.Value));
+                // normalize
+                permissions = permissions.Where(p => !string.IsNullOrWhiteSpace(p)).Select(p => p.ToUpperInvariant()).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
 
                 var tokenRepo = _unitOfWork.Repository<Dashboard.DataAccess.Models.Entities.RBAC.Token>();
-                var dbToken = await tokenRepo.GetQueryable()
-                    .FirstOrDefaultAsync(t => t.TokenValue == token);
+
+                // Try to find DB token by exact and by raw (some clients might store "Bearer ..." somewhere)
+                //var dbToken = await tokenRepo.GetQueryable()
+                //    .FirstOrDefaultAsync(t => t.TokenValue == token || t.TokenValue == ("Bearer " + token) || t.TokenValue == NormalizeToken(t.TokenValue!));
+                var tokens = await tokenRepo.GetQueryable()
+                    .Where(t => t.TokenValue == token || t.TokenValue == ("Bearer " + token))
+                    .ToListAsync();
+
+                var dbToken = tokens.FirstOrDefault(t => t.TokenValue == token
+                    || t.TokenValue == ("Bearer " + token)
+                    || NormalizeToken(t.TokenValue!) == token);
+
 
                 if (dbToken == null)
                 {
@@ -200,7 +212,7 @@ namespace Dashboard.BussinessLogic.Services.RBACServices
                     Token = token,
                     UserId = userId,
                     Username = username ?? string.Empty,
-                    Role = role ?? string.Empty,
+                    Role = roleClaim ?? string.Empty,
                     Permissions = permissions ?? new List<string>(),
                     Expiration = dbToken.ExpirationDate ?? DateTime.UtcNow
                 };
@@ -229,7 +241,5 @@ namespace Dashboard.BussinessLogic.Services.RBACServices
             return session.Role?.ToUpperInvariant() == "ADMIN"
                 || (session.Permissions?.Contains(requiredPermission, StringComparer.OrdinalIgnoreCase) ?? false);
         }
-
     }
 }
-

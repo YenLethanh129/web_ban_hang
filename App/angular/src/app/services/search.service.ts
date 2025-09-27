@@ -98,7 +98,7 @@ export class SearchService {
       }
     } else {
       // Need to load products first, then search
-      console.log('📦 Loading all products for search...');
+      
       this.productService.getAllProducts().subscribe({
         next: (products) => {
           const filteredResults = this.filterProducts(products, query);
@@ -139,11 +139,11 @@ export class SearchService {
     }
 
     this.cacheRefreshInProgress = true;
-    console.log('🔄 Ensuring complete product cache for better search...');
+    
 
     this.productService.getAllProducts().subscribe({
       next: (products) => {
-        console.log(`✅ Refreshed cache with ${products.length} products`);
+        
         this.cacheRefreshInProgress = false;
       },
       error: (error) => {

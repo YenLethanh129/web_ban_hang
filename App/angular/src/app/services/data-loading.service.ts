@@ -39,7 +39,7 @@ export class DataLoadingService {
   }
 
   private async performInitialization(): Promise<AppInitializationData> {
-    console.log('🚀 Initializing app data...');
+    
 
     const result: AppInitializationData = {
       userLoaded: false,
@@ -60,7 +60,7 @@ export class DataLoadingService {
       // Handle products initialization
       if (productsResult.status === 'fulfilled') {
         result.productsLoaded = true;
-        console.log('✅ Products loaded and cached');
+        
       } else {
         console.warn('⚠️ Failed to load products:', productsResult.reason);
       }
@@ -68,7 +68,7 @@ export class DataLoadingService {
       // Handle user initialization
       if (userResult.status === 'fulfilled') {
         result.userLoaded = true;
-        console.log('✅ User loaded and cached');
+        
       } else {
         console.warn('⚠️ Failed to load user:', userResult.reason);
       }
@@ -76,7 +76,7 @@ export class DataLoadingService {
       result.cacheStats = this.cacheService.getCacheStats();
       this.isInitialized = true;
 
-      console.log('🎉 App initialization completed:', result);
+      
       return result;
     } catch (error) {
       console.error('❌ App initialization failed:', error);
@@ -88,14 +88,14 @@ export class DataLoadingService {
     try {
       // Check if products are already cached
       if (this.cacheService.isProductsCached()) {
-        console.log('📦 Products already cached, skipping load');
+        
         return true;
       }
 
       // Load all products for caching and search
       const products = await this.productService.getAllProducts().toPromise();
       if (products && products.length > 0) {
-        console.log(`📦 Loaded ${products.length} products into cache`);
+        
         return true;
       }
 
@@ -110,20 +110,20 @@ export class DataLoadingService {
     try {
       // Only load user if logged in
       if (!this.tokenService.isLoggedIn()) {
-        console.log('👤 User not logged in, skipping user load');
+        
         return false;
       }
 
       // Check if user is already cached
       if (this.cacheService.isUserCached()) {
-        console.log('👤 User already cached, skipping load');
+        
         return true;
       }
 
       // Load user from server
       const user = await this.userService.getUser().toPromise();
       if (user) {
-        console.log('👤 User loaded and cached');
+        
         return true;
       }
 
@@ -137,7 +137,7 @@ export class DataLoadingService {
 
   // Preload data for offline support
   preloadForOffline(): Observable<boolean> {
-    console.log('📲 Preloading data for offline support...');
+    
 
     const preloadTasks: Observable<any>[] = [
       this.productService.getAllProducts().pipe(
@@ -176,7 +176,7 @@ export class DataLoadingService {
 
   // Refresh all cached data
   refreshAllData(): Promise<AppInitializationData> {
-    console.log('🔄 Refreshing all data...');
+    
 
     // Clear all caches
     this.cacheService.clearAll();
@@ -202,7 +202,7 @@ export class DataLoadingService {
     // Simple connectivity check by trying to fetch a small amount of data
     return this.productService.getProducts(1, 1).pipe(
       tap(() => {
-        console.log('📶 Network connection available');
+        
         // If online and cache is empty, preload data
         if (!this.cacheService.isProductsCached()) {
           this.preloadForOffline().subscribe();

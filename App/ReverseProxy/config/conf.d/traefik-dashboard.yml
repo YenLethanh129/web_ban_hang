@@ -1,0 +1,34 @@
+http:
+  middlewares:
+    security-headers:
+      headers:
+        frameDeny: true
+        sslRedirect: true
+        browserXssFilter: true
+        contentTypeNosniff: true
+        forceSTSHeader: true
+        stsIncludeSubdomains: true
+        stsPreload: true
+        stsSeconds: 31536000
+        customFrameOptionsValue: "SAMEORIGIN"
+        contentSecurityPolicy: "default-src 'self'; frame-ancestors 'self'"
+
+    rate-limit:
+      rateLimit:
+        average: 100
+        burst: 50
+        period: 1m
+
+    dashboard-auth:
+      basicAuth:
+        users:
+          - "admin:$2y$05$GNWlKsPCJoaMTBNocpDnZ.KkS81iJySDf8RhdPYm/UVJ.MmjZcL66"
+
+  # Define routers and services here
+  routers:
+    dashboard:
+      rule: "Host(`traefik.kythuat.vn`)"
+      service: api@internal
+      middlewares:
+        - dashboard-auth
+        - security-headers

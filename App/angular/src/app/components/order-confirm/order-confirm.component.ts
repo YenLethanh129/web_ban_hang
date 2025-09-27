@@ -77,7 +77,7 @@ export class OrderConfirmComponent implements OnInit {
     };
     this.momoService.ipnHandler(momoIpnRequestDTO).subscribe({
       next: (response: any) => {
-        console.log('IPN Handler response:', response);
+        
         this.isLoading = false;
       },
       error: (error: any) => {

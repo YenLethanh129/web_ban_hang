@@ -13,7 +13,7 @@ using System.Windows.Forms;
 
 namespace Dashboard.Winform.Forms
 {
-    [RequireRole("Admin")]
+    [RequireRole("ADMIN")]
     public partial class FrmEmployeeDetails : FrmBaseAuthForm, IBlurLoadingServiceAware
     {
         #region Fields

@@ -8,7 +8,7 @@
   "variable": [
     {
       "key": "baseUrl",
-      "value": "https://otp.kythuat.vn",
+      "value": "https://otp-service.kythuat.vn",
       "type": "string"
     },
     {

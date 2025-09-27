@@ -134,7 +134,7 @@
     }
   ],
   "variable": [
-    { "key": "baseUrl", "value": "https://otp.kythuat.vn" },
+    { "key": "baseUrl", "value": "https://otp-service.kythuat.vn" },
     { "key": "phoneNumber", "value": "0987657937" }
   ]
 }

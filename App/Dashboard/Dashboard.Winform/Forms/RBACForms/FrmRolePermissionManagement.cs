@@ -1,21 +1,24 @@
-﻿using Dashboard.Winform.Events;
+﻿using Dashboard.Winform.Attributes;
+using Dashboard.Winform.Events;
+using Dashboard.Winform.Forms.BaseFrm;
+using Dashboard.Winform.Helpers;
+using Dashboard.Winform.Interfaces;
 using Dashboard.Winform.Presenters;
 using Dashboard.Winform.ViewModels.RBACModels;
-using Dashboard.Winform.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System;
-using System.Collections.Generic;
-using Dashboard.Winform.Helpers;
 
 namespace Dashboard.Winform.Forms
 {
-    public partial class FrmRolePermissionManagement : Form, IBlurLoadingServiceAware
+    [RequireRole("ADMIN")]
+    public partial class FrmRolePermissionManagement : FrmBaseAuthForm, IBlurLoadingServiceAware
     {
         private readonly IRolePermissionManagementPresenter _presenter;
         private readonly ILogger<FrmRolePermissionManagement> _logger;
