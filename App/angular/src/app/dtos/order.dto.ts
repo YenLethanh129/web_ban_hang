@@ -1,12 +1,71 @@
-export interface OrderDTO {
-    user_id: number;
-    full_name: string;
-    email: string;
-    phone_number: string;
+export interface OrderRequestDTO {
+  full_name: string;
+  email: string;
+  phone_number: string;
+  address: string;
+  note: string;
+  total_money: number;
+  shipping_method: string;
+  shipping_address: string;
+  payment_method: string;
+  payment_status: string;
+}
+
+export interface OrderResponseDTO {
+  created_at: string;
+  last_modified: string;
+  order_uuid: string;
+  order_id: number;
+  note: string;
+  status: string;
+  total_money: number;
+  order_date: string;
+  shipping_method: string;
+  payment_method: string;
+  payment_status: string;
+  order_details: OrderDetailResponseDTO[];
+  receiver_info: {
+    fullname: string;
     address: string;
-    note: string;
-    total_money: number;
-    shipping_method: string;
-    shipping_address: string;
-    payment_method: string;
+    phone_number: string;
+  };
+  provider: string;
+}
+
+export interface OrderDetailRequestDTO {
+  order_id: number;
+  product_id: number;
+  quantity: number;
+  unit_price: number;
+  total_money: number;
+  size: string;
+}
+
+export interface OrderDetailResponseDTO {
+  product_name: string;
+  product_thumbnail: string;
+  quantity: number;
+  unit_price: number;
+  total_amount: number;
+  size: string;
+}
+
+export interface MomoInfoOrderDTO {
+  order_id: number;
+  amount: number;
+}
+
+export interface OrderConfirmResponseDTO {
+  order_id: number;
+  order_uuid: string;
+  created_at: string;
+  last_modified: string;
+  note: string;
+  status: string;
+  total_money: number;
+  order_date: string;
+  shipping_method: string;
+  payment_method: string;
+  payment_status: string;
+  order_details: OrderDetailResponseDTO[];
 }

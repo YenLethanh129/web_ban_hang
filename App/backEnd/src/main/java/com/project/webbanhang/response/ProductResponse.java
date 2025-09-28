@@ -8,8 +8,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
-@Builder
+@SuperBuilder
 @Getter
 @Setter
 @AllArgsConstructor
@@ -33,8 +34,6 @@ public class ProductResponse extends BaseResponse{
 				.description(product.getDescription())
 				.categoryId(product.getCategory().getId())
 				.build();
-		productResponse.setCreatedAt(product.getCreatedAt());
-		productResponse.setUpdatedAt(product.getUpdatedAt());
 		return productResponse;
     }
 }

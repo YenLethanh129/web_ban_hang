@@ -1,43 +1,124 @@
-<div class="container">
-  <div class="confirm-section">
-    <div class="confirm-box">
-      <div class="success-icon">
-        <i class="fas fa-check-circle"></i>
+<div class="order-confirm-page">
+  <div class="order-confirm-container">
+    <div class="confirm-wrapper">
+      <!-- Success Header -->
+      <div class="success-header">
+        <div class="brand-section">
+          <h1 class="brand-title">FUNNY BOY</h1>
+          <p class="brand-subtitle">Coffee & Tea</p>
+        </div>
+        <div class="success-icon">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <h2 class="success-title">Đặt hàng thành công!</h2>
+        <p class="order-id">
+          Mã đơn hàng:
+          <span class="order-code">{{
+            orderResponse?.order_uuid.substring(0, 5)
+          }}</span>
+        </p>
       </div>
-      <h2>Đặt hàng không thành công!</h2>
-      <p class="order-id">Mã đơn hàng: #123456</p>
 
-      <div class="order-details">
-        <h3>Chi tiết đơn hàng</h3>
-        <div class="info-group">
-          <p><strong>Họ và tên:</strong> Nguyễn Văn A</p>
-          <p><strong>Số điện thoại:</strong> 0123456789</p>
-          <p><strong>Địa chỉ:</strong> Gia Lai</p>
+      <!-- Order Details Section -->
+      <div class="order-details-section">
+        <h3 class="section-title">
+          <i class="fas fa-receipt"></i>
+          Chi tiết đơn hàng
+        </h3>
+
+        <!-- Loading state -->
+        <div *ngIf="isLoading" class="loading-spinner">
+          <div class="spinner-border" role="status">
+            <span class="visually-hidden">Đang tải...</span>
+          </div>
+          <p>Đang tải thông tin đơn hàng...</p>
         </div>
 
-        <div class="product-list">
-          <div class="product-item">
-            <img src="path-to-product-image" alt="Product Image" />
-            <div class="product-info">
-              <h4>Tên sản phẩm</h4>
-              <p>Số lượng: 1</p>
-              <p class="price">5.000đ</p>
+        <!-- Order details content -->
+        <div
+          class="order-content"
+          *ngIf="!isLoading && listOrderDetails.length > 0"
+        >
+          <div class="order-items">
+            <div class="order-item" *ngFor="let item of listOrderDetails">
+              <div class="item-image">
+                <img
+                  [src]="
+                    item.product_thumbnail ||
+                    'assets/images/default-product.jpg'
+                  "
+                  [alt]="item.product_name"
+                />
+              </div>
+              <div class="item-details">
+                <h4 class="item-name">{{ item.product_name }}</h4>
+                <div class="item-info">
+                  <div class="size-section">
+                    <span class="size-label">Size:</span>
+                    <span class="size-value">{{ item.size }}</span>
+                  </div>
+                  <div class="price-section">
+                    <span class="price-label">Đơn giá:</span>
+                    <span class="price-value"
+                      >{{ item.unit_price | number }} VNĐ</span
+                    >
+                  </div>
+                  <div class="quantity-section">
+                    <span class="quantity-label">Số lượng:</span>
+                    <span class="quantity-value">{{ item.quantity }}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="item-total">
+                <span class="total-label">Thành tiền:</span>
+                <span class="total-value"
+                  >{{ item.total_amount | number }} VNĐ</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- Price Summary -->
+          <div class="order-summary">
+            <div class="summary-item">
+              <span class="summary-label">Tổng tiền hàng:</span>
+              <span class="summary-value"
+                >{{ orderResponse?.total_money | number }} VNĐ</span
+              >
+            </div>
+            <div class="summary-item">
+              <span class="summary-label">Phí vận chuyển:</span>
+              <span class="summary-value">Miễn phí</span>
+            </div>
+            <div class="summary-item final-total">
+              <span class="summary-label">Tổng thanh toán:</span>
+              <span class="summary-value"
+                >{{ orderResponse?.total_money | number }} VNĐ</span
+              >
             </div>
           </div>
         </div>
 
-        <div class="price-summary">
-          <p>Tổng tiền hàng: <span>5.000đ</span></p>
-          <p>Phí vận chuyển: <span>15.000đ</span></p>
-          <h4>Tổng thanh toán: <span>20.000đ</span></h4>
+        <!-- Empty state -->
+        <div
+          *ngIf="!isLoading && listOrderDetails.length === 0"
+          class="empty-order"
+        >
+          <i class="fas fa-exclamation-circle empty-icon"></i>
+          <p>Không có thông tin chi tiết đơn hàng</p>
         </div>
       </div>
 
+      <!-- Action Buttons -->
       <div class="action-buttons">
         <button class="btn btn-primary" [routerLink]="['/']">
+          <i class="fas fa-shopping-bag"></i>
           Tiếp tục mua sắm
         </button>
-        <button class="btn btn-outline-primary">Theo dõi đơn hàng</button>
+        <button class="btn btn-outline-primary" [routerLink]="['/info-order']">
+          <i class="fas fa-search"></i>
+          Theo dõi đơn hàng
+        </button>
       </div>
     </div>
   </div>

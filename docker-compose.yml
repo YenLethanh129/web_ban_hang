@@ -1,0 +1,435 @@
+x-logging:
+  &default-logging
+  options:
+    max-size: "100k"
+    max-file: "5"
+  driver: json-file
+
+networks:
+  app-network:
+    name: app-network  
+    driver: bridge
+
+
+services:
+#   cloudflared:
+#     build:
+#       context: ./App/cloudflare
+#       dockerfile: Dockerfile
+#     container_name: cloudflared
+#     restart: unless-stopped
+#     env_file:
+#       - ./environments/cloudflared.env
+#     depends_on:
+#       - traefik
+#     networks:
+#       - app-network
+#     volumes:
+#       - ./App/cloudflare/data/cert.pem:/etc/cloudflare/certs/cert.pem:ro
+#       - ./App/cloudflare/data/${TUNNEL_ID}.json:/etc/cloudflared/${TUNNEL_ID}.json:ro
+#       - ./App/cloudflare/config/config.yml:/etc/cloudflared/config.yml.template:ro
+#     command: tunnel run
+#     logging: *default-logging
+
+  traefik:
+    build:
+      context: ./App/ReverseProxy
+      dockerfile: Dockerfile
+    container_name: traefik-tunnel
+    restart: ${RESTART_POLICY}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    env_file:
+      - ./environments/traefik.env
+    volumes:
+      - ${DATA_PATH}/ssl:/etc/traefik/ssl
+      - ${DATA_PATH}/logs/traefik:/var/log/traefik
+      - ${CONFIG_PATH}/conf.d:/etc/traefik/conf.d
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./App/ReverseProxy/data/cloudflare/cert.pem:/etc/cloudflared/cert.pem
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=app-network"
+      - "traefik.http.routers.traefik-dashboard.rule=Host(`traefik.kythuat.vn`)"
+      - "traefik.http.routers.traefik-dashboard.entrypoints=websecure"
+      - "traefik.http.routers.traefik-dashboard.service=api@internal"
+      - "traefik.http.routers.traefik-dashboard.tls.certresolver=internal"
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks: 
+      - app-network
+
+  otp-service:
+    build:
+      context: ./App/OTP-service
+      dockerfile: Dockerfile
+    ports: 
+      - "8081:8080"
+    expose:
+      - 8080
+    depends_on:
+      redis:
+        condition: service_healthy
+    env_file:
+      - ./environments/redis.env
+      - ./environments/otp-service.env
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=app-network"
+      - "traefik.http.routers.otp-secure.rule=Host(`otp-service.kythuat.vn`)"
+      - "traefik.http.routers.otp-secure.entrypoints=websecure"
+      - "traefik.http.routers.otp-secure.service=otp"
+      - "traefik.http.routers.otp-secure.tls.certresolver=internal"
+      - "traefik.http.routers.otp-insecure.rule=Host(`otp-service.kythuat.vn`)"
+      - "traefik.http.routers.otp-insecure.entrypoints=web"
+      # - "traefik.http.routers.otp-insecure.middlewares=https-redirect@file"
+      - "traefik.http.services.otp.loadbalancer.server.port=8080"
+    volumes:
+      - ./.env:/app/.env:ro
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    logging: *default-logging
+
+  frontend:
+    image: node:20-alpine
+    working_dir: /app 
+    volumes:
+      - ./App/angular:/app
+      - /app/node_modules
+    command: sh -c "npm install && npm start -- --host 0.0.0.0 --disable-host-check"
+    ports:
+      - "4200:4200"
+    env_file:
+      - ./environments/web-frontend.env
+    depends_on:
+      - backend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=app-network"
+      - "traefik.http.routers.angular.rule=Host(`web.kythuat.vn`)"
+      - "traefik.http.routers.angular.entrypoints=websecure"
+      - "traefik.http.routers.angular.service=angular-service"
+      - "traefik.http.routers.angular.tls.certresolver=internal"
+      # HTTP redirect
+      - "traefik.http.routers.angular-http.rule=Host(`web.kythuat.vn`)"
+      - "traefik.http.routers.angular-http.entrypoints=web"
+      # - "traefik.http.routers.angular-http.middlewares=https-redirect"
+      - "traefik.http.services.angular-service.loadbalancer.server.port=4200"
+    expose:
+      - 4200
+    networks:
+      - app-network
+    restart: unless-stopped
+    # healthcheck:
+    #   test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:4200", "||", "exit", "1"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 3
+    #   start_period: 60s
+    logging: *default-logging
+
+  backend:
+    build:
+      context: ./App/backend
+      dockerfile: Dockerfile
+    env_file:
+      - ./environments/web-backend.env
+      - ./environments/redis.env
+    ports:
+      - "1609:1609"
+    depends_on:
+      webbanhang-db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./App/backend:/app
+      - ~/.m2:/root/.m2
+    working_dir: /app
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=app-network" 
+      - "traefik.http.routers.backend.rule=Host(`web-api.kythuat.vn`)"
+      - "traefik.http.routers.backend.entrypoints=websecure" 
+      - "traefik.http.routers.backend.service=backend-service"
+      - "traefik.http.routers.backend.tls.certresolver=internal" 
+      # HTTP redirect
+      - "traefik.http.routers.backend-http.rule=Host(`web-api.kythuat.vn`)"
+      - "traefik.http.routers.backend-http.entrypoints=web"
+      # - "traefik.http.routers.backend-http.middlewares=https-redirect"
+      - "traefik.http.services.backend-service.loadbalancer.server.port=1609"
+
+
+    command: >
+      mvn spring-boot:run
+      -Dspring-boot.run.fork=false
+      -DskipTests
+      -Djava.security.egd=file:/dev/./urandom
+    networks:
+      - app-network
+    restart: unless-stopped
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:1609/actuator/health", "||", "exit", "1"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 5
+    #   start_period: 120s
+    logging: *default-logging
+    # expose:
+    #   - 1609
+
+  report-worker:
+    build:
+      context: ./App/Dashboard
+      dockerfile: Dockerfile
+    # Map environment variables (values read from host env or from .env via docker-compose)
+    env_file:
+      - ./environments/report-worker.env
+    depends_on:
+      webbanhang-db:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: unless-stopped
+    logging: *default-logging
+
+
+  # Infrastructure services
+  webbanhang-db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: webbanhang-db
+    env_file:
+      - ./environments/db.env
+    ports:
+      - 1433:1433
+    volumes:
+      - webbanhang_data:/var/opt/mssql
+    restart: unless-stopped
+    healthcheck:
+      test: /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P "$${SA_PASSWORD}" -Q "SELECT 1" -b -o /dev/null
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    networks:
+      - app-network
+    logging: *default-logging
+
+  webbanhang-db.configurator:
+    build:
+      context: ./App/webbanhang-db/
+      dockerfile: Dockerfile
+    container_name: webbanhang-db.configurator
+    volumes:
+      - ./App/webbanhang-db/init:/init-sql
+    env_file:
+      - ./environments/db.env
+    depends_on:
+      webbanhang-db:
+        condition: service_healthy
+    command: >
+      bash -c '
+      envsubst < /init-sql/init_db.sql > /tmp/init_db_parsed.sql &&
+      /opt/mssql-tools18/bin/sqlcmd -C -S webbanhang-db -U sa -P "$${SA_PASSWORD}" -d master -i /tmp/init_db_parsed.sql &&
+      envsubst < /init-sql/init_schema.sql > /tmp/init_schema_parsed.sql &&
+      /opt/mssql-tools18/bin/sqlcmd -C -S webbanhang-db -U sa -P "$${SA_PASSWORD}" -d "$${DB_NAME}" -i /tmp/init_schema_parsed.sql &&
+      envsubst < /init-sql/init_seed_data.sql > /tmp/init_seed_data_parsed.sql &&
+      /opt/mssql-tools18/bin/sqlcmd -C -S webbanhang-db -U sa -P "$${SA_PASSWORD}" -d "$${DB_NAME}" -i /tmp/init_seed_data_parsed.sql &&
+      rm -f /tmp/*_parsed.sql && echo "All done!"'
+    networks:
+      - app-network
+    logging: *default-logging
+
+  redis:
+    image: redis:8.0-rc1
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - cache_data:/data
+    restart: unless-stopped
+    networks:
+      - app-network
+    logging: *default-logging
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Monitoring services
+  # prometheus:
+  #   image: prom/prometheus:v2.47.0
+  #   container_name: prometheus
+  #   restart: unless-stopped
+  #   ports:
+  #     - "9090:9090"
+  #   volumes:
+  #     - ./App/Monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+  #     - ./App/Monitoring/alert-rules.yml:/etc/prometheus/alert-rules.yml:ro
+  #     - prometheus-data:/prometheus
+  #   command:
+  #     - '--config.file=/etc/prometheus/prometheus.yml'
+  #     - '--storage.tsdb.path=/prometheus'
+  #     - '--web.console.libraries=/etc/prometheus/console_libraries'
+  #     - '--web.console.templates=/etc/prometheus/consoles'
+  #     - '--web.enable-lifecycle'
+  #     - '--web.enable-admin-api'
+  #     - '--storage.tsdb.retention.time=30d'
+  #     - '--storage.tsdb.retention.size=10GB'
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.docker.network=app-network"
+  #     - "traefik.http.routers.prometheus.rule=Host(`prometheus.kythuat.vn`)"
+  #     - "traefik.http.routers.prometheus.entrypoints=websecure"
+  #     - "traefik.http.routers.prometheus.service=prometheus"
+  #     - "traefik.http.routers.prometheus.middlewares=auth-basic@file"
+  #     - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
+  #   networks:
+  #     - app-network
+  #   logging: *default-logging
+
+  # grafana:
+  #   image: grafana/grafana:10.1.0
+  #   container_name: grafana
+  #   restart: unless-stopped
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     - GF_SECURITY_ADMIN_USER=admin
+  #     - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+  #     - GF_USERS_ALLOW_SIGN_UP=false
+  #     - GF_SECURITY_ALLOW_EMBEDDING=true
+  #     - GF_SECURITY_COOKIE_SECURE=true
+  #     - GF_SECURITY_COOKIE_SAMESITE=strict
+  #     - GF_SERVER_ROOT_URL=https://monitor.kythuat.vn
+  #     - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource,grafana-worldmap-panel
+  #   volumes:
+  #     - grafana-data:/var/lib/grafana
+  #     - ./App/Monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+  #     - ./App/Monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.docker.network=app-network"
+  #     - "traefik.http.routers.grafana.rule=Host(`monitor.kythuat.vn`)"
+  #     - "traefik.http.routers.grafana.entrypoints=websecure"
+  #     - "traefik.http.routers.grafana.service=grafana"
+  #     - "traefik.http.routers.grafana.middlewares=secureHeaders@file"
+  #     - "traefik.http.services.grafana.loadbalancer.server.port=3000"
+  #   depends_on:
+  #     - prometheus
+  #   networks:
+  #     - app-network
+  #   logging: *default-logging
+
+  # # Node Exporter để collect system metrics
+  # node-exporter:
+  #   image: prom/node-exporter:v1.6.1
+  #   container_name: node-exporter
+  #   restart: unless-stopped
+  #   volumes:
+  #     - /proc:/host/proc:ro
+  #     - /sys:/host/sys:ro
+  #     - /:/rootfs:ro
+  #   command:
+  #     - '--path.procfs=/host/proc'
+  #     - '--path.rootfs=/rootfs'
+  #     - '--path.sysfs=/host/sys'
+  #     - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+  #   ports:
+  #     - "9100:9100"
+  #   networks:
+  #     - app-network
+  #   logging: *default-logging
+
+  # # cAdvisor để monitor containers
+  # cadvisor:
+  #   image: gcr.io/cadvisor/cadvisor:v0.47.0
+  #   container_name: cadvisor
+  #   restart: unless-stopped
+  #   privileged: true
+  #   devices:
+  #     - /dev/kmsg:/dev/kmsg
+  #   volumes:
+  #     - /:/rootfs:ro
+  #     - /var/run:/var/run:ro
+  #     - /sys:/sys:ro
+  #     - /var/lib/docker/:/var/lib/docker:ro
+  #     - /cgroup:/cgroup:ro
+  #   ports:
+  #     - "8082:8080"
+  #   networks:
+  #     - app-network
+  #   logging: *default-logging
+
+  # # AlertManager để gửi alerts
+  # alertmanager:
+  #   image: prom/alertmanager:v0.25.0
+  #   container_name: alertmanager
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ./App/Monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+  #     - alertmanager-data:/alertmanager
+  #   command:
+  #     - '--config.file=/etc/alertmanager/alertmanager.yml'
+  #     - '--storage.path=/alertmanager'
+  #     - '--web.external-url=https://alerts.kythuat.vn'
+  #   ports:
+  #     - "9093:9093"
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.docker.network=app-network"
+  #     - "traefik.http.routers.alertmanager.rule=Host(`alerts.kythuat.vn`)"
+  #     - "traefik.http.routers.alertmanager.entrypoints=websecure"
+  #     - "traefik.http.routers.alertmanager.middlewares=auth-basic@file"
+  #     - "traefik.http.services.alertmanager.loadbalancer.server.port=9093"
+  #   networks:
+  #     - app-network
+  #   logging: *default-logging
+
+  # redis-exporter:
+  #   image: oliver006/redis_exporter:v1.54.0
+  #   container_name: redis-exporter
+  #   restart: unless-stopped
+  #   environment:
+  #     - REDIS_ADDR=redis:6379
+  #     - REDIS_PASSWORD=${REDIS_PASSWORD}
+  #   ports:
+  #     - "9121:9121"
+  #   depends_on:
+  #     - redis
+  #   networks:
+  #     - app-network
+  #   logging: *default-logging
+
+volumes:
+  webbanhang_data:
+  maven-repo:
+  cache_data:
+  traefik-certs:
+  traefik_config:
+  # prometheus-data:
+  # grafana-data:
+  # alertmanager-data:

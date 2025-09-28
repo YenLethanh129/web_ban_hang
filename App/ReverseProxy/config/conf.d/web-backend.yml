@@ -1,0 +1,53 @@
+http:
+  routers:
+    backend:
+      rule: "Host(`localhost:1609`)"
+      service: "backend"
+      entrypoints:
+        - websecure
+      tls:
+        certResolver: internal
+      middlewares:
+        - default-headers
+        - rate-limit
+        - secure-headers
+
+  services:
+    backend:
+      loadBalancer:
+        servers:
+          - url: "http://backend:1609"
+        healthCheck:
+          path: "/actuator/health"
+          interval: "30s"
+
+  middlewares:
+    default-headers:
+      headers:
+        frameDeny: true
+        sslRedirect: true
+        browserXssFilter: true
+        contentTypeNosniff: true
+        forceSTSHeader: true
+        stsIncludeSubdomains: true
+        stsPreload: true
+        stsSeconds: 31536000
+
+    rate-limit:
+      rateLimit:
+        burst: 100
+        average: 50
+
+    secure-headers:
+      headers:
+        accessControlAllowMethods:
+          - GET
+          - OPTIONS
+          - PUT
+        accessControlAllowOriginList:
+          - https://web.kythuat.vn
+          - https://otp-service.kythuat.vn
+          - https://localhost:1609
+        accessControlMaxAge: 100
+        hostsProxyHeaders:
+          - "X-Forwarded-Host"

@@ -1,21 +1,23 @@
 package com.project.webbanhang.controllers;
 
-import com.github.javafaker.Faker;
+import com.project.webbanhang.components.LocalizationUtil;
 import com.project.webbanhang.dtos.ProductDTO;
 import com.project.webbanhang.dtos.ProductImageDTO;
 import com.project.webbanhang.exceptions.DataNotFoundException;
 import com.project.webbanhang.exceptions.InvalidParamException;
 import com.project.webbanhang.models.Product;
 import com.project.webbanhang.models.ProductImage;
+import com.project.webbanhang.response.CacheablePageResponse;
 import com.project.webbanhang.response.ProductListResponse;
 import com.project.webbanhang.response.ProductResponse;
-import com.project.webbanhang.services.IProductImageService;
-import com.project.webbanhang.services.IProductService;
+import com.project.webbanhang.services.Interfaces.IProductService;
 
+import com.project.webbanhang.utils.MessageKey;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
@@ -36,39 +38,63 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * TOP 10 OWASP 2023
+ * API9:2023 - Improper Inventory Management
+ * Hacker có thể khai thác các lỗ hổng trong quản lý kho để truy cập vào các sản phẩm không được phép
+ * Giải pháp: Xác thực và phân quyền người dùng trước khi cho phép truy cập
+ *
+ * @ApiVersion(1)
+ * */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("${api.prefix}/products")
+//@ApiVersion(1)
 public class ProductController {
 	
 	private final IProductService productService;
-	//private final IProductImageService productImageService;
+    private final LocalizationUtil localizationUtil;
 
-	// Done
+    /**
+     * TOP 10 OWASP 2023
+     * API3: 2023 - Broken Object Property Level Authorization
+     * Hacker có thể truy cập vào các thuộc tính nhạy cảm của người dùng khác
+     * Giải pháp: Sử dụng Response để chỉ trả về các thuộc tính cần thiết
+     * */
+    /**
+     * TOP 10 OWASP 2023
+     * API4:2023 - Unrestricted Resource Consumption
+     * Hacker có thể tấn công từ chối dịch vụ (DoS) bằng cách gửi các yêu cầu lớn hoặc phức tạp
+     * Giải pháp: Giới hạn số lượng bản ghi trả về trong một trang
+     * */
     @GetMapping("")
     public ResponseEntity<?> getProducts(
-            @RequestParam(value = "page", defaultValue = "1") int page,
-            @RequestParam(value = "limit", defaultValue = "10") int limit
+            @RequestParam(value = "page", defaultValue = "1") @Min(1) int page,
+            @RequestParam(value = "limit", defaultValue = "10") @Min(1) @Max(100) int limit
     ) {
     	try {
-    		//PageRequest pageRequest = PageRequest.of(page, limit, Sort.by("createdAt").descending());
-    		PageRequest pageRequest = PageRequest.of(page, limit);
-        	Page<ProductResponse> productPage = productService.getAllProducts(pageRequest);
-        	List<ProductResponse> products = productPage.getContent();
-        	
+    		PageRequest pageRequest = PageRequest.of(page - 1, limit, Sort.by("categoryId"));
+        	CacheablePageResponse<ProductResponse> productPage = productService.getAllProducts(pageRequest);
         	int totalPages = productPage.getTotalPages();
         	
         	ProductListResponse productListResponse = ProductListResponse.builder()
-        			.products(products)
+        			.products(productPage.getContent())
         			.totalPage(totalPages)
+                    .totalItem((int)productPage.getTotalElements())
         			.build();
-        	
+
             return ResponseEntity.ok(productListResponse);
 		} catch (Exception e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
+			return ResponseEntity.badRequest().body("Lỗi khi lấy danh sách sản phẩm: " + e.getMessage());
 		}
     }
-    
+
+    /**
+     * TOP 10 OWASP 2023
+     * API3: 2023 - Broken Object Property Level Authorization
+     * Hacker có thể truy cập vào các thuộc tính nhạy cảm của người dùng khác
+     * Giải pháp: Sử dụng Response để chỉ trả về các thuộc tính cần thiết
+     * */
     @GetMapping("/category/{id}")
     public ResponseEntity<?> getProductsByCategoryId(
             @PathVariable("id") Long categoryId,
@@ -77,18 +103,18 @@ public class ProductController {
     ) {
         try {
             // Lưu ý: Page index bắt đầu từ 0 trong Spring Data
-            PageRequest pageRequest = PageRequest.of(page - 1, limit); 
-            
-            Page<ProductResponse> productPage = productService.getProductsByCategoryId(categoryId, pageRequest);
-            List<ProductResponse> products = productPage.getContent();
-            int totalPages = productPage.getTotalPages();
-
+            PageRequest pageRequest = PageRequest.of(page - 1, limit);
+            CacheablePageResponse<ProductResponse> cachedPage = productService.getProductsByCategoryId(categoryId, pageRequest);
             ProductListResponse productListResponse = ProductListResponse.builder()
-                    .products(products)
-                    .totalPage(totalPages)
+                    .products(cachedPage.getContent())
+                    .totalPage(cachedPage.getTotalPages())
+                    .totalItem((int)cachedPage.getTotalElements())
                     .build();
 
             return ResponseEntity.ok(productListResponse);
+//            return ResponseEntity.ok(cachedPage);
+        } catch (DataNotFoundException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -127,13 +153,18 @@ public class ProductController {
             
             productService.createProduct(productDTO);
 
-            return ResponseEntity.ok("Insert product successfully");
+            return ResponseEntity.ok(localizationUtil.getLocalizedMessage(MessageKey.CREATE_PRODUCT_SUCCESSFULLY));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
-    
-    // Done
+
+    /**
+     * TOP 10 OWASP 2023
+     * API4:2023 - Unrestricted Resource Consumption
+     * Hacker có thể tấn công từ chối dịch vụ (DoS) bằng cách gửi các yêu cầu lớn hoặc phức tạp
+     * Giải pháp: Giới hạn số lượng file tải lên và kích thước file
+     * */
     @PostMapping(value = "uploads/{id}",
     		consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> uploadImages(
@@ -143,22 +174,23 @@ public class ProductController {
     	try {
     		Product existingProduct = productService.getProductById(productId);
     		if (files == null || files.isEmpty() || (files.size() == 1 && files.get(0).getOriginalFilename().isEmpty())) { 
-    			return ResponseEntity.badRequest().body("No image is selected!"); 
+    			return ResponseEntity.badRequest().body(localizationUtil.getLocalizedMessage(MessageKey.IMAGE_NOT_EMPTY));
     		}
             if (files.size() > 5) { 
-            	return ResponseEntity.badRequest().body("You can only upload maximun 5 images!");
+            	return ResponseEntity.badRequest().body(localizationUtil.getLocalizedMessage(MessageKey.MAX_IMAGE_UPLOAD));
             }
             List<ProductImage> productImages = new ArrayList<>();
             for (MultipartFile file : files) {
                 if (file.getSize() == 0) {
                     continue;
                 }
+                // Giới hạn kích thước file tải lên (ví dụ: 10MB)
                 if (file.getSize() > 10 * 1024 * 1024) { // 10Mb
-                    return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body("File size is too large > 10Mb");
+                    return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(localizationUtil.getLocalizedMessage(MessageKey.FILE_OVER_SIZE));
                 }
                 String contentType = file.getContentType();
                 if (contentType != null && !contentType.startsWith("image/")) {
-                    return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body("File type is not supported");
+                    return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body(localizationUtil.getLocalizedMessage(MessageKey.FILE_NOT_SUPPORTED));
                 }
                 String fileName = storeFile(file);
                 

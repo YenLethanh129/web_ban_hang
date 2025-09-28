@@ -3,10 +3,13 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule, NgForm } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { UserService } from '../../services/user.service';
-import { LoginDTO } from '../../dtos/login.dto';
-import { LoginResponse } from '../../response/LoginResponse';
-import { TokenService } from '../../services/token.service';
+import { LoginRequestDTO } from '../../dtos/login.dto';
+import { NotificationService } from '../../services/notification.service';
+import { ValidateDTO } from '../../dtos/validate.dto';
+import { ValidateService } from '../../services/validate.service';
 
 @Component({
   selector: 'app-login',
@@ -15,8 +18,10 @@ import { TokenService } from '../../services/token.service';
     RouterModule,
     FormsModule,
     CommonModule,
-    HttpClientModule
-],
+    HttpClientModule,
+    MatButtonModule,
+    MatIconModule,
+  ],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })
@@ -28,15 +33,23 @@ export class LoginComponent {
     password: '',
   };
 
-  showPassword = false;
+  phoneValidation: ValidateDTO = { isValid: false, errors: [] };
+  passwordValidation: ValidateDTO = { isValid: false, errors: [] };
+
   isLoading = false;
   showPhoneError = false;
+  phoneNumberErrorMessage: string[] = [];
+  showPassword = false;
   showPasswordError = false;
+  passwordErrorMessage: string[] = [];
+
+  showErrorLoginMessage = false;
+  errorLoginMessage = '';
 
   constructor(
     private router: Router,
     private userService: UserService,
-    private tokenService: TokenService
+    private notificationService: NotificationService
   ) {}
 
   togglePasswordVisibility() {
@@ -45,58 +58,60 @@ export class LoginComponent {
 
   validatePhoneNumber(event: Event): void {
     const input = event.target as HTMLInputElement;
-    input.value = input.value.replace(/[^0-9]/g, '');
-    this.loginData.phoneNumber = input.value;
+    this.phoneValidation = ValidateService.validatePhoneNumber(input.value);
+    this.showPhoneError = !this.phoneValidation.isValid;
+    this.phoneNumberErrorMessage = this.phoneValidation.errors;
+  }
+
+  validatePassword(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.passwordValidation = ValidateService.validatePassword(input.value);
+    this.showPasswordError = !this.passwordValidation.isValid;
+    this.passwordErrorMessage = this.passwordValidation.errors;
   }
 
   validateForm(): boolean {
-    return (
-      this.loginForm?.valid === true &&
-      this.loginData.phoneNumber.length === 10 &&
-      this.loginData.password.length >= 6
-    );
+    return this.phoneValidation.isValid && this.passwordValidation.isValid;
   }
 
   onSubmit() {
     if (!this.validateForm()) {
-      alert('Vui lòng kiểm tra lại thông tin đăng nhập');
       return;
     }
+
     this.isLoading = true;
-    const loginDTO: LoginDTO = {
+    this.showErrorLoginMessage = false;
+    this.notificationService.showInfo('⏳ Đang xử lý đăng nhập...');
+
+    const loginDTO: LoginRequestDTO = {
       phone_number: this.loginData.phoneNumber,
       password: this.loginData.password,
     };
 
     this.userService.login(loginDTO).subscribe({
-      next: (response: LoginResponse) => {
-        console.log('Đăng nhập thành công:', response);
-        const { token } = response;
-        if (!token) {
-          console.log('Không nhận được token từ máy chủ');
-          this.isLoading = false;
-          return;
-        }
-        this.tokenService.setToken(token);
-
-        alert('Đăng nhập thành công!');
-        this.isLoading = false;
-        this.router.navigate(['/']);
+      next: (response) => {
+        
+        this.notificationService.showSuccess(
+          '🎉 Đăng nhập thành công! Chào mừng bạn trở lại!'
+        );
+        setTimeout(() => {
+          this.router.navigate(['/']);
+        }, 500);
       },
       error: (error) => {
         this.isLoading = false;
         console.error('Lỗi đăng nhập:', error);
-
-        let errorMessage = 'Có lỗi xảy ra khi đăng nhập';
-
-        try {
-          // Parse JSON string từ error
-          const errorObj = JSON.parse(error.error);
-          errorMessage = errorObj.message;
-        } catch (e) {
-          console.error('Lỗi parse error message:', e);
+        if (error.status === 401) {
+          this.errorLoginMessage = 'Thông tin đăng nhập không chính xác';
+        } else if (error.status === 0) {
+          this.errorLoginMessage = 'Không thể kết nối đến máy chủ';
+        } else {
+          this.errorLoginMessage =
+            error.error?.message || 'Đăng nhập thất bại. Vui lòng thử lại.';
         }
-        alert(errorMessage);
+
+        this.showErrorLoginMessage = true;
+        this.notificationService.showError('❌ ' + this.errorLoginMessage);
       },
     });
   }

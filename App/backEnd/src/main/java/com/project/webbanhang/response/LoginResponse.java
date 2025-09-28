@@ -17,6 +17,6 @@ public class LoginResponse {
 	@JsonProperty("message")
 	private String message;
 	
-	@JsonProperty("token")
-	private String token;
+	@JsonProperty("status")
+	private int status;
 }

@@ -1,136 +1,290 @@
-<div class="container">
-  <div class="order-section">
-    <h2>Đặt hàng</h2>
-    <form class="order-form">
-      <div class="form-group">
-        <label for="fullName">Họ và tên người nhận hàng</label>
-        <input
-          type="text"
-          name="fullName"
-          id="fullName"
-          [(ngModel)]="orderData.fullName"
-          required
-          #fullName="ngModel"
-          class="form-control"
-          placeholder="Nhập họ và tên"
-        />
-      </div>
+<div class="order-page">
+  <div class="order-container">
+    <div class="order-form-wrapper">
+      <div class="order-header">
+        <div class="brand-section">
+          <h1 class="brand-title">FUNNY BOY</h1>
+          <p class="brand-subtitle">Coffee & Tea</p>
+        </div>
+        <h2 class="order-title">Thông tin đơn hàng</h2>
+        <p class="order-subtitle">Hoàn tất thông tin để đặt hàng</p>
 
-      <div class="form-group">
-        <label for="email">Email</label>
-        <input
-          type="email"
-          class="form-control"
-          id="email"
-          name="email"
-          required
-          [(ngModel)]="orderData.email"
-          #email="ngModel"
-        />
-      </div>
-
-      <div class="form-group">
-        <label for="phoneNumber">Số điện thoại</label>
-        <input
-          type="tel"
-          class="form-control"
-          id="phoneNumber"
-          name="phoneNumber"
-          required
-          [(ngModel)]="orderData.phoneNumber"
-          #phoneNumber="ngModel"
-        />
-      </div>
-
-      <div class="form-group">
-        <label for="shippingAddress">Địa chỉ nhận hàng</label>
-        <textarea
-          class="form-control"
-          rows="3"
-          id="shippingAddress"
-          name="shippingAddress"
-          required
-          [(ngModel)]="orderData.shippingAddress"
-          #shippingAddress="ngModel"
-        ></textarea>
-      </div>
-
-      <div class="form-group">
-        <label>Ghi chú</label>
-        <textarea
-          class="form-control"
-          rows="3"
-          id="note"
-          name="note"
-          [(ngModel)]="orderData.note"
-          #note="ngModel"
-        ></textarea>
-      </div>
-
-      <div class="form-group">
-        <label>Phương thức thanh toán</label>
-        <select
-          class="form-control"
-          [(ngModel)]="orderData.paymentMethod"
-          name="paymentMethod"
-        >
-          <option value="cod">Thanh toán khi nhận hàng (COD)</option>
-          <option value="bank-transfer" selected>Chuyển khoản ngân hàng</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label>Phương thức giao hàng</label>
-        <select
-          class="form-control"
-          [(ngModel)]="orderData.shippingMethod"
-          name="shippingMethod"
-        >
-          <option value="standard">Giao hàng tiêu chuẩn</option>
-          <option value="express">Giao hàng nhanh</option>
-          <option value="pickup">Nhận tại cửa hàng</option>
-        </select>
-      </div>
-
-      <div class="product-summary">
-        <h3>Thông tin đơn hàng</h3>
-        <div class="cart-content" *ngIf="!isLoading && cartItems.length > 0">
-          <div class="cart-items">
-            <div class="cart-item" *ngFor="let item of cartItems">
-              <div class="item-image">
-                <img [src]="item.product.thumbnail" [alt]="item.product.name" />
-              </div>
-              <div class="item-details">
-                <h3>{{ item.product.name }}</h3>
-                <p class="price">{{ item.product.price }} VNĐ</p>
-              </div>
-              <div class="item-quantity">
-                <span>Số lượng: {{ item.quantity }}</span>
-              </div>
-              <div class="item-total">
-                {{ item.product.price * item.quantity | number }} VNĐ
-              </div>
-            </div>
-          </div>
-
-          <div class="cart-summary">
-            <div class="summary-item">
-              <span>Tổng tiền:</span>
-              <span class="total-price"
-                >{{ getTotalPrice() | number }} VNĐ</span
-              >
-            </div>
-          </div>
+        <!-- Auto-fill button -->
+        <div *ngIf="showAutofillButton" class="autofill-section">
+          <button
+            type="button"
+            class="btn btn-outline-primary autofill-btn"
+            (click)="autofillFromProfile()"
+          >
+            <i class="fas fa-magic"></i>
+            Tự động điền thông tin giao hàng
+          </button>
+          <p class="autofill-note">Sử dụng thông tin từ hồ sơ cá nhân</p>
         </div>
       </div>
 
-      <button
-        type="submit"
-        class="btn btn-primary order-button"
-        [routerLink]="['/order-confirm']"
-      >
-        Xác nhận đặt hàng
-      </button>
-    </form>
+      <form class="order-form" (ngSubmit)="onSubmit()" #orderForm="ngForm">
+        <div class="form-group">
+          <label for="fullName" class="form-label">
+            <i class="fas fa-user"></i>
+            Họ và tên người nhận hàng
+          </label>
+          <div class="input-wrapper">
+            <!-- Chi show nguoi dung xem, khong cho phep thay doi -->
+            <input
+              type="text"
+              name="fullName"
+              id="fullName"
+              [(ngModel)]="orderData.fullName"
+              [readonly]="true"
+              required
+              #fullName="ngModel"
+              class="form-control"
+              [class.is-invalid]="!validateFullNameDTO.isValid"
+              placeholder="Nhập họ và tên đầy đủ"
+              (input)="validateFullName($event)"
+            />
+            <i class="fas fa-user input-icon"></i>
+          </div>
+          <div *ngIf="!validateFullNameDTO.isValid" class="error-message">
+            <i class="fas fa-exclamation-circle"></i>
+            <div *ngFor="let error of validateFullNameDTO.errors">
+              {{ error }}
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="email" class="form-label">
+            <i class="fas fa-envelope"></i>
+            Email (tùy chọn)
+          </label>
+          <div class="input-wrapper">
+            <input
+              type="email"
+              class="form-control"
+              id="email"
+              name="email"
+              [(ngModel)]="orderData.email"
+              #email="ngModel"
+              [class.is-invalid]="!validateEmailDTO.isValid"
+              placeholder="Nhập địa chỉ email"
+              (input)="validateEmail($event)"
+            />
+            <i class="fas fa-envelope input-icon"></i>
+          </div>
+          <div *ngIf="!validateEmailDTO.isValid" class="error-message">
+            <i class="fas fa-exclamation-circle"></i>
+            <div *ngFor="let error of validateEmailDTO.errors">
+              {{ error }}
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="phoneNumber" class="form-label">
+            <i class="fas fa-phone"></i>
+            Số điện thoại
+          </label>
+          <div class="input-wrapper">
+            <input
+              type="tel"
+              class="form-control"
+              id="phoneNumber"
+              name="phoneNumber"
+              required
+              [(ngModel)]="orderData.phoneNumber"
+              [readonly]="true"
+              #phoneNumber="ngModel"
+              [class.is-invalid]="!validatePhoneNumberDTO.isValid"
+              placeholder="Nhập số điện thoại"
+              (input)="validatePhoneNumber($event)"
+            />
+            <i class="fas fa-phone input-icon"></i>
+          </div>
+          <div *ngIf="!validatePhoneNumberDTO.isValid" class="error-message">
+            <i class="fas fa-exclamation-circle"></i>
+            <div *ngFor="let error of validatePhoneNumberDTO.errors">
+              {{ error }}
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <app-address-autocomplete
+            [(ngModel)]="orderData.shippingAddress"
+            name="shippingAddress"
+            #shippingAddress="ngModel"
+            [required]="true"
+            [useCurrentLocation]="true"
+            placeholder="Nhập địa chỉ giao hàng chi tiết"
+            label="Địa chỉ nhận hàng"
+            (addressSelected)="onAddressSelected($event)"
+            (inputFocus)="onAddressFocus()"
+          ></app-address-autocomplete>
+          <div
+            *ngIf="!validateShippingAddressDTO.isValid"
+            class="error-message"
+          >
+            <i class="fas fa-exclamation-circle"></i>
+            <div *ngFor="let error of validateShippingAddressDTO.errors">
+              {{ error }}
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="note" class="form-label">
+            <i class="fas fa-sticky-note"></i>
+            Ghi chú (tùy chọn)
+          </label>
+          <div class="input-wrapper">
+            <textarea
+              class="form-control"
+              rows="3"
+              id="note"
+              name="note"
+              [(ngModel)]="orderData.note"
+              #note="ngModel"
+              placeholder="Ghi chú thêm cho đơn hàng..."
+            ></textarea>
+            <i class="fas fa-sticky-note input-icon"></i>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="paymentMethod" class="form-label">
+            <i class="fas fa-credit-card"></i>
+            Phương thức thanh toán
+          </label>
+          <div class="input-wrapper">
+            <select
+              class="form-control"
+              id="paymentMethod"
+              [(ngModel)]="orderData.paymentMethod"
+              name="paymentMethod"
+            >
+              <option value="MOMO" selected>Thanh toán nhanh với Momo</option>
+              <option value="COD">Thanh toán khi nhận hàng</option>
+            </select>
+            <i class="fas fa-credit-card input-icon"></i>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="shippingMethod" class="form-label">
+            <i class="fas fa-shipping-fast"></i>
+            Phương thức giao hàng
+          </label>
+          <div class="input-wrapper">
+            <select
+              class="form-control"
+              id="shippingMethod"
+              [(ngModel)]="orderData.shippingMethod"
+              name="shippingMethod"
+            >
+              <option value="STANDARD" selected>Giao hàng thông thường</option>
+              <option value="FAST">Giao hàng nhanh</option>
+            </select>
+            <i class="fas fa-shipping-fast input-icon"></i>
+          </div>
+        </div>
+
+        <div class="order-summary-section">
+          <h3 class="summary-title">
+            <i class="fas fa-shopping-bag"></i>
+            Tóm tắt đơn hàng
+          </h3>
+
+          <div class="loading-spinner" *ngIf="isLoading">
+            <div class="spinner-border" role="status">
+              <span class="sr-only">Đang tải...</span>
+            </div>
+            <p>Đang tải thông tin giỏ hàng...</p>
+          </div>
+
+          <div class="cart-content" *ngIf="!isLoading && cartItems.length > 0">
+            <div class="cart-items">
+              <div class="cart-item" *ngFor="let item of cartItems">
+                <div class="item-image">
+                  <img
+                    [src]="item.product.thumbnail"
+                    [alt]="item.product.name"
+                  />
+                </div>
+                <div class="item-details">
+                  <h4 class="item-name">{{ item.product.name }}</h4>
+                  <div class="item-info">
+                    <div class="price-section">
+                      <span class="price-label">Đơn giá:</span>
+                      <span class="price-value"
+                        >{{ item.product.price | number }} VNĐ</span
+                      >
+                    </div>
+                    <div class="quantity-section">
+                      <span class="quantity-label">Số lượng:</span>
+                      <span class="quantity-value">{{ item.quantity }}</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="item-total">
+                  <span class="total-label">Thành tiền:</span>
+                  <span class="total-value"
+                    >{{ item.product.price * item.quantity | number }} VNĐ</span
+                  >
+                </div>
+              </div>
+            </div>
+
+            <div class="order-total">
+              <div class="total-item">
+                <span class="total-label">Tổng tiền hàng:</span>
+                <span class="total-value"
+                  >{{ getTotalPrice() | number }} VNĐ</span
+                >
+              </div>
+              <div class="total-item">
+                <span class="total-label">Phí vận chuyển:</span>
+                <span class="total-value">Miễn phí</span>
+              </div>
+              <div class="total-item final-total">
+                <span class="total-label">Tổng thanh toán:</span>
+                <span class="total-value"
+                  >{{ getTotalPrice() | number }} VNĐ</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <div class="empty-cart" *ngIf="!isLoading && cartItems.length === 0">
+            <i class="fas fa-shopping-cart empty-icon"></i>
+            <p>Giỏ hàng trống</p>
+            <a routerLink="/" class="btn btn-outline-primary"
+              >Tiếp tục mua sắm</a
+            >
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button
+            type="submit"
+            class="btn btn-primary btn-submit"
+            [disabled]="isLoading || cartItems.length === 0"
+          >
+            <span
+              *ngIf="isLoading"
+              class="spinner-border spinner-border-sm"
+            ></span>
+            <i *ngIf="!isLoading" class="fas fa-credit-card"></i>
+            {{ isLoading ? "Đang xử lý..." : "Đặt hàng ngay" }}
+          </button>
+
+          <a routerLink="/cart" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i>
+            Quay lại giỏ hàng
+          </a>
+        </div>
+      </form>
+    </div>
   </div>
 </div>

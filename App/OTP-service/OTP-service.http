@@ -1,0 +1,67 @@
+### Variables
+@baseUrl = https://otp-service.kythuat.vn
+@phoneNumber = 0987657937
+
+### 1. Health Check
+GET {{baseUrl}}/health
+
+### 2. Send OTP
+POST {{baseUrl}}/api/otp/send
+Content-Type: application/json
+
+{
+  "phoneNumber": "{{phoneNumber}}",
+  "length": 6
+}
+
+### 3. Verify OTP (replace with actual OTP received)
+POST {{baseUrl}}/api/otp/verify
+Content-Type: application/json
+
+{
+  "phoneNumber": "{{phoneNumber}}",
+  "otp": "142799",
+  "clearAfterVerification": true
+}
+
+### 4. Check OTP Status
+GET {{baseUrl}}/api/otp/status/{{phoneNumber}}
+
+### 5. Clear OTP
+DELETE {{baseUrl}}/api/otp/{{phoneNumber}}
+
+### 6. Test Rate Limiting - Send multiple requests quickly
+POST {{baseUrl}}/api/otp/send
+Content-Type: application/json
+
+{
+  "phoneNumber": "{{phoneNumber}}",
+  "length": 6
+}
+
+### 7. Test Invalid Phone Number
+POST {{baseUrl}}/api/otp/send
+Content-Type: application/json
+
+{
+  "phoneNumber": "invalid-phone",
+  "length": 6
+}
+
+### 8. Test Invalid OTP Format
+POST {{baseUrl}}/api/otp/verify
+Content-Type: application/json
+
+{
+  "phoneNumber": "{{phoneNumber}}",
+  "otp": "abc",
+  "clearAfterVerification": true
+}
+
+### 9. Test Send OTP
+POST {{baseUrl}}/api/otp/send-test
+Content-Type: application/json
+{
+    "phoneNumber": "{{phoneNumber}}",
+    "length": 6
+}

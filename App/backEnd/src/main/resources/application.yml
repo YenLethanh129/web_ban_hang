@@ -1,30 +1,199 @@
+# TOP 10 OWASP 2023
+# API8:2023 - Security Misconfiguration
+# Hacker có thể khai thác các cấu hình mặc định không an toàn,
+# cấu hình sai hoặc cấu hình lỏng lẻo trong ứng dụng,
+# framework, máy chủ web, máy chủ ứng dụng, cơ sở dữ liệu và nền tảng.
+#
 spring:
   datasource:
-    url: ${DB_URL:jdbc:mysql://db:3306/webbanhang?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD:mysql}
+    url: ${SPRING_DATASOURCE_URL}
+    driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: none
     show-sql: true
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.MySQLDialect
         format_sql: true
+  messages:
+    basename: i18n/messages
+    encoding: UTF-8
   application:
     name: webbanhang
   servlet:
     multipart:
       max-file-size: 10MB
       max-request-size: 10MB
+  redis:
+    host: ${REDIS_HOST}  
+    port: ${REDIS_PORT}
+    password: ${REDIS_PASSWORD:}
+    database: ${REDIS_DATABASE:0}
+  cache:
+    redis:
+      time-to-live: 86400
+      key-prefix: "webbanhang:cache:"
 
 server:
-  port: ${SERVER_PORT:1609}
+  port: ${SERVER_PORT}
+  servlet:
+    encoding:
+      charset: UTF-8
+      force-request: true
+      force-response: true
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+
+logging:
+  level:
+    root: DEBUG
+    
 api:
-  prefix: api/v1
+  prefix: ${API_PREFIX}
 jwt:
-  expiration: ${JWT_EXPIRATION:2592000}
-  secretKey: ${JWT_SECRET:euv8p8iSXxKqR6MFGpOkUHd0UZDQFssKjB6JXM8OPVo}
+  expiration: ${JWT_EXPIRATION}
+  secretKey: ${JWT_SECRET}
   #30 days = 30 * 24 * 60 * 60w
+momo:
+  endpoint: ${MOMO_ENDPOINT}
+  partnerCode: ${MOMO_PARTNER_CODE}
+  accessKey: ${MOMO_ACCESS_KEY}
+  secretKey: ${MOMO_SECRET_KEY}
+  redirectUrl: ${MOMO_REDIRECT_URL}
+  ipnUrl: ${MOMO_IPN_URL}
+  requestType: ${MOMO_REQUEST_TYPE}
+
+goong:
+  endpoint: ${GOONG_ENDPOINT}
+  apiKey: ${GOONG_API_KEY}
+
+
+# # TOP 10 OWASP 2023
+# # API8:2023 - Security Misconfiguration
+# # Hacker có thể khai thác các cấu hình mặc định không an toàn,
+# # cấu hình sai hoặc cấu hình lỏng lẻo trong ứng dụng,
+# # framework, máy chủ web, máy chủ ứng dụng, cơ sở dữ liệu và nền tảng.
+# #
+# spring:
+#   datasource:
+#     url: ${SPRING_DATASOURCE_URL}
+#     driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME}
+#     username: ${SPRING_DATASOURCE_USERNAME}
+#     password: ${SPRING_DATASOURCE_PASSWORD}
+#   jpa:
+#     hibernate:
+#       ddl-auto: validate
+#     show-sql: true
+#     properties:
+#       hibernate:
+#         format_sql: true
+#   messages:
+#     basename: i18n/messages
+#     encoding: UTF-8
+#     cache-duration: 3600 
+#   application:
+#     name: webbanhang
+#   servlet:
+#     multipart:
+#       max-file-size: 10MB
+#       max-request-size: 10MB
+#       # file-size-threshold: 2KB
+#       # location: ${TEMP_DIR:/tmp}
+#   cache:
+#     type: REDIS
+#     redis:
+#       time-to-live: ${CACHE_TTL:86400}
+#       cache-null-values: false
+#       key-prefix: "webbanhang:cache:"
+#       use-key-prefix: true
+#   redis:
+#     host: ${REDIS_HOST:localhost}
+#     port: ${REDIS_PORT:6379}
+#     password: ${REDIS_PASSWORD:} 
+#     database: ${REDIS_DATABASE:0}
+#     timeout: ${REDIS_TIMEOUT:2000ms}
+#     ssl: ${REDIS_SSL:false} 
+#     jedis:
+#       pool:
+#         max-active: ${REDIS_POOL_MAX_ACTIVE:8}
+#         max-idle: ${REDIS_POOL_MAX_IDLE:8}
+#         min-idle: ${REDIS_POOL_MIN_IDLE:0}
+#         max-wait: ${REDIS_POOL_MAX_WAIT:-1ms}
+# server:
+#   port: ${SERVER_PORT}
+#   servlet:
+#     encoding:
+#       charset: UTF-8
+#       force-request: true
+#       force-response: true
+#     context-path: ${CONTEXT_PATH:/api/v1}
+#   compression:
+#     enabled: true
+#     mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json
+#   http2:
+#     enabled: true
+#   # error:
+#   #   include-message: never
+#   #   include-binding-errors: never
+#   #   include-stacktrace: never
+#   #   include-exception: false
+# management:
+#   endpoints:
+#     web:
+#       exposure:
+#         include: health,info,metrics
+#         exclude: "*"
+#       base-path: /actuator
+
+# logging:
+#   level:
+#     root: ${LOG_LEVEL:INFO} # Thay đổi từ DEBUG thành INFO trong production
+#     com.project.webbanhang: ${APP_LOG_LEVEL:INFO}
+#     org.springframework.security: ${SECURITY_LOG_LEVEL:WARN}
+#     org.springframework.data.redis: ${REDIS_LOG_LEVEL:WARN}
+#     org.hibernate.SQL: ${SQL_LOG_LEVEL:WARN}
+#     org.hibernate.type.descriptor.sql.BasicBinder: ${SQL_PARAM_LOG_LEVEL:WARN}
+#   pattern:
+#     console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+#     file: "%d{dd-MM-yyyy HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+#   # file:
+#   #   name: ${LOG_FILE:logs/webbanhang.log}
+#   # logback:
+#   #   rollingpolicy:
+#   #     max-file-size: ${LOG_MAX_FILE_SIZE:10MB}
+#   #     max-history: ${LOG_MAX_HISTORY:30}
+#   #     total-size-cap: ${LOG_TOTAL_SIZE_CAP:100MB}
+    
+# api:
+#   prefix: ${API_PREFIX:/api/v1}
+#   version: ${API_VERSION:1.0.0}
+#   rate-limit:
+#     enabled: ${RATE_LIMIT_ENABLED:true}
+#     requests-per-minute: ${RATE_LIMIT_RPM:60}
+
+# jwt:
+#   expiration: ${JWT_EXPIRATION}
+#   secretKey: ${JWT_SECRET}
+#   #30 days = 30 * 24 * 60 * 60w
+#   refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800} # 7 days
+#   issuer: ${JWT_ISSUER:webbanhang-api}
+# momo:
+#   endpoint: ${MOMO_ENDPOINT}
+#   partnerCode: ${MOMO_PARTNER_CODE}
+#   accessKey: ${MOMO_ACCESS_KEY}
+#   secretKey: ${MOMO_SECRET_KEY}
+#   redirectUrl: ${MOMO_REDIRECT_URL}
+#   ipnUrl: ${MOMO_IPN_URL}
+#   requestType: ${MOMO_REQUEST_TYPE}
+#   timeout: ${MOMO_TIMEOUT:30000}
+  
+# goong:
+#   endpoint: ${GOONG_ENDPOINT}
+#   apiKey: ${GOONG_API_KEY}
+#   timeout: ${GOONG_TIMEOUT:10000}

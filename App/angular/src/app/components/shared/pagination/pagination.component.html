@@ -1,0 +1,104 @@
+<div class="pagination-wrapper" *ngIf="totalPages > 1 && totalItems > 0">
+  <!-- Pagination Info -->
+  <div class="pagination-info" *ngIf="hasItems">
+    <span class="pagination-text">
+      Hiển thị {{ startItem }} - {{ endItem }} của {{ totalItems }} sản phẩm
+    </span>
+  </div>
+
+  <!-- Pagination Controls -->
+  <nav class="pagination-nav" aria-label="Chuyển trang sản phẩm">
+    <ul class="pagination">
+      <!-- First Page Button -->
+      <li
+        class="page-item"
+        *ngIf="showFirstLast"
+        [class.disabled]="!hasPrevious || isLoading"
+      >
+        <button
+          class="page-link"
+          (click)="onFirstClick()"
+          [disabled]="!hasPrevious || isLoading"
+          aria-label="Trang đầu"
+        >
+          <i class="fas fa-angle-double-left"></i>
+        </button>
+      </li>
+
+      <!-- Previous Page Button -->
+      <li
+        class="page-item"
+        *ngIf="showPrevNext"
+        [class.disabled]="!hasPrevious || isLoading"
+      >
+        <button
+          class="page-link"
+          (click)="onPreviousClick()"
+          [disabled]="!hasPrevious || isLoading"
+          aria-label="Trang trước"
+        >
+          <i class="fas fa-angle-left"></i>
+          <span class="sr-only">Trước</span>
+        </button>
+      </li>
+
+      <!-- Page Numbers -->
+      <li
+        class="page-item"
+        *ngFor="let page of visiblePages"
+        [class.active]="page === currentPage"
+        [class.disabled]="isLoading"
+      >
+        <button
+          class="page-link"
+          (click)="onPageClick(page)"
+          [disabled]="isLoading"
+          [attr.aria-label]="'Trang ' + page"
+          [attr.aria-current]="page === currentPage ? 'page' : null"
+        >
+          {{ page }}
+        </button>
+      </li>
+
+      <!-- Next Page Button -->
+      <li
+        class="page-item"
+        *ngIf="showPrevNext"
+        [class.disabled]="!hasNext || isLoading"
+      >
+        <button
+          class="page-link"
+          (click)="onNextClick()"
+          [disabled]="!hasNext || isLoading"
+          aria-label="Trang sau"
+        >
+          <span class="sr-only">Sau</span>
+          <i class="fas fa-angle-right"></i>
+        </button>
+      </li>
+
+      <!-- Last Page Button -->
+      <li
+        class="page-item"
+        *ngIf="showFirstLast"
+        [class.disabled]="!hasNext || isLoading"
+      >
+        <button
+          class="page-link"
+          (click)="onLastClick()"
+          [disabled]="!hasNext || isLoading"
+          aria-label="Trang cuối"
+        >
+          <i class="fas fa-angle-double-right"></i>
+        </button>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- Loading Overlay -->
+  <div class="pagination-loading" *ngIf="isLoading">
+    <div class="loading-spinner">
+      <div class="spinner"></div>
+    </div>
+  </div>
+</div>

@@ -1,25 +1,68 @@
-import { Component, OnInit, NgModule } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { ProductDTO } from '../../models/product.dto';
+import { Subject, takeUntil } from 'rxjs';
+import { ProductDTO } from '../../dtos/product.dto';
 import { CartService } from '../../services/cart.service';
 import { ProductService } from '../../services/product.service';
 import { TokenService } from '../../services/token.service';
 import { UserService } from '../../services/user.service';
+import { OrderService } from '../../services/order.service';
 import { FormsModule } from '@angular/forms';
 import { UserDTO } from '../../dtos/user.dto';
+import { MomoInfoOrderDTO, OrderRequestDTO } from '../../dtos/order.dto';
+import { OrderDetailRequestDTO } from '../../dtos/order.dto';
+import { OrderDetailService } from '../../services/order.detail.service';
+import { MomoService } from '../../services/momo.service';
+import { CreateMomoResponse } from '../../dtos/momo.dto';
+import { AddressAutocompleteComponent } from '../shared/address-autocomplete/address-autocomplete.component';
+import { AddressPrediction } from '../../dtos/address.dto';
+import { UserAddressService } from '../../services/user-address.service';
+import { NotificationService } from '../../services/notification.service';
+import { ValidateDTO } from '../../dtos/validate.dto';
+import { ValidateService } from '../../services/validate.service';
 
 @Component({
   selector: 'app-order',
   standalone: true,
-  imports: [RouterModule, CommonModule, FormsModule],
+  imports: [
+    RouterModule,
+    CommonModule,
+    FormsModule,
+    AddressAutocompleteComponent,
+  ],
   templateUrl: './order.component.html',
   styleUrls: ['./order.component.scss'],
 })
-export class OrderComponent implements OnInit {
-  cartItems: { product: ProductDTO; quantity: number }[] = [];
+export class OrderComponent implements OnInit, OnDestroy {
+  cartItems: { product: ProductDTO; quantity: number; size: string }[] = [];
   isLoading: boolean = false;
   user: UserDTO | null = null;
+  momoInfoOrderDTO: MomoInfoOrderDTO | null = null;
+  orderId: number = 0;
+  showAutofillButton: boolean = false;
+  showAddressError: boolean = false;
+
+  // Validation DTOs
+  validateFullNameDTO: ValidateDTO = {
+    isValid: false,
+    errors: ['Họ và tên không được để trống'],
+  };
+  validateEmailDTO: ValidateDTO = {
+    isValid: true,
+    errors: [],
+  };
+  validatePhoneNumberDTO: ValidateDTO = {
+    isValid: false,
+    errors: ['Số điện thoại không được để trống'],
+  };
+  validateShippingAddressDTO: ValidateDTO = {
+    isValid: false,
+    errors: ['Địa chỉ giao hàng không được để trống'],
+  };
+
+  private destroy$ = new Subject<void>();
+
   orderData = {
     userId: 0, // This should be set to the actual user ID
     fullName: '',
@@ -30,7 +73,8 @@ export class OrderComponent implements OnInit {
     totalMoney: null as number | null,
     shippingMethod: '',
     shippingAddress: '',
-    paymentMethod: 'Credit Card',
+    paymentMethod: '',
+    paymentStatus: '',
   };
 
   constructor(
@@ -38,37 +82,194 @@ export class OrderComponent implements OnInit {
     private productService: ProductService,
     private tokenService: TokenService,
     private userService: UserService,
-    private router: Router
+    private orderService: OrderService,
+    private orderDetailService: OrderDetailService,
+    private momoService: MomoService,
+    private router: Router,
+    private userAddressService: UserAddressService,
+    private notificationService: NotificationService
   ) {}
 
   ngOnInit(): void {
-    if (!this.tokenService.isLoggedIn()) {
-      this.router.navigate(['/login']);
+    this.loadCartItems().then(() => {
+      this.orderData.totalMoney = this.getTotalPrice();
+    });
+    this.loadUserData();
+    this.orderData.shippingMethod = 'STANDARD'; // Default shipping method
+    this.orderData.paymentMethod = 'MOMO'; // Default payment method
+    this.orderData.paymentStatus = 'PENDING';
+    this.isLoading = false;
+
+    // Kiểm tra xem có thể tự động điền địa chỉ không
+    this.userAddressService.userAddress$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((addressInfo) => {
+        this.showAutofillButton = !!addressInfo;
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  /**
+   * Tự động điền thông tin từ profile user
+   */
+  autofillFromProfile(): void {
+    const addressInfo = this.userAddressService.getCurrentAddress();
+    if (addressInfo) {
+      this.orderData.fullName = addressInfo.fullname;
+      this.orderData.phoneNumber = addressInfo.phoneNumber;
+      this.orderData.address = addressInfo.address;
+      this.orderData.shippingAddress = addressInfo.address;
+
+      // Validate after autofill
+      this.validateFullName();
+      this.validatePhoneNumber();
+      this.validateShippingAddress();
+
+      this.notificationService.showSuccess(
+        'Đã tự động điền thông tin giao hàng từ hồ sơ của bạn!'
+      );
+    } else {
+      this.notificationService.showWarning(
+        'Không tìm thấy thông tin hồ sơ để tự động điền'
+      );
+    }
+  }
+
+  /**
+   *
+   * VALIDATE METHODS
+   *
+   */
+
+  validateFullName(event?: Event): void {
+    if (event) {
+      const input = event.target as HTMLInputElement;
+      this.orderData.fullName = input.value;
+    }
+    this.validateFullNameDTO = ValidateService.validateFullName(
+      this.orderData.fullName
+    );
+  }
+
+  validateEmail(event?: Event): void {
+    if (event) {
+      const input = event.target as HTMLInputElement;
+      this.orderData.email = input.value;
+    }
+    if (this.orderData.email && this.orderData.email.trim().length > 0) {
+      this.validateEmailDTO = ValidateService.validateEmail(
+        this.orderData.email
+      );
+    } else {
+      this.validateEmailDTO = { isValid: true, errors: [] };
+    }
+  }
+
+  validatePhoneNumber(event?: Event): void {
+    if (event) {
+      const input = event.target as HTMLInputElement;
+      this.orderData.phoneNumber = input.value;
+    }
+    this.validatePhoneNumberDTO = ValidateService.validatePhoneNumber(
+      this.orderData.phoneNumber
+    );
+  }
+
+  validateShippingAddress(): void {
+    this.validateShippingAddressDTO = ValidateService.validateAddress(
+      this.orderData.shippingAddress
+    );
+    // Đồng bộ address với shippingAddress
+    if (this.orderData.shippingAddress) {
+      this.orderData.address = this.orderData.shippingAddress;
+    }
+  }
+
+  validateForm(): boolean {
+    // Trigger all validations
+    this.validateFullName();
+    this.validateEmail();
+    this.validatePhoneNumber();
+    this.validateShippingAddress();
+
+    const isValid =
+      this.validateFullNameDTO.isValid &&
+      this.validateEmailDTO.isValid &&
+      this.validatePhoneNumberDTO.isValid &&
+      this.validateShippingAddressDTO.isValid;
+
+    if (!isValid) {
+      this.notificationService.showWarning(
+        '⚠️ Vui lòng kiểm tra lại thông tin đặt hàng!'
+      );
+    } else {
+      this.notificationService.showInfo('📝 Đang xử lý đơn hàng...');
+    }
+
+    return isValid;
+  }
+
+  onSubmit() {
+    if (!this.validateForm()) {
       return;
     }
-    this.loadCartItems();
-    this.loadUserData();
-    this.orderData.shippingMethod = 'standard'; // Default shipping method
-    this.orderData.paymentMethod = 'bank-transfer'; // Default payment method
+    this.isLoading = true;
+    this.createOrder();
   }
 
   private loadUserData() {
-    this.userService.getUser().subscribe({
+    // First try to get current user if already loaded
+    const currentUser = this.userService.getCurrentUser();
+    if (currentUser) {
+      this.setUserData(currentUser);
+      return;
+    }
+
+    // Subscribe to user changes for real-time updates
+    this.userService.user$.pipe(takeUntil(this.destroy$)).subscribe({
       next: (user) => {
-        this.user = user;
-        console.log('Thông tin người dùng:', this.user);
-        if (this.user) {
-          this.orderData.userId = this.user.id;
-          this.orderData.fullName = this.user.fullname;
-          this.orderData.phoneNumber = this.user.phone_number;
-          this.orderData.shippingAddress = this.user.address;
-          this.orderData.address = this.user.address;
+        if (user) {
+          this.setUserData(user);
         }
       },
       error: (error) => {
-        console.error('Lỗi khi tải thông tin người dùng:', error);
+        console.error('Error in user subscription:', error);
       },
     });
+
+    // Load from server if not available
+    this.userService.getUser().subscribe({
+      next: (user) => {
+        
+        this.setUserData(user);
+      },
+      error: (error) => {
+        console.error('Lỗi khi tải thông tin người dùng:', error);
+        this.notificationService.showError(
+          'Không thể tải thông tin người dùng'
+        );
+        this.router.navigate(['/login']);
+      },
+    });
+  }
+
+  private setUserData(user: UserDTO): void {
+    this.user = user;
+    this.orderData.fullName = user.fullname;
+    this.orderData.phoneNumber = user.phone_number;
+    this.orderData.shippingAddress = user.address;
+    this.orderData.address = user.address;
+
+    // Validate after setting user data
+    this.validateFullName();
+    this.validatePhoneNumber();
+    this.validateShippingAddress();
+
+    
   }
 
   private async loadCartItems() {
@@ -77,15 +278,21 @@ export class OrderComponent implements OnInit {
 
     try {
       const items = await Promise.all(
-        Array.from(cart.entries()).map(async ([productId, quantity]) => {
+        Array.from(cart.entries()).map(async ([productId, cartItem]) => {
           const product = await this.productService
             .getProductById(productId)
             .toPromise();
-          return { product, quantity };
+          return {
+            product,
+            quantity: cartItem.quantity,
+            size: cartItem.size,
+          };
         })
       );
       this.cartItems = items.filter(
-        (item): item is { product: ProductDTO; quantity: number } =>
+        (
+          item
+        ): item is { product: ProductDTO; quantity: number; size: string } =>
           item.product !== undefined
       );
     } catch (error) {
@@ -102,5 +309,100 @@ export class OrderComponent implements OnInit {
     );
   }
 
-  createOrder(): void {}
+  onAddressSelected(address: AddressPrediction): void {
+    this.orderData.shippingAddress = address.description;
+    this.validateShippingAddress();
+  }
+
+  onAddressFocus(): void {
+    this.showAddressError = true;
+  }
+
+  createOrder(): void {
+    const orderDTO: OrderRequestDTO = {
+      // user_id: this.orderData.userId,
+      full_name: this.orderData.fullName,
+      email: this.orderData.email,
+      phone_number: this.orderData.phoneNumber,
+      address: this.orderData.address,
+      note: this.orderData.note,
+      total_money: this.orderData.totalMoney!,
+      shipping_method: this.orderData.shippingMethod,
+      shipping_address: this.orderData.shippingAddress,
+      payment_method:
+        this.orderData.paymentMethod == 'MOMO' ? 'E_WALLET' : 'E_WALLET',
+      payment_status: this.orderData.paymentStatus,
+    };
+
+    
+    this.orderService.createOrder(orderDTO).subscribe({
+      next: (response: any) => {
+        this.notificationService.showSuccess(
+          'Đơn hàng đã được tạo thành công!'
+        );
+        
+        this.orderId = response.order_id;
+        this.momoInfoOrderDTO = {
+          order_id: response.order_id ?? response.orderId,
+          amount: this.getTotalPrice(),
+        };
+        this.createOrderDetail(this.orderId);
+      },
+      error: (error) => {
+        this.notificationService.showError(
+          'Lỗi khi tạo đơn hàng: ' + error.message
+        );
+      },
+    });
+  }
+
+  createOrderDetail(orderId: number): void {
+    this.cartItems.forEach((item) => {
+      const orderDetailDTO: OrderDetailRequestDTO = {
+        order_id: orderId,
+        product_id: item.product.id,
+        quantity: item.quantity,
+        unit_price: item.product.price,
+        total_money: item.product.price * item.quantity,
+        size: item.size ?? 'L',
+      };
+
+      
+      this.orderDetailService.createOrderDetail(orderDetailDTO).subscribe({
+        next: (response) => {
+          
+        },
+        error: (error) => {
+          console.error('Lỗi khi tạo đơn hàng chi tiết:', error);
+        },
+      });
+    });
+
+    debugger;
+    if (this.momoInfoOrderDTO) {
+      this.momoService.createQR(this.momoInfoOrderDTO).subscribe({
+        next: (response: CreateMomoResponse) => {
+          
+          if (response.payUrl) {
+            // Chuyển hướng đến URL thanh toán MoMo
+            window.location.href = response.payUrl;
+          } else {
+            console.error('Không tìm thấy payUrl trong response');
+          }
+        },
+        error: (error) => {
+          console.error('Lỗi khi lấy mã thanh toán: ', error);
+        },
+      });
+    }
+
+    this.clearCart();
+
+    this.isLoading = false;
+  }
+
+  clearCart(): void {
+    this.cartService.clearCart();
+    this.cartItems = [];
+  }
 }

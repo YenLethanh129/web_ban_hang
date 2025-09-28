@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule, NgForm } from '@angular/forms';
@@ -8,41 +8,88 @@ import {
   HttpClientModule,
   HttpHeaders,
 } from '@angular/common/http';
+import { Subject, takeUntil } from 'rxjs';
 import { UserService } from '../../services/user.service';
 import { RegisterDTO } from '../../dtos/register.dto';
+import { NotificationService } from '../../services/notification.service';
+import { AddressAutocompleteComponent } from '../shared/address-autocomplete/address-autocomplete.component';
+import { AddressPrediction } from '../../dtos/address.dto';
+import { UserAddressService } from '../../services/user-address.service';
+import { ValidateDTO } from '../../dtos/validate.dto';
+import { ValidateService } from '../../services/validate.service';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [RouterModule, FormsModule, CommonModule, HttpClientModule],
+  imports: [
+    RouterModule,
+    FormsModule,
+    CommonModule,
+    HttpClientModule,
+    AddressAutocompleteComponent,
+  ],
   templateUrl: './register.component.html',
   styleUrl: './register.component.scss',
 })
-export class RegisterComponent {
+export class RegisterComponent implements OnInit, OnDestroy {
   @ViewChild('registerForm') registerForm!: NgForm;
+
+  private destroy$ = new Subject<void>();
+
   registerData = {
     fullName: '',
     phoneNumber: '',
-    dateOfBirth: '',
+    dateOfBirth: '2000-01-01', // Default is 01/01/2000 (format YYYY-MM-DD for input type="date")
     address: '',
     password: '',
     confirmPassword: '',
   };
 
+  validateUsernameDTO: ValidateDTO = {
+    isValid: false,
+    errors: ['Họ và tên không được để trống'],
+  };
+  validatePhoneNumberDTO: ValidateDTO = {
+    isValid: false,
+    errors: ['Số điện thoại không được để trống'],
+  };
+  validatePasswordDTO: ValidateDTO = {
+    isValid: false,
+    errors: ['Mật khẩu không được để trống'],
+  };
+  validateConfirmPasswordDTO: ValidateDTO = {
+    isValid: false,
+    errors: ['Mật khẩu xác nhận không được để trống'],
+  };
+  validateAddressDTO: ValidateDTO = {
+    isValid: false,
+    errors: ['Địa chỉ không được để trống'],
+  };
+  validateDateOfBirthDTO: ValidateDTO = { isValid: true, errors: [] };
+
   showPassword = false;
   showConfirmPassword = false;
   agreeToTerms = false;
   showAgreeToTermsError = false;
-  showPhoneError = false;
-  showFullNameError = false;
-  showDateOfBirthError = false;
-  showPasswordError = false;
-  showConfirmPasswordError = false;
-  showAddressError = false;
-
   isLoading = false;
 
-  constructor(private router: Router, private userService: UserService) {}
+  constructor(
+    private router: Router,
+    private userService: UserService,
+    private notificationService: NotificationService,
+    private userAddressService: UserAddressService
+  ) {}
+
+  ngOnInit(): void {
+    this.userAddressService.userAddress$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((addressInfo) => {});
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 
   togglePasswordVisibility(field: 'password' | 'confirmPassword') {
     if (field === 'password') {
@@ -52,51 +99,85 @@ export class RegisterComponent {
     }
   }
 
+  /**
+   *
+   * VALIDATE
+   *
+   *
+   */
+
+  validateUsername(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.validateUsernameDTO = ValidateService.validateFullName(input.value);
+  }
+
   validatePhoneNumber(event: Event): void {
     const input = event.target as HTMLInputElement;
-    input.value = input.value.replace(/[^0-9]/g, '');
     this.registerData.phoneNumber = input.value;
+    this.validatePhoneNumberDTO = ValidateService.validatePhoneNumber(
+      input.value
+    );
   }
 
-  validatePassword(): boolean {
-    return this.registerData.password.length >= 6;
+  validatePasswordInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.registerData.password = input.value;
+    this.validatePasswordDTO = ValidateService.validatePassword(input.value);
   }
 
-  validateConfirmPassword(): boolean {
-    return this.registerData.password === this.registerData.confirmPassword;
+  validateConfirmPasswordInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.registerData.confirmPassword = input.value;
+    this.validateConfirmPasswordDTO = ValidateService.validateConfirmPassword(
+      this.registerData.password,
+      input.value
+    );
   }
 
-  validateAge(): boolean {
-    if (!this.registerData.dateOfBirth) return false;
+  onAddressSelected(address: AddressPrediction): void {
+    this.registerData.address = address.description;
+    // Validate address after selection
+    this.validateAddressInput();
+  }
 
-    const birthDate = new Date(this.registerData.dateOfBirth);
-    const today = new Date();
-    const age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
+  validateAddressInput(): void {
+    this.validateAddressDTO = ValidateService.validateAddress(
+      this.registerData.address
+    );
+  }
 
-    if (
-      monthDiff < 0 ||
-      (monthDiff === 0 && today.getDate() < birthDate.getDate())
-    ) {
-      return age - 1 >= 18;
-    }
+  validateDateOfBirth(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.registerData.dateOfBirth = input.value;
+    this.validateDateOfBirthDTO = ValidateService.validateDateOfBirth(
+      input.value
+    );
+  }
 
-    return age >= 18;
+  validateForm(): boolean {
+    const isValid =
+      this.validateUsernameDTO.isValid &&
+      this.validatePhoneNumberDTO.isValid &&
+      this.validatePasswordDTO.isValid &&
+      this.validateConfirmPasswordDTO.isValid &&
+      this.validateAddressDTO.isValid &&
+      this.validateDateOfBirthDTO.isValid;
+
+    this.notificationService.showInfo('📝 Đang kiểm tra thông tin đăng ký...');
+    return isValid;
   }
 
   onSubmit() {
     if (!this.agreeToTerms) {
-      alert('Vui lòng đồng ý với điều khoản và điều kiện');
+      this.notificationService.showWarning(
+        '⚠️ Vui lòng đồng ý với điều khoản và điều kiện!'
+      );
       return;
     }
 
-    if (
-      this.registerForm.valid &&
-      this.validatePassword() &&
-      this.validateConfirmPassword() &&
-      this.validateAge()
-    ) {
+    if (this.validateForm()) {
       this.isLoading = true;
+      this.notificationService.showInfo('⏳ Đang xử lý đăng ký...');
 
       const registerDTO: RegisterDTO = {
         full_name: this.registerData.fullName,
@@ -107,34 +188,52 @@ export class RegisterComponent {
         date_of_birth: this.registerData.dateOfBirth,
         facebook_account_id: 0,
         google_account_id: 0,
-        role_id: 1,
       };
 
       this.userService.register(registerDTO).subscribe({
         next: (response) => {
-          console.log('Đăng ký thành công:', response);
+          
           this.isLoading = false;
-          alert('Đăng ký thành công! Vui lòng đăng nhập để tiếp tục.');
+          this.notificationService.showSuccess(
+            'Đăng ký thành công! Vui lòng đăng nhập để tiếp tục.'
+          );
           setTimeout(() => {
             this.router.navigate(['/login']);
-          }, 100);
+          }, 1500);
         },
         error: (error) => {
           this.isLoading = false;
-          let message = 'Đăng ký thất bại!';
-          if (error.error) {
-            if (typeof error.error === 'string') {
-              message += ' ' + error.error;
-            } else if (typeof error.error.message === 'string') {
-              message += ' ' + error.error.message;
-            }
+          let message = 'Đăng ký thất bại';
+          if (error?.error?.message) {
+            message = error.error.message;
+          } else if (typeof error === 'string') {
+            message = error;
           }
-          alert(message);
+          this.notificationService.showError(message);
         },
         complete: () => {
           this.isLoading = false;
         },
       });
+    }
+  }
+
+  // TEST METHOD FOR NOTIFICATION
+  testNotification(type: string) {
+    
+    switch (type) {
+      case 'success':
+        this.notificationService.showSuccess('🎉 Đây là thông báo thành công!');
+        break;
+      case 'error':
+        this.notificationService.showError('❌ Đây là thông báo lỗi!');
+        break;
+      case 'info':
+        this.notificationService.showInfo('ℹ️ Đây là thông báo thông tin!');
+        break;
+      case 'warning':
+        this.notificationService.showWarning('⚠️ Đây là thông báo cảnh báo!');
+        break;
     }
   }
 }

@@ -1,62 +1,66 @@
-import { Injectable, PLATFORM_ID, Inject } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { isPlatformBrowser } from '@angular/common';
+import { StorageService } from './storage.service';
+
+interface CartItem {
+  quantity: number;
+  size: string;
+}
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class CartService {
   private readonly CART_STORAGE_KEY = 'shopping_cart';
-  private cartMap: Map<number, number> = new Map<number, number>();
+  private cartMap: Map<number, CartItem> = new Map<number, CartItem>();
   private cartItemCount = new BehaviorSubject<number>(0);
-  private isBrowser: boolean;
 
-  constructor(@Inject(PLATFORM_ID) platformId: Object) {
-    this.isBrowser = isPlatformBrowser(platformId);
-    if (this.isBrowser) {
-      this.loadCartFromStorage();
-    }
+  constructor(private storageService: StorageService) {
+    this.loadCartFromStorage();
   }
 
-  // Lấy cart từ localStorage khi khởi tạo service
   private loadCartFromStorage(): void {
-    if (this.isBrowser) {
-      const savedCart = localStorage.getItem(this.CART_STORAGE_KEY);
-      if (savedCart) {
-        this.cartMap = new Map(JSON.parse(savedCart));
-        this.updateCartCount();
-      }
-    }
-  }
-
-  // Lưu cart vào localStorage
-  private saveCartToStorage(): void {
-    if (this.isBrowser) {
-      localStorage.setItem(
-        this.CART_STORAGE_KEY,
-        JSON.stringify(Array.from(this.cartMap.entries()))
-      );
+    const savedCart = this.storageService.getItem(this.CART_STORAGE_KEY);
+    if (savedCart) {
+      this.cartMap = new Map(JSON.parse(savedCart));
       this.updateCartCount();
     }
   }
 
-  // Cập nhật số lượng item trong cart
+  private saveCartToStorage(): void {
+    this.storageService.setItem(
+      this.CART_STORAGE_KEY,
+      JSON.stringify(Array.from(this.cartMap.entries()))
+    );
+    this.updateCartCount();
+  }
+
   private updateCartCount(): void {
-    const count = Array.from(this.cartMap.values()).reduce((a, b) => a + b, 0);
+    const count = Array.from(this.cartMap.values()).reduce(
+      (a, b) => a + b.quantity,
+      0
+    );
     this.cartItemCount.next(count);
   }
 
-  // Thêm sản phẩm vào giỏ hàng
-  addToCart(productId: number, quantity: number = 1): void {
-    const currentQuantity = this.cartMap.get(productId) || 0;
-    this.cartMap.set(productId, currentQuantity + quantity);
+  // Thêm sản phẩm vào giỏ hàng với size
+  addToCart(productId: number, quantity: number = 1, size: string = 'M'): void {
+    const currentItem = this.cartMap.get(productId);
+    if (currentItem && currentItem.size === size) {
+      // Nếu cùng size, tăng số lượng
+      currentItem.quantity += quantity;
+      this.cartMap.set(productId, currentItem);
+    } else {
+      // Nếu khác size hoặc chưa có, tạo mới
+      this.cartMap.set(productId, { quantity, size });
+    }
     this.saveCartToStorage();
   }
 
-  // Cập nhật số lượng sản phẩm
-  updateQuantity(productId: number, quantity: number): void {
+  // Cập nhật số lượng và size sản phẩm
+  updateQuantity(productId: number, quantity: number, size: string): void {
     if (quantity > 0) {
-      this.cartMap.set(productId, quantity);
+      this.cartMap.set(productId, { quantity, size });
     } else {
       this.cartMap.delete(productId);
     }
@@ -69,22 +73,32 @@ export class CartService {
     this.saveCartToStorage();
   }
 
+  // Lấy thông tin item trong giỏ hàng
+  getCartItem(productId: number): CartItem | undefined {
+    return this.cartMap.get(productId);
+  }
+
   // Lấy số lượng của một sản phẩm
   getQuantity(productId: number): number {
-    return this.cartMap.get(productId) || 0;
+    const item = this.cartMap.get(productId);
+    return item ? item.quantity : 0;
+  }
+
+  // Lấy size của một sản phẩm
+  getSize(productId: number): string {
+    const item = this.cartMap.get(productId);
+    return item ? item.size : 'M';
   }
 
   // Lấy toàn bộ giỏ hàng
-  getCart(): Map<number, number> {
+  getCart(): Map<number, CartItem> {
     return new Map(this.cartMap);
   }
 
-  // Observable để theo dõi số lượng item trong giỏ hàng
   getCartItemCount(): Observable<number> {
     return this.cartItemCount.asObservable();
   }
 
-  // Xóa toàn bộ giỏ hàng
   clearCart(): void {
     this.cartMap.clear();
     this.saveCartToStorage();

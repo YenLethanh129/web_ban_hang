@@ -15,19 +15,26 @@ public class Product extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "name", nullable = false, length = 255)
-    private String name;
-
     @Column(name = "price", nullable = false)
     private Float price;
-
-    @Column(name = "thumbnail", length = 255)
-    private String thumbnail;
-
-    @Column(name = "description", nullable = false)
-    private String description;
 
     @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;
+
+    @Column(name = "is_active", nullable = false)
+    private Long isActive;
+
+    @ManyToOne
+    @JoinColumn
+    private Tax tax;
+
+    @Column(name = "description", nullable = false)
+    private String description;
+
+    @Column(name = "name", nullable = false, length = 255)
+    private String name;
+
+    @Column(name = "thumbnail", length = 255)
+    private String thumbnail;
 }

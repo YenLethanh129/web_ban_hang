@@ -1,0 +1,1052 @@
+{
+  "info": {
+    "name": "OTP Service API - Complete Testing",
+    "description": "Complete OTP service testing collection with all endpoints and edge cases",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://otp-service.kythuat.vn",
+      "type": "string"
+    },
+    {
+      "key": "myPhone",
+      "value": "+84987657937",
+      "type": "string"
+    },
+    {
+      "key": "testOtp",
+      "value": "123456",
+      "type": "string",
+      "description": "Replace with actual OTP received via SMS"
+    },
+    {
+      "key": "requestId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "expiresAt",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Basic Functions",
+      "item": [
+        {
+          "name": "Health Check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response time is less than 2000ms', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            }
+          }
+        },
+        {
+          "name": "Send OTP (Basic)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has success true', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test('Response contains required fields', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('requestId');",
+                  "    pm.expect(jsonData.data).to.have.property('expiresAt');",
+                  "    pm.expect(jsonData.data).to.have.property('phoneNumber');",
+                  "    ",
+                  "    pm.collectionVariables.set('requestId', jsonData.data.requestId);",
+                  "    pm.collectionVariables.set('expiresAt', jsonData.data.expiresAt);",
+                  "});",
+                  "",
+                  "pm.test('Phone number is masked', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.phoneNumber).to.include('*');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"{{myPhone}}\",\n  \"expirationMinutes\": 5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/otp/send",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "otp", "send"]
+            }
+          }
+        },
+        {
+          "name": "Send OTP (Custom Message)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('OTP sent successfully with custom message', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.message).to.include('sent successfully');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"{{myPhone}}\",\n  \"expirationMinutes\": 10,\n  \"customMessage\": \"Mã xác thực của bạn là: {otp}. Có hiệu lực trong {expiration} phút. Không chia sẻ mã này với ai!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/otp/send",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "otp", "send"]
+            }
+          }
+        },
+        {
+          "name": "Check OTP Status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('OTP exists in system', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data.exists).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test('Response contains expiration info', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('expiresAt');",
+                  "    pm.expect(jsonData.data).to.have.property('remainingAttempts');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/otp/status/{{myPhone}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "otp", "status", "{{myPhone}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Verification Tests",
+      "item": [
+        {
+          "name": "Verify OTP (Wrong Code)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 (Bad Request)', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Verification failed as expected', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.false;",
+                  "    pm.expect(jsonData.data.isValid).to.be.false;",
+                  "});",
+                  "",
+                  "pm.test('Remaining attempts decreased', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.remainingAttempts).to.be.below(3);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"{{myPhone}}\",\n  \"otp\": \"000000\",\n  \"clearAfterVerification\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/otp/verify",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "otp", "verify"]
+            }
+          }
+        },
+        {
+          "name": "Verify OTP (Correct Code)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "console.log('⚠️  IMPORTANT: Update the testOtp variable with the actual OTP received via SMS!');"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 (if correct OTP provided)', function () {",
+                  "    if (pm.collectionVariables.get('testOtp') !== '123456') {",
+                  "        pm.response.to.have.status(200);",
+                  "        ",
+                  "        const jsonData = pm.response.json();",
+                  "        pm.expect(jsonData.success).to.be.true;",
+                  "        pm.expect(jsonData.data.isValid).to.be.true;",
+                  "        pm.expect(jsonData.data).to.have.property('verifiedAt');",
+                  "    } else {",
+                  "        console.log('⚠️  Using default OTP - update testOtp variable with real SMS code');",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"{{myPhone}}\",\n  \"otp\": \"{{testOtp}}\",\n  \"clearAfterVerification\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/otp/verify",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "otp", "verify"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Additional Functions",
+      "item": [
+        {
+          "name": "Resend OTP",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('OTP resent successfully', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.message).to.include('resent');",
+                  "});",
+                  "",
+                  "pm.test('New expiration time set', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.expiresAt).to.exist;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"{{myPhone}}\",\n  \"expirationMinutes\": 3\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/otp/resend",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "otp", "resend"]
+            }
+          }
+        },
+        {
+          "name": "Clear OTP (Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('OTP cleared successfully', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.message).to.include('cleared');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/otp/{{myPhone}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "otp", "{{myPhone}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Validation Tests",
+      "item": [
+        {
+          "name": "Invalid Phone Number",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 (Bad Request)', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Validation failed as expected', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.false;",
+                  "    pm.expect(jsonData.message).to.include('Validation failed');",
+                  "});",
+                  "",
+                  "pm.test('Contains phone validation error', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.errors).to.exist;",
+                  "    pm.expect(jsonData.errors.length).to.be.above(0);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"invalid-phone-123\",\n  \"expirationMinutes\": 5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/otp/send",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "otp", "send"]
+            }
+          }
+        },
+        {
+          "name": "Missing Phone Number",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 (Bad Request)', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Missing phone validation error', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.false;",
+                  "    pm.expect(jsonData.errors).to.exist;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"expirationMinutes\": 5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/otp/send",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "otp", "send"]
+            }
+          }
+        },
+        {
+          "name": "Invalid Expiration Time",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 (Bad Request)', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Invalid expiration validation error', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.false;",
+                  "    pm.expect(jsonData.errors).to.exist;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"{{myPhone}}\",\n  \"expirationMinutes\": 60\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/otp/send",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "otp", "send"]
+            }
+          }
+        },
+        {
+          "name": "Invalid OTP Format",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 (Bad Request)', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Invalid OTP format validation error', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.false;",
+                  "    pm.expect(jsonData.errors).to.exist;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"{{myPhone}}\",\n  \"otp\": \"abc123\",\n  \"clearAfterVerification\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/otp/verify",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "otp", "verify"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Security & Rate Limiting",
+      "item": [
+        {
+          "name": "Rate Limiting Test 1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('First request should succeed', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('OTP sent successfully', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"{{myPhone}}\",\n  \"expirationMinutes\": 5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/otp/send",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "otp", "send"]
+            }
+          }
+        },
+        {
+          "name": "Rate Limiting Test 2",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 429) {",
+                  "    pm.test('Rate limit triggered correctly', function () {",
+                  "        pm.response.to.have.status(429);",
+                  "        const jsonData = pm.response.json();",
+                  "        pm.expect(jsonData.success).to.be.false;",
+                  "        pm.expect(jsonData.message).to.include('Too many');",
+                  "    });",
+                  "} else {",
+                  "    pm.test('Request still allowed', function () {",
+                  "        pm.response.to.have.status(200);",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"{{myPhone}}\",\n  \"expirationMinutes\": 5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/otp/send",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "otp", "send"]
+            }
+          }
+        },
+        {
+          "name": "Multiple Wrong Attempts 1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('First wrong attempt', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.isValid).to.be.false;",
+                  "    pm.expect(jsonData.data.remainingAttempts).to.be.below(3);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"{{myPhone}}\",\n  \"otp\": \"111111\",\n  \"clearAfterVerification\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/otp/verify",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "otp", "verify"]
+            }
+          }
+        },
+        {
+          "name": "Multiple Wrong Attempts 2",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Second wrong attempt', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.isValid).to.be.false;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"{{myPhone}}\",\n  \"otp\": \"222222\",\n  \"clearAfterVerification\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/otp/verify",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "otp", "verify"]
+            }
+          }
+        },
+        {
+          "name": "Multiple Wrong Attempts 3",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Third wrong attempt - should block', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.isValid).to.be.false;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"{{myPhone}}\",\n  \"otp\": \"333333\",\n  \"clearAfterVerification\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/otp/verify",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "otp", "verify"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Complete Flow Test",
+      "item": [
+        {
+          "name": "Step 1: Send OTP",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Step 1: OTP sent successfully', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    ",
+                  "    pm.collectionVariables.set('flowRequestId', jsonData.data.requestId);",
+                  "    pm.collectionVariables.set('flowExpiresAt', jsonData.data.expiresAt);",
+                  "});",
+                  "",
+                  "console.log('✅ Step 1 Complete: OTP sent to {{myPhone}}');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"{{myPhone}}\",\n  \"expirationMinutes\": 10,\n  \"customMessage\": \"[TEST] Mã OTP của bạn: {otp}. Hiệu lực {expiration} phút.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/otp/send",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "otp", "send"]
+            }
+          }
+        },
+        {
+          "name": "Step 2: Check Status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Step 2: OTP status confirmed', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data.exists).to.be.true;",
+                  "});",
+                  "",
+                  "console.log('✅ Step 2 Complete: OTP exists and active');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/otp/status/{{myPhone}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "otp", "status", "{{myPhone}}"]
+            }
+          }
+        },
+        {
+          "name": "Step 3: Verify OTP (Update testOtp first!)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "console.log('🔔 IMPORTANT: Before running this request:');",
+                  "console.log('1. Check your SMS for the OTP code');",
+                  "console.log('2. Update the \"testOtp\" collection variable with the real code');",
+                  "console.log('3. Current testOtp value: ' + pm.collectionVariables.get('testOtp'));",
+                  "",
+                  "if (pm.collectionVariables.get('testOtp') === '123456') {",
+                  "    console.log('⚠️  Still using default OTP - this will likely fail');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Step 3: OTP verification result', function () {",
+                  "    const testOtp = pm.collectionVariables.get('testOtp');",
+                  "    ",
+                  "    if (testOtp === '123456') {",
+                  "        console.log('⚠️  Using default OTP - verification expected to fail');",
+                  "        pm.expect(pm.response.code).to.be.oneOf([400, 200]);",
+                  "    } else {",
+                  "        pm.response.to.have.status(200);",
+                  "        const jsonData = pm.response.json();",
+                  "        pm.expect(jsonData.success).to.be.true;",
+                  "        pm.expect(jsonData.data.isValid).to.be.true;",
+                  "        console.log('✅ Step 3 Complete: OTP verified successfully');",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"{{myPhone}}\",\n  \"otp\": \"{{testOtp}}\",\n  \"clearAfterVerification\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/otp/verify",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "otp", "verify"]
+            }
+          }
+        },
+        {
+          "name": "Step 4: Confirm OTP Cleared",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Step 4: OTP cleared after verification', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    ",
+                  "    if (pm.collectionVariables.get('testOtp') !== '123456') {",
+                  "        pm.expect(jsonData.data.exists).to.be.false;",
+                  "        console.log('✅ Step 4 Complete: OTP cleared after successful verification');",
+                  "    } else {",
+                  "        console.log('ℹ️  OTP status depends on previous verification result');",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/otp/status/{{myPhone}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "otp", "status", "{{myPhone}}"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "exec": [
+          "console.log('🚀 Running OTP Service Test');",
+          "console.log('📱 Phone: ' + pm.collectionVariables.get('myPhone'));",
+          "console.log('🌐 Base URL: ' + pm.collectionVariables.get('baseUrl'));",
+          "",
+          "pm.collectionVariables.set('timestamp', new Date().toISOString());"
+        ],
+        "type": "text/javascript"
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "exec": [
+          "pm.test('Response time is acceptable', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+          "});",
+          "",
+          "pm.test('Response has timestamp', function () {",
+          "    if (pm.response.json() && pm.response.json().timestamp) {",
+          "        pm.expect(pm.response.json().timestamp).to.exist;",
+          "    }",
+          "});",
+          "",
+          "if (pm.response.code >= 400) {",
+          "    console.log('❌ Request failed with status: ' + pm.response.code);",
+          "    console.log('Response: ' + pm.response.text());",
+          "} else {",
+          "    console.log('✅ Request successful with status: ' + pm.response.code);",
+          "}"
+        ],
+        "type": "text/javascript"
+      }
+    }
+  ]
+}
