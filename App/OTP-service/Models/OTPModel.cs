@@ -58,3 +58,25 @@ public class ApiResponse<T>
     public T? Data { get; set; }
     public List<string> Errors { get; set; } = [];
 }
+
+// Thêm class này vào file Models của bạn
+
+public class TestOtpResponse
+{
+    public bool Success { get; set; }
+    public string Message { get; set; } = string.Empty;
+    public DateTime? ExpiresAt { get; set; }
+    public int RemainingAttempts { get; set; }
+    public string MaskedPhoneNumber { get; set; } = string.Empty;
+    public string TestOtp { get; set; } = string.Empty; 
+    public bool IsTestMode { get; set; } = true;
+}
+
+public class TestOtpInfo
+{
+    public string PhoneNumber { get; set; } = string.Empty;
+    public string TestOtp { get; set; } = string.Empty;
+    public DateTime? ExpiresAt { get; set; }
+    public bool IsActive { get; set; }
+    public bool IsTestMode { get; set; } = true;
+}

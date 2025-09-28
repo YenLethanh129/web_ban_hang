@@ -57,3 +57,11 @@ Content-Type: application/json
   "otp": "abc",
   "clearAfterVerification": true
 }
+
+### 9. Test Send OTP
+POST {{baseUrl}}/api/otp/send-test
+Content-Type: application/json
+{
+    "phoneNumber": "{{phoneNumber}}",
+    "length": 6
+}

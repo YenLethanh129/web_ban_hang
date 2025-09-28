@@ -232,6 +232,98 @@ otpGroup.MapPost("/send", async (SendOtpRequest request, IOtpService otpService,
 .WithName("SendOtp")
 .WithSummary("Send OTP to phone number");
 
+otpGroup.MapPost("/send-test", async (SendOtpRequest request, IOtpService otpService, IRateLimitService rateLimitService) =>
+{
+    if (!app.Environment.IsDevelopment())
+    {
+        return Results.Json(
+            new ApiResponse<object>
+            {
+                Success = false,
+                Message = "Test endpoint is only available in development environment",
+                Errors = ["Endpoint not available"]
+            },
+            statusCode: 403
+        );
+    }
+
+    // Validate request
+    var validationResults = new List<ValidationResult>();
+    var validationContext = new ValidationContext(request);
+    var isValid = Validator.TryValidateObject(request, validationContext, validationResults, true);
+
+    if (!isValid)
+    {
+        var errors = validationResults
+            .Where(v => !string.IsNullOrEmpty(v.ErrorMessage))
+            .Select(v => v.ErrorMessage!)
+            .ToList();
+
+        return Results.BadRequest(new ApiResponse<object>
+        {
+            Success = false,
+            Message = "Validation failed",
+            Errors = errors
+        });
+    }
+
+    try
+    {
+        if (!await rateLimitService.IsAllowedAsync(request.PhoneNumber))
+        {
+            return Results.Json(
+                new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Too many requests. Please try again later.",
+                    Errors = ["Rate limit exceeded"]
+                },
+                statusCode: 429
+            );
+        }
+
+        var otpLength = Math.Max(4, Math.Min(8, request.Length));
+        var otp = otpService.GenerateOtp(otpLength);
+        
+        var expirationMinutes = int.TryParse(Environment.GetEnvironmentVariable("OTP_EXPIRATION_MINUTES"), out var expMin) 
+            ? expMin 
+            : 5;
+        var expiration = TimeSpan.FromMinutes(expirationMinutes);
+
+        await otpService.StoreOtpAsync(request.PhoneNumber, otp, expiration);
+
+        await rateLimitService.TrackRequestAsync(request.PhoneNumber);
+
+        return Results.Ok(new ApiResponse<TestOtpResponse>
+        {
+            Success = true,
+            Message = "Test OTP generated successfully",
+            Data = new TestOtpResponse
+            {
+                Success = true,
+                Message = "Test OTP has been generated (not sent via SMS)",
+                ExpiresAt = DateTime.UtcNow.Add(expiration),
+                RemainingAttempts = await rateLimitService.GetRemainingRequestsAsync(request.PhoneNumber),
+                MaskedPhoneNumber = MaskPhoneNumber(request.PhoneNumber),
+                TestOtp = otp,
+                IsTestMode = true
+            }
+        });
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(
+            detail: ex.Message,
+            statusCode: 500,
+            title: "Internal Server Error");
+    }
+})
+.WithName("SendTestOtp")
+.WithSummary("Generate OTP for testing (Development only - returns OTP in response)");
+
+
+
+
 // Verify OTP endpoint
 otpGroup.MapPost("/verify", async (VerifyOtpRequest request, IOtpService otpService, IRateLimitService rateLimitService) =>
 {
@@ -386,6 +478,65 @@ otpGroup.MapDelete("/{phoneNumber}", async (string phoneNumber, IOtpService otpS
 })
 .WithName("ClearOtp")
 .WithSummary("Clear OTP for a phone number");
+
+otpGroup.MapGet("/test/{phoneNumber}", async (string phoneNumber, IOtpService otpService, IDistributedCache cache) =>
+{
+    if (!app.Environment.IsDevelopment())
+    {
+        return Results.Json(
+            new ApiResponse<object>
+            {
+                Success = false,
+                Message = "Test endpoint is only available in development environment",
+                Errors = ["Endpoint not available"]
+            },
+            statusCode: 403
+        );
+    }
+
+    try
+    {
+        var exists = await otpService.OtpExistsAsync(phoneNumber);
+        if (!exists)
+        {
+            return Results.NotFound(new ApiResponse<object>
+            {
+                Success = false,
+                Message = "No OTP found for this phone number",
+                Errors = ["OTP not found"]
+            });
+        }
+
+        var expiration = await otpService.GetOtpExpirationAsync(phoneNumber);
+        
+        var otpKey = $"otp:{phoneNumber.Replace("+", "").Replace(" ", "").Replace("-", "")}";
+        var otp = await cache.GetStringAsync(otpKey);
+
+        return Results.Ok(new ApiResponse<TestOtpInfo>
+        {
+            Success = true,
+            Message = "Test OTP retrieved successfully",
+            Data = new TestOtpInfo
+            {
+                PhoneNumber = MaskPhoneNumber(phoneNumber),
+                TestOtp = otp ?? "",
+                ExpiresAt = expiration,
+                IsActive = exists,
+                IsTestMode = true
+            }
+        });
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(
+            detail: ex.Message,
+            statusCode: 500,
+            title: "Test OTP Retrieval Error");
+    }
+})
+.WithName("GetTestOtp")
+.WithSummary("Get current OTP for testing (Development only)");
+
 
 app.Run();
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ENV_DIR="./environments"
+ENV_DIR="./../environments"
 
 for file in "$ENV_DIR"/*.env; do
   # bỏ qua file .env.example
