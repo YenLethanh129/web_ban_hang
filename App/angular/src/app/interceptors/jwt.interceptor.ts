@@ -57,24 +57,17 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
     // Chỉ thêm token cho các API cần authentication
     if (needsAuth) {
       const token = tokenService.getToken();
-      
-      
 
       if (token && tokenService.isTokenValid(token)) {
-        
         finalRequest = req.clone({
           headers: req.headers.set('Authorization', `Bearer ${token}`),
         });
       } else {
-        
         if (token) {
-          
         } else {
-          
         }
       }
     } else {
-      
     }
   }
 
@@ -132,12 +125,20 @@ function isTokenExpiredError(error: HttpErrorResponse): boolean {
 }
 
 function handleTokenExpired(router: Router): void {
-  
-
   // Clear localStorage manually
-  localStorage.removeItem('token');
-  localStorage.removeItem('user');
-  localStorage.clear();
+  // Only remove authentication-related keys. Avoid clearing entire localStorage
+  // because it may contain cached application data (products, pagination, etc.).
+  try {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    // Do NOT call localStorage.clear() here - it's too destructive and will
+    // remove cached products and other app data needed for offline mode.
+  } catch (err) {
+    console.warn(
+      'jwtInterceptor: failed to remove auth keys from localStorage',
+      err
+    );
+  }
 
   // Show alert instead of notification service to avoid circular dependency
   if (typeof window !== 'undefined') {

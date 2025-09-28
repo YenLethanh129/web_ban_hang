@@ -43,15 +43,13 @@ export class ProductService {
     // Check cache first
     const cachedProducts = this.cacheService.getProducts();
     if (cachedProducts.length > 0 && this.allProductsLoaded) {
-      
       return of(cachedProducts);
     }
 
     // Fetch all products from server (try different strategies)
-    
 
     // First try with high limit
-    const params = new HttpParams().set('page', '1').set('limit', '1000');
+    const params = new HttpParams().set('page', '1').set('limit', '100');
 
     return this.http.get<ProductResponse>(this.apiUrl, { params }).pipe(
       map((response) => {
@@ -76,10 +74,8 @@ export class ProductService {
       return; // Already loaded
     }
 
-    
-
     // First, try to get total count and all products in one call
-    const params = new HttpParams().set('page', '1').set('limit', '1000');
+    const params = new HttpParams().set('page', '1').set('limit', '100');
 
     this.http.get<ProductResponse>(this.apiUrl, { params }).subscribe({
       next: (response) => {
@@ -179,7 +175,7 @@ export class ProductService {
             loadBatch(); // Load next batch
           } else {
             // Finished loading all products
-            
+
             this.cacheService.setProducts(allProducts);
             this.allProductsLoaded = true;
           }
@@ -263,13 +259,12 @@ export class ProductService {
     const cachedProducts = this.cacheService.getProducts();
 
     if (cachedProducts.length > 0) {
-      
       this.allProductsLoaded = true;
       return;
     }
 
     // If no cache, load all products in background
-    
+
     this.loadAllProductsInBackground();
   }
 

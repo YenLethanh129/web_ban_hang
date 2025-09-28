@@ -1,12 +1,12 @@
 http:
   routers:
     backend:
-      rule: "Host(`web-api.kythuat.vn`)"
+      rule: "Host(`localhost:1609`)"
       service: "backend"
       entrypoints:
         - websecure
       tls:
-        certResolver: internal  
+        certResolver: internal
       middlewares:
         - default-headers
         - rate-limit
@@ -47,7 +47,7 @@ http:
         accessControlAllowOriginList:
           - https://web.kythuat.vn
           - https://otp-service.kythuat.vn
-          - https://web-api.kythuat.vn
+          - https://localhost:1609
         accessControlMaxAge: 100
         hostsProxyHeaders:
           - "X-Forwarded-Host"

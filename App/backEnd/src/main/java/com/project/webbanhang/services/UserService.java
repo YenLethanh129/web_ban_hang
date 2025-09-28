@@ -55,7 +55,7 @@ public class UserService implements IUserService {
 				.fullName(userDTO.getFullName())
 				.phoneNumber(userDTO.getPhoneNumber())
 				.password(userDTO.getPassword())
-				.address(userDTO.getAddress())
+//				.address(userDTO.getAddress())
 				.dateOfBirth(userDTO.getDateOfBirth())
 				.facebookAccountId(userDTO.getFacebookAccountId())
 				.googleAccountId(userDTO.getGoogleAccountId())
@@ -129,7 +129,7 @@ public class UserService implements IUserService {
 
 		User existingUser = optionalUser.get();
 		existingUser.setFullName(userUpdateDTO.getFullName());
-		existingUser.setAddress(userUpdateDTO.getAddress());
+//		existingUser.setAddress(userUpdateDTO.getAddress());
 		existingUser.setDateOfBirth(userUpdateDTO.getDateOfBirth());
 
 		try {

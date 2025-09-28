@@ -35,16 +35,3 @@ public class RedisConfig {
         }
     }
 }
-
-/**
- * Cache Configuration Properties
- */
-@Data
-@Configuration
-@ConfigurationProperties(prefix = "spring.cache.redis")
-class CacheConfig {
-    private long timeToLive = 86400; // 1 day
-    private boolean cacheNullValues = false;
-    private String keyPrefix = "webbanhang:cache:";
-    private boolean useKeyPrefix = true;
-}

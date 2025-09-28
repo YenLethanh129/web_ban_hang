@@ -33,7 +33,7 @@ public class UserResponse {
     public static UserResponse fromEntity(User user) {
 		UserResponse userResponse = UserResponse.builder()
 				.fullName(user.getFullName())
-				.address(user.getAddress())
+//				.address(user.getAddress())
 				.dateOfBirth(user.getDateOfBirth())
 				.phoneNumber(user.getPhoneNumber())
 				.build();

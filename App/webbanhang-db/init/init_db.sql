@@ -35,11 +35,11 @@
     END
     GO
 
-    IF NOT EXISTS (SELECT * FROM sys.symmetric_keys WHERE name = 'CustomerDataKey')
-    BEGIN
-        CREATE SYMMETRIC KEY CustomerDataKey
-        WITH ALGORITHM = AES_256
-        ENCRYPTION BY CERTIFICATE CustomerDataCert;
-    END
-    GO
+    -- IF NOT EXISTS (SELECT * FROM sys.symmetric_keys WHERE name = 'CustomerDataKey')
+    -- BEGIN
+    --     CREATE SYMMETRIC KEY CustomerDataKey
+    --     WITH ALGORITHM = AES_256
+    --     ENCRYPTION BY CERTIFICATE CustomerDataCert;
+    -- END
+    -- GO
 

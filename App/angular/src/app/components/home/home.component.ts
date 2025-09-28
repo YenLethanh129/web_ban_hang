@@ -52,13 +52,13 @@ export class HomeComponent implements OnInit, OnDestroy {
     // Check cache size và clear nếu quá lớn
     this.checkAndLimitCacheSize();
 
-    // Load pagination cache first
+    // Tải dữ liệu phân trang từ cache (nếu có)
     this.loadCachedPaginationData();
 
-    // Set up subscriptions
+    // Thiết lập subscription để lắng nghe thay đổi phân trang trong cache
     this.subscribeToPaginationUpdates();
 
-    // Load products immediately - sẽ tự động fallback to cache nếu server fail
+    // Tải sản phẩm cho trang hiện tại
     this.loadProducts();
 
     // Thiết lập product updates subscription sau khi đã load xong
@@ -249,11 +249,19 @@ export class HomeComponent implements OnInit, OnDestroy {
         error: (error) => {
           console.error('Lỗi khi lấy danh sách sản phẩm:', error);
 
-          // Only use cache when server fails
+          // Decide whether to fallback to cache:
+          // - Always fallback on network error (status === 0)
+          // - Fallback on 4xx client errors (status >= 400 && status < 500) except auth (401,403)
+          // - For server errors (5xx) we already fallback elsewhere; keep behavior
+          const status = error?.status;
+          const shouldFallbackToCache =
+            status === 0 ||
+            (status >= 400 && status < 500 && status !== 401 && status !== 403);
+
           const cachedProducts = this.cacheService.getProducts();
-          if (cachedProducts.length > 0) {
+          if (shouldFallbackToCache && cachedProducts.length > 0) {
             console.log(
-              'Server error, using cache:',
+              'Fallback to cache due to error (status=' + status + '):',
               cachedProducts.length,
               'products'
             );
@@ -261,7 +269,7 @@ export class HomeComponent implements OnInit, OnDestroy {
             this.isOfflineMode = true;
             this.isPaginationDataReady = true;
 
-            // Thông báo về giới hạn cache nếu có quá nhiều sản phẩm
+            // Show appropriate warning only when we are showing partial cache
             const maxCachedItems = this.limit * this.maxCachedPages;
             if (cachedProducts.length > maxCachedItems) {
               this.notificationService.showWarning(
@@ -273,6 +281,7 @@ export class HomeComponent implements OnInit, OnDestroy {
               );
             }
           } else {
+            // Non-fallback case: show the HTTP error normally
             this.notificationService.showHttpError(
               error,
               'Không thể tải danh sách sản phẩm'
@@ -332,38 +341,6 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.savePaginationToCache();
   }
 
-  private loadMoreProducts(): void {
-    if (this.isLoading) return;
-
-    if (this.isOfflineMode) {
-      this.loadMoreFromCache();
-      return;
-    }
-
-    this.isLoading = true;
-    this.currentPage++;
-
-    this.productService
-      .getProducts(this.currentPage, this.limit, false)
-      .subscribe({
-        next: (response) => {
-          this.products = [...this.products, ...response.products];
-          this.hasMoreProducts = response.products.length === this.limit;
-          this.isLoading = false;
-        },
-        error: (error) => {
-          console.error('Lỗi khi tải thêm sản phẩm:', error);
-          this.loadMoreFromCache();
-          this.notificationService.showWarning(
-            '📱 Đang sử dụng dữ liệu đã lưu - Kiểm tra kết nối mạng'
-          );
-          this.currentPage--;
-          this.isLoading = false;
-          this.isOfflineMode = true;
-        },
-      });
-  }
-
   private loadMoreFromCache(): void {
     const allCachedProducts = this.cacheService.getProducts();
     const startIndex = this.products.length;
@@ -377,7 +354,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     if (startIndex >= maxItemsAllowed) {
       this.hasMoreProducts = false;
-      
+
       return;
     }
 
@@ -395,33 +372,6 @@ export class HomeComponent implements OnInit, OnDestroy {
     } else {
       this.hasMoreProducts = false;
     }
-  }
-
-  refreshProducts(): void {
-    this.currentPage = 1;
-    this.products = [];
-    this.hasMoreProducts = true;
-    this.isOfflineMode = false;
-    this.isPaginationDataReady = false;
-    this.isInitialLoad = true; // Reset initial load flag
-
-    this.cacheService.clearPaginationData();
-
-    this.dataLoadingService.forceReloadProducts().subscribe({
-      next: (products) => {
-        // Kiểm tra và giới hạn cache sau khi reload
-        this.checkAndLimitCacheSize();
-        this.displayProductsFromCache(products);
-        this.isInitialLoad = false;
-        this.notificationService.showSuccess(
-          '✅ Đã cập nhật danh sách sản phẩm'
-        );
-      },
-      error: (error) => {
-        console.error('Failed to refresh products:', error);
-        this.loadProducts();
-      },
-    });
   }
 
   addToCart(product: ProductDTO): void {
@@ -442,14 +392,6 @@ export class HomeComponent implements OnInit, OnDestroy {
         behavior: 'smooth',
       });
     }
-  }
-
-  buyNow(product: ProductDTO): void {
-    this.cartService.addToCart(product.id, 1);
-    this.notificationService.showSuccess(
-      `🛍️ Đã thêm "${product.name}" vào giỏ hàng!`
-    );
-    this.router.navigate(['/order']);
   }
 
   onPageChange(page: number): void {
@@ -495,24 +437,5 @@ export class HomeComponent implements OnInit, OnDestroy {
         behavior: 'smooth',
       });
     }
-  }
-
-  // Debug method để kiểm tra trạng thái cache
-  debugCacheStatus(): void {
-    const stats = this.cacheService.getCacheStats();
-    const cachedProducts = this.cacheService.getProducts();
-
-    console.log('🔍 Cache Debug Info:', {
-      totalCachedProducts: cachedProducts.length,
-      currentlyShowing: this.products.length,
-      currentPage: this.currentPage,
-      totalPages: this.totalPages,
-      totalItems: this.totalItems,
-      limit: this.limit,
-      maxCachedPages: this.maxCachedPages,
-      maxAllowedCacheProducts: this.limit * this.maxCachedPages,
-      isOfflineMode: this.isOfflineMode,
-      cacheStats: stats,
-    });
   }
 }

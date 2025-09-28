@@ -119,7 +119,7 @@ public class UserController {
                     .id(user.getId())
                     .user(user)
                     .email(null)
-                    .address(user.getAddress())
+                    .address(userDTO.getAddress())
                     .phoneNumber(user.getPhoneNumber())
                     .fullName(user.getFullName())
                     .build();
@@ -129,7 +129,7 @@ public class UserController {
             UserResponse userResponse = UserResponse.builder()
                     .phoneNumber(user.getPhoneNumber())
                     .fullName(user.getFullName())
-                    .address(user.getAddress())
+                    .address(userDTO.getAddress())
                     .build();
 
             return ResponseEntity.ok(

@@ -3,6 +3,7 @@ import { BehaviorSubject, Observable, of } from 'rxjs';
 import { UserDTO } from '../dtos/user.dto';
 import { ProductDTO } from '../dtos/product.dto';
 import { StorageService } from './storage.service';
+import { CacheStorageService } from './cache-storage.service';
 
 export interface CacheData<T> {
   data: T;
@@ -43,12 +44,16 @@ export class CacheService {
   private readonly SEARCH_CACHE_EXPIRY = 10 * 60 * 1000; // 10 minutes
   private readonly PAGINATION_CACHE_EXPIRY = 15 * 24 * 60 * 60 * 1000; // 15 days (same as products)
 
-  constructor(private storageService: StorageService) {
+  constructor(
+    private storageService: StorageService,
+    private cacheStorageService: CacheStorageService
+  ) {
     // Load from localStorage immediately for better performance
     // Use setTimeout(0) to ensure it runs after constructor completes
     setTimeout(() => {
       this.loadFromLocalStorage();
-      
+      // hydrate async caches from Cache Storage (best-effort)
+      this.hydrateFromCacheStorage();
     }, 0);
   }
 
@@ -89,6 +94,21 @@ export class CacheService {
         }
       } catch (error) {
         console.error('CacheService: Failed to stringify cache data', error);
+      }
+      // Persist large caches into Cache Storage as well (best-effort)
+      if (
+        key === this.PRODUCTS_CACHE_KEY ||
+        key === this.SEARCH_PRODUCTS_KEY ||
+        key === this.PAGINATION_CACHE_KEY
+      ) {
+        try {
+          // don't await to avoid blocking
+          this.cacheStorageService
+            .putJson(undefined, `cache_${key}`, cacheData)
+            .catch(() => {});
+        } catch (e) {
+          // ignore
+        }
       }
     }
   }
@@ -131,6 +151,13 @@ export class CacheService {
   clear(key: string): void {
     this.cache.delete(key);
     this.storageService.removeItem(`cache_${key}`);
+    try {
+      this.cacheStorageService
+        .deleteEntry(undefined, `cache_${key}`)
+        .catch(() => {});
+    } catch (e) {
+      // ignore
+    }
   }
 
   clearAll(): void {
@@ -386,5 +413,51 @@ export class CacheService {
         ? new Date(this.get<any>(this.PAGINATION_CACHE_KEY)?.timestamp)
         : null,
     };
+  }
+
+  private async hydrateFromCacheStorage(): Promise<void> {
+    try {
+      // products
+      const prod = await this.cacheStorageService.matchJson<any>(
+        undefined,
+        `cache_${this.PRODUCTS_CACHE_KEY}`
+      );
+      if (prod && this.isValid(prod)) {
+        this.cache.set(this.PRODUCTS_CACHE_KEY, prod);
+        if (Array.isArray(prod.data)) this.productsSubject.next(prod.data);
+      }
+
+      const search = await this.cacheStorageService.matchJson<any>(
+        undefined,
+        `cache_${this.SEARCH_PRODUCTS_KEY}`
+      );
+      if (search && this.isValid(search)) {
+        this.cache.set(this.SEARCH_PRODUCTS_KEY, search);
+        if (Array.isArray(search.data))
+          this.searchableProductsSubject.next(search.data);
+      }
+
+      const pag = await this.cacheStorageService.matchJson<any>(
+        undefined,
+        `cache_${this.PAGINATION_CACHE_KEY}`
+      );
+      if (pag && this.isValid(pag)) {
+        this.cache.set(this.PAGINATION_CACHE_KEY, pag);
+        if (pag.data) this.paginationSubject.next(pag.data);
+      }
+    } catch (e) {
+      // best-effort
+      console.warn('hydrateFromCacheStorage failed', e);
+    }
+  }
+
+  // Debug helper to list what's in the Cache Storage
+  async debugListCacheStorageKeys(): Promise<string[]> {
+    try {
+      return await this.cacheStorageService.listKeys();
+    } catch (e) {
+      console.warn('debugListCacheStorageKeys failed', e);
+      return [];
+    }
   }
 }

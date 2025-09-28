@@ -47,7 +47,7 @@ http:
         accessControlAllowOriginList:
           - https://web.kythuat.vn
           - https://otp-service.kythuat.vn
-          - https://web-api.kythuat.vn
+          - https://localhost:1609
         accessControlMaxAge: 100
         hostsProxyHeaders:
           - "X-Forwarded-Host"

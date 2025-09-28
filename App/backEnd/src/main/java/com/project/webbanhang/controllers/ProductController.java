@@ -85,7 +85,7 @@ public class ProductController {
 
             return ResponseEntity.ok(productListResponse);
 		} catch (Exception e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
+			return ResponseEntity.badRequest().body("Lỗi khi lấy danh sách sản phẩm: " + e.getMessage());
 		}
     }
 

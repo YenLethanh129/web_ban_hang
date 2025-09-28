@@ -67,12 +67,10 @@ export class UserService {
         retry(1), // Thử lại 1 lần nếu thất bại
         tap((response) => {
           if (response) {
-            
             this.getUserFromServer().subscribe({
               next: (reponse) => {
                 this.setCurrentUser(reponse);
                 this.isAuthenticatedSubject.next(true);
-                
               },
               error: (error) => {
                 console.error('❌ Error loading user info after login:', error);
@@ -90,30 +88,23 @@ export class UserService {
 
   // Khởi tạo trạng thái xác thực khi ứng dụng khởi động
   private initializeAuthState(): void {
-    
-
     if (isPlatformBrowser(this.platformId)) {
       // Kiểm tra cache trước
       const cachedUser = this.cacheService.getUser();
       if (cachedUser) {
-        
         this.setCurrentUser(cachedUser);
         this.isAuthenticatedSubject.next(true);
       } else {
-        
       }
 
       // Luôn kiểm tra với server để đảm bảo
       this.checkAuthenticationStatus().subscribe({
-        next: (isAuth) => {
-          
-        },
+        next: (isAuth) => {},
         error: (error) => {
           console.error('❌ UserService: Initial auth check failed:', error);
         },
       });
     } else {
-      
     }
   }
 
@@ -133,7 +124,6 @@ export class UserService {
       )
       .pipe(
         tap((response) => {
-          
           if (response && response.user) {
             this.setCurrentUser(response.user);
             this.isAuthenticatedSubject.next(true);
@@ -148,11 +138,8 @@ export class UserService {
             console.log(
               '🚫 Forbidden - JWT cookie might be missing or invalid'
             );
-            
           } else if (error.status === 401) {
-            
           } else if (error.status === 400) {
-            
           }
 
           this.clearAuthenticationState();
@@ -163,7 +150,6 @@ export class UserService {
 
   // Xóa trạng thái xác thực và dữ liệu người dùng
   private clearAuthenticationState(): void {
-    
     this.performLocalCleanup();
   }
 
@@ -201,7 +187,6 @@ export class UserService {
       )
       .pipe(
         map((response) => {
-          
           if (response && response.user) {
             return response.user as UserDTO;
           }
@@ -244,13 +229,9 @@ export class UserService {
 
   // Clear user cache on logout
   logout(): Observable<any> {
-    
-
     // Gọi API logout backend trước
     return this.logoutFromServer().pipe(
-      tap((response) => {
-        
-      }),
+      tap((response) => {}),
       catchError((error) => {
         console.warn(
           '⚠️ Server logout failed, continuing with local cleanup:',
@@ -286,16 +267,16 @@ export class UserService {
 
   // Thực hiện cleanup tất cả dữ liệu local
   private performLocalCleanup(): void {
-    
-
     // Clear authentication state
     this.currentUser = null;
     this.userSubject.next(null);
     this.isAuthenticatedSubject.next(false);
 
     // Clear all cache services
+    // Clear only user-related cache and pagination metadata.
+    // Keep product cache intact so offline/product browsing still works.
     this.cacheService.clearUser();
-    this.cacheService.clearAll();
+    this.cacheService.clearPaginationData();
 
     // Clear user address cache - chỉ trong browser environment
     if (isPlatformBrowser(this.platformId)) {
@@ -307,7 +288,6 @@ export class UserService {
               module.UserAddressService
             );
             userAddressService.clearUserAddress();
-            
           })
           .catch((error) => {
             console.warn('Could not clear user address cache:', error);
@@ -323,7 +303,6 @@ export class UserService {
             const cartService = this.injector.get(module.CartService);
             if (cartService && typeof cartService.clearCart === 'function') {
               cartService.clearCart();
-              
             }
           })
           .catch((error) => {
@@ -362,10 +341,7 @@ export class UserService {
 
         keysToRemove.forEach((key) => {
           localStorage.removeItem(key);
-          
         });
-
-        
       } catch (error) {
         console.warn('Could not access localStorage:', error);
       }
@@ -373,13 +349,10 @@ export class UserService {
       // Clear sessionStorage
       try {
         sessionStorage.clear();
-        
       } catch (error) {
         console.warn('Could not access sessionStorage:', error);
       }
     }
-
-    
   }
 
   // Force refresh user from server
