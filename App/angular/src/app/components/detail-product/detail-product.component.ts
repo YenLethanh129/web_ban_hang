@@ -16,16 +16,12 @@ import { NotificationService } from '../../services/notification.service';
 })
 export class DetailProductComponent implements OnInit {
   product?: ProductDTO;
+  productDefault?: ProductDTO;
+  feeUpSize: number = 5000;
   isLoading: boolean = true;
   quantity: number = 1;
   selectedColor: string | null = null;
-  selectedSize: string = 'M'; // Default size
-  colors = [
-    { name: 'Đỏ', code: '#FF0000' },
-    { name: 'Xanh lá', code: '#00FF00' },
-    { name: 'Vàng', code: '#FFFF00' },
-    { name: 'Cam', code: '#FFA500' },
-  ];
+  selectedSize: string = 'S'; // Default size
   activeImageIndex: number = 0;
   currentImage: string = '';
 
@@ -49,6 +45,7 @@ export class DetailProductComponent implements OnInit {
     this.productService.getProductById(id).subscribe({
       next: (product) => {
         this.product = product;
+        this.productDefault = product;
         this.currentImage = product.thumbnail;
         this.isLoading = false;
       },
@@ -71,10 +68,27 @@ export class DetailProductComponent implements OnInit {
 
   selectSize(size: string): void {
     this.selectedSize = size;
-  }
-
-  getColorName(colorCode: string): string {
-    return this.colors.find((c) => c.code === colorCode)?.name || '';
+    switch (size) {
+      case 'S':
+        this.product = this.productDefault;
+        break;
+      case 'M':
+        if (this.productDefault) {
+          this.product = {
+            ...this.productDefault,
+            price: this.productDefault.price + this.feeUpSize,
+          };
+        }
+        break;
+      case 'L':
+        if (this.productDefault) {
+          this.product = {
+            ...this.productDefault,
+            price: this.productDefault.price + this.feeUpSize * 2,
+          };
+        }
+        break;
+    }
   }
 
   setActiveImage(index: number): void {
@@ -87,7 +101,11 @@ export class DetailProductComponent implements OnInit {
 
   addToCart(): void {
     if (this.product) {
-      this.cartService.addToCart(this.product.id, this.quantity);
+      this.cartService.addToCart(
+        this.product.id,
+        this.quantity,
+        this.selectedSize
+      );
       this.notificationService.showSuccess(
         `Đã thêm ${this.quantity} ${this.product.name} (${this.selectedSize}) vào giỏ hàng`
       );

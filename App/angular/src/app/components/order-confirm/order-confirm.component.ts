@@ -1,13 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import {
-  OrderConfirmResponseDTO,
-} from '../../dtos/order.dto';
+import { OrderConfirmResponseDTO } from '../../dtos/order.dto';
 import { OrderService } from '../../services/order.service';
 import { OrderDetailService } from '../../services/order.detail.service';
 import { CommonModule, Location } from '@angular/common';
 import { MomoIpnRequestDTO } from '../../dtos/momo.dto';
 import { MomoService } from '../../services/momo.service';
+import { CartService } from '../../services/cart.service';
 
 @Component({
   selector: 'app-order-confirm',
@@ -23,11 +22,10 @@ export class OrderConfirmComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private router: Router,
     private location: Location,
     private orderService: OrderService,
     private momoService: MomoService,
-    private orderDetailService: OrderDetailService
+    private cartService: CartService
   ) {}
 
   ngOnInit(): void {
@@ -38,6 +36,7 @@ export class OrderConfirmComponent implements OnInit {
       this.getOrderDetails(orderId);
       this.ipnHandler(orderId);
     });
+    this.cartService.clearCart(); // ← Xóa giỏ hàng sau khi đặt hàng thành công
   }
 
   private cleanUrl(): void {
@@ -77,7 +76,6 @@ export class OrderConfirmComponent implements OnInit {
     };
     this.momoService.ipnHandler(momoIpnRequestDTO).subscribe({
       next: (response: any) => {
-        
         this.isLoading = false;
       },
       error: (error: any) => {

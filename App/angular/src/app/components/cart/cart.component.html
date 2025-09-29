@@ -23,17 +23,30 @@
           </div>
           <div class="item-details">
             <h3>{{ item.product.name }}</h3>
+            <p class="item-size">
+              <strong>Size: </strong>
+              <span *ngIf="item.size && item.size.trim(); else noSize">{{
+                item.size
+              }}</span>
+              <ng-template #noSize
+                ><span class="muted">Chưa chọn</span></ng-template
+              >
+            </p>
             <p class="price">{{ item.product.price | number }} VNĐ</p>
           </div>
           <div class="item-quantity">
             <button
-              (click)="updateQuantity(item.product.id, item.quantity - 1)"
+              (click)="
+                updateQuantity(item.product.id, item.quantity - 1, item.size)
+              "
             >
               -
             </button>
             <span>{{ item.quantity }}</span>
             <button
-              (click)="updateQuantity(item.product.id, item.quantity + 1)"
+              (click)="
+                updateQuantity(item.product.id, item.quantity + 1, item.size)
+              "
             >
               +
             </button>
@@ -41,7 +54,10 @@
           <div class="item-total">
             {{ item.product.price * item.quantity | number }} VNĐ
           </div>
-          <button class="remove-item" (click)="removeItem(item.product.id)">
+          <button
+            class="remove-item"
+            (click)="removeItemBySize(item.product.id, item.size)"
+          >
             <i class="fas fa-trash"></i>
           </button>
         </div>
@@ -56,7 +72,7 @@
           <button class="btn btn-danger" (click)="clearCart()">
             Xóa toàn bộ giỏ hàng
           </button>
-          <button class="btn btn-success" routerLink="/order">
+          <button class="btn btn-success" (click)="confirmOrder()">
             Xác nhận đơn hàng
           </button>
         </div>

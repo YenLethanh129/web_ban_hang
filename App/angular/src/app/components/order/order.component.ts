@@ -217,6 +217,8 @@ export class OrderComponent implements OnInit, OnDestroy {
     if (!this.validateForm()) {
       return;
     }
+    // Recalculate total before submitting to be safe
+    this.orderData.totalMoney = this.getTotalPrice();
     this.isLoading = true;
     this.createOrder();
   }
@@ -244,7 +246,6 @@ export class OrderComponent implements OnInit, OnDestroy {
     // Load from server if not available
     this.userService.getUser().subscribe({
       next: (user) => {
-        
         this.setUserData(user);
       },
       error: (error) => {
@@ -268,24 +269,42 @@ export class OrderComponent implements OnInit, OnDestroy {
     this.validateFullName();
     this.validatePhoneNumber();
     this.validateShippingAddress();
-
-    
   }
 
   private async loadCartItems() {
     this.isLoading = true;
-    const cart = this.cartService.getCart();
+    // Use getAllEntries so we list each size separately
+    const cart = this.cartService.getAllEntries();
 
     try {
       const items = await Promise.all(
-        Array.from(cart.entries()).map(async ([productId, cartItem]) => {
+        Array.from(cart.entries()).map(async ([compositeKey, cartItem]) => {
+          // compositeKey: "<productId>:<size>"
+          const [idStr, size] = String(compositeKey).split(':');
+          const productId = Number(idStr);
           const product = await this.productService
             .getProductById(productId)
             .toPromise();
+          const resolvedSize = cartItem.size || size || 'S';
+          if (!product) {
+            return {
+              product: undefined as any,
+              quantity: cartItem.quantity,
+              size: resolvedSize,
+            };
+          }
+          const displayPrice = this.cartService.calculatePriceWithSize(
+            product.price,
+            resolvedSize
+          );
+          const productForUi = {
+            ...product,
+            price: displayPrice,
+          } as typeof product;
           return {
-            product,
+            product: productForUi,
             quantity: cartItem.quantity,
-            size: cartItem.size,
+            size: resolvedSize,
           };
         })
       );
@@ -334,13 +353,12 @@ export class OrderComponent implements OnInit, OnDestroy {
       payment_status: this.orderData.paymentStatus,
     };
 
-    
     this.orderService.createOrder(orderDTO).subscribe({
       next: (response: any) => {
         this.notificationService.showSuccess(
           'Đơn hàng đã được tạo thành công!'
         );
-        
+
         this.orderId = response.order_id;
         this.momoInfoOrderDTO = {
           order_id: response.order_id ?? response.orderId,
@@ -364,14 +382,11 @@ export class OrderComponent implements OnInit, OnDestroy {
         quantity: item.quantity,
         unit_price: item.product.price,
         total_money: item.product.price * item.quantity,
-        size: item.size ?? 'L',
+        size: item.size ?? 'S',
       };
 
-      
       this.orderDetailService.createOrderDetail(orderDetailDTO).subscribe({
-        next: (response) => {
-          
-        },
+        next: (response) => {},
         error: (error) => {
           console.error('Lỗi khi tạo đơn hàng chi tiết:', error);
         },
@@ -382,7 +397,6 @@ export class OrderComponent implements OnInit, OnDestroy {
     if (this.momoInfoOrderDTO) {
       this.momoService.createQR(this.momoInfoOrderDTO).subscribe({
         next: (response: CreateMomoResponse) => {
-          
           if (response.payUrl) {
             // Chuyển hướng đến URL thanh toán MoMo
             window.location.href = response.payUrl;
@@ -396,13 +410,6 @@ export class OrderComponent implements OnInit, OnDestroy {
       });
     }
 
-    this.clearCart();
-
     this.isLoading = false;
-  }
-
-  clearCart(): void {
-    this.cartService.clearCart();
-    this.cartItems = [];
   }
 }

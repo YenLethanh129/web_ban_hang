@@ -80,7 +80,6 @@ export class UserService {
         }),
         catchError((error) => {
           console.error('❌ Login error:', error);
-          this.clearAuthenticationState();
           throw error;
         })
       );
@@ -142,15 +141,9 @@ export class UserService {
           } else if (error.status === 400) {
           }
 
-          this.clearAuthenticationState();
           return of(false);
         })
       );
-  }
-
-  // Xóa trạng thái xác thực và dữ liệu người dùng
-  private clearAuthenticationState(): void {
-    this.performLocalCleanup();
   }
 
   getUser(): Observable<UserDTO> {
@@ -265,7 +258,6 @@ export class UserService {
     );
   }
 
-  // Thực hiện cleanup tất cả dữ liệu local
   private performLocalCleanup(): void {
     // Clear authentication state
     this.currentUser = null;
@@ -294,22 +286,6 @@ export class UserService {
           });
       } catch (error) {
         console.warn('Could not import user address service:', error);
-      }
-
-      // Clear cart service if exists
-      try {
-        import('./cart.service')
-          .then((module) => {
-            const cartService = this.injector.get(module.CartService);
-            if (cartService && typeof cartService.clearCart === 'function') {
-              cartService.clearCart();
-            }
-          })
-          .catch((error) => {
-            console.warn('Could not clear cart:', error);
-          });
-      } catch (error) {
-        console.warn('Could not import cart service:', error);
       }
 
       // Clear localStorage completely

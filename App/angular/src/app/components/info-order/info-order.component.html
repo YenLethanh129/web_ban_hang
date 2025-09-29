@@ -48,7 +48,10 @@
 
             <div class="summary-item">
               <span class="label">Trạng thái đơn hàng:</span>
-              <span class="value" [ngClass]="getStatusClass(order.status)">
+              <span
+                class="value status-badge"
+                [ngClass]="getStatusClass(order.status)"
+              >
                 {{ getStatusText(order.status) }}
               </span>
             </div>
@@ -56,7 +59,7 @@
             <div class="summary-item">
               <span class="label">Trạng thái thanh toán:</span>
               <span
-                class="value"
+                class="value status-badge"
                 [ngClass]="getPaymentStatusClass(order.payment_status)"
               >
                 {{ getPaymentStatusText(order.payment_status) }}

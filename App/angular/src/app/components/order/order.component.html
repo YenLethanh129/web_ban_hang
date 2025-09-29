@@ -221,6 +221,12 @@
                         >{{ item.product.price | number }} VNĐ</span
                       >
                     </div>
+                    <div class="price-section">
+                      <span class="price-label">Size: </span>
+                      <span class="price-value">{{
+                        item.size && item.size.trim() ? item.size : "Chưa chọn"
+                      }}</span>
+                    </div>
                     <div class="quantity-section">
                       <span class="quantity-label">Số lượng:</span>
                       <span class="quantity-value">{{ item.quantity }}</span>

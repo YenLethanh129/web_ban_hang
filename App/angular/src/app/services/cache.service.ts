@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { UserDTO } from '../dtos/user.dto';
 import { ProductDTO } from '../dtos/product.dto';
+import { CategoryDTO } from '../dtos/category.dto';
 import { StorageService } from './storage.service';
 import { CacheStorageService } from './cache-storage.service';
 
@@ -30,6 +31,7 @@ export class CacheService {
   private userSubject = new BehaviorSubject<UserDTO | null>(null);
   private productsSubject = new BehaviorSubject<ProductDTO[]>([]);
   private searchableProductsSubject = new BehaviorSubject<ProductDTO[]>([]);
+  private categoriesSubject = new BehaviorSubject<CategoryDTO[]>([]);
   private paginationSubject = new BehaviorSubject<PaginationData | null>(null);
 
   // Cache keys
@@ -37,6 +39,7 @@ export class CacheService {
   private readonly PRODUCTS_CACHE_KEY = 'all_products';
   private readonly SEARCH_PRODUCTS_KEY = 'search_products';
   private readonly PAGINATION_CACHE_KEY = 'pagination_data';
+  private readonly CATEGORIES_CACHE_KEY = 'all_categories';
 
   // Cache expiration times (in milliseconds)
   private readonly USER_CACHE_EXPIRY = 30 * 24 * 60 * 60 * 1000; // 30 days
@@ -99,7 +102,8 @@ export class CacheService {
       if (
         key === this.PRODUCTS_CACHE_KEY ||
         key === this.SEARCH_PRODUCTS_KEY ||
-        key === this.PAGINATION_CACHE_KEY
+        key === this.PAGINATION_CACHE_KEY ||
+        key === this.CATEGORIES_CACHE_KEY
       ) {
         try {
           // don't await to avoid blocking
@@ -170,6 +174,7 @@ export class CacheService {
       this.PRODUCTS_CACHE_KEY,
       this.SEARCH_PRODUCTS_KEY,
       this.PAGINATION_CACHE_KEY,
+      this.CATEGORIES_CACHE_KEY,
     ];
 
     cacheKeys.forEach((key) => {
@@ -230,6 +235,34 @@ export class CacheService {
 
   getProductsObservable(): Observable<ProductDTO[]> {
     return this.productsSubject.asObservable();
+  }
+
+  // Categories cache methods
+  setCategories(categories: CategoryDTO[]): void {
+    this.set(
+      this.CATEGORIES_CACHE_KEY,
+      categories,
+      this.PRODUCTS_CACHE_EXPIRY,
+      true
+    );
+    this.categoriesSubject.next(categories);
+  }
+
+  getCategories(): CategoryDTO[] {
+    const categories = this.get<CategoryDTO[]>(this.CATEGORIES_CACHE_KEY) || [];
+    if (categories.length > 0 && this.categoriesSubject.value.length === 0) {
+      this.categoriesSubject.next(categories);
+    }
+    return categories;
+  }
+
+  getCategoriesObservable(): Observable<CategoryDTO[]> {
+    return this.categoriesSubject.asObservable();
+  }
+
+  clearCategories(): void {
+    this.clear(this.CATEGORIES_CACHE_KEY);
+    this.categoriesSubject.next([]);
   }
 
   // Search-specific cache methods
@@ -376,6 +409,12 @@ export class CacheService {
       this.searchableProductsSubject.next(products);
     }
 
+    // Load categories from cache
+    const categories = this.getCategories();
+    if (categories.length > 0) {
+      this.categoriesSubject.next(categories);
+    }
+
     // Load pagination data from cache
     const pagination = this.getPaginationData();
     if (pagination) {
@@ -400,6 +439,7 @@ export class CacheService {
     return {
       userCached: this.isUserCached(),
       productsCached: this.isProductsCached(),
+      categoriesCached: this.getCategories().length > 0,
       paginationCached: this.isPaginationCached(),
       totalProducts: this.getProducts().length,
       memorySize: this.cache.size,
@@ -411,6 +451,9 @@ export class CacheService {
         : null,
       lastPaginationUpdate: this.get<any>(this.PAGINATION_CACHE_KEY)
         ? new Date(this.get<any>(this.PAGINATION_CACHE_KEY)?.timestamp)
+        : null,
+      lastCategoriesUpdate: this.get<any>(this.CATEGORIES_CACHE_KEY)
+        ? new Date(this.get<any>(this.CATEGORIES_CACHE_KEY)?.timestamp)
         : null,
     };
   }

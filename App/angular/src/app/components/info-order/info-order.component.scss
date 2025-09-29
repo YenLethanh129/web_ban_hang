@@ -135,6 +135,19 @@
       letter-spacing: 0.5px;
     }
   }
+
+  // Global pill-style for badges (applies in header and summary)
+  .status-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 999px; // pill
+    font-weight: 700;
+    font-size: 0.9rem;
+    line-height: 1;
+    font-family: var(--font-sans, "Inter", "Helvetica Neue", Arial, sans-serif);
+    text-transform: none; // keep explicit case from getStatusText
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  }
 }
 
 // Status colors
@@ -217,37 +230,51 @@
       }
 
       &.status-pending {
-        color: #ff6b35;
+        background: rgba(255, 193, 7, 0.2);
+        color: #ffffff;
+        border: 1px solid rgba(255, 107, 53, 0.3);
         font-weight: 700;
       }
 
       &.status-confirmed {
-        color: #007bff;
+        background: rgba(0, 123, 255, 0.2);
+        color: #ffffff;
+        border: 1px solid rgba(0, 123, 255, 0.3);
         font-weight: 700;
       }
 
       &.status-delivered {
-        color: #28a745;
+        background: rgba(40, 167, 69, 0.2);
+        color: #ffffff;
+        border: 1px solid rgba(40, 167, 69, 0.3);
         font-weight: 700;
       }
 
       &.status-cancelled {
-        color: #dc3545;
+        background: rgba(220, 53, 69, 0.2);
+        color: #ffffff;
+        border: 1px solid rgba(220, 53, 69, 0.3);
         font-weight: 700;
       }
 
       &.payment-pending {
-        color: #ff6b35;
+        background: rgba(255, 193, 7, 0.2);
+        color: #ffffff;
+        border: 1px solid rgba(255, 107, 53, 0.3);
         font-weight: 700;
       }
 
       &.payment-paid {
-        color: #28a745;
+        background: rgba(40, 167, 69, 0.2);
+        color: #ffffff;
+        border: 1px solid rgba(40, 167, 69, 0.3);
         font-weight: 700;
       }
 
       &.payment-failed {
-        color: #dc3545;
+        background: rgba(220, 53, 69, 0.2);
+        color: #ffffff;
+        border: 1px solid rgba(220, 53, 69, 0.3);
         font-weight: 700;
       }
 
