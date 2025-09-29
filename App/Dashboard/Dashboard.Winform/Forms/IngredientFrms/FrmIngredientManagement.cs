@@ -759,12 +759,12 @@ namespace Dashboard.Winform.Forms
         {
             var contextMenu = new ContextMenuStrip();
             contextMenu.Items.Add("Làm mới dữ liệu", null, (s, e) => RefreshData());
-            contextMenu.Items.Add("Xem chi tiết", null, (s, e) =>
+            contextMenu.Items.Add("Xem chi tiết", null, async (s, e) =>
             {
                 var selectedIngredient = GetSelectedIngredient();
                 if (selectedIngredient != null)
                 {
-                    OpenIngredientDetailsDialog(selectedIngredient);
+                    await OpenIngredientDetailsDialogAsync(selectedIngredient);
                 }
                 else
                 {
@@ -778,7 +778,7 @@ namespace Dashboard.Winform.Forms
 
         #region Dialog Integration Methods
 
-        private void OpenIngredientDetailsDialog(IngredientViewModel? selectedIngredient = null)
+        private async Task OpenIngredientDetailsDialogAsync(IngredientViewModel? selectedIngredient = null)
         {
             try
             {
@@ -807,6 +807,14 @@ namespace Dashboard.Winform.Forms
                 }
 
                 var detailForm = new FrmIngredientDetails(presenter, selectedIngredient?.Id, initialModel);
+                if (!await detailForm.CheckAuthorizationAsync())
+                {
+                    var warning = new FrmToastMessage(ToastType.WARNING, "Bạn không có quyền truy cập chức năng này!");
+                    warning.Show();
+                    detailForm.Dispose();
+                    detailForm.BringToFront();
+                    return;
+                }
                 var result = detailForm.ShowDialog(this);
 
                 if (result == DialogResult.OK)
@@ -861,18 +869,18 @@ namespace Dashboard.Winform.Forms
 
         #region Override Event Handlers - Updated
 
-        protected override void BtnAdd_Click(object sender, EventArgs e)
+        protected override async void BtnAdd_ClickAsync(object sender, EventArgs e)
         {
-            OpenIngredientDetailsDialog();
+            await OpenIngredientDetailsDialogAsync();
         }
 
-        protected override void BtnGetDetails_Click(object sender, EventArgs e)
+        protected override async void BtnGetDetails_Click(object sender, EventArgs e)
         {
             var selectedIngredient = GetSelectedIngredient();
 
             if (selectedIngredient != null)
             {
-                OpenIngredientDetailsDialog(selectedIngredient);
+                await OpenIngredientDetailsDialogAsync(selectedIngredient);
             }
             else
             {
@@ -880,14 +888,14 @@ namespace Dashboard.Winform.Forms
             }
         }
 
-        private void DgvListItems_CellDoubleClick(object? sender, DataGridViewCellEventArgs e)
+        private async void DgvListItems_CellDoubleClick(object? sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex >= 0)
             {
                 var selectedIngredient = GetSelectedIngredient();
                 if (selectedIngredient != null)
                 {
-                    OpenIngredientDetailsDialog(selectedIngredient);
+                    await OpenIngredientDetailsDialogAsync(selectedIngredient);
                 }
             }
         }

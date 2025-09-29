@@ -18,13 +18,12 @@ using Dashboard.Winform.Attributes;
 
 namespace Dashboard.Winform.Forms;
 
-[RequireRole("ADMIN")]
+[RequireRole("Admin")]
 public partial class FrmUserManagement : FrmBaseAuthForm
 {
     private readonly ILogger<FrmUserManagement> _logger;
     private readonly IUserManagementPresenter _presenter;
     private readonly UserManagementModel _model;
-    private readonly IServiceProvider _serviceProvider;
     private TaskCompletionSource<bool>? _dataLoadingCompletionSource;
     private System.Windows.Forms.Timer? _searchTimer;
     private bool _isInitialized = false;
@@ -34,13 +33,11 @@ public partial class FrmUserManagement : FrmBaseAuthForm
 
     public FrmUserManagement(
         ILogger<FrmUserManagement> logger,
-        IUserManagementPresenter presenter,
-        IServiceProvider serviceProvider)
+        IUserManagementPresenter presenter)
     {
         _logger = logger;
         _presenter = presenter;
         _model = (UserManagementModel)_presenter.Model;
-        _serviceProvider = serviceProvider;
 
         InitializeComponent();
         InitializeEmployeeControls();
@@ -243,8 +240,18 @@ public partial class FrmUserManagement : FrmBaseAuthForm
             else
             {
                 btnSaveUser.Enabled = true;
-                tbxPasswordAgain.BackColor = SystemColors.Window;
+                tbxPasswordAgain.BackColor = tbxPassword.BackColor;
                 toolTip1.SetToolTip(tbxPasswordAgain, string.Empty);
+            }
+        };
+
+        tbxPassword.TextChanged += (s, e) =>
+        {
+            if (!string.IsNullOrEmpty(tbxPasswordAgain.Text))
+            {
+                btnSaveUser.Enabled = false;
+                tbxPasswordAgain.BackColor = Color.LightCoral;
+                toolTip1.SetToolTip(tbxPasswordAgain, "Mật khẩu không khớp!");
             }
         };
 

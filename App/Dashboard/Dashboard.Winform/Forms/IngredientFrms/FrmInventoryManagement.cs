@@ -11,10 +11,11 @@ using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Dashboard.Winform.Forms.BaseFrm;
 
 namespace Dashboard.Winform.Forms;
 
-public partial class FrmInventoryManagement : Form
+public partial class FrmInventoryManagement : FrmBaseAuthForm
 {
     private readonly ILogger<FrmInventoryManagement> _logger;
     private readonly IInventoryManagementPresenter _presenter;

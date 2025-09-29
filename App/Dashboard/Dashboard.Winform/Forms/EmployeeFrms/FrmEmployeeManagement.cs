@@ -2,7 +2,13 @@
 using Dashboard.BussinessLogic.Services.BranchServices;
 using Dashboard.BussinessLogic.Services.EmployeeServices;
 using Dashboard.BussinessLogic.Services.RBACServices;
+using Dashboard.Common.Constants;
+using Dashboard.Winform.Attributes;
 using Dashboard.Winform.Events;
+using Dashboard.Winform.Forms;
+using Dashboard.Winform.Forms.BaseFrm;
+using Dashboard.Winform.Interfaces;
+using Dashboard.Winform.Presenters.EmployeePresenter;
 using Dashboard.Winform.ViewModels.EmployeeModels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -11,10 +17,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Dashboard.Common.Constants;
-using Dashboard.Winform.Forms;
-using Dashboard.Winform.Presenters.EmployeePresenter;
-using Dashboard.Winform.Attributes;
 
 namespace Dashboard.Winform.Forms
 {
@@ -671,12 +673,11 @@ namespace Dashboard.Winform.Forms
 
         #region Dialog Integration Methods
 
-        private void OpenEmployeeDetailsDialog(EmployeeViewModel? selectedEmployee = null)
+        private async void OpenEmployeeDetailsDialog(EmployeeViewModel? selectedEmployee = null)
         {
             try
             {
                 var presenter = _serviceProvider.GetRequiredService<IEmployeeDetailsPresenter>();
-
                 long? employeeId = selectedEmployee?.Id;
                 EmployeeDetailViewModel? employeeDetail = null;
 
@@ -695,32 +696,35 @@ namespace Dashboard.Winform.Forms
                     };
                 }
 
-                using var form = new FrmEmployeeDetails(presenter, employeeId, employeeDetail);
+                var form = new FrmEmployeeDetails(presenter, employeeId, employeeDetail);
+
+                if (!await form.CheckAuthorizationAsync())
+                {
+                    form.Dispose();
+                    var warning = new FrmToastMessage(ToastType.WARNING, "Bạn không có quyền truy cập chức năng này!");
+                    warning.Show();
+                    return;
+                }
+
+                if (_blurLoadingService != null && form is IBlurLoadingServiceAware aware)
+                {
+                    aware.SetBlurLoadingService(_blurLoadingService);
+                }
+
                 var result = form.ShowDialog();
 
                 if (result == DialogResult.OK)
                 {
-                    _ = Task.Run(async () =>
-                    {
-                        await Task.Delay(300);
-
-                        if (InvokeRequired)
-                        {
-                            Invoke(new Action(async () => await RefreshDataSafely()));
-                        }
-                        else
-                        {
-                            await RefreshDataSafely();
-                        }
-                    });
+                    await RefreshDataSafely();
                 }
+
+                form.Dispose();
             }
             catch (Exception ex)
             {
                 ShowError($"Lỗi khi mở form chi tiết nhân viên: {ex.Message}");
             }
         }
-
         private async Task RefreshDataSafely()
         {
             try
@@ -743,7 +747,7 @@ namespace Dashboard.Winform.Forms
 
         #region Override Event Handlers - Updated
 
-        protected override void BtnAdd_Click(object sender, EventArgs e)
+        protected override void BtnAdd_ClickAsync(object sender, EventArgs e)
         {
             OpenEmployeeDetailsDialog();
         }
@@ -819,8 +823,6 @@ namespace Dashboard.Winform.Forms
         private void DgvListItems_DataError(object? sender, DataGridViewDataErrorEventArgs e)
         {
             e.Cancel = true;
-
-            Console.WriteLine($"DataGridView Error - Column: {e.ColumnIndex}, Row: {e.RowIndex}, Exception: {e.Exception?.Message}");
 
             if (e.Exception != null)
             {

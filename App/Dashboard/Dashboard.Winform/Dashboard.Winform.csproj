@@ -12,8 +12,11 @@
 
   <ItemGroup>
     <Compile Remove="Forms\RecipeFrm\**" />
+    <Compile Remove="Resource\Uploads\**" />
     <EmbeddedResource Remove="Forms\RecipeFrm\**" />
+    <EmbeddedResource Remove="Resource\Uploads\**" />
     <None Remove="Forms\RecipeFrm\**" />
+    <None Remove="Resource\Uploads\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -26,11 +29,18 @@
     </Content>
     <Content Include="Resource\coffee.ico" />
   </ItemGroup>
-
+	
+    <ItemGroup>
+	    <None Update=".env">
+		    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	    </None>
+    </ItemGroup>
+	
   <ItemGroup>
     <PackageReference Include="ReaLTaiizor" />
     <PackageReference Include="WinForms.DataVisualization" />
 	<PackageReference Include="ClosedXML" />
+	<PackageReference Include="DotNetEnv " />
   </ItemGroup>
 
   <ItemGroup>
@@ -56,10 +66,6 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Resource\Uploads\" />
   </ItemGroup>
 
   <!-- ClosedXML for exporting payroll to .xlsx (central versioned) -->

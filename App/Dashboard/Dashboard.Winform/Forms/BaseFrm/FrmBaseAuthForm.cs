@@ -7,144 +7,116 @@ using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace Dashboard.Winform.Forms.BaseFrm
+namespace Dashboard.Winform.Forms.BaseFrm;
+
+public partial class FrmBaseAuthForm : Form
 {
-    public partial class FrmBaseAuthForm : Form
+    private bool _authorizationChecked = false;
+    private bool _hasAccess = false;
+    private bool? _requiresAuthorization;
+
+    public FrmBaseAuthForm()
     {
-        private bool _authorizationChecked = false;
-        public FrmBaseAuthForm()
+        AuthenticationManager.AuthenticationChanged += OnAuthenticationChanged;
+        AuthenticationManager.SessionExpired += OnSessionExpired;
+    }
+
+    protected override void SetVisibleCore(bool value)
+    {
+        if (value && (!_authorizationChecked || !_hasAccess))
         {
-            AuthenticationManager.AuthenticationChanged += OnAuthenticationChanged;
-            AuthenticationManager.SessionExpired += OnSessionExpired;
+            base.SetVisibleCore(false);
+            return;
         }
+        base.SetVisibleCore(value);
+    }
 
-        // NOTE: Keep SetVisibleCore synchronous to avoid timing issues with WinForms visibility.
-        protected override void SetVisibleCore(bool value)
-        {
-            if (value && !_authorizationChecked)
-            {
-                _authorizationChecked = true;
+    private bool RequiresAuthorization()
+    {
+        if (_requiresAuthorization.HasValue)
+            return _requiresAuthorization.Value;
 
-                // Use a synchronous (local-session-based) authorization check here so we can decide immediately.
-                var hasAccess = CheckFormAuthorizationSync();
-                if (!hasAccess)
-                {
-                    new FrmToastMessage(ToastType.WARNING, "Bạn không có quyền truy cập chức năng này!").Show();
-                    if (!IsDisposed && !Disposing)
-                        base.SetVisibleCore(false);
-                    return;
-                }
-            }
+        var type = GetType();
+        var hasRole = type.GetCustomAttribute<RequireRoleAttribute>() != null;
+        var hasPermission = type.GetCustomAttributes<RequirePermissionAttribute>().Any();
 
-            if (!IsDisposed && !Disposing)
-                base.SetVisibleCore(value);
-        }
+        _requiresAuthorization = hasRole || hasPermission;
+        return _requiresAuthorization.Value;
+    }
 
-        /// <summary>
-        /// Synchronous, local-session-based authorization check used during form visibility decision.
-        /// This avoids awaiting in SetVisibleCore which causes UI timing issues.
-        /// If you still want server-side validation, perform it after the form is shown (e.g. in Load).
-        /// </summary>
-        private bool CheckFormAuthorizationSync()
-        {
-            // If not authenticated, open login (synchronously) and deny showing the form.
-            if (!AuthenticationManager.IsAuthenticated)
-            {
-                ShowLoginForm();
-                return false;
-            }
-
-            // Role attribute check (local)
-            var roleAttribute = GetType().GetCustomAttribute<RequireRoleAttribute>();
-            if (roleAttribute != null)
-            {
-                var currentRole = AuthenticationManager.CurrentRole?.Trim();
-                var targetRole = roleAttribute.Role?.Trim() ?? string.Empty;
-
-                if (string.IsNullOrEmpty(currentRole) || string.IsNullOrEmpty(targetRole))
-                {
-                    // missing info -> deny
-                    return false;
-                }
-
-                if (!string.Equals(currentRole, targetRole, StringComparison.OrdinalIgnoreCase))
-                {
-                    return false;
-                }
-            }
-
-            // Permission attributes: check against local cached permissions
-            var permissionAttributes = GetType().GetCustomAttributes<RequirePermissionAttribute>();
-            foreach (var attr in permissionAttributes)
-            {
-                var localHas = AuthenticationManager.CurrentPermissions?.Contains(attr.PermissionKey, StringComparer.OrdinalIgnoreCase) ?? false;
-                if (!localHas)
-                {
-                    return false;
-                }
-            }
-
+    protected async Task<bool> CheckFormAuthorizationAsync()
+    {
+        if (!RequiresAuthorization())
             return true;
+        if (!AuthenticationManager.IsAuthenticated)
+        {
+            ShowLoginForm();
+            return false;
         }
 
-        // If you want server-side validation, do it in Load and close the form if not allowed:
-        // protected async override void OnLoad(EventArgs e) { base.OnLoad(e); var ok = await CheckFormAuthorizationAsync(); if (!ok) Close(); }
 
-        // Keep original async method if you need it elsewhere (not used in SetVisibleCore).
-        protected async Task<bool> CheckFormAuthorizationAsync()
+        var roleAttribute = GetType().GetCustomAttribute<RequireRoleAttribute>();
+        if (roleAttribute != null)
         {
-            if (!AuthenticationManager.IsAuthenticated)
-            {
-                ShowLoginForm();
-                return false;
-            }
-
-            var roleAttribute = GetType().GetCustomAttribute<RequireRoleAttribute>();
-            if (roleAttribute != null)
-            {
-                var hasRole = await AuthenticationManager.IsInRoleAsync(roleAttribute.Role);
-                if (!hasRole) return false;
-            }
-
-            var permissionAttributes = GetType().GetCustomAttributes<RequirePermissionAttribute>();
-            foreach (var attr in permissionAttributes)
-            {
-                var hasPermission = await AuthenticationManager.HasPermissionAsync(attr.PermissionKey);
-                if (!hasPermission) return false;
-            }
-
-            return true;
+            var hasRole = await AuthenticationManager.IsInRoleAsync(roleAttribute.Role);
+            if (!hasRole) return false;
         }
 
-        protected virtual void OnAuthenticationChanged(object? sender, bool isAuthenticated)
+        var permissionAttributes = GetType().GetCustomAttributes<RequirePermissionAttribute>();
+        foreach (var attr in permissionAttributes)
         {
-            if (!isAuthenticated && this.Visible)
-            {
-                Hide();
-                ShowLoginForm();
-            }
+            var hasPermission = await AuthenticationManager.HasPermissionAsync(attr.PermissionKey);
+            if (!hasPermission) return false;
         }
 
-        protected virtual void OnSessionExpired(object? sender, EventArgs e)
+        return true;
+    }
+
+    protected virtual void OnAuthenticationChanged(object? sender, bool isAuthenticated)
+    {
+        if (!isAuthenticated && this.Visible)
         {
-            new FrmToastMessage(ToastType.INFO, "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.").Show();
-            this.Hide();
+            Hide();
             ShowLoginForm();
         }
+    }
 
-        protected virtual void ShowLoginForm()
+    protected virtual void OnSessionExpired(object? sender, EventArgs e)
+    {
+        new FrmToastMessage(ToastType.INFO, "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.").Show();
+        this.Hide();
+        ShowLoginForm();
+    }
+
+    public async Task<bool> CheckAuthorizationAsync()
+    {
+        if (_authorizationChecked)
+            return _hasAccess;
+
+        _authorizationChecked = true;
+        _hasAccess = await CheckFormAuthorizationAsync();
+
+        if (!_hasAccess)
         {
-            throw new NotImplementedException("Not implement Showlogin form yet! ");
+            new FrmToastMessage(ToastType.WARNING, "Bạn không có quyền truy cập chức năng này!").Show();
         }
 
-        protected override void Dispose(bool disposing)
+        return _hasAccess;
+    }
+
+
+    protected virtual void ShowLoginForm()
+    {
+        throw new NotImplementedException("Not implement Showlogin form yet! ");
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
         {
-            if (disposing)
-            {
-                AuthenticationManager.AuthenticationChanged -= OnAuthenticationChanged;
-                AuthenticationManager.SessionExpired -= OnSessionExpired;
-            }
-            base.Dispose(disposing);
+            AuthenticationManager.AuthenticationChanged -= OnAuthenticationChanged;
+            AuthenticationManager.SessionExpired -= OnSessionExpired;
         }
+        base.Dispose(disposing);
     }
 }

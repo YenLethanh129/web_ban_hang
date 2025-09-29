@@ -34,17 +34,17 @@ WORKDIR /src/Dashboard.API
 RUN dotnet build "Dashboard.API.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # Publish stage
-# ---------- API ----------
-FROM build AS api-build
-WORKDIR /src/Dashboard.API
-RUN dotnet publish "Dashboard.API.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+# # ---------- API ----------
+# FROM build AS api-build
+# WORKDIR /src/Dashboard.API
+# RUN dotnet publish "Dashboard.API.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 
-FROM base AS api-final
-WORKDIR /app
-COPY --from=api-build /app/publish .
+# FROM base AS api-final
+# WORKDIR /app
+# COPY --from=api-build /app/publish .
 
-ENTRYPOINT ["dotnet", "Dashboard.API.dll"]
+# ENTRYPOINT ["dotnet", "Dashboard.API.dll"]
 
 # ---------- Worker ----------
 FROM build AS worker-build

@@ -1,25 +1,28 @@
-﻿using Dashboard.BussinessLogic.Mappings;
+﻿using Amazon.S3;
+using Dashboard.BussinessLogic.Mappings;
 using Dashboard.BussinessLogic.Services;
 using Dashboard.BussinessLogic.Services.BranchServices;
 using Dashboard.BussinessLogic.Services.Customers;
 using Dashboard.BussinessLogic.Services.EmployeeServices;
+using Dashboard.BussinessLogic.Services.FileServices;
 using Dashboard.BussinessLogic.Services.GoodsAndStockServcies;
 using Dashboard.BussinessLogic.Services.ProductServices;
 using Dashboard.BussinessLogic.Services.RBACServices;
 using Dashboard.BussinessLogic.Services.ReportServices;
 using Dashboard.BussinessLogic.Services.SupplierServices;
+using Dashboard.Common.Options;
 using Dashboard.Common.Utitlities;
 using Dashboard.DataAccess.Data;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using System.Reflection;
 
 namespace Dashboard.BussinessLogic;
 public static class DependencyInjection
 {
-    // Keep the existing method for IHostApplicationBuilder
     public static void AddBussinessLogicServices(this IHostApplicationBuilder builder)
     {
         builder.Services.AddAutoMapper(typeof(ProductMappingProfile));
@@ -48,7 +51,7 @@ public static class DependencyInjection
         builder.Services.AddScoped<IRecipeService, RecipeService>();
         builder.Services.AddHttpClient<IImageUrlValidator, ImageUrlValidator>();
 
-       
+
 
         // Ingredient-related services
         builder.Services.AddScoped<IIngredientManagementService, IngredientManagementService>();
@@ -76,6 +79,28 @@ public static class DependencyInjection
 
         // Role management service
         builder.Services.AddScoped<IRoleManagementService, RoleManagementService>();
+
+        builder.Services.Configure<ImageUploadOptions>(
+            builder.Configuration.GetSection("ImageUpload"));
+        builder.Services.AddSingleton<IAmazonS3>(provider =>
+        {
+            var config = provider.GetRequiredService<IOptions<ImageUploadOptions>>().Value;
+
+            if (config.StorageType.Equals("S3", StringComparison.OrdinalIgnoreCase))
+            {
+                var s3Config = new AmazonS3Config
+                {
+                    RegionEndpoint = Amazon.RegionEndpoint.GetBySystemName(config.S3.Region)
+                };
+
+                return new AmazonS3Client(config.S3.AccessKey, config.S3.SecretKey, s3Config);
+            }
+
+            // Return a Null Object implementation for IAmazonS3 to avoid returning null
+            return null!;
+        });
+        builder.Services.AddScoped<IImageUploadService, ImageUploadService>();
+
 
     }
 }

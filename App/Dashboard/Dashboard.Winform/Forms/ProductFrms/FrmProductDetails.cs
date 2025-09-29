@@ -1,6 +1,8 @@
-﻿using Dashboard.Common.Constants;
+﻿using Dashboard.BussinessLogic.Services.FileServices;
+using Dashboard.Common.Constants;
 using Dashboard.Common.Utitlities;
 using Dashboard.Winform.Forms;
+using Dashboard.Winform.Forms.BaseFrm;
 using Dashboard.Winform.Helpers;
 using Dashboard.Winform.Presenters;
 using Dashboard.Winform.Presenters.ProductPresenters;
@@ -20,7 +22,7 @@ using System.Windows.Forms;
 
 namespace Dashboard.Winform.Forms
 {
-    public partial class FrmProductDetails : Form
+    public partial class FrmProductDetails : FrmBaseAuthForm
     {
         #region Fields
         private bool _isEditMode;
@@ -327,8 +329,7 @@ namespace Dashboard.Winform.Forms
             btnAssignRecipe.Click += (s, e) => BtnAssignRecipe_Click(s!, e);
             btnUnassignRecipe.Click += (s, e) => BtnUnassignRecipe_Click(s!, e);
             btnCreateNewRecipe.Click += (s, e) => BtnCreateNewRecipe_Click(s!, e);
-            btnEditRecipe.Click += (s, e) => BtnEditRecipe_Click(s!, e);
-            btnViewRecipeDetails.Click += (s, e) => BtnViewRecipeDetails_Click(s!, e);
+            btnDetailRecipe.Click += (s, e) => BtnEditRecipe_Click(s!, e);
 
             btnUpload.Click += (s, e) => BtnUpload_Click(s!, e);
             btnRemove.Click += (s, e) => BtnRemove_Click(s!, e);
@@ -345,6 +346,23 @@ namespace Dashboard.Winform.Forms
             {
                 await LoadInitialDataAsync();
                 _isDataLoaded = true;
+            }
+        }
+
+        private async Task RefreshProductImagesFromDatabase()
+        {
+            try
+            {
+                if (_isEditMode && _productId.HasValue)
+                {
+                    var productImages = await _presenter.GetProductImagesAsync(_productId.Value);
+                    _product.ProductImages = new BindingList<ProductImageViewModel>(productImages);
+                    RefreshProductImagesGrid();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error refreshing product images from database");
             }
         }
 
@@ -661,6 +679,10 @@ namespace Dashboard.Winform.Forms
                     _product = result;
                     _imageValidation.SaveChanges();
                     _recipesModified = false;
+                    _imagesModified = false;
+
+                    _deletedImageIds.Clear();
+
                     CleanupTempFiles();
                     Result = DialogResult.OK;
                     Close();
@@ -672,6 +694,7 @@ namespace Dashboard.Winform.Forms
             }
             catch (Exception ex)
             {
+                _logger?.LogError(ex, "Error saving product");
                 MessageBox.Show($"Lỗi khi lưu dữ liệu: {ex.Message}", "Lỗi",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
@@ -751,41 +774,18 @@ namespace Dashboard.Winform.Forms
                 var currentThumb = _imageValidation.ImageUrl?.Trim();
                 if (!string.IsNullOrEmpty(currentThumb) && _imageValidation.HasChanges)
                 {
-                    var savedThumbPath = await SaveImageToUploadsAsync(currentThumb);
-                    if (!string.IsNullOrEmpty(savedThumbPath))
+                    if (!IsAlreadyUploaded(currentThumb))
                     {
-                        _product.ThumbnailPath = savedThumbPath;
-                        _imageValidation.OriginalImageUrl = savedThumbPath;
-                        _imageValidation.ImageUrl = savedThumbPath;
-                    }
-                    else
-                    {
-                        throw new Exception("Không thể lưu ảnh đại diện. Vui lòng kiểm tra lại đường dẫn/ kết nối mạng.");
-                    }
-                }
-
-                if (_imagesModified && _product.ProductImages != null)
-                {
-                    var list = _product.ProductImages;
-                    for (int i = 0; i < list.Count; i++)
-                    {
-                        var imgVm = list[i];
-                        var imgPath = imgVm.ImageUrl?.Trim();
-
-                        if (string.IsNullOrEmpty(imgPath))
-                            continue;
-
-                        if (IsInUploadsFolder(imgPath))
-                            continue;
-
-                        var saved = await SaveImageToUploadsAsync(imgPath);
-                        if (!string.IsNullOrEmpty(saved))
+                        var savedThumbPath = await SaveImageToUploadsAsync(currentThumb);
+                        if (!string.IsNullOrEmpty(savedThumbPath))
                         {
-                            imgVm.ImageUrl = saved;
+                            _product.ThumbnailPath = savedThumbPath;
+                            _imageValidation.OriginalImageUrl = savedThumbPath;
+                            _imageValidation.ImageUrl = savedThumbPath;
                         }
                         else
                         {
-                            throw new Exception($"Không thể lưu ảnh: {imgPath}");
+                            throw new Exception("Không thể lưu ảnh đại diện. Vui lòng kiểm tra lại đường dẫn/kết nối mạng.");
                         }
                     }
                 }
@@ -794,9 +794,19 @@ namespace Dashboard.Winform.Forms
             }
             catch (Exception ex)
             {
-                new FrmToastMessage(ToastType.ERROR, $"Lỗi khi xử lý hình ảnh: {ex.Message}").Show();
+                _logger?.LogError(ex, "Error processing images before save");
                 throw;
             }
+        }
+
+        private bool IsAlreadyUploaded(string imagePath)
+        {
+            if (string.IsNullOrEmpty(imagePath)) return false;
+
+            return imagePath.Contains("amazonaws.com") ||
+                   imagePath.StartsWith("Resources/Uploads") ||
+                   Uri.TryCreate(imagePath, UriKind.Absolute, out var uri) &&
+                   (uri.Host.Contains("amazonaws.com") || uri.Host.Contains("your-cdn-domain.com"));
         }
 
         private async Task<string> SaveImageToUploadsAsync(string imagePathOrUrl)
@@ -806,49 +816,18 @@ namespace Dashboard.Winform.Forms
                 if (string.IsNullOrEmpty(imagePathOrUrl))
                     return string.Empty;
 
-                if (IsInUploadsFolder(imagePathOrUrl))
-                {
-                    var uploadsDir = GetUploadsDirectory();
-                    if (imagePathOrUrl.StartsWith(uploadsDir, StringComparison.OrdinalIgnoreCase))
-                    {
-                        var relative = imagePathOrUrl.Substring(uploadsDir.Length).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-                        return Path.Combine("Resources", "Uploads", relative).Replace(Path.DirectorySeparatorChar, '/');
-                    }
-                    return imagePathOrUrl;
-                }
+                var imageUploadService = _serviceProvider.GetRequiredService<IImageUploadService>();
+                var uploadedUrl = await imageUploadService.UploadImageAsync(imagePathOrUrl);
 
-                if (Uri.TryCreate(imagePathOrUrl, UriKind.Absolute, out var uri) &&
-                    (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
-                {
-                    var saved = await DownloadAndSaveImageAsync(imagePathOrUrl);
-                    return saved ?? string.Empty;
-                }
-
-                if (File.Exists(imagePathOrUrl))
-                {
-                    var saved = CopyImageToUploads(imagePathOrUrl);
-                    return saved ?? string.Empty;
-                }
-
-                var projectDir = Path.GetDirectoryName(Application.ExecutablePath);
-                if (!string.IsNullOrEmpty(projectDir))
-                {
-                    var full = Path.Combine(projectDir, imagePathOrUrl);
-                    if (File.Exists(full))
-                    {
-                        var saved = CopyImageToUploads(full);
-                        return saved ?? string.Empty;
-                    }
-                }
-
-                return string.Empty;
+                return uploadedUrl;
             }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, "Error saving image to uploads: {Image}", imagePathOrUrl);
-                return string.Empty;
+                _logger?.LogError(ex, "Error uploading image: {Image}", imagePathOrUrl);
+                throw new Exception($"Không thể tải ảnh lên: {ex.Message}");
             }
         }
+
 
         private async Task BtnCheckUrl_ClickAsync(object sender, EventArgs e)
         {
@@ -972,31 +951,69 @@ namespace Dashboard.Winform.Forms
             }
         }
 
-        private void BtnDeleteImage_Click(object sender, EventArgs e)
+        private async void BtnDeleteImage_Click(object sender, EventArgs e)
         {
             if (dgvProductImages.SelectedRows.Count > 0)
             {
                 var result = MessageBox.Show(
-                    "Bạn có chắc chắn muốn xóa hình ảnh này (chỉ xóa trên giao diện, thao tác sẽ được lưu khi nhấn Lưu)?",
+                    "Bạn có chắc chắn muốn xóa hình ảnh này?",
                     "Xác nhận", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
                 if (result == DialogResult.Yes)
                 {
-                    var selectedImage = dgvProductImages.SelectedRows[0].DataBoundItem as ProductImageViewModel;
-                    if (selectedImage != null && _product.ProductImages != null)
+                    if (dgvProductImages.SelectedRows[0].DataBoundItem is ProductImageViewModel selectedImage && _product.ProductImages != null)
                     {
-                        // Do NOT call presenter to delete immediately.
-                        // Just mark as deleted on UI and remove from local viewmodel.
-                        if (selectedImage.Id > 0)
+                        try
                         {
-                            _deletedImageIds.Add(selectedImage.Id);
-                        }
+                            SetLoadingState(true);
 
-                        _product.ProductImages.Remove(selectedImage);
-                        RefreshProductImagesGrid();
-                        _imagesModified = true;
+                            if (selectedImage.Id > 0 && _productId.HasValue)
+                            {
+                                bool deleteResult = await _presenter.DeleteImageAsync(_productId.Value, selectedImage.Id);
+
+                                if (deleteResult)
+                                {
+                                    _product.ProductImages.Remove(selectedImage);
+                                    RefreshProductImagesGrid();
+
+                                    if (string.Equals(selectedImage.ImageUrl, _imageValidation.ImageUrl, StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        _imageValidation.ImageUrl = string.Empty;
+                                        _imageValidation.OriginalImageUrl = string.Empty;
+                                        _imagesModified = true;
+                                        await LoadThumbnailImageAsync();
+                                    }
+
+                                    new FrmToastMessage(ToastType.SUCCESS, "Xóa hình ảnh thành công!").Show();
+                                }
+                                else
+                                {
+                                    new FrmToastMessage(ToastType.ERROR, "Không thể xóa hình ảnh. Vui lòng thử lại.").Show();
+                                }
+                            }
+                            else
+                            {
+                                _product.ProductImages.Remove(selectedImage);
+                                RefreshProductImagesGrid();
+                                _imagesModified = true;
+
+                                new FrmToastMessage(ToastType.SUCCESS, "Đã xóa hình ảnh khỏi danh sách!").Show();
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger?.LogError(ex, "Error deleting image {ImageId}", selectedImage.Id);
+                            new FrmToastMessage(ToastType.ERROR, $"Lỗi khi xóa hình ảnh: {ex.Message}").Show();
+                            MessageBox.Show($"Lỗi khi xóa hình ảnh: {ex.Message}");
+                        }
+                        finally
+                        {
+                            SetLoadingState(false);
+                        }
                     }
                 }
+                await Task.Delay(200);
+                await RefreshProductImagesFromDatabase();
             }
             else
             {
@@ -1004,6 +1021,7 @@ namespace Dashboard.Winform.Forms
                     "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
+
 
         private void RefreshProductImagesGrid()
         {
@@ -1073,21 +1091,25 @@ namespace Dashboard.Winform.Forms
             }
         }
 
-        // (Chỉ thay nội dung 3 phương thức; file tên tuỳ theo project của bạn)
-
-        private void BtnCreateNewRecipe_Click(object sender, EventArgs e)
+        private async void BtnCreateNewRecipe_Click(object sender, EventArgs e)
         {
             try
             {
-                // Dùng ctor đơn giản — ServiceProviderHolder.Current phải được gán trong Program.cs
                 using var frmRecipe = new FrmRecipeDetails();
+                if (!await frmRecipe.CheckAuthorizationAsync())
+                {
+                    var warning = new FrmToastMessage(ToastType.WARNING, "Bạn không có quyền truy cập chức năng này!");
+                    warning.Show();
+                    frmRecipe.Dispose();
+                    frmRecipe.BringToFront();
+                    return;
+                }
 
                 if (frmRecipe.ShowDialog() == DialogResult.OK)
                 {
                     var newRecipe = frmRecipe.Recipe;
                     if (newRecipe != null)
                     {
-                        // Convert to RecipeViewModel and add to available recipes
                         var recipeVm = new RecipeViewModel
                         {
                             Id = newRecipe.Id,
@@ -1119,7 +1141,7 @@ namespace Dashboard.Winform.Forms
             }
         }
 
-        private void BtnEditRecipe_Click(object sender, EventArgs e)
+        private async void BtnEditRecipe_Click(object sender, EventArgs e)
         {
             var selectedRecipe = GetSelectedAssignedRecipe();
             if (selectedRecipe != null)
@@ -1142,6 +1164,15 @@ namespace Dashboard.Winform.Forms
                     };
 
                     using var frmRecipe = new FrmRecipeDetails(selectedRecipe.Id, recipeDetail);
+
+                    if (!await frmRecipe.CheckAuthorizationAsync())
+                    {
+                        var warning = new FrmToastMessage(ToastType.WARNING, "Bạn không có quyền truy cập chức năng này!");
+                        warning.Show();
+                        frmRecipe.Dispose();
+                        frmRecipe.BringToFront();
+                        return;
+                    }
 
                     if (frmRecipe.ShowDialog() == DialogResult.OK)
                     {
@@ -1180,7 +1211,7 @@ namespace Dashboard.Winform.Forms
         }
 
 
-        private void BtnViewRecipeDetails_Click(object sender, EventArgs e)
+        private async void BtnViewRecipeDetails_Click(object sender, EventArgs e)
         {
             var selectedRecipe = GetSelectedAssignedRecipe();
             if (selectedRecipe != null)
@@ -1203,6 +1234,14 @@ namespace Dashboard.Winform.Forms
                     };
 
                     using var frmRecipe = new FrmRecipeDetails(selectedRecipe.Id, recipeDetail, isReadOnly: true);
+                    if (!await frmRecipe.CheckAuthorizationAsync())
+                    {
+                        var warning = new FrmToastMessage(ToastType.WARNING, "Bạn không có quyền truy cập chức năng này!");
+                        warning.Show();
+                        frmRecipe.Dispose();
+                        frmRecipe.BringToFront();
+                        return;
+                    }
                     frmRecipe.ShowDialog();
                 }
                 catch (Exception ex)
@@ -1614,8 +1653,7 @@ namespace Dashboard.Winform.Forms
             btnAssignRecipe.Enabled = !isLoading;
             btnUnassignRecipe.Enabled = !isLoading;
             btnCreateNewRecipe.Enabled = !isLoading;
-            btnEditRecipe.Enabled = !isLoading;
-            btnViewRecipeDetails.Enabled = !isLoading;
+            btnDetailRecipe.Enabled = !isLoading;
             cbxAvailableRecipes.Enabled = !isLoading;
 
             this.Cursor = isLoading ? Cursors.WaitCursor : Cursors.Default;

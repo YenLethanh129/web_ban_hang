@@ -158,12 +158,13 @@ namespace Dashboard.Winform.Helpers
         #region Permission Methods
         public static async Task<bool> HasPermissionAsync(string permission)
         {
+            if (string.IsNullOrEmpty(permission))
+                return true;
             if (!IsAuthenticated)
             {
                 return false;
             }
 
-            // Admin bypass
             if (IsAdmin)
             {
                 return true;
@@ -174,13 +175,11 @@ namespace Dashboard.Winform.Helpers
                 try
                 {
                     var result = await _authorizationService.HasPermissionAsync(_currentToken, permission);
-                    // if service returns, use it; if it throws we fallback below
                     return result;
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine($"HasPermissionAsync service error: {ex.Message}");
-                    // fallback to local permissions below
                 }
             }
 
@@ -188,22 +187,20 @@ namespace Dashboard.Winform.Helpers
             return hasLocalPermission;
         }
 
-        public static async Task<bool> IsInRoleAsync(string role)
+    public static async Task<bool> IsInRoleAsync(string role)
+    {
+        if (!IsAuthenticated)
         {
-            if (!IsAuthenticated)
-            {
-                Console.WriteLine($"IsInRoleAsync: Not authenticated");
-                return false;
-            }
+            return false;
+        }
 
             var currentRole = CurrentRole?.Trim();
             var targetRole = role?.Trim() ?? string.Empty;
 
-            if (string.IsNullOrEmpty(currentRole) || string.IsNullOrEmpty(targetRole))
-            {
-                Console.WriteLine($"IsInRoleAsync: Empty role - Current: '{currentRole}', Target: '{targetRole}'");
-                return false;
-            }
+        if (string.IsNullOrEmpty(currentRole) || string.IsNullOrEmpty(targetRole))
+        {
+            return false;
+        }
 
             var result = string.Equals(currentRole, targetRole, StringComparison.OrdinalIgnoreCase);
             Console.WriteLine($"IsInRoleAsync: Current role '{currentRole}' vs Target role '{targetRole}' = {result}");
@@ -218,7 +215,6 @@ namespace Dashboard.Winform.Helpers
                 catch (Exception ex)
                 {
                     Console.WriteLine($"IsInRoleAsync service error: {ex.Message}");
-                    // fallback to local compare
                 }
             }
 

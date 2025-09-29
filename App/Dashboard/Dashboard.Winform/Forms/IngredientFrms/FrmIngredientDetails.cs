@@ -12,8 +12,7 @@ using System.Xml.Linq;
 
 namespace Dashboard.Winform.Forms
 {
-    [RequireRole("ADMIN")]
-    [RequirePermission("PRODUCT_UPDATE")]
+
     public partial class FrmIngredientDetails : FrmBaseAuthForm
     {
         private readonly IIngredientDetailPresenter _presenter;

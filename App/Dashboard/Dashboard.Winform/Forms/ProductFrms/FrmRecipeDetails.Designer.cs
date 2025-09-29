@@ -18,6 +18,9 @@
             DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
             DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
             DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle4 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle5 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle6 = new DataGridViewCellStyle();
             tabControl = new TabControl();
             tabBasicInfo = new TabPage();
             pnlBasicInfo = new Panel();
@@ -42,11 +45,18 @@
             lblUpdatedAt = new Label();
             tabIngredients = new TabPage();
             pnlIngredients = new Panel();
+            lblRecipeIngredients = new Label();
             dgvIngredients = new DataGridView();
             pnlIngredientButtons = new Panel();
             btnAddIngredient = new Button();
             btnEditIngredient = new Button();
             btnDeleteIngredient = new Button();
+            pnlSearchArea = new Panel();
+            lblAvailableIngredients = new Label();
+            pnlSearchBox = new Panel();
+            txtSearchIngredient = new TextBox();
+            btnClearSearch = new Button();
+            dgvAvailableIngredients = new DataGridView();
             pnlButtons = new Panel();
             btnSave = new Button();
             btnCancel = new Button();
@@ -59,6 +69,9 @@
             pnlIngredients.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dgvIngredients).BeginInit();
             pnlIngredientButtons.SuspendLayout();
+            pnlSearchArea.SuspendLayout();
+            pnlSearchBox.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)dgvAvailableIngredients).BeginInit();
             pnlButtons.SuspendLayout();
             SuspendLayout();
             // 
@@ -74,7 +87,7 @@
             tabControl.Margin = new Padding(9);
             tabControl.Name = "tabControl";
             tabControl.SelectedIndex = 0;
-            tabControl.Size = new Size(788, 586);
+            tabControl.Size = new Size(1064, 716);
             tabControl.SizeMode = TabSizeMode.Fixed;
             tabControl.TabIndex = 0;
             // 
@@ -85,7 +98,7 @@
             tabBasicInfo.Location = new Point(4, 44);
             tabBasicInfo.Name = "tabBasicInfo";
             tabBasicInfo.Padding = new Padding(3);
-            tabBasicInfo.Size = new Size(780, 538);
+            tabBasicInfo.Size = new Size(1056, 668);
             tabBasicInfo.TabIndex = 0;
             tabBasicInfo.Text = "Thông tin cơ bản";
             // 
@@ -115,7 +128,7 @@
             pnlBasicInfo.Location = new Point(3, 3);
             pnlBasicInfo.Name = "pnlBasicInfo";
             pnlBasicInfo.Padding = new Padding(18, 19, 18, 19);
-            pnlBasicInfo.Size = new Size(774, 532);
+            pnlBasicInfo.Size = new Size(1050, 662);
             pnlBasicInfo.TabIndex = 0;
             // 
             // lblRecipeId
@@ -256,9 +269,9 @@
             chkIsActive.ForeColor = Color.FromArgb(192, 255, 192);
             chkIsActive.Location = new Point(131, 225);
             chkIsActive.Name = "chkIsActive";
-            chkIsActive.Size = new Size(87, 19);
+            chkIsActive.Size = new Size(117, 19);
             chkIsActive.TabIndex = 12;
-            chkIsActive.Text = "Đang kích hoạt";
+            chkIsActive.Text = "Đang hoạt động";
             chkIsActive.UseVisualStyleBackColor = true;
             // 
             // lblNotes
@@ -328,27 +341,40 @@
             tabIngredients.Location = new Point(4, 44);
             tabIngredients.Name = "tabIngredients";
             tabIngredients.Padding = new Padding(3);
-            tabIngredients.Size = new Size(780, 538);
+            tabIngredients.Size = new Size(1056, 668);
             tabIngredients.TabIndex = 1;
             tabIngredients.Text = "Nguyên liệu";
             // 
             // pnlIngredients
             // 
             pnlIngredients.BackColor = Color.FromArgb(42, 45, 86);
+            pnlIngredients.Controls.Add(lblRecipeIngredients);
             pnlIngredients.Controls.Add(dgvIngredients);
             pnlIngredients.Controls.Add(pnlIngredientButtons);
+            pnlIngredients.Controls.Add(pnlSearchArea);
             pnlIngredients.Dock = DockStyle.Fill;
             pnlIngredients.Location = new Point(3, 3);
             pnlIngredients.Name = "pnlIngredients";
-            pnlIngredients.Padding = new Padding(18, 19, 18, 19);
-            pnlIngredients.Size = new Size(774, 532);
+            pnlIngredients.Padding = new Padding(10);
+            pnlIngredients.Size = new Size(1050, 662);
             pnlIngredients.TabIndex = 0;
+            // 
+            // lblRecipeIngredients
+            // 
+            lblRecipeIngredients.AutoSize = true;
+            lblRecipeIngredients.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            lblRecipeIngredients.ForeColor = Color.FromArgb(124, 141, 181);
+            lblRecipeIngredients.Location = new Point(13, 13);
+            lblRecipeIngredients.Name = "lblRecipeIngredients";
+            lblRecipeIngredients.Size = new Size(200, 19);
+            lblRecipeIngredients.TabIndex = 0;
+            lblRecipeIngredients.Text = "Nguyên liệu trong công thức";
             // 
             // dgvIngredients
             // 
             dgvIngredients.AllowUserToAddRows = false;
             dgvIngredients.AllowUserToDeleteRows = false;
-            dgvIngredients.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            dgvIngredients.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             dgvIngredients.BackgroundColor = Color.FromArgb(24, 28, 63);
             dgvIngredients.BorderStyle = BorderStyle.None;
             dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
@@ -369,10 +395,9 @@
             dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
             dgvIngredients.DefaultCellStyle = dataGridViewCellStyle2;
             dgvIngredients.GridColor = Color.FromArgb(124, 141, 181);
-            dgvIngredients.Location = new Point(18, 19);
+            dgvIngredients.Location = new Point(13, 38);
             dgvIngredients.MultiSelect = false;
             dgvIngredients.Name = "dgvIngredients";
-            dgvIngredients.ReadOnly = true;
             dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle3.BackColor = Color.FromArgb(42, 45, 86);
             dataGridViewCellStyle3.Font = new Font("Segoe UI", 9F);
@@ -383,20 +408,20 @@
             dgvIngredients.RowHeadersDefaultCellStyle = dataGridViewCellStyle3;
             dgvIngredients.RowHeadersWidth = 51;
             dgvIngredients.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dgvIngredients.Size = new Size(739, 453);
-            dgvIngredients.TabIndex = 0;
+            dgvIngredients.Size = new Size(1024, 240);
+            dgvIngredients.TabIndex = 1;
             // 
             // pnlIngredientButtons
             // 
-            pnlIngredientButtons.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            pnlIngredientButtons.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             pnlIngredientButtons.BackColor = Color.FromArgb(42, 45, 86);
             pnlIngredientButtons.Controls.Add(btnAddIngredient);
             pnlIngredientButtons.Controls.Add(btnEditIngredient);
             pnlIngredientButtons.Controls.Add(btnDeleteIngredient);
-            pnlIngredientButtons.Location = new Point(18, 481);
+            pnlIngredientButtons.Location = new Point(13, 284);
             pnlIngredientButtons.Name = "pnlIngredientButtons";
-            pnlIngredientButtons.Size = new Size(739, 38);
-            pnlIngredientButtons.TabIndex = 1;
+            pnlIngredientButtons.Size = new Size(1024, 38);
+            pnlIngredientButtons.TabIndex = 2;
             // 
             // btnAddIngredient
             // 
@@ -405,9 +430,9 @@
             btnAddIngredient.ForeColor = Color.FromArgb(255, 224, 192);
             btnAddIngredient.Location = new Point(0, 5);
             btnAddIngredient.Name = "btnAddIngredient";
-            btnAddIngredient.Size = new Size(80, 28);
+            btnAddIngredient.Size = new Size(100, 28);
             btnAddIngredient.TabIndex = 0;
-            btnAddIngredient.Text = "Thêm";
+            btnAddIngredient.Text = "↑ Thêm";
             btnAddIngredient.UseVisualStyleBackColor = true;
             // 
             // btnEditIngredient
@@ -415,9 +440,9 @@
             btnEditIngredient.FlatAppearance.BorderColor = Color.FromArgb(107, 83, 255);
             btnEditIngredient.FlatStyle = FlatStyle.Flat;
             btnEditIngredient.ForeColor = Color.FromArgb(192, 255, 192);
-            btnEditIngredient.Location = new Point(89, 5);
+            btnEditIngredient.Location = new Point(109, 5);
             btnEditIngredient.Name = "btnEditIngredient";
-            btnEditIngredient.Size = new Size(80, 28);
+            btnEditIngredient.Size = new Size(100, 28);
             btnEditIngredient.TabIndex = 1;
             btnEditIngredient.Text = "Sửa";
             btnEditIngredient.UseVisualStyleBackColor = true;
@@ -427,12 +452,113 @@
             btnDeleteIngredient.FlatAppearance.BorderColor = Color.FromArgb(255, 99, 132);
             btnDeleteIngredient.FlatStyle = FlatStyle.Flat;
             btnDeleteIngredient.ForeColor = Color.FromArgb(255, 99, 132);
-            btnDeleteIngredient.Location = new Point(178, 5);
+            btnDeleteIngredient.Location = new Point(218, 5);
             btnDeleteIngredient.Name = "btnDeleteIngredient";
-            btnDeleteIngredient.Size = new Size(80, 28);
+            btnDeleteIngredient.Size = new Size(100, 28);
             btnDeleteIngredient.TabIndex = 2;
             btnDeleteIngredient.Text = "Xóa";
             btnDeleteIngredient.UseVisualStyleBackColor = true;
+            // 
+            // pnlSearchArea
+            // 
+            pnlSearchArea.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            pnlSearchArea.BackColor = Color.FromArgb(42, 45, 86);
+            pnlSearchArea.Controls.Add(lblAvailableIngredients);
+            pnlSearchArea.Controls.Add(pnlSearchBox);
+            pnlSearchArea.Controls.Add(dgvAvailableIngredients);
+            pnlSearchArea.Location = new Point(13, 328);
+            pnlSearchArea.Name = "pnlSearchArea";
+            pnlSearchArea.Size = new Size(1024, 321);
+            pnlSearchArea.TabIndex = 3;
+            // 
+            // lblAvailableIngredients
+            // 
+            lblAvailableIngredients.AutoSize = true;
+            lblAvailableIngredients.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            lblAvailableIngredients.ForeColor = Color.FromArgb(124, 141, 181);
+            lblAvailableIngredients.Location = new Point(3, 8);
+            lblAvailableIngredients.Name = "lblAvailableIngredients";
+            lblAvailableIngredients.Size = new Size(217, 19);
+            lblAvailableIngredients.TabIndex = 0;
+            lblAvailableIngredients.Text = "Danh sách nguyên liệu có sẵn";
+            // 
+            // pnlSearchBox
+            // 
+            pnlSearchBox.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            pnlSearchBox.BackColor = Color.FromArgb(42, 45, 86);
+            pnlSearchBox.Controls.Add(txtSearchIngredient);
+            pnlSearchBox.Controls.Add(btnClearSearch);
+            pnlSearchBox.Location = new Point(3, 33);
+            pnlSearchBox.Name = "pnlSearchBox";
+            pnlSearchBox.Size = new Size(1018, 35);
+            pnlSearchBox.TabIndex = 1;
+            // 
+            // txtSearchIngredient
+            // 
+            txtSearchIngredient.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            txtSearchIngredient.BackColor = Color.FromArgb(24, 28, 63);
+            txtSearchIngredient.BorderStyle = BorderStyle.FixedSingle;
+            txtSearchIngredient.Font = new Font("Segoe UI", 10F);
+            txtSearchIngredient.ForeColor = Color.WhiteSmoke;
+            txtSearchIngredient.Location = new Point(0, 5);
+            txtSearchIngredient.Name = "txtSearchIngredient";
+            txtSearchIngredient.PlaceholderText = "🔍 Tìm kiếm nguyên liệu theo tên hoặc danh mục...";
+            txtSearchIngredient.Size = new Size(939, 25);
+            txtSearchIngredient.TabIndex = 0;
+            // 
+            // btnClearSearch
+            // 
+            btnClearSearch.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnClearSearch.FlatAppearance.BorderColor = Color.FromArgb(124, 141, 181);
+            btnClearSearch.FlatStyle = FlatStyle.Flat;
+            btnClearSearch.ForeColor = Color.FromArgb(124, 141, 181);
+            btnClearSearch.Location = new Point(945, 4);
+            btnClearSearch.Name = "btnClearSearch";
+            btnClearSearch.Size = new Size(70, 27);
+            btnClearSearch.TabIndex = 1;
+            btnClearSearch.Text = "Xóa";
+            btnClearSearch.UseVisualStyleBackColor = true;
+            // 
+            // dgvAvailableIngredients
+            // 
+            dgvAvailableIngredients.AllowUserToAddRows = false;
+            dgvAvailableIngredients.AllowUserToDeleteRows = false;
+            dgvAvailableIngredients.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            dgvAvailableIngredients.BackgroundColor = Color.FromArgb(24, 28, 63);
+            dgvAvailableIngredients.BorderStyle = BorderStyle.None;
+            dataGridViewCellStyle4.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle4.BackColor = Color.FromArgb(66, 184, 131);
+            dataGridViewCellStyle4.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            dataGridViewCellStyle4.ForeColor = Color.White;
+            dataGridViewCellStyle4.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle4.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle4.WrapMode = DataGridViewTriState.True;
+            dgvAvailableIngredients.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle4;
+            dgvAvailableIngredients.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dataGridViewCellStyle5.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle5.BackColor = Color.FromArgb(42, 45, 86);
+            dataGridViewCellStyle5.Font = new Font("Segoe UI", 9F);
+            dataGridViewCellStyle5.ForeColor = Color.WhiteSmoke;
+            dataGridViewCellStyle5.SelectionBackColor = Color.FromArgb(66, 184, 131);
+            dataGridViewCellStyle5.SelectionForeColor = Color.White;
+            dataGridViewCellStyle5.WrapMode = DataGridViewTriState.False;
+            dgvAvailableIngredients.DefaultCellStyle = dataGridViewCellStyle5;
+            dgvAvailableIngredients.GridColor = Color.FromArgb(124, 141, 181);
+            dgvAvailableIngredients.Location = new Point(3, 74);
+            dgvAvailableIngredients.Name = "dgvAvailableIngredients";
+            dgvAvailableIngredients.ReadOnly = true;
+            dataGridViewCellStyle6.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle6.BackColor = Color.FromArgb(42, 45, 86);
+            dataGridViewCellStyle6.Font = new Font("Segoe UI", 9F);
+            dataGridViewCellStyle6.ForeColor = Color.WhiteSmoke;
+            dataGridViewCellStyle6.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle6.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle6.WrapMode = DataGridViewTriState.True;
+            dgvAvailableIngredients.RowHeadersDefaultCellStyle = dataGridViewCellStyle6;
+            dgvAvailableIngredients.RowHeadersWidth = 51;
+            dgvAvailableIngredients.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgvAvailableIngredients.Size = new Size(1018, 244);
+            dgvAvailableIngredients.TabIndex = 2;
             // 
             // pnlButtons
             // 
@@ -441,10 +567,10 @@
             pnlButtons.Controls.Add(btnCancel);
             pnlButtons.Controls.Add(btnClose);
             pnlButtons.Dock = DockStyle.Bottom;
-            pnlButtons.Location = new Point(10, 596);
+            pnlButtons.Location = new Point(10, 726);
             pnlButtons.Name = "pnlButtons";
             pnlButtons.Padding = new Padding(0, 8, 0, 8);
-            pnlButtons.Size = new Size(788, 56);
+            pnlButtons.Size = new Size(1064, 56);
             pnlButtons.TabIndex = 1;
             // 
             // btnSave
@@ -455,7 +581,7 @@
             btnSave.FlatStyle = FlatStyle.Flat;
             btnSave.Font = new Font("Microsoft Sans Serif", 10F);
             btnSave.ForeColor = Color.FromArgb(192, 255, 192);
-            btnSave.Location = new Point(551, 14);
+            btnSave.Location = new Point(827, 14);
             btnSave.Name = "btnSave";
             btnSave.Size = new Size(70, 28);
             btnSave.TabIndex = 0;
@@ -470,7 +596,7 @@
             btnCancel.FlatStyle = FlatStyle.Flat;
             btnCancel.Font = new Font("Microsoft Sans Serif", 10F);
             btnCancel.ForeColor = Color.FromArgb(255, 193, 7);
-            btnCancel.Location = new Point(630, 14);
+            btnCancel.Location = new Point(906, 14);
             btnCancel.Name = "btnCancel";
             btnCancel.Size = new Size(70, 28);
             btnCancel.TabIndex = 1;
@@ -485,7 +611,7 @@
             btnClose.FlatStyle = FlatStyle.Flat;
             btnClose.Font = new Font("Microsoft Sans Serif", 10F);
             btnClose.ForeColor = Color.FromArgb(255, 99, 132);
-            btnClose.Location = new Point(709, 14);
+            btnClose.Location = new Point(985, 14);
             btnClose.Name = "btnClose";
             btnClose.Size = new Size(70, 28);
             btnClose.TabIndex = 2;
@@ -497,7 +623,7 @@
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(24, 28, 63);
-            ClientSize = new Size(808, 662);
+            ClientSize = new Size(1084, 792);
             Controls.Add(tabControl);
             Controls.Add(pnlButtons);
             FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -515,8 +641,14 @@
             ((System.ComponentModel.ISupportInitialize)numServingSize).EndInit();
             tabIngredients.ResumeLayout(false);
             pnlIngredients.ResumeLayout(false);
+            pnlIngredients.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)dgvIngredients).EndInit();
             pnlIngredientButtons.ResumeLayout(false);
+            pnlSearchArea.ResumeLayout(false);
+            pnlSearchArea.PerformLayout();
+            pnlSearchBox.ResumeLayout(false);
+            pnlSearchBox.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)dgvAvailableIngredients).EndInit();
             pnlButtons.ResumeLayout(false);
             ResumeLayout(false);
         }
@@ -547,11 +679,18 @@
         private System.Windows.Forms.Label lblUpdatedAt;
         private System.Windows.Forms.TabPage tabIngredients;
         private System.Windows.Forms.Panel pnlIngredients;
+        private System.Windows.Forms.Label lblRecipeIngredients;
         private System.Windows.Forms.DataGridView dgvIngredients;
         private System.Windows.Forms.Panel pnlIngredientButtons;
         private System.Windows.Forms.Button btnAddIngredient;
         private System.Windows.Forms.Button btnEditIngredient;
         private System.Windows.Forms.Button btnDeleteIngredient;
+        private System.Windows.Forms.Panel pnlSearchArea;
+        private System.Windows.Forms.Label lblAvailableIngredients;
+        private System.Windows.Forms.Panel pnlSearchBox;
+        private System.Windows.Forms.TextBox txtSearchIngredient;
+        private System.Windows.Forms.Button btnClearSearch;
+        private System.Windows.Forms.DataGridView dgvAvailableIngredients;
         private System.Windows.Forms.Panel pnlButtons;
         private System.Windows.Forms.Button btnSave;
         private System.Windows.Forms.Button btnCancel;

@@ -1,88 +1,124 @@
-using Dashboard.DataAccess.Models.Entities.GoodsIngredientsAndStock;
+﻿using System;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Dashboard.StockWorker.Services;
-using Dashboard.StockWorker.Models;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
-namespace Dashboard.StockWorker.Workers;
-
-public class StockAlertWorker : BackgroundService
+namespace Dashboard.StockWorker.Workers
 {
-    private readonly ILogger<StockAlertWorker> _logger;
-    private readonly IServiceProvider _serviceProvider;
-    private readonly IConfiguration _configuration;
-
-    public StockAlertWorker(ILogger<StockAlertWorker> logger, IServiceProvider serviceProvider, IConfiguration configuration)
+    public class StockAlertWorker : BackgroundService
     {
-        _logger = logger;
-        _serviceProvider = serviceProvider;
-        _configuration = configuration;
-    }
+        private readonly IServiceScopeFactory _serviceScopeFactory;
+        private readonly ILogger<StockAlertWorker> _logger;
+        private readonly IConfiguration _configuration;
+        private readonly TimeSpan _checkInterval;
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-    {
-        _logger.LogInformation("Stock Worker Service started at: {time}", DateTimeOffset.Now);
-
-        var intervalMinutes = _configuration.GetValue("StockMonitoring:IntervalMinutes", 30);
-        var checkInterval = TimeSpan.FromMinutes(intervalMinutes);
-
-        while (!stoppingToken.IsCancellationRequested)
+        public StockAlertWorker(
+            IServiceScopeFactory serviceScopeFactory,
+            ILogger<StockAlertWorker> logger,
+            IConfiguration configuration)
         {
+            _serviceScopeFactory = serviceScopeFactory ?? throw new ArgumentNullException(nameof(serviceScopeFactory));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+
+            var intervalMinutes = _configuration.GetValue("StockWorker:CheckIntervalMinutes", 60);
+            _checkInterval = TimeSpan.FromMinutes(Math.Max(1, intervalMinutes));
+        }
+
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        {
+            _logger.LogInformation("UnifiedStockAlertWorker started with interval: {Interval} minutes", _checkInterval.TotalMinutes);
+
             await ProcessStockMonitoringAsync();
 
-            _logger.LogInformation("Next stock monitoring check in {Minutes} minutes", intervalMinutes);
-            await Task.Delay(checkInterval, stoppingToken);
-        }
-    }
-
-    private async Task ProcessStockMonitoringAsync()
-    {
-        using var scope = _serviceProvider.CreateScope();
-    var stockCalculationService = scope.ServiceProvider.GetRequiredService<StockCalculationService>();
-    var notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
-
-        _logger.LogInformation("Starting stock monitoring process at {Time}", DateTime.UtcNow);
-
-        _logger.LogInformation("Updating all thresholds and current stock levels");
-        await stockCalculationService.CalculateAndUpdateReorderPointsAsync();
-
-        _logger.LogInformation("Checking for stock alerts");
-        var lowStockAlerts = await stockCalculationService.GetLowStockAlertsAsync();
-        var outOfStockAlerts = await stockCalculationService.GetOutOfStockAlertsAsync();
-
-        var allAlerts = lowStockAlerts
-            .Concat(outOfStockAlerts)
-            .GroupBy(a => (a.IngredientId, a.BranchId))
-            .Select(g => g.OrderByDescending(x => x.AlertLevel).First())
-            .ToList();
-
-        if (allAlerts.Any())
-        {
-            _logger.LogWarning("Found {Count} stock alerts", allAlerts.Count);
-
-            foreach (var alert in allAlerts)
+            while (!stoppingToken.IsCancellationRequested)
             {
-                _logger.LogWarning("Stock Alert - {IngredientName} in Branch {BranchId} - Current Stock: {Current} ROP: {ROP}",
-                    alert.IngredientName ?? "Unknown", alert.BranchId, alert.CurrentStock, alert.ReorderPoint);
+                try
+                {
+                    await Task.Delay(_checkInterval, stoppingToken);
+                    await ProcessStockMonitoringAsync();
+                }
+                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+                {
+                    _logger.LogInformation("UnifiedStockAlertWorker is stopping (cancellation requested)");
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error in stock monitoring loop - will retry after interval");
+                }
             }
 
-            await notificationService.SendStockAlertsAsync(allAlerts);
+            _logger.LogInformation("UnifiedStockAlertWorker stopped");
         }
-        else
+
+        private async Task ProcessStockMonitoringAsync()
         {
-            _logger.LogInformation("No stock alerts found - all inventory levels are healthy");
+            _logger.LogInformation("Starting stock monitoring process at {Time}", DateTime.UtcNow);
+
+            try
+            {
+                using var scope = _serviceScopeFactory.CreateScope();
+                var stockCalculationService = scope.ServiceProvider.GetRequiredService<StockCalculationService>();
+                var notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
+
+                _logger.LogInformation("Updating reorder points and stock levels");
+                await stockCalculationService.CalculateAndUpdateReorderPointsAsync();
+
+                _logger.LogInformation("Checking for stock alerts");
+                var lowStockAlerts = await stockCalculationService.GetLowStockAlertsAsync();
+                var outOfStockAlerts = await stockCalculationService.GetOutOfStockAlertsAsync();
+
+                var allAlerts = lowStockAlerts
+                    .Concat(outOfStockAlerts)
+                    .GroupBy(a => (a.IngredientId, a.BranchId))
+                    .Select(g => g.OrderByDescending(x => x.AlertLevel).First())
+                    .ToList();
+
+                if (allAlerts.Any())
+                {
+                    _logger.LogWarning("Found {Count} stock alerts across {Branches} branches",
+                        allAlerts.Count,
+                        allAlerts.Select(a => a.BranchId).Distinct().Count());
+
+                    var alertsByLevel = allAlerts.GroupBy(a => a.AlertLevel);
+                    foreach (var group in alertsByLevel)
+                    {
+                        _logger.LogWarning("  - {Level}: {Count} items", group.Key, group.Count());
+                    }
+
+                    await notificationService.SendStockAlertsAsync(allAlerts);
+                    _logger.LogInformation("Stock alerts sent successfully");
+                }
+                else
+                {
+                    _logger.LogInformation("No stock alerts found - all inventory levels are healthy");
+                }
+
+                _logger.LogInformation("Stock monitoring process completed successfully");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred during stock monitoring process");
+                throw;
+            }
         }
 
-        _logger.LogInformation("Stock monitoring process completed successfully");
-    }
+        public override Task StartAsync(CancellationToken cancellationToken)
+        {
+            _logger.LogInformation("UnifiedStockAlertWorker is starting");
+            return base.StartAsync(cancellationToken);
+        }
 
-    public override async Task StartAsync(CancellationToken cancellationToken)
-    {
-        _logger.LogInformation("Stock Worker Service is starting");
-        await base.StartAsync(cancellationToken);
-    }
-
-    public override async Task StopAsync(CancellationToken cancellationToken)
-    {
-        _logger.LogInformation("Stock Worker Service is stopping");
-        await base.StopAsync(cancellationToken);
+        public override Task StopAsync(CancellationToken cancellationToken)
+        {
+            _logger.LogInformation("UnifiedStockAlertWorker is stopping");
+            return base.StopAsync(cancellationToken);
+        }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Dashboard.Winform.Events;
+﻿using Dashboard.Common.Constants;
+using Dashboard.Winform.Events;
 using Dashboard.Winform.Forms;
 using Dashboard.Winform.Presenters.SupplierPresenters;
 using Dashboard.Winform.ViewModels;
@@ -603,6 +604,15 @@ public partial class FrmSupplierManagement : FrmBaseManagement<SupplierManagemen
 
             detailForm.SetInitData(selectedSupplier?.Id, initialModel);
 
+            if (!await detailForm.CheckAuthorizationAsync())
+            {
+                var warning = new FrmToastMessage(ToastType.WARNING, "Bạn không có quyền truy cập chức năng này!");
+                warning.Show();
+                detailForm.Dispose();
+                detailForm.BringToFront();
+                return;
+            }
+
             var result = detailForm.ShowDialog(this);
 
             if (result == DialogResult.OK)
@@ -651,7 +661,7 @@ public partial class FrmSupplierManagement : FrmBaseManagement<SupplierManagemen
 
     #region Override Event Handlers - Updated
 
-    protected override void BtnAdd_Click(object sender, EventArgs e)
+    protected override void BtnAdd_ClickAsync(object sender, EventArgs e)
     {
         OpenSupplierDetailsDialog();
     }

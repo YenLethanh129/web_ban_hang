@@ -45,12 +45,17 @@ public class ProductViewModelMappingProfile : Profile
             .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => src.UpdatedAt))
             .ForMember(dest => dest.ProductName, opt => opt.Ignore());
 
+        CreateMap<RecipeDto, RecipeViewModel>()
+            .ReverseMap();
+
         CreateMap<RecipeDetailViewModel, CreateRecipeInput>();
         CreateMap<RecipeViewModel, CreateRecipeInput>();
         CreateMap<RecipeDetailViewModel, UpdateRecipeInput>();
         CreateMap<RecipeViewModel, UpdateRecipeInput>();
 
-        CreateMap<ProductRecipeDto, ProductRecipeViewModel>();
+
+        CreateMap<ProductRecipeDto, ProductRecipeViewModel>()
+            .ReverseMap();
 
         CreateMap<CategoryDto, CategoryViewModel>();
         CreateMap<TaxDto, TaxViewModel>()
@@ -76,11 +81,28 @@ public class ProductViewModelMappingProfile : Profile
                         .ToList()
                     : new List<string>()));
 
-        CreateMap<RecipeIngredientDto, RecipeIngredientViewModel>();
-        CreateMap<RecipeIngredientViewModel, RecipeIngredientDto>();
+        CreateMap<RecipeIngredientDto, RecipeIngredientViewModel>()
+            .ReverseMap();
+
 
         CreateMap<ProductRecipeDto, ProductRecipeViewModel>();
         CreateMap<Category, CategoryDto>();
-        CreateMap<CategoryDto, CategoryViewModel>();
+        CreateMap<CategoryDto, CategoryViewModel>().ReverseMap();
+
+        CreateMap<CreateRecipeIngredientInput, RecipeIngredient>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.RecipeId, opt => opt.Ignore())
+            .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(_ => DateTime.UtcNow))
+            .ForMember(dest => dest.LastModified, opt => opt.Ignore());
+
+        CreateMap<RecipeIngredientViewModel, UpdateRecipeIngredientInput>()
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+            .ForMember(dest => dest.Quantity, opt => opt.MapFrom(src => src.Quantity))
+            .ForMember(dest => dest.WastePercentage, opt => opt.MapFrom(src => src.WastePercentage))
+            .ForMember(dest => dest.Notes, opt => opt.MapFrom(src => src.Notes))
+            .ForMember(dest => dest.IsOptional, opt => opt.MapFrom(src => src.IsOptional))
+            .ForMember(dest => dest.SortOrder, opt => opt.MapFrom(src => src.SortOrder));
+
+        
     }
 }

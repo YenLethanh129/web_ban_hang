@@ -8,6 +8,8 @@ namespace Dashboard.Winform.Mappings
     {
         public IngredicsViewModelMappingProfile()
         {
+            CreateMap<IngredientDto, IngredientViewModel>()
+                .ReverseMap();
             CreateMap<IngredientDetailViewModel, UpdateIngredientInput>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.CategoryId, opt => opt.MapFrom(src => src.CategoryId))

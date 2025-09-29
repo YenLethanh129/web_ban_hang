@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -30,6 +31,9 @@ namespace Dashboard.Winform.Presenters
         Task<List<RecipeViewModel>> LoadRecipesByProductIdAsync(long productId);
         Task<bool> AssignRecipeToProductAsync(long productId, long recipeId);
         Task<bool> UnassignRecipeFromProductAsync(long productId, long recipeId);
+
+        Task<List<ProductImageViewModel>> GetProductImagesAsync(long productId);
+
 
         // Load dropdown data
         Task<List<CategoryViewModel>> LoadCategoriesAsync();
@@ -85,25 +89,24 @@ namespace Dashboard.Winform.Presenters
 
                 try
                 {
-                    var allImages = dto.Images;
-                    var latest = allImages
-                        .Where(pi => pi.ProductId == id)
-                        .OrderByDescending(pi => pi.Id)
-                        .FirstOrDefault();
+                    var productImages = await _productService.GetProductImagesAsync(id);
+                    vm.ProductImages = new System.ComponentModel.BindingList<ProductImageViewModel>(
+                        _mapper.Map<List<ProductImageViewModel>>(productImages));
 
-                    if (latest != null && !string.IsNullOrWhiteSpace(latest.ImageUrl))
+                    var thumbnail = await _productService.GetThumbnailImageAsync(id);
+                    if (thumbnail != null && !string.IsNullOrWhiteSpace(thumbnail.ImageUrl))
                     {
-                        vm.ThumbnailPath = latest.ImageUrl;
+                        vm.ThumbnailPath = thumbnail.ImageUrl;
                     }
                 }
                 catch (Exception exImg)
                 {
-                    _logger.LogWarning(exImg, "Could not load latest product image for product {ProductId}", id);
+                    _logger.LogWarning(exImg, "Could not load product images for product {ProductId}", id);
+                    vm.ProductImages = new System.ComponentModel.BindingList<ProductImageViewModel>();
                 }
 
-                vm.ProductImages ??= [];
-                vm.Recipes ??= [];
-                vm.ProductRecipes ??= [];
+                vm.Recipes ??= new System.ComponentModel.BindingList<RecipeViewModel>();
+                vm.ProductRecipes ??= new System.ComponentModel.BindingList<ProductRecipeViewModel>();
 
                 return vm;
             }
@@ -111,6 +114,21 @@ namespace Dashboard.Winform.Presenters
             {
                 _logger.LogError(ex, "Error loading product {ProductId}", id);
                 return null;
+            }
+        }
+
+
+        public async Task<List<ProductImageViewModel>> GetProductImagesAsync(long productId)
+        {
+            try
+            {
+                var imageDtos = await _productService.GetProductImagesAsync(productId);
+                return _mapper.Map<List<ProductImageViewModel>>(imageDtos);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting product images for product {ProductId}", productId);
+                return new List<ProductImageViewModel>();
             }
         }
 
@@ -272,31 +290,20 @@ namespace Dashboard.Winform.Presenters
 
         public async Task<bool> DeleteImageAsync(long productId, long imageId)
         {
-            try
+            bool result = await _productService.DeleteProductImageAsync(productId, imageId);
+
+            if (result)
             {
-                var productVm = await LoadProductAsync(productId);
-                if (productVm == null)
-                    return false;
-
-                if (productVm.ProductImages == null || !productVm.ProductImages.Any())
-                    return false;
-
-                var img = productVm.ProductImages.FirstOrDefault(i => i.Id == imageId);
-                if (img == null)
-                    return false;
-
-                productVm.ProductImages.Remove(img);
-
-                var result = await UpdateProductAsync(productVm);
-                return result != null;
+                _logger?.LogInformation("Successfully deleted image {ImageId} from product {ProductId}", imageId, productId);
             }
-            catch (Exception ex)
+            else
             {
-                _logger.LogError(ex, "Error deleting image {ImageId} from product {ProductId}", imageId, productId);
-                return false;
+                _logger?.LogWarning("Failed to delete image {ImageId} from product {ProductId}", imageId, productId);
             }
+
+            return result;
+ 
         }
-
         public async Task<bool> AddOrUpdateProductRecipeAsync(ProductRecipeViewModel productRecipe)
         {
             try

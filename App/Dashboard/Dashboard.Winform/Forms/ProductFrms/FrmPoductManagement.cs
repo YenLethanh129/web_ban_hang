@@ -602,6 +602,15 @@ namespace Dashboard.Winform.Forms
 
                 detailForm.SetInitData(selectedProduct?.Id, initialModel);
 
+                if (!await detailForm.CheckAuthorizationAsync())
+                {
+                    var warning = new FrmToastMessage(ToastType.WARNING, "Bạn không có quyền truy cập chức năng này!");
+                    warning.Show();
+                    detailForm.Dispose();
+                    detailForm.BringToFront();
+                    return;
+                }
+
                 var result = detailForm.ShowDialog(this);
 
                 if (result == DialogResult.OK)
@@ -650,7 +659,7 @@ namespace Dashboard.Winform.Forms
 
         #region Override Event Handlers - Updated
 
-        protected override void BtnAdd_Click(object sender, EventArgs e)
+        protected override void BtnAdd_ClickAsync(object sender, EventArgs e)
         {
             OpenProductDetailsDialog();
         }

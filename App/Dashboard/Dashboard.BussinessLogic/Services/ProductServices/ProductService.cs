@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System;
 using System.Threading.Tasks;
+using Dashboard.BussinessLogic.Services.FileServices;
 
 namespace Dashboard.BussinessLogic.Services.ProductServices;
 
@@ -33,7 +34,7 @@ public interface IProductService
     Task<Dictionary<long, int>> GetSoldQuantitiesAsync();
     Task<List<ProductImageDto>> GetProductImagesAsync(long id);
     Task<ProductImageDto> GetThumbnailImageAsync(long productId);
-
+    Task<bool> DeleteProductImageAsync(long productId, long imageId); 
 }
 
 public class ProductService : BaseTransactionalService, IProductService
@@ -42,18 +43,22 @@ public class ProductService : BaseTransactionalService, IProductService
     private readonly IMapper _mapper;
     private readonly ILogger<ProductService> _logger;
     private readonly IImageUrlValidator _imageUrlValidator;
+    private readonly IImageUploadService _imageUploadService;
+
 
     public ProductService(
         IUnitOfWork unitOfWork,
         IProductRepository productRepository,
         IMapper mapper,
         ILogger<ProductService> logger,
-        IImageUrlValidator imageUrlValidator) : base(unitOfWork)
+        IImageUrlValidator imageUrlValidator,
+        IImageUploadService imageUploadService) : base(unitOfWork)
     {
         _productRepository = productRepository;
         _mapper = mapper;
         _logger = logger;
         _imageUrlValidator = imageUrlValidator;
+        _imageUploadService = imageUploadService;
     }
 
     public async Task<int> GetCountAsync()
@@ -127,7 +132,15 @@ public class ProductService : BaseTransactionalService, IProductService
 
     public async Task<ProductImageDto> GetThumbnailImageAsync(long productId)
     {
-        return _mapper.Map<ProductImageDto>(await _productRepository.GetLastestImageAsync(productId));
+        var latestImage = await _unitOfWork.Repository<ProductImage>()
+            .GetQueryable()
+            .AsNoTracking()
+            .Where(pi => pi.ProductId == productId)
+            .OrderByDescending(pi => pi.Id)
+            .FirstOrDefaultAsync();
+
+        return _mapper.Map<ProductImageDto>(latestImage);
+
     }
 
     public async Task<int> GetAmount(GetProductsInput input)
@@ -148,10 +161,22 @@ public class ProductService : BaseTransactionalService, IProductService
 
     public async Task<Dictionary<long, int>> GetSoldQuantitiesAsync()
     {
-        var orderDetails = await _unitOfWork.Repository<OrderDetail>().GetAllAsync();
-        return orderDetails
-            .GroupBy(od => od.ProductId)
-            .ToDictionary(g => g.Key, g => g.Sum(od => od.Quantity));
+        try
+        {
+            var orderDetails = await _unitOfWork.Repository<OrderDetail>()
+                .GetQueryable()
+                .AsNoTracking()
+                .ToListAsync();
+
+            return orderDetails
+                .GroupBy(od => od.ProductId)
+                .ToDictionary(g => g.Key, g => g.Sum(od => od.Quantity));
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Error getting sold quantities");
+            return [];
+        }
     }
 
     public async Task<bool> IsProductNameExistsAsync(string name, long? excludeId = null)
@@ -163,18 +188,27 @@ public class ProductService : BaseTransactionalService, IProductService
     {
         return await ExecuteInTransactionAsync(async () =>
         {
-            var validUrls = new List<string>();
+            var uploadedImageUrls = new List<string>();
+
             if (input.ImageUrls?.Any() == true)
             {
-                foreach (var url in input.ImageUrls.Where(u => !string.IsNullOrWhiteSpace(u)))
+                foreach (var imageSource in input.ImageUrls.Where(u => !string.IsNullOrWhiteSpace(u)))
                 {
-                    if (await _imageUrlValidator.ValidateAsync(url!))
+                    try
                     {
-                        validUrls.Add(url!);
+                        if (await _imageUrlValidator.ValidateAsync(imageSource!))
+                        {
+                            var uploadedUrl = await _imageUploadService.UploadImageAsync(imageSource!);
+                            uploadedImageUrls.Add(uploadedUrl);
+                        }
+                        else
+                        {
+                            _logger.LogWarning("Invalid or unsafe image URL: {Url}", imageSource);
+                        }
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        _logger.LogWarning("Invalid or unsafe image URL: {Url}", url);
+                        _logger.LogError(ex, "Failed to upload image: {ImageSource}", imageSource);
                     }
                 }
             }
@@ -182,22 +216,21 @@ public class ProductService : BaseTransactionalService, IProductService
             var product = _mapper.Map<Product>(input);
             product.CreatedAt = DateTime.UtcNow;
 
-            if (validUrls.Any())
+            if (uploadedImageUrls.Count != 0)
             {
-                product.ProductImages = validUrls
+                product.ProductImages = [.. uploadedImageUrls
                     .Select(url => new ProductImage
                     {
                         ProductId = product.Id,
                         ImageUrl = url,
-                    })
-                    .ToList();
+                    })];
             }
 
             await _productRepository.AddAsync(product);
-
             return _mapper.Map<ProductDto>(product);
         });
     }
+
 
     public async Task<ProductDto> UpdateProductAsync(UpdateProductInput input)
     {
@@ -206,23 +239,40 @@ public class ProductService : BaseTransactionalService, IProductService
             var product = await _productRepository.GetProductWithDetailsAsync(input.Id)
                 ?? throw new ArgumentException($"Product with id {input.Id} not found");
 
-            var newUrls = input.ImageUrls?
-                .Where(u => !string.IsNullOrWhiteSpace(u))
-                .Select(u => u!.Trim())
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .ToList() ?? new List<string>();
-
             var existingUrls = product.ProductImages?
                 .Select(pi => pi.ImageUrl?.Trim())
                 .Where(s => !string.IsNullOrEmpty(s))
                 .ToHashSet(StringComparer.OrdinalIgnoreCase)
                 ?? new HashSet<string?>(StringComparer.OrdinalIgnoreCase);
 
-            var toAdd = newUrls.Where(u => !existingUrls.Contains(u)).ToList();
-            if (toAdd.Count != 0)
+            var newUrlsToUpload = input.ImageUrls
+                .Where(u => !string.IsNullOrWhiteSpace(u))
+                .Select(u => u!.Trim())
+                .Where(url => !existingUrls.Contains(url)) 
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList() ?? new List<string>();
+
+            var uploadedUrls = new List<string>();
+            foreach (var imageSource in newUrlsToUpload)
             {
-                product.ProductImages ??= new List<ProductImage>();
-                foreach (var url in toAdd)
+                try
+                {
+                    if (await _imageUrlValidator.ValidateAsync(imageSource))
+                    {
+                        var uploadedUrl = await _imageUploadService.UploadImageAsync(imageSource);
+                        uploadedUrls.Add(uploadedUrl);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to upload image during update: {ImageSource}", imageSource);
+                }
+            }
+
+            if (uploadedUrls.Any())
+            {
+                product.ProductImages ??= [];
+                foreach (var url in uploadedUrls)
                 {
                     product.ProductImages.Add(new ProductImage
                     {
@@ -230,32 +280,7 @@ public class ProductService : BaseTransactionalService, IProductService
                         ImageUrl = url,
                     });
                 }
-            }
-            else
-            {
-                _logger.LogInformation("No new product images to add for product {ProductId}", product.Id);
-            }
-
-            var toRemoveUrls = existingUrls.Where(url => !newUrls.Contains(url!)).ToList();
-            if (toRemoveUrls.Count > 0 && product.ProductImages != null)
-            {
-                var imagesToRemove = product.ProductImages
-                    .Where(pi => !string.IsNullOrEmpty(pi.ImageUrl) && toRemoveUrls.Contains(pi.ImageUrl.Trim(), StringComparer.OrdinalIgnoreCase))
-                    .ToList();
-
-                foreach (var img in imagesToRemove)
-                {
-                    product.ProductImages.Remove(img);
-                    try
-                    {
-                        var repo = _unitOfWork.Repository<ProductImage>();
-                        repo.Remove(img);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning(ex, "Failed to explicitly remove product image entity for product {ProductId}", product.Id);
-                    }
-                }
+                _logger.LogInformation("Added {Count} new images to product {ProductId}", uploadedUrls.Count, product.Id);
             }
 
             var updateInputCopy = new UpdateProductInput(
@@ -274,17 +299,18 @@ public class ProductService : BaseTransactionalService, IProductService
             product.LastModified = DateTime.UtcNow;
 
             _productRepository.Update(product);
-
             return _mapper.Map<ProductDto>(product);
         });
     }
+
 
     public async Task<List<ProductImageDto>> GetProductImagesAsync(long id)
     {
         var productImages = await _unitOfWork.Repository<ProductImage>()
                 .GetQueryable()
-                //.AsNoTracking()
+                .AsNoTracking()
                 .Where(pi => pi.ProductId == id)
+                .OrderByDescending(pi => pi.Id)
                 .ToListAsync();
 
         return _mapper.Map<List<ProductImageDto>>(productImages);
@@ -299,9 +325,50 @@ public class ProductService : BaseTransactionalService, IProductService
             {
                 return false;
             }
-
             _productRepository.Remove(product);
             return true;
         });
     }
+
+
+    public async Task<bool> DeleteProductImageAsync(long productId, long imageId)
+    {
+        return await ExecuteInTransactionAsync(async () =>
+        {
+            try
+            {
+                var productImage = await _unitOfWork.Repository<ProductImage>().GetAsync(imageId);
+
+                if (productImage == null || productImage.ProductId != productId)
+                {
+                    _logger?.LogWarning("ProductImage with ID {ImageId} and ProductId {ProductId} not found", imageId, productId);
+                    return false;
+                }
+
+                var imageUrl = productImage.ImageUrl;
+
+                _unitOfWork.Repository<ProductImage>().Remove(productImage);
+
+                if (!string.IsNullOrEmpty(imageUrl))
+                {
+                    try
+                    {
+                        await _imageUploadService.DeleteImageAsync(imageUrl);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger?.LogWarning(ex, "Failed to delete physical image file: {ImageUrl}", imageUrl);
+                    }
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error deleting product image {ImageId} for product {ProductId}", imageId, productId);
+                throw;
+            }
+        });
+    }
+
 }

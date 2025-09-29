@@ -1,4 +1,5 @@
 ﻿using Dashboard.Common.Constants;
+using Dashboard.Winform.Forms.BaseFrm;
 using Dashboard.Winform.Interfaces;
 using Dashboard.Winform.Presenters;
 using Dashboard.Winform.ViewModels;
@@ -16,7 +17,7 @@ using System.Windows.Forms;
 namespace Dashboard.Winform.Forms;
 
 #region Non-Generic Base UI Management Form
-public partial class FrmBaseManagement : Form, IBlurLoadingServiceAware
+public partial class FrmBaseManagement : FrmBaseAuthForm, IBlurLoadingServiceAware
 {
     protected IBlurLoadingService? _blurLoadingService;
     protected TaskCompletionSource<bool>? _dataLoadingCompletionSource;
@@ -53,7 +54,7 @@ public partial class FrmBaseManagement : Form, IBlurLoadingServiceAware
     }
     private void SetupCommonEventHandlers()
     {
-        btnAdd.Click += (s, e) => BtnAdd_Click(s!, e);
+        btnAdd.Click += (s, e) => BtnAdd_ClickAsync(s!, e);
         btnGetDetails.Click += (s, e) => BtnGetDetails_Click(s!, e);
         btnOrderBy.Click += (s, e) => BtnOrderBy_Click(s!, e);
         btnfilter1.Click += (s, e) => Btnfilter1_Click(s!, e);
@@ -144,7 +145,7 @@ public partial class FrmBaseManagement : Form, IBlurLoadingServiceAware
     {
         await Task.Delay(300);
     }
-    protected virtual void BtnAdd_Click(object sender, EventArgs e)
+    protected virtual void BtnAdd_ClickAsync(object sender, EventArgs e)
     {
         throw new NotImplementedException("Derived classes must implement BtnAdd_Click.");
     }

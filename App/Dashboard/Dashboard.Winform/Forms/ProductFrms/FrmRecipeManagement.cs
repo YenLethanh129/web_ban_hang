@@ -1,4 +1,5 @@
-﻿using Dashboard.Winform.Events;
+﻿using Dashboard.Common.Constants;
+using Dashboard.Winform.Events;
 using Dashboard.Winform.Forms;
 using Dashboard.Winform.Presenters.RecipePresenters;
 using Dashboard.Winform.ViewModels;
@@ -567,6 +568,14 @@ namespace Dashboard.Winform.Forms
                 }
                 using var detailForm = new FrmRecipeDetails(selectedRecipe?.Id, initialModel);
 
+                if (!await detailForm.CheckAuthorizationAsync())
+                {
+                    var warning = new FrmToastMessage(ToastType.WARNING, "Bạn không có quyền truy cập chức năng này!");
+                    warning.Show();
+                    detailForm.Dispose();
+                    detailForm.BringToFront();
+                    return;
+                }
 
                 var result = detailForm.ShowDialog(this);
 
@@ -613,7 +622,7 @@ namespace Dashboard.Winform.Forms
 
         #region Override Event Handlers - Updated
 
-        protected override void BtnAdd_Click(object sender, EventArgs e)
+        protected override void BtnAdd_ClickAsync(object sender, EventArgs e)
         {
             OpenRecipeDetailsDialog();
         }

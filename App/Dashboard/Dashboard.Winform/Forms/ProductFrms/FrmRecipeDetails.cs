@@ -9,10 +9,11 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using Dashboard.Winform.Helpers;
 using Dashboard.Winform.Presenters.RecipePresenters;
+using Dashboard.Winform.Forms.BaseFrm;
 
 namespace Dashboard.Winform.Forms
 {
-    public partial class FrmRecipeDetails : Form
+    public partial class FrmRecipeDetails : FrmBaseAuthForm
     {
         public static class ServiceProviderHolder
         {
@@ -28,6 +29,11 @@ namespace Dashboard.Winform.Forms
         private readonly ILogger<FrmRecipeDetails>? _logger;
         private readonly IRecipeDetailPresenter _presenter;
         private bool _isDataLoaded = false;
+
+        // Lists for managing ingredients
+        private BindingList<RecipeIngredientViewModel> _recipeIngredients = new();
+        private BindingList<IngredientViewModel> _availableIngredients = new();
+        private BindingList<IngredientViewModel> _filteredIngredients = new();
         #endregion
 
         #region Properties
@@ -55,15 +61,16 @@ namespace Dashboard.Winform.Forms
             InitializeComponent();
             InitializeFormSettings();
             SetupEventHandlers();
-            SetupDataGridView();
+            SetupDataGridViews();
 
             UpdateFormMode();
             ApplyDarkTheme();
             TabControlHelper.SetupDarkTheme(tabControl);
 
-            // Setup presenter events
             _presenter.OnRecipeSaved += Presenter_OnRecipeSaved;
             _presenter.OnDataLoaded += Presenter_OnDataLoaded;
+            _presenter.OnIngredientAdded += Presenter_OnIngredientAdded;
+            _presenter.OnIngredientDeleted += Presenter_OnIngredientDeleted;
 
             Load += FrmRecipeDetails_Load;
 
@@ -75,7 +82,7 @@ namespace Dashboard.Winform.Forms
 
         public FrmRecipeDetails(long? recipeId = null, RecipeDetailViewModel? recipe = null, bool? isReadOnly = false)
             : this(
-                  ServiceProviderHolder.Current ?? throw new InvalidOperationException("ServiceProviderHolder.Current is null. Set FrmRecipeDetails.ServiceProviderHolder.Current = serviceProvider in Program.cs before using this constructor."),
+                  ServiceProviderHolder.Current ?? throw new InvalidOperationException("ServiceProviderHolder.Current is null"),
                   ServiceProviderHolder.Current!.GetRequiredService<IRecipeDetailPresenter>(),
                   ServiceProviderHolder.Current!.GetService<ILogger<FrmRecipeDetails>>(),
                   recipeId,
@@ -83,13 +90,12 @@ namespace Dashboard.Winform.Forms
                   isReadOnly)
         {
         }
-
         #endregion
 
         #region Initialization Methods
         private void InitializeFormSettings()
         {
-            this.Size = new Size(900, 700);
+            this.Size = new Size(1100, 800);
             this.StartPosition = FormStartPosition.CenterParent;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
@@ -104,8 +110,6 @@ namespace Dashboard.Winform.Forms
                 Text = $"Xem công thức - {_recipe.Name}";
                 btnSave.Visible = false;
                 btnCancel.Text = "Đóng";
-
-                // Make all controls read-only
                 SetControlsReadOnly(true);
             }
             else if (_isEditMode)
@@ -132,9 +136,10 @@ namespace Dashboard.Winform.Forms
             txtNotes.ReadOnly = readOnly;
             cbxProduct.Enabled = !readOnly;
 
-            btnAddIngredient.Enabled = !readOnly;
-            btnEditIngredient.Enabled = !readOnly;
-            btnDeleteIngredient.Enabled = !readOnly;
+            btnAddIngredient.Enabled = !readOnly && _isEditMode; // Only enable if recipe exists
+            btnEditIngredient.Enabled = !readOnly && _isEditMode;
+            btnDeleteIngredient.Enabled = !readOnly && _isEditMode;
+            txtSearchIngredient.ReadOnly = readOnly || !_isEditMode;
         }
 
         private void ApplyDarkTheme()
@@ -159,21 +164,32 @@ namespace Dashboard.Winform.Forms
             txtName.Validating += (s, e) => TxtName_Validating(s!, e);
             numServingSize.Validating += (s, e) => NumServingSize_Validating(s!, e);
 
-            btnAddIngredient.Click += (s, e) => BtnAddIngredient_Click(s!, e);
+            btnAddIngredient.Click += async (s, e) => await BtnAddIngredient_ClickAsync(s!, e);
             btnEditIngredient.Click += (s, e) => BtnEditIngredient_Click(s!, e);
-            btnDeleteIngredient.Click += (s, e) => BtnDeleteIngredient_Click(s!, e);
+            btnDeleteIngredient.Click += async (s, e) => await BtnDeleteIngredient_ClickAsync(s!, e);
+
+            txtSearchIngredient.TextChanged += (s, e) => TxtSearchIngredient_TextChanged(s!, e);
+            btnClearSearch.Click += (s, e) => BtnClearSearch_Click(s!, e);
+
+            dgvIngredients.CellEndEdit += async (s, e) => await DgvIngredients_CellEndEdit(s!, e);
         }
 
-        private void SetupDataGridView()
+        private void SetupDataGridViews()
         {
+            // DataGridView for recipe ingredients (top)
             dgvIngredients.AutoGenerateColumns = false;
             dgvIngredients.Columns.Clear();
+            dgvIngredients.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgvIngredients.MultiSelect = false;
+            dgvIngredients.AllowUserToAddRows = false;
+            dgvIngredients.ColumnHeadersVisible = false;
 
             dgvIngredients.Columns.Add(new DataGridViewTextBoxColumn
             {
                 DataPropertyName = nameof(RecipeIngredientViewModel.IngredientName),
                 HeaderText = "Nguyên liệu",
-                Width = 150
+                Width = 150,
+                ReadOnly = true
             });
 
             dgvIngredients.Columns.Add(new DataGridViewTextBoxColumn
@@ -181,14 +197,16 @@ namespace Dashboard.Winform.Forms
                 DataPropertyName = nameof(RecipeIngredientViewModel.Quantity),
                 HeaderText = "Số lượng",
                 Width = 80,
-                DefaultCellStyle = new DataGridViewCellStyle { Format = "N2" }
+                DefaultCellStyle = new DataGridViewCellStyle { Format = "N2" },
+                ReadOnly = false
             });
 
             dgvIngredients.Columns.Add(new DataGridViewTextBoxColumn
             {
                 DataPropertyName = nameof(RecipeIngredientViewModel.Unit),
                 HeaderText = "Đơn vị",
-                Width = 80
+                Width = 80,
+                ReadOnly = true
             });
 
             dgvIngredients.Columns.Add(new DataGridViewTextBoxColumn
@@ -196,21 +214,61 @@ namespace Dashboard.Winform.Forms
                 DataPropertyName = nameof(RecipeIngredientViewModel.WastePercentage),
                 HeaderText = "Hao hụt (%)",
                 Width = 80,
-                DefaultCellStyle = new DataGridViewCellStyle { Format = "N1" }
+                DefaultCellStyle = new DataGridViewCellStyle { Format = "N1" },
+                ReadOnly = false
             });
 
             dgvIngredients.Columns.Add(new DataGridViewCheckBoxColumn
             {
                 DataPropertyName = nameof(RecipeIngredientViewModel.IsOptional),
                 HeaderText = "Tùy chọn",
-                Width = 80
+                Width = 70,
+                ReadOnly = false
             });
 
             dgvIngredients.Columns.Add(new DataGridViewTextBoxColumn
             {
                 DataPropertyName = nameof(RecipeIngredientViewModel.Notes),
                 HeaderText = "Ghi chú",
-                Width = 150
+                AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill,
+                ReadOnly = false
+            });
+
+            // DataGridView for available ingredients (bottom)
+            dgvAvailableIngredients.AutoGenerateColumns = false;
+            dgvAvailableIngredients.Columns.Clear();
+            dgvAvailableIngredients.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgvAvailableIngredients.MultiSelect = true;
+            dgvAvailableIngredients.ReadOnly = true;
+            dgvAvailableIngredients.ColumnHeadersVisible = false;
+
+
+            dgvAvailableIngredients.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                DataPropertyName = nameof(IngredientViewModel.Name),
+                HeaderText = "Tên nguyên liệu",
+                AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill,
+            });
+
+            dgvAvailableIngredients.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                DataPropertyName = nameof(IngredientViewModel.Unit),
+                HeaderText = "Đơn vị",
+                Width = 80
+            });
+
+            dgvAvailableIngredients.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                DataPropertyName = nameof(IngredientViewModel.CategoryName),
+                HeaderText = "Danh mục",
+                Width = 120
+            });
+
+            dgvAvailableIngredients.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                DataPropertyName = nameof(IngredientViewModel.StatusText),
+                HeaderText = "Trạng thái",
+                Width = 100
             });
         }
 
@@ -229,10 +287,9 @@ namespace Dashboard.Winform.Forms
             {
                 SetLoadingState(true);
 
-                // Load products for combobox
                 await LoadProductsAsync();
+                await LoadAvailableIngredientsAsync();
 
-                // Load recipe data if in edit mode
                 if (_isEditMode && _recipeId.HasValue)
                 {
                     var recipe = await _presenter.LoadRecipeAsync(_recipeId.Value);
@@ -244,7 +301,6 @@ namespace Dashboard.Winform.Forms
                 }
                 else if (!_isEditMode)
                 {
-                    // Set default values for new recipe
                     SetDefaultValues();
                 }
             }
@@ -281,6 +337,24 @@ namespace Dashboard.Winform.Forms
             }
         }
 
+        private async Task LoadAvailableIngredientsAsync()
+        {
+            try
+            {
+                var ingredients = await _presenter.LoadIngredientsAsync();
+                _availableIngredients = new BindingList<IngredientViewModel>(ingredients);
+                _filteredIngredients = new BindingList<IngredientViewModel>(ingredients);
+
+                dgvAvailableIngredients.DataSource = _filteredIngredients;
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error loading available ingredients");
+                MessageBox.Show($"Lỗi khi tải danh sách nguyên liệu: {ex.Message}", "Lỗi",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
         private void LoadFallbackProducts()
         {
             cbxProduct.Items.Clear();
@@ -296,6 +370,8 @@ namespace Dashboard.Winform.Forms
             chkIsActive.Checked = true;
             numServingSize.Value = 1;
             txtUnit.Text = "portion";
+            _recipeIngredients = new BindingList<RecipeIngredientViewModel>();
+            dgvIngredients.DataSource = _recipeIngredients;
         }
 
         private void PopulateFormWithData()
@@ -317,7 +393,8 @@ namespace Dashboard.Winform.Forms
                 lblCreatedAt.Text = _recipe.CreatedAt.ToString("dd/MM/yyyy HH:mm");
                 lblUpdatedAt.Text = _recipe.UpdatedAt?.ToString("dd/MM/yyyy HH:mm") ?? "N/A";
 
-                dgvIngredients.DataSource = _recipe.RecipeIngredients;
+                _recipeIngredients = new BindingList<RecipeIngredientViewModel>(_recipe.RecipeIngredients.ToList());
+                dgvIngredients.DataSource = _recipeIngredients;
 
                 UpdateFormMode();
             }
@@ -386,20 +463,53 @@ namespace Dashboard.Winform.Forms
             this.Close();
         }
 
-        private void BtnAddIngredient_Click(object sender, EventArgs e)
+        private async Task BtnAddIngredient_ClickAsync(object sender, EventArgs e)
         {
+            if (_isReadOnly || !_isEditMode) return;
+
+            if (!_recipeId.HasValue)
+            {
+                MessageBox.Show("Vui lòng lưu công thức trước khi thêm nguyên liệu",
+                    "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
             try
             {
-                // TODO: Open ingredient selection dialog
-                // For now, show a placeholder message
-                MessageBox.Show("Chức năng thêm nguyên liệu sẽ được triển khai sau",
-                    "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                if (dgvAvailableIngredients.SelectedRows.Count == 0)
+                {
+                    MessageBox.Show("Vui lòng chọn ít nhất một nguyên liệu để thêm",
+                        "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
+
+                SetLoadingState(true);
+
+                foreach (DataGridViewRow row in dgvAvailableIngredients.SelectedRows)
+                {
+                    var ingredient = row.DataBoundItem as IngredientViewModel;
+                    if (ingredient == null) continue;
+
+                    if (_recipeIngredients.Any(ri => ri.IngredientId == ingredient.Id))
+                    {
+                        MessageBox.Show($"Nguyên liệu '{ingredient.Name}' đã có trong công thức",
+                            "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        continue;
+                    }
+
+                    // Add to database immediately
+                    await _presenter.AddIngredientToRecipeAsync(_recipeId.Value, ingredient.Id, 1);
+                }
             }
             catch (Exception ex)
             {
                 _logger?.LogError(ex, "Error adding ingredient");
                 MessageBox.Show($"Lỗi khi thêm nguyên liệu: {ex.Message}", "Lỗi",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                SetLoadingState(false);
             }
         }
 
@@ -412,8 +522,7 @@ namespace Dashboard.Winform.Forms
                     var selectedIngredient = dgvIngredients.SelectedRows[0].DataBoundItem as RecipeIngredientViewModel;
                     if (selectedIngredient != null)
                     {
-                        // TODO: Open ingredient edit dialog
-                        MessageBox.Show($"Chức năng sửa nguyên liệu '{selectedIngredient.IngredientName}' sẽ được triển khai sau",
+                        MessageBox.Show($"Chỉnh sửa trực tiếp trong ô để cập nhật thông tin nguyên liệu '{selectedIngredient.IngredientName}'",
                             "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
                 }
@@ -431,8 +540,10 @@ namespace Dashboard.Winform.Forms
             }
         }
 
-        private void BtnDeleteIngredient_Click(object sender, EventArgs e)
+        private async Task BtnDeleteIngredient_ClickAsync(object sender, EventArgs e)
         {
+            if (_isReadOnly || !_isEditMode) return;
+
             if (dgvIngredients.SelectedRows.Count > 0)
             {
                 try
@@ -446,8 +557,20 @@ namespace Dashboard.Winform.Forms
 
                         if (result == DialogResult.Yes)
                         {
-                            _recipe.RecipeIngredients.Remove(selectedIngredient);
-                            dgvIngredients.Refresh();
+                            SetLoadingState(true);
+
+                            // Delete from database immediately
+                            var deleted = await _presenter.DeleteIngredientFromRecipeAsync(
+                                _recipeId!.Value,
+                                selectedIngredient.IngredientId);
+
+                            if (!deleted)
+                            {
+                                MessageBox.Show("Không thể xóa nguyên liệu", "Lỗi",
+                                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            }
+
+                            SetLoadingState(false);
                         }
                     }
                 }
@@ -456,6 +579,7 @@ namespace Dashboard.Winform.Forms
                     _logger?.LogError(ex, "Error deleting ingredient");
                     MessageBox.Show($"Lỗi khi xóa nguyên liệu: {ex.Message}", "Lỗi",
                         MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    SetLoadingState(false);
                 }
             }
             else
@@ -463,6 +587,62 @@ namespace Dashboard.Winform.Forms
                 MessageBox.Show("Vui lòng chọn một nguyên liệu để xóa",
                     "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
+        }
+
+        private async Task DgvIngredients_CellEndEdit(object sender, DataGridViewCellEventArgs e)
+        {
+            if (_isReadOnly || !_isEditMode) return;
+
+            try
+            {
+                var ingredient = dgvIngredients.Rows[e.RowIndex].DataBoundItem as RecipeIngredientViewModel;
+                if (ingredient != null && ingredient.Id > 0)
+                {
+                    SetLoadingState(true);
+                    await _presenter.UpdateRecipeIngredientAsync(ingredient);
+                    SetLoadingState(false);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error updating ingredient");
+                MessageBox.Show($"Lỗi khi cập nhật nguyên liệu: {ex.Message}", "Lỗi",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                SetLoadingState(false);
+            }
+        }
+
+        private void TxtSearchIngredient_TextChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                var searchText = txtSearchIngredient.Text.Trim().ToLower();
+
+                if (string.IsNullOrWhiteSpace(searchText))
+                {
+                    _filteredIngredients = new BindingList<IngredientViewModel>(_availableIngredients.ToList());
+                }
+                else
+                {
+                    var filtered = _availableIngredients
+                        .Where(i => i.Name.ToLower().Contains(searchText) ||
+                                   i.CategoryName.ToLower().Contains(searchText))
+                        .ToList();
+                    _filteredIngredients = new BindingList<IngredientViewModel>(filtered);
+                }
+
+                dgvAvailableIngredients.DataSource = _filteredIngredients;
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error filtering ingredients");
+            }
+        }
+
+        private void BtnClearSearch_Click(object sender, EventArgs e)
+        {
+            txtSearchIngredient.Clear();
+            txtSearchIngredient.Focus();
         }
 
         private void Presenter_OnRecipeSaved(object? sender, RecipeDetailViewModel? recipe)
@@ -476,9 +656,28 @@ namespace Dashboard.Winform.Forms
 
         private void Presenter_OnDataLoaded(object? sender, EventArgs e)
         {
+            SafeInvokeOnUI(() => { });
+        }
+
+        private void Presenter_OnIngredientAdded(object? sender, RecipeIngredientViewModel ingredient)
+        {
             SafeInvokeOnUI(() =>
             {
-                // Refresh UI if needed
+                _recipeIngredients.Add(ingredient);
+                dgvIngredients.Refresh();
+            });
+        }
+
+        private void Presenter_OnIngredientDeleted(object? sender, long ingredientId)
+        {
+            SafeInvokeOnUI(() =>
+            {
+                var item = _recipeIngredients.FirstOrDefault(ri => ri.IngredientId == ingredientId);
+                if (item != null)
+                {
+                    _recipeIngredients.Remove(item);
+                    dgvIngredients.Refresh();
+                }
             });
         }
         #endregion
@@ -597,6 +796,8 @@ namespace Dashboard.Winform.Forms
         {
             btnSave.Enabled = !isLoading;
             btnCancel.Enabled = !isLoading;
+            btnAddIngredient.Enabled = !isLoading && _isEditMode;
+            btnDeleteIngredient.Enabled = !isLoading && _isEditMode;
             this.Cursor = isLoading ? Cursors.WaitCursor : Cursors.Default;
         }
 
@@ -612,10 +813,7 @@ namespace Dashboard.Winform.Forms
                 else
                     action();
             }
-            catch
-            {
-                // Ignore invocation exceptions
-            }
+            catch { }
         }
 
         protected override void Dispose(bool disposing)
@@ -628,8 +826,9 @@ namespace Dashboard.Winform.Forms
                 {
                     _presenter.OnRecipeSaved -= Presenter_OnRecipeSaved;
                     _presenter.OnDataLoaded -= Presenter_OnDataLoaded;
+                    _presenter.OnIngredientAdded -= Presenter_OnIngredientAdded;
+                    _presenter.OnIngredientDeleted -= Presenter_OnIngredientDeleted;
                 }
-
             }
             base.Dispose(disposing);
         }

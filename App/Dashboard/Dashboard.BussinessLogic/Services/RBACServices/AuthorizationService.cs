@@ -163,12 +163,10 @@ namespace Dashboard.BussinessLogic.Services.RBACServices
                 long userId = 0;
                 if (!string.IsNullOrWhiteSpace(sub)) long.TryParse(sub, out userId);
 
-                // Try multiple claim types for username/role/permissions
                 var username = principal.FindFirst(JwtRegisteredClaimNames.UniqueName)?.Value
                                ?? principal.FindFirst(ClaimTypes.Name)?.Value
                                ?? principal.Identity?.Name;
 
-                // Role claims may have different types depending on issuer/handler
                 var roleClaim = principal.FindFirst(ClaimTypes.Role)?.Value
                                 ?? principal.FindFirst("role")?.Value
                                 ?? principal.FindFirst("roles")?.Value
@@ -178,14 +176,10 @@ namespace Dashboard.BussinessLogic.Services.RBACServices
                 permissions.AddRange(principal.FindAll("permission").Select(c => c.Value));
                 permissions.AddRange(principal.FindAll("permissions").Select(c => c.Value));
                 permissions.AddRange(principal.FindAll("Permission").Select(c => c.Value));
-                // normalize
                 permissions = permissions.Where(p => !string.IsNullOrWhiteSpace(p)).Select(p => p.ToUpperInvariant()).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
 
                 var tokenRepo = _unitOfWork.Repository<Dashboard.DataAccess.Models.Entities.RBAC.Token>();
 
-                // Try to find DB token by exact and by raw (some clients might store "Bearer ..." somewhere)
-                //var dbToken = await tokenRepo.GetQueryable()
-                //    .FirstOrDefaultAsync(t => t.TokenValue == token || t.TokenValue == ("Bearer " + token) || t.TokenValue == NormalizeToken(t.TokenValue!));
                 var tokens = await tokenRepo.GetQueryable()
                     .Where(t => t.TokenValue == token || t.TokenValue == ("Bearer " + token))
                     .ToListAsync();

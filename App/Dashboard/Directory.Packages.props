@@ -7,6 +7,7 @@
   <ItemGroup>
     <!-- Aspire -->
     <PackageVersion Include="Aspire.Hosting.AppHost" Version="9.3.1" />
+    <PackageVersion Include="AWSSDK.S3" Version="4.0.7.4" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.19" />
     <!-- Microsoft Extensions -->
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="8.0.1" />

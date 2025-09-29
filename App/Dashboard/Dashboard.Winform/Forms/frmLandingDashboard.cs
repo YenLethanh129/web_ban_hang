@@ -4,10 +4,11 @@ using Dashboard.Winform.Presenters;
 using Dashboard.Winform.ViewModels;
 using Dashboard.Winform.Interfaces;
 using Microsoft.Extensions.Logging;
+using Dashboard.Winform.Forms.BaseFrm;
 
 namespace Dashboard.Winform
 {
-    public partial class FrmLandingDashboard : Form, IBlurLoadingServiceAware
+    public partial class FrmLandingDashboard : FrmBaseAuthForm, IBlurLoadingServiceAware
     {
         private readonly ILandingDashboardPresenter _presenter;
         private readonly LandingDashboardModel _model;

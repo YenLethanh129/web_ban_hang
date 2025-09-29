@@ -9,33 +9,33 @@ public static class AuthorizationHelper
 {
     public static async Task SetControlVisibilityAsync(Control control, string permission)
     {
-        var hasPermission = await TryHasPermissionAsync(permission);
+        var hasPermission = await TryHasAccessAsync(permission);
         SetControlVisibilityOnUi(control, hasPermission);
     }
 
     public static async Task SetControlVisibilityAsync(Control control, string resource, string action)
     {
         var permission = $"{resource}_{action}".ToUpperInvariant();
-        var hasPermission = await TryHasPermissionAsync(permission);
+        var hasPermission = await TryHasAccessAsync(permission);
         SetControlVisibilityOnUi(control, hasPermission);
     }
 
     public static async Task SetControlEnabledAsync(Control control, string permission)
     {
-        var hasPermission = await TryHasPermissionAsync(permission);
+        var hasPermission = await TryHasAccessAsync(permission);
         SetControlEnabledOnUi(control, hasPermission);
     }
 
     public static async Task SetControlEnabledAsync(Control control, string resource, string action)
     {
         var permission = $"{resource}_{action}".ToUpperInvariant();
-        var hasAccess = await TryHasPermissionAsync(permission);
+        var hasAccess = await TryHasAccessAsync(permission);
         SetControlEnabledOnUi(control, hasAccess);
     }
 
     public static async Task SetMenuItemAsync(ToolStripMenuItem menuItem, string permission)
     {
-        var hasPermission = await TryHasPermissionAsync(permission);
+        var hasPermission = await TryHasAccessAsync(permission);
         if (menuItem.Owner != null && menuItem.Owner.InvokeRequired)
         {
             menuItem.Owner.BeginInvoke(new Action(() =>
@@ -66,7 +66,7 @@ public static class AuthorizationHelper
 
         var tasks = controlPermissions.Select(async kvp =>
         {
-            var hasPermission = await TryHasPermissionAsync(kvp.Value);
+            var hasPermission = await TryHasAccessAsync(kvp.Value);
             SetControlVisibilityOnUi(kvp.Key, hasPermission);
             SetControlEnabledOnUi(kvp.Key, hasPermission);
         });
@@ -210,7 +210,7 @@ public static class AuthorizationHelper
             return;
         }
 
-        var hasPermission = await TryHasPermissionAsync(permission);
+        var hasPermission = await TryHasAccessAsync(permission);
 
         if (control.InvokeRequired)
         {
@@ -234,9 +234,8 @@ public static class AuthorizationHelper
         await SetSidebarVisibilityAsync(control, permission, vertical);
     }
 
-    public static async Task ApplySidebarPermissionsAsync(System.Collections.Generic.Dictionary<Control, string> controlPermissionMap, bool vertical = true)
+    public static async Task ApplySidebarPermissionsAsync(Dictionary<Control, string> controlPermissionMap, bool vertical = true)
     {
-        // Admin bypass: restore all panels
         if (AuthenticationManager.IsAdmin)
         {
             foreach (var kvp in controlPermissionMap)
@@ -258,7 +257,6 @@ public static class AuthorizationHelper
             }
             catch
             {
-                // swallow - not to let one control failure break the rest
             }
         });
 
@@ -269,27 +267,24 @@ public static class AuthorizationHelper
     /// Try permission check with a few common variants so keys match backend's format (with/without underscore).
     /// Admin bypass: returns true immediately.
     /// </summary>
-    private static async Task<bool> TryHasPermissionAsync(string permission)
+    private static async Task<bool> TryHasAccessAsync(string key)
     {
-        if (string.IsNullOrWhiteSpace(permission)) return false;
+        if (string.IsNullOrWhiteSpace(key)) return false;
 
-        // Admin bypass
         if (AuthenticationManager.IsAdmin) return true;
 
-        // normalize
-        var perm = permission.Trim().ToUpperInvariant();
+        var perm = key.Trim().ToUpperInvariant();
 
-        // try direct
         if (await SafeHasPermissionAsync(perm)) return true;
 
-        // try without underscore
+        if (await SafeHasRoleAsync(perm)) return true;
+
         var noUnderscore = perm.Replace("_", "");
         if (!string.Equals(noUnderscore, perm, StringComparison.OrdinalIgnoreCase))
         {
             if (await SafeHasPermissionAsync(noUnderscore)) return true;
         }
 
-        // try some heuristics for splitting
         if (!perm.Contains("_"))
         {
             var tokens = new[] { "DASHBOARD", "ACCOUNT", "ROLE", "PERMISSION", "PRODUCT", "SUPPLIER", "EMPLOYEE", "INGREDIENT", "RECIPE", "USER", "GOODS", "STORAGE" };
@@ -306,6 +301,19 @@ public static class AuthorizationHelper
         // nothing matched
         return false;
     }
+
+    private static async Task<bool> SafeHasRoleAsync(string role)
+    {
+        try
+        {
+            return await AuthenticationManager.IsInRoleAsync(role);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
 
     private static async Task<bool> SafeHasPermissionAsync(string permission)
     {

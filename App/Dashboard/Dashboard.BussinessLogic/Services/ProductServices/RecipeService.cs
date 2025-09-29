@@ -26,21 +26,30 @@ namespace Dashboard.BussinessLogic.Services.ProductServices
         Task<List<RecipeDto>> GetRecipesByProductIdAsync(long productId);
         Task<bool> AssignRecipeToProductAsync(long productId, long recipeId);
         Task<bool> UnassignRecipeFromProductAsync(long productId, long recipeId);
+        
+        // Recipe Ingredient operations
+        Task<RecipeIngredientDto> AddRecipeIngredientAsync(long recipeId, CreateRecipeIngredientInput input);
+        Task<RecipeIngredientDto> UpdateRecipeIngredientAsync(UpdateRecipeIngredientInput input);
+        Task<bool> DeleteRecipeIngredientAsync(long recipeId, long ingredientId);
+        Task<List<RecipeIngredientDto>> GetRecipeIngredientsAsync(long recipeId);
     }
 
     public class RecipeService : BaseTransactionalService, IRecipeService
     {
         private readonly IRepository<Recipe> _recipeRepository;
+        private readonly IRepository<RecipeIngredient> _recipeIngredientRepository;
         private readonly IMapper _mapper;
         private readonly ILogger<RecipeService> _logger;
 
         public RecipeService(
             IUnitOfWork unitOfWork,
             IRepository<Recipe> recipeRepository,
+            IRepository<RecipeIngredient> recipeIngredientRepository,
             IMapper mapper,
             ILogger<RecipeService> logger) : base(unitOfWork)
         {
             _recipeRepository = recipeRepository;
+            _recipeIngredientRepository = recipeIngredientRepository;
             _mapper = mapper;
             _logger = logger;
         }
@@ -150,7 +159,7 @@ namespace Dashboard.BussinessLogic.Services.ProductServices
                     .Where(r => r.ProductId == productId && r.IsActive)
                     .Include(r => r.Product)
                     .Include(r => r.RecipeIngredients)
-                    .AsNoTracking() 
+                    .AsNoTracking()
                     .ToListAsync();
 
                 return _mapper.Map<List<RecipeDto>>(recipes);
@@ -197,5 +206,89 @@ namespace Dashboard.BussinessLogic.Services.ProductServices
                 return true;
             });
         }
+
+        #region Recipe Ingredient Operations
+
+        public async Task<RecipeIngredientDto> AddRecipeIngredientAsync(long recipeId, CreateRecipeIngredientInput input)
+        {
+            return await ExecuteInTransactionAsync(async () =>
+            {
+                // Verify recipe exists
+                var recipe = await _recipeRepository.GetAsync(recipeId);
+                if (recipe == null)
+                    throw new ArgumentException($"Recipe with id {recipeId} not found");
+
+                // Check if ingredient already exists in recipe
+                var existing = await _recipeIngredientRepository.GetQueryable()
+                    .FirstOrDefaultAsync(ri => ri.RecipeId == recipeId && ri.IngredientId == input.IngredientId);
+
+                if (existing != null)
+                    throw new InvalidOperationException($"Ingredient already exists in this recipe");
+
+                var recipeIngredient = _mapper.Map<RecipeIngredient>(input);
+                recipeIngredient.RecipeId = recipeId;
+                recipeIngredient.CreatedAt = DateTime.UtcNow;
+
+                await _recipeIngredientRepository.AddAsync(recipeIngredient);
+                await _unitOfWork.SaveChangesAsync();
+
+                // Load with ingredient info
+                var spec = new Specification<RecipeIngredient>(ri => ri.Id == recipeIngredient.Id);
+                spec.IncludeStrings.Add("Ingredient");
+                var loaded = await _recipeIngredientRepository.GetWithSpecAsync(spec, true);
+
+                return _mapper.Map<RecipeIngredientDto>(loaded);
+            });
+        }
+
+        public async Task<RecipeIngredientDto> UpdateRecipeIngredientAsync(UpdateRecipeIngredientInput input)
+        {
+            return await ExecuteInTransactionAsync(async () =>
+            {
+                var recipeIngredient = await _recipeIngredientRepository.GetAsync(input.Id);
+                if (recipeIngredient == null)
+                    throw new ArgumentException($"RecipeIngredient with id {input.Id} not found");
+
+                _mapper.Map(input, recipeIngredient);
+                recipeIngredient.LastModified = DateTime.UtcNow;
+
+                _recipeIngredientRepository.Update(recipeIngredient);
+                await _unitOfWork.SaveChangesAsync();
+
+                // Reload with ingredient info
+                var spec = new Specification<RecipeIngredient>(ri => ri.Id == recipeIngredient.Id);
+                spec.IncludeStrings.Add("Ingredient");
+                var loaded = await _recipeIngredientRepository.GetWithSpecAsync(spec, true);
+
+                return _mapper.Map<RecipeIngredientDto>(loaded);
+            });
+        }
+
+        public async Task<bool> DeleteRecipeIngredientAsync(long recipeId, long ingredientId)
+        {
+            return await ExecuteInTransactionAsync(async () =>
+            {
+                var recipeIngredient = await _recipeIngredientRepository.GetQueryable()
+                    .FirstOrDefaultAsync(ri => ri.RecipeId == recipeId && ri.IngredientId == ingredientId);
+
+                if (recipeIngredient == null)
+                    return false;
+
+                _recipeIngredientRepository.Remove(recipeIngredient);
+                await _unitOfWork.SaveChangesAsync();
+                return true;
+            });
+        }
+
+        public async Task<List<RecipeIngredientDto>> GetRecipeIngredientsAsync(long recipeId)
+        {
+            var spec = new Specification<RecipeIngredient>(ri => ri.RecipeId == recipeId);
+            spec.IncludeStrings.Add("Ingredient");
+
+            var ingredients = await _recipeIngredientRepository.GetAllWithSpecAsync(spec, true);
+            return _mapper.Map<List<RecipeIngredientDto>>(ingredients.ToList());
+        }
+
+        #endregion
     }
 }

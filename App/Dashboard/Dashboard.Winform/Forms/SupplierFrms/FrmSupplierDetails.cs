@@ -1,4 +1,5 @@
 ﻿using ClosedXML.Excel;
+using Dashboard.Winform.Forms.BaseFrm;
 using Dashboard.Winform.Presenters.SupplierPresenters;
 using Dashboard.Winform.ViewModels;
 using Microsoft.AspNetCore.Components;
@@ -9,7 +10,7 @@ using System.Text.RegularExpressions;
 
 namespace Dashboard.Winform.Forms.SupplierFrm
 {
-    public partial class FrmSupplierDetails : Form
+    public partial class FrmSupplierDetails : FrmBaseAuthForm
     {
         #region Fields
         private bool _isEditMode;
