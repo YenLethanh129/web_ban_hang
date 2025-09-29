@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, take } from 'rxjs';
 import { ProductDTO } from '../../dtos/product.dto';
 import { CartService } from '../../services/cart.service';
 import { ProductService } from '../../services/product.service';
@@ -19,6 +19,7 @@ import { AddressAutocompleteComponent } from '../shared/address-autocomplete/add
 import { AddressPrediction } from '../../dtos/address.dto';
 import { UserAddressService } from '../../services/user-address.service';
 import { NotificationService } from '../../services/notification.service';
+import { AddressService } from '../../services/address.service';
 import { ValidateDTO } from '../../dtos/validate.dto';
 import { ValidateService } from '../../services/validate.service';
 
@@ -64,7 +65,7 @@ export class OrderComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   orderData = {
-    userId: 0, // This should be set to the actual user ID
+    userId: 0,
     fullName: '',
     email: '',
     phoneNumber: '',
@@ -77,16 +78,19 @@ export class OrderComponent implements OnInit, OnDestroy {
     paymentStatus: '',
   };
 
+  // The prediction object selected from the autocomplete results.
+  selectedAddressPrediction: AddressPrediction | null = null;
+
   constructor(
     private cartService: CartService,
     private productService: ProductService,
-    private tokenService: TokenService,
     private userService: UserService,
     private orderService: OrderService,
     private orderDetailService: OrderDetailService,
     private momoService: MomoService,
     private router: Router,
     private userAddressService: UserAddressService,
+    private addressService: AddressService,
     private notificationService: NotificationService
   ) {}
 
@@ -180,9 +184,11 @@ export class OrderComponent implements OnInit, OnDestroy {
   }
 
   validateShippingAddress(): void {
-    this.validateShippingAddressDTO = ValidateService.validateAddress(
-      this.orderData.shippingAddress
-    );
+    if (this.orderData.shippingAddress) {
+      this.validateShippingAddressDTO = ValidateService.validateAddress(
+        this.orderData.shippingAddress
+      );
+    }
     // Đồng bộ address với shippingAddress
     if (this.orderData.shippingAddress) {
       this.orderData.address = this.orderData.shippingAddress;
@@ -213,15 +219,7 @@ export class OrderComponent implements OnInit, OnDestroy {
     return isValid;
   }
 
-  onSubmit() {
-    if (!this.validateForm()) {
-      return;
-    }
-    // Recalculate total before submitting to be safe
-    this.orderData.totalMoney = this.getTotalPrice();
-    this.isLoading = true;
-    this.createOrder();
-  }
+  // onSubmit moved later to include address radius verification
 
   private loadUserData() {
     // First try to get current user if already loaded
@@ -328,13 +326,45 @@ export class OrderComponent implements OnInit, OnDestroy {
     );
   }
 
+  // Thêm hàm xử lý khi chọn địa chỉ từ autocomplete
   onAddressSelected(address: AddressPrediction): void {
+    this.selectedAddressPrediction = address;
     this.orderData.shippingAddress = address.description;
+
     this.validateShippingAddress();
   }
 
   onAddressFocus(): void {
     this.showAddressError = true;
+  }
+
+  onSubmit() {
+    if (!this.validateForm()) {
+      return;
+    }
+
+    // User must select an address from suggestions (so we have a place_id)
+    if (!this.selectedAddressPrediction) {
+      this.notificationService.showWarning(
+        'Vui lòng chọn địa chỉ giao hàng từ danh sách đề xuất.'
+      );
+      return;
+    }
+
+    this.orderData.totalMoney = this.getTotalPrice();
+
+    this.addressService
+      .isWithinDefaultRadius(this.selectedAddressPrediction.place_id)
+      .then((isValid) => {
+        if (isValid) {
+          this.createOrder();
+          this.isLoading = true;
+        } else {
+          this.notificationService.showWarning(
+            `Địa chỉ không hỗ trợ giao hàng - Vui lòng chọn địa chỉ gần hơn!`
+          );
+        }
+      });
   }
 
   createOrder(): void {
@@ -393,7 +423,6 @@ export class OrderComponent implements OnInit, OnDestroy {
       });
     });
 
-    debugger;
     if (this.momoInfoOrderDTO) {
       this.momoService.createQR(this.momoInfoOrderDTO).subscribe({
         next: (response: CreateMomoResponse) => {

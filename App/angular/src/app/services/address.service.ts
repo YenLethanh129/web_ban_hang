@@ -6,8 +6,11 @@ import {
   debounceTime,
   distinctUntilChanged,
   switchMap,
+  map,
+  catchError,
 } from 'rxjs';
 import { AddressSearchResponse, AddressPrediction } from '../dtos/address.dto';
+import * as OpenLocationCode from 'open-location-code';
 import { WebEnvironment } from '../environments/WebEnvironment';
 
 @Injectable({
@@ -18,8 +21,8 @@ export class AddressService {
 
   // Default location coordinates (Ho Chi Minh City center)
   private readonly defaultLocation = {
-    lat: 10.8033079,
-    lng: 106.6409201,
+    lat: 10.8068205,
+    lng: 106.6614606,
   };
 
   constructor(private http: HttpClient) {}
@@ -55,6 +58,21 @@ export class AddressService {
             return of(response.predictions);
           }
           return of([]);
+        })
+      );
+  }
+
+  getAddressByPlaceId(placeId: string): Observable<AddressPrediction | null> {
+    if (!placeId) {
+      return of(null);
+    }
+    const params = new HttpParams().set('place_id', placeId);
+    return this.http
+      .get<AddressPrediction>(`${this.baseUrl}/location/details`, { params })
+      .pipe(
+        catchError((error) => {
+          console.error('Error fetching address by place ID:', error);
+          return of(null);
         })
       );
   }
@@ -106,5 +124,72 @@ export class AddressService {
         }
       );
     });
+  }
+
+  /**
+   * Nếu khoảng cách nhỏ hơn 10km thì trả về true, ngược lại false
+   * @param place_id Mã của địa chỉ cần kiểm tra
+   * @param radiusKm Bán kính tối đa (km)
+   */
+  async isWithinDefaultRadius(
+    place_id: string,
+    radiusKm: number = 10
+  ): Promise<boolean> {
+    try {
+      const addressCoords = await this.getAddressByPlaceId(
+        place_id
+      ).toPromise();
+      if (!addressCoords) return false;
+
+      // Extract lat/lng from addressCoords.result.geometry.location
+      const coords = (addressCoords as any).result?.geometry?.location;
+
+      if (
+        !coords ||
+        typeof coords.lat !== 'number' ||
+        typeof coords.lng !== 'number'
+      ) {
+        return false;
+      }
+
+      const distance = this.distanceBetweenCoords(
+        this.defaultLocation.lat,
+        this.defaultLocation.lng,
+        coords.lat,
+        coords.lng
+      );
+      return distance <= radiusKm;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  private distanceCache = new Map<string, number>();
+
+  distanceBetweenCoords(
+    lat1: number,
+    lng1: number,
+    lat2: number,
+    lng2: number
+  ): number {
+    const cacheKey = `${lat1},${lng1}-${lat2},${lng2}`;
+    if (this.distanceCache.has(cacheKey)) {
+      return this.distanceCache.get(cacheKey)!;
+    }
+    const toRad = (value: number) => (value * Math.PI) / 180;
+    const R = 6371; // Bán kính Trái Đất trong km
+    const dLat = toRad(lat2 - lat1);
+    const dLng = toRad(lng2 - lng1);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(toRad(lat1)) *
+        Math.cos(toRad(lat2)) *
+        Math.sin(dLng / 2) *
+        Math.sin(dLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c; // Khoảng cách tính bằng km
+    this.distanceCache.set(cacheKey, distance);
+    console.log('Calculated distance:', distance, 'km');
+    return distance;
   }
 }

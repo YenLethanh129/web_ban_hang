@@ -3,6 +3,7 @@ package com.project.webbanhang.services;
 import com.project.webbanhang.api.GoongApi;
 import com.project.webbanhang.dtos.goong.GoongPlaceSearchDTO;
 import com.project.webbanhang.response.GoongPlaceResponse;
+import com.project.webbanhang.response.PlaceDetailResponse;
 import com.project.webbanhang.services.Interfaces.IGoongService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +36,18 @@ public class GoongService implements IGoongService {
         } catch (Exception e) {
             log.error("Error searching places with Goong API", e);
             throw new RuntimeException("Failed to search places: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public PlaceDetailResponse getPlaceDetails(String placeId) {
+        try {
+            log.info("Getting place details for placeId: {}", placeId);
+
+            return goongApi.getPlaceDetails(placeId, apiKey);
+        } catch (Exception e) {
+            log.error("Error getting place details with Goong API", e);
+            throw new RuntimeException("Failed to get place details: " + e.getMessage());
         }
     }
 }
