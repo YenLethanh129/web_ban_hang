@@ -89,14 +89,14 @@ if [ "$LOG_TO_FILE" = true ]; then
 fi
 
 # Stop current containers
-docker-compose.exe -f $DOCKER_COMPOSE_FILE down -v --remove-orphans "${SERVICES[@]}"
+docker-compose -f $DOCKER_COMPOSE_FILE down -v --remove-orphans "${SERVICES[@]}"
 
 # Build & up services
 if [ "$LOG_TO_FILE" = true ]; then
-  docker-compose.exe -f $DOCKER_COMPOSE_FILE --env-file $ENV_FILE up --build -d "${SERVICES[@]}" > "$NEW_LOG_FILE" 2>&1
+  docker-compose -f $DOCKER_COMPOSE_FILE --env-file $ENV_FILE up --build -d "${SERVICES[@]}" > "$NEW_LOG_FILE" 2>&1
   status=$?
 else
-  docker-compose.exe -f $DOCKER_COMPOSE_FILE --env-file $ENV_FILE up --build -d "${SERVICES[@]}"
+  docker-compose -f $DOCKER_COMPOSE_FILE --env-file $ENV_FILE up --build -d "${SERVICES[@]}"
   status=$?
 fi
 

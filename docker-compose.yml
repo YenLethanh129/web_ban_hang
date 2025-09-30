@@ -151,7 +151,7 @@ services:
 
   backend:
     build:
-      context: ./App/backend
+      context: ./App/backEnd
       dockerfile: Dockerfile
     env_file:
       - ./environments/web-backend.env
@@ -164,7 +164,7 @@ services:
       redis:
         condition: service_healthy
     volumes:
-      - ./App/backend:/app
+      - ./App/backEnd:/app
       - ~/.m2:/root/.m2
     working_dir: /app
     labels:
