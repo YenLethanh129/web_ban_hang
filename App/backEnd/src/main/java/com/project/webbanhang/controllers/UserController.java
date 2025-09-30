@@ -286,6 +286,7 @@ public class UserController {
                                 .build()
                 );
             }
+            userService.sendOtp(forgotPasswordDTO.getPhoneNumber());
             return ResponseEntity.ok(
                     MessageResponse.builder()
                             .message("OTP has been sent to your phone number")

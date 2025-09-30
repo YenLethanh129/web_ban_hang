@@ -50,9 +50,9 @@ management:
       exposure:
         include: health,info,metrics
 
-logging:
-  level:
-    root: DEBUG
+# logging:
+#   level:
+#     root: DEBUG
     
 api:
   prefix: ${API_PREFIX}
@@ -73,6 +73,8 @@ goong:
   endpoint: ${GOONG_ENDPOINT}
   apiKey: ${GOONG_API_KEY}
 
+otp: 
+  endpoint: ${OTP_ENDPOINT}
 
 # # TOP 10 OWASP 2023
 # # API8:2023 - Security Misconfiguration

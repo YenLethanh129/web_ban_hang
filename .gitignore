@@ -7,9 +7,13 @@ config.json
 .gitignore
 *.md
 credentials*
-/volumes/traefik/acme/acme.json 
 /cloudflared/*.json
 baocao/
+*.resx
+cert.pem
+/ssl/
+
+
 # OS and temp files 
 .DS_Store # macOS
 Thumbs.db # Windows

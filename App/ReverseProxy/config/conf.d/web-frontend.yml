@@ -8,9 +8,9 @@ http:
       tls:
         certResolver: internal
       middlewares:
-        # - lets-go-headers
-        - rate-limit
-        - secure-headers
+        - lets-go-headers
+        # - rate-limit
+        # - secure-headers
 
   services:
     frontend:

@@ -23,5 +23,4 @@ public interface GoongApi {
     PlaceDetailResponse getPlaceDetails(
             @RequestParam("place_id") String placeId,
             @RequestParam("api_key") String apiKey
-    );
-}
+    );}

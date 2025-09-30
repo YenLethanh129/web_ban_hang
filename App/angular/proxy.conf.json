@@ -1,6 +1,6 @@
 {
   "/api": {
-    "target": "https://localhost:1609",
+    "target": "https://web-api.kythuat.vn",
     "secure": false,
     "changeOrigin": true
   }

@@ -9,6 +9,9 @@ import java.util.Optional;
 import com.project.webbanhang.components.LocalizationUtil;
 import com.project.webbanhang.dtos.user.ChangPasswordDTO;
 import com.project.webbanhang.dtos.user.UserUpdateDTO;
+import com.project.webbanhang.response.otp.SentOtpResponse;
+import com.project.webbanhang.response.otp.VerifyOtpResponse;
+import com.project.webbanhang.services.Interfaces.IOtpService;
 import com.project.webbanhang.services.Interfaces.IUserService;
 import com.project.webbanhang.utils.MessageKey;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -38,6 +41,8 @@ public class UserService implements IUserService {
 	private final JwtTokenUtil jwtTokenUtil;
 	private final AuthenticationManager authenticationManager;
 	private final LocalizationUtil localizationUtil;
+
+	private final IOtpService otpService;
 
 	@Override
 	public User createUser(UserDTO userDTO) throws Exception {
@@ -182,14 +187,25 @@ public class UserService implements IUserService {
 	}
 
 	@Override
+	public void sendOtp(String phoneNumber) throws Exception {
+		SentOtpResponse response = otpService.sendOtp(phoneNumber, "6");
+		if (!response.isSuccess()) {
+			throw new Exception("Failed to send OTP: " + response.getMessage());
+		}
+		System.out.println("Your OTP is: " + response.getData().getTestOtp() + " (for testing purposes only)");
+	}
+
+
+	@Override
 	public String forgotPassword(String phoneNumber, String otp) throws Exception {
 		Optional<User> optionalUser = userRepository.findByPhoneNumber(phoneNumber);
 		if (optionalUser.isEmpty()) {
 			throw new DataNotFoundException(localizationUtil.getLocalizedMessage(MessageKey.USER_NOT_FOUND));
 		}
 		User existingUser = optionalUser.get();
-		if (!otp.equals("000000")) {
-			throw new Exception("Invalid OTP");
+		VerifyOtpResponse response = otpService.verifyOtp(phoneNumber, otp);
+		if (!response.isSuccess()) {
+			throw new Exception("Invalid OTP: " + response.getMessage());
 		}
 		String newPassword = generateValidPassword();
 		String encodePassword = passwordEncoder.encode(newPassword);

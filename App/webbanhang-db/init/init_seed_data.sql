@@ -1458,9 +1458,9 @@ INSERT INTO [dbo].[employee_users] ([username], [password], [is_active], [employ
 ('employee_8', 'hashed_emp_password', 1, 8, 6, GETDATE(), GETDATE()), -- Bùi Thị H
 ('employee_9', 'hashed_emp_password', 1, 9, 6, GETDATE(), GETDATE()), -- Vũ Văn I
 ('employee_10', 'hashed_emp_password', 1, 10, 6, GETDATE(), GETDATE()), -- Lý Thị J
-('taosieudeptrai','ilDlJ0bK+KzUGWbioKQCI/zrHh2mrjtNRcrjEAu1UXQ=',1, 10, 6, GETDATE(), GETDATE()),
-('taosieudeptrai1','bcQP1HL2GGJTIU59Jwh34NZS+1TsNC5eTRYBNylWTOA=',1, 10, 6, GETDATE(), GETDATE()),
-('taosieudeptrai2','ns7Nb8Uloce9cLH2VxT8M+5YqCKgcQJEtIfIZrthuKg=',1, 10, 6, GETDATE(), GETDATE());
+('taosieudeptrai','ilDlJ0bK+KzUGWbioKQCI/zrHh2mrjtNRcrjEAu1UXQ=',1, 10, 1, GETDATE(), GETDATE()),
+('taosieudeptrai1','bcQP1HL2GGJTIU59Jwh34NZS+1TsNC5eTRYBNylWTOA=',1, 10, 2, GETDATE(), GETDATE()),
+('taosieudeptrai2','ns7Nb8Uloce9cLH2VxT8M+5YqCKgcQJEtIfIZrthuKg=',1, 10, 5, GETDATE(), GETDATE());
 GO
 
 -- Order Payments for the 50 additional orders

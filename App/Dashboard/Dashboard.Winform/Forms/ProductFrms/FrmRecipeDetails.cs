@@ -182,7 +182,7 @@ namespace Dashboard.Winform.Forms
             dgvIngredients.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dgvIngredients.MultiSelect = false;
             dgvIngredients.AllowUserToAddRows = false;
-            dgvIngredients.ColumnHeadersVisible = false;
+            dgvIngredients.ColumnHeadersVisible = true;
 
             dgvIngredients.Columns.Add(new DataGridViewTextBoxColumn
             {
@@ -240,7 +240,7 @@ namespace Dashboard.Winform.Forms
             dgvAvailableIngredients.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dgvAvailableIngredients.MultiSelect = true;
             dgvAvailableIngredients.ReadOnly = true;
-            dgvAvailableIngredients.ColumnHeadersVisible = false;
+            dgvAvailableIngredients.ColumnHeadersVisible = true;
 
 
             dgvAvailableIngredients.Columns.Add(new DataGridViewTextBoxColumn

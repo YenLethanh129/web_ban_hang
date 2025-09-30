@@ -20,5 +20,7 @@ public interface IUserService {
 
 	boolean findByPhoneNumber(String phoneNumber) throws Exception;
 
+	void sendOtp (String phoneNumber) throws Exception;
+
 	String forgotPassword (String phoneNumber, String otp) throws Exception;
 }

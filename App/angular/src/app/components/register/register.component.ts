@@ -163,7 +163,39 @@ export class RegisterComponent implements OnInit, OnDestroy {
       this.validateAddressDTO.isValid &&
       this.validateDateOfBirthDTO.isValid;
 
-    this.notificationService.showInfo('📝 Đang kiểm tra thông tin đăng ký...');
+    switch (false) {
+      case this.validateUsernameDTO.isValid:
+        this.notificationService.showError(
+          this.validateUsernameDTO.errors[0] || 'Họ và tên không hợp lệ'
+        );
+        break;
+      case this.validatePhoneNumberDTO.isValid:
+        this.notificationService.showError(
+          this.validatePhoneNumberDTO.errors[0] || 'Số điện thoại không hợp lệ'
+        );
+        break;
+      case this.validateDateOfBirthDTO.isValid:
+        this.notificationService.showError(
+          this.validateDateOfBirthDTO.errors[0] || 'Ngày sinh không hợp lệ'
+        );
+        break;
+      case this.validateAddressDTO.isValid:
+        this.notificationService.showError(
+          this.validateAddressDTO.errors[0] || 'Địa chỉ không hợp lệ'
+        );
+        break;
+      case this.validatePasswordDTO.isValid:
+        this.notificationService.showError(
+          this.validatePasswordDTO.errors[0] || 'Mật khẩu không hợp lệ'
+        );
+        break;
+      case this.validateConfirmPasswordDTO.isValid:
+        this.notificationService.showError(
+          this.validateConfirmPasswordDTO.errors[0] ||
+            'Xác nhận mật khẩu không hợp lệ'
+        );
+        break;
+    }
     return isValid;
   }
 
@@ -192,7 +224,6 @@ export class RegisterComponent implements OnInit, OnDestroy {
 
       this.userService.register(registerDTO).subscribe({
         next: (response) => {
-          
           this.isLoading = false;
           this.notificationService.showSuccess(
             'Đăng ký thành công! Vui lòng đăng nhập để tiếp tục.'
@@ -220,7 +251,6 @@ export class RegisterComponent implements OnInit, OnDestroy {
 
   // TEST METHOD FOR NOTIFICATION
   testNotification(type: string) {
-    
     switch (type) {
       case 'success':
         this.notificationService.showSuccess('🎉 Đây là thông báo thành công!');

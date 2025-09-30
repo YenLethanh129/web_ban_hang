@@ -177,7 +177,6 @@ namespace Dashboard.Winform.Forms
                     DataPropertyName = nameof(RoleViewModel.Name),
                     HeaderText = "Tên Role",
                     Width = 200,
-                    AutoSizeMode = DataGridViewAutoSizeColumnMode.None
                 });
 
                 dgvRoles.Columns.Add(new DataGridViewTextBoxColumn
@@ -190,17 +189,9 @@ namespace Dashboard.Winform.Forms
 
                 dgvRoles.Columns.Add(new DataGridViewTextBoxColumn
                 {
-                    DataPropertyName = nameof(RoleViewModel.PermissionCount),
-                    HeaderText = "Số quyền",
-                    Width = 80,
-                    AutoSizeMode = DataGridViewAutoSizeColumnMode.None
-                });
-
-                dgvRoles.Columns.Add(new DataGridViewTextBoxColumn
-                {
                     DataPropertyName = nameof(RoleViewModel.CreatedAt),
                     HeaderText = "Ngày tạo",
-                    Width = 120,
+                    Width = 200,
                     AutoSizeMode = DataGridViewAutoSizeColumnMode.None,
                     DefaultCellStyle = new DataGridViewCellStyle { Format = "dd/MM/yyyy" }
                 });
