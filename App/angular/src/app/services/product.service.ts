@@ -29,8 +29,6 @@ export class ProductService {
 
     return this.http.get<ProductResponse>(this.apiUrl, { params }).pipe(
       tap((response) => {
-        // If this is the first page, start loading all products in background for search capability
-        // but don't cache all products yet to avoid showing all products on pagination
         if (page === 1 && !this.allProductsLoaded) {
           this.loadAllProductsInBackground();
         }

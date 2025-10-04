@@ -71,7 +71,7 @@ export class SearchService {
     const startTime = performance.now();
 
     // Always try cache first for better performance
-    const cachedResults = this.cacheService.searchProducts(query, 1000); // Increased limit for more results
+    const cachedResults = this.cacheService.searchProducts(query, 100); // Increased limit for more results
 
     if (cachedResults.length > 0 || this.cacheService.isProductsCached()) {
       // Use cached results
@@ -98,7 +98,7 @@ export class SearchService {
       }
     } else {
       // Need to load products first, then search
-      
+
       this.productService.getAllProducts().subscribe({
         next: (products) => {
           const filteredResults = this.filterProducts(products, query);
@@ -139,11 +139,10 @@ export class SearchService {
     }
 
     this.cacheRefreshInProgress = true;
-    
 
     this.productService.getAllProducts().subscribe({
       next: (products) => {
-        
+        this.cacheService.setProducts(products);
         this.cacheRefreshInProgress = false;
       },
       error: (error) => {

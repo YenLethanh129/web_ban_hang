@@ -199,20 +199,15 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   private loadProducts(): void {
-    // Không lấy cache trước - để tránh trigger observable
-    // Chỉ fallback to cache khi server thật sự fail
-
     this.isLoading = true;
-
     this.productService
       .getProducts(this.currentPage, this.limit, false)
       .subscribe({
         next: (response) => {
           // Validate response to prevent undefined values
-          if (!response || !Array.isArray(response.products)) {
+          if (!response || response.products.length == 0) {
             console.error('Invalid response format:', response);
 
-            // Fallback to cache only when server response is invalid
             const cachedProducts = this.cacheService.getProducts();
             if (cachedProducts.length > 0) {
               console.log(
