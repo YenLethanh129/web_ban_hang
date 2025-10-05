@@ -11,7 +11,9 @@ namespace Dashboard.BussinessLogic.Services.BranchServices;
 public interface IBranchService
 {
     Task<PagedList<BranchDto>> GetBranchesAsync(GetBranchesInput input);
-    Task<BranchDto?> GetBranchByIdAsync(long id);   
+    Task<BranchDto?> GetBranchByIdAsync(long id);
+    Task<List<BranchExpenseDto>> GetBranchExpensesByBranchIdAsync(long id);
+    Task<List<BranchExpenseDto>> GetAllBranchExpensesAsync();
 }
 
 public class BranchService : IBranchService
@@ -36,7 +38,7 @@ public class BranchService : IBranchService
 
     public async Task<PagedList<BranchDto>> GetBranchesAsync(GetBranchesInput input)
     {
-        var spec = new Specification<Branch>(b => 
+        var spec = new Specification<Branch>(b =>
             (!input.Id.HasValue || b.Id == input.Id) &&
             (string.IsNullOrEmpty(input.Name) || b.Name.Contains(input.Name)) &&
             (string.IsNullOrEmpty(input.Address) || b.Address != null && b.Address.Contains(input.Address)) &&
@@ -58,5 +60,20 @@ public class BranchService : IBranchService
             PageNumber = input.PageNumber,
             PageSize = input.PageSize
         };
+    }
+
+     
+    public async Task<List<BranchExpenseDto>> GetBranchExpensesByBranchIdAsync(long id)
+    {
+        var spec = new Specification<BranchExpense>(be => be.BranchId == id);
+        var entities = await _unitOfWork.Repository<BranchExpense>().GetAllWithSpecAsync(spec, asNoTracking: true);
+        return _mapper.Map<List<BranchExpenseDto>>(entities);
+    }
+
+    public async Task<List<BranchExpenseDto>> GetAllBranchExpensesAsync()
+    {
+        var spec = new Specification<BranchExpense>(_ => true);
+        var entities = await _unitOfWork.Repository<BranchExpense>().GetAllWithSpecAsync(spec, asNoTracking: true);
+        return _mapper.Map<List<BranchExpenseDto>>(entities);
     }
 }

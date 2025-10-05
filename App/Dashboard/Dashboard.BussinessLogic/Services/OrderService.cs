@@ -153,6 +153,7 @@ public class OrderService : BaseTransactionalService, IOrderService
         var orders = await _unitOfWork.Repository<Order>().GetAllWithSpecAsync(specification, true);
         
         var branchSummary = orders
+            .Where(o => o.Branch != null)
             .GroupBy(o => new { o.BranchId, BranchName = o.Branch!.Name })
             .Select(g => new BranchOrderSummary(
                 g.Key.BranchId ?? 0,
@@ -193,6 +194,7 @@ public class OrderService : BaseTransactionalService, IOrderService
             .ToList();
 
         var branchSummary = orders
+            .Where(o => o.Branch != null)
             .GroupBy(o => o.Branch!)
             .Select(g => new BranchOrderSummary(
                 g.Key.Id,

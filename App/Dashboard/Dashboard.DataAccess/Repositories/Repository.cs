@@ -1,5 +1,6 @@
 ﻿using Dashboard.Common.Enums;
 using Dashboard.DataAccess.Context;
+using Dashboard.DataAccess.Models.Entities.Branches;
 using Dashboard.DataAccess.Specification;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;

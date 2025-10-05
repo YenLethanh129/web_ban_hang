@@ -1,13 +1,14 @@
 ﻿using AutoMapper;
-using Dashboard.DataAccess.Data;
-using Dashboard.DataAccess.Repositories;
-using Dashboard.DataAccess.Specification;
 using Dashboard.BussinessLogic.Dtos;
+using Dashboard.BussinessLogic.Dtos.BranchDtos;
 using Dashboard.BussinessLogic.Dtos.ExpenseDtos;
 using Dashboard.BussinessLogic.Shared;
 using Dashboard.BussinessLogic.Specifications;
+using Dashboard.DataAccess.Data;
 using Dashboard.DataAccess.Models.Entities.Branches;
 using Dashboard.DataAccess.Models.Entities.FinacialAndReports;
+using Dashboard.DataAccess.Repositories;
+using Dashboard.DataAccess.Specification;
 
 namespace Dashboard.BussinessLogic.Services.ReportServices;
 
@@ -22,6 +23,7 @@ public interface IExpenseService
     Task<IEnumerable<ExpenseDto>> GetExpensesByTypeAsync(string expenseType, DateTime? fromDate = null, DateTime? toDate = null);
     Task<decimal> GetTotalExpensesAsync(long? branchId = null, DateTime? fromDate = null, DateTime? toDate = null);
     Task<IEnumerable<ExpenseSummaryDto>> GetCogsSummaryAsync(DateTime fromDate, DateTime toDate, long? branchId = null);
+    Task<IEnumerable<BranchExpenseDto>> GetBranchExpensesRawAsync(long branchId, DateTime? fromDate = null, DateTime? toDate = null);
 }
 
 public class ExpenseService : BaseTransactionalService, IExpenseService
@@ -154,5 +156,17 @@ public class ExpenseService : BaseTransactionalService, IExpenseService
     {
         var summaries = await _expenseRepository.GetCogsSummaryByBranchAndDateAsync(fromDate, toDate, branchId);
         return _mapper.Map<IEnumerable<ExpenseSummaryDto>>(summaries);
+    }
+
+    public async Task<IEnumerable<BranchExpenseDto>> GetBranchExpensesRawAsync(
+        long branchId,
+        DateTime? fromDate = null,
+        DateTime? toDate = null)
+    {
+        var spec = ExpenseSpecifications.ByBranch(branchId, fromDate, toDate);
+        var entities = await _unitOfWork.Repository<BranchExpense>()
+            .GetAllWithSpecAsync(spec, true);
+
+        return _mapper.Map<IEnumerable<BranchExpenseDto>>(entities);
     }
 }

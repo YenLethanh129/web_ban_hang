@@ -1,8 +1,11 @@
 ﻿using Dashboard.BussinessLogic.Security;
 using Dashboard.BussinessLogic.Services.ProductServices;
+using Dashboard.BussinessLogic.Services.ReportServices;
+using Dashboard.BussinessLogic.Services.BranchServices;
 using Dashboard.Common.Options;
 using Dashboard.DataAccess.Helpers;
 using Dashboard.Winform.Forms;
+using Dashboard.Winform.Forms.CostFrms;
 using Dashboard.Winform.Forms.SupplierFrm;
 using Dashboard.Winform.Mappings;
 using Dashboard.Winform.Presenters;
@@ -67,9 +70,9 @@ namespace Dashboard.Winform
             services.AddTransient<FrmRolePermissionManagement>();
             services.AddTransient<FrmScheduleEditor>();
             services.AddTransient<FrmLogin>();
-            services.AddTransient<FrmRecipeDetails>();
             services.AddTransient<FrmSupplierManagement>();
             services.AddTransient<FrmSupplierDetails>();
+            services.AddTransient<FrmCostStoreRunning>();
 
             var securitySection = configuration.GetSection("Security");
             services.Configure<SecurityOptions>(securitySection);

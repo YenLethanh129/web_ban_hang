@@ -2,6 +2,7 @@
 using Dashboard.Common.Options;
 using Dashboard.DataAccess;
 using Dashboard.Winform.Forms;
+using Dashboard.Winform.Forms.CostFrms;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -75,7 +76,8 @@ internal static class Program
         using var host = builder.Build();
         ApplicationConfiguration.Initialize();
 
-        var mainForm = host.Services.GetRequiredService<FrmBaseMdiWithSidePanel>();
+        //var mainForm = host.Services.GetRequiredService<FrmBaseMdiWithSidePanel>();
+        var mainForm = host.Services.GetRequiredService<FrmCostStoreRunning>();
         Application.Run(mainForm);
     }
 
