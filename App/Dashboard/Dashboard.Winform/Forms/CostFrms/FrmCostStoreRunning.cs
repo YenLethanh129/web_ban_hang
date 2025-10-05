@@ -9,6 +9,7 @@ using Dashboard.BussinessLogic.Dtos.BranchDtos;
 using Dashboard.BussinessLogic.Services.BranchServices;
 using Dashboard.BussinessLogic.Services.ReportServices;
 using Dashboard.Winform.Interfaces;
+using System.Text;
 
 namespace Dashboard.Winform.Forms.CostFrms
 {
@@ -24,7 +25,7 @@ namespace Dashboard.Winform.Forms.CostFrms
         // Time filter properties
         private DateTime _fromDate;
         private DateTime _toDate;
-        private TimeFilterType _currentFilter = TimeFilterType.OneMonth;
+        private TimeFilterType _currentFilter = TimeFilterType.OneYear;
 
         public FrmCostStoreRunning(IBranchService branchService)
         {
@@ -53,9 +54,9 @@ namespace Dashboard.Winform.Forms.CostFrms
         /// </summary>
         private void InitializeTimeFilters()
         {
-            // Mặc định lấy 1 tháng gần nhất
+            // Mặc định lấy 1 năm gần nhất
             _toDate = DateTime.Now.Date.AddDays(1).AddSeconds(-1); // Cuối ngày hôm nay
-            _fromDate = _toDate.AddMonths(-1).Date; // 1 tháng trước
+            _fromDate = _toDate.AddYears(-1).Date;
 
             // Cập nhật giao diện các nút thời gian
             UpdateTimeFilterButtons();
@@ -99,21 +100,21 @@ namespace Dashboard.Winform.Forms.CostFrms
         private void HighlightButton(Button button)
         {
             button.ForeColor = Color.White;
+            pnListCost.BackColor = button.BackColor;
         }
 
         private void WireEvents()
         {
             Load += async (_, _) => await SafeRunAsync(LoadBranchesAsync, "Đang tải chi nhánh...");
             btnTotalBranch.Click += async (_, _) => await SafeRunAsync(LoadAllExpensesAsync, "Đang tải tất cả chi phí...");
-            
+
             // Wire time filter events - XÓA TẤT CẢ LEGACY EVENT HANDLERS CŨ
             // Chỉ giữ lại async handlers
             btnOption1M.Click += async (_, _) => await OnTimeFilterChanged(TimeFilterType.OneMonth);
             btnOption3M.Click += async (_, _) => await OnTimeFilterChanged(TimeFilterType.ThreeMonths);
             btnOption1Y.Click += async (_, _) => await OnTimeFilterChanged(TimeFilterType.OneYear);
             btnOptionTime.Click += async (_, _) => await OnCustomTimeFilterClicked();
-            
-            pnAddCost.Visible = false; // Ẩn panel thêm chi phí tạm thời
+
         }
 
         /// <summary>
@@ -122,10 +123,10 @@ namespace Dashboard.Winform.Forms.CostFrms
         private async Task OnTimeFilterChanged(TimeFilterType filterType)
         {
             _currentFilter = filterType;
-            
+
             // Cập nhật khoảng thời gian
             var endDate = DateTime.Now.Date.AddDays(1).AddSeconds(-1);
-            
+
             switch (filterType)
             {
                 case TimeFilterType.OneMonth:
@@ -157,13 +158,13 @@ namespace Dashboard.Winform.Forms.CostFrms
             try
             {
                 using var dateRangeDialog = new DateRangeDialog(_fromDate, _toDate);
-                
+
                 if (dateRangeDialog.ShowDialog(this) == DialogResult.OK)
                 {
                     _fromDate = dateRangeDialog.FromDate;
                     _toDate = dateRangeDialog.ToDate;
                     _currentFilter = TimeFilterType.Custom;
-                    
+
                     UpdateTimeFilterButtons();
                     await ReloadCurrentView();
                 }
@@ -172,7 +173,7 @@ namespace Dashboard.Winform.Forms.CostFrms
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Lỗi khi mở dialog chọn thời gian: {ex.Message}", 
+                MessageBox.Show($"Lỗi khi mở dialog chọn thời gian: {ex.Message}",
                     "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -441,7 +442,7 @@ namespace Dashboard.Winform.Forms.CostFrms
             return _currentFilter switch
             {
                 TimeFilterType.OneMonth => "1 tháng gần nhất",
-                TimeFilterType.ThreeMonths => "3 tháng gần nhất", 
+                TimeFilterType.ThreeMonths => "3 tháng gần nhất",
                 TimeFilterType.OneYear => "1 năm gần nhất",
                 TimeFilterType.Custom => $"{_fromDate:dd/MM/yyyy} - {_toDate:dd/MM/yyyy}",
                 _ => "Tất cả thời gian"
@@ -502,6 +503,132 @@ namespace Dashboard.Winform.Forms.CostFrms
         }
 
         #endregion
+
+        private void btnExportCSV_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (_expenses == null || !_expenses.Any())
+                {
+                    MessageBox.Show("Không có dữ liệu để xuất file CSV.", "Thông báo", 
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
+
+                // Tạo SaveFileDialog để người dùng chọn nơi lưu file
+                using var saveFileDialog = new SaveFileDialog
+                {
+                    Filter = "CSV files (*.csv)|*.csv|All files (*.*)|*.*",
+                    FilterIndex = 1,
+                    FileName = $"chi-phi-van-hanh-{DateTime.Now:yyyyMMdd-HHmmss}.csv",
+                    Title = "Lưu file CSV",
+                    InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop)
+                };
+
+                if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    // Tạo nội dung CSV
+                    var csvContent = GenerateExpensesCsvContent();
+                    
+                    // Ghi file với UTF-8 BOM để Excel hiển thị tiếng Việt đúng
+                    var csvBytes = System.Text.Encoding.UTF8.GetPreamble()
+                        .Concat(System.Text.Encoding.UTF8.GetBytes(csvContent))
+                        .ToArray();
+                    
+                    File.WriteAllBytes(saveFileDialog.FileName, csvBytes);
+
+                    MessageBox.Show($"Xuất file CSV thành công!\nĐường dẫn: {saveFileDialog.FileName}", 
+                        "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                    // Hỏi người dùng có muốn mở file không
+                    var result = MessageBox.Show("Bạn có muốn mở file vừa xuất không?", 
+                        "Mở file", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                    
+                    if (result == DialogResult.Yes)
+                    {
+                        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                        {
+                            FileName = saveFileDialog.FileName,
+                            UseShellExecute = true
+                        });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi khi xuất file CSV: {ex.Message}", "Lỗi", 
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        /// <summary>
+        /// Tạo nội dung CSV cho danh sách chi phí
+        /// </summary>
+        private string GenerateExpensesCsvContent()
+        {
+            var csv = new StringBuilder();
+            
+            // Header CSV
+            csv.AppendLine("STT,Tên Chi Nhánh,Loại Chi Phí,Số Tiền (VNĐ),Ghi Chú,Ngày Bắt Đầu,Ngày Kết Thúc,Chu Kỳ Thanh Toán");
+
+            // Sắp xếp expenses theo StartDate (mới nhất trước)
+            var sortedExpenses = _expenses.OrderByDescending(e => e.StartDate).ToList();
+
+            for (int i = 0; i < sortedExpenses.Count; i++)
+            {
+                var expense = sortedExpenses[i];
+                
+                // Tìm tên chi nhánh từ danh sách branches
+                var branchName = GetBranchName(expense.BranchId);
+                
+                // Format các trường dữ liệu và escape dấu ngoặc kép
+                var expenseType = EscapeCsvField(expense.ExpenseType);
+                var amount = expense.Amount.ToString("N0"); // Format số với dấu phẩy
+                var note = EscapeCsvField(expense.Note ?? "");
+                var startDate = expense.StartDate.ToString("dd/MM/yyyy");
+                var endDate = expense.EndDate?.ToString("dd/MM/yyyy") ?? "";
+                var paymentCycle = EscapeCsvField(expense.PaymentCycle ?? "");
+
+                csv.AppendLine($"{i + 1}," +
+                             $"\"{branchName}\"," +
+                             $"\"{expenseType}\"," +
+                             $"{amount}," +
+                             $"\"{note}\"," +
+                             $"\"{startDate}\"," +
+                             $"\"{endDate}\"," +
+                             $"\"{paymentCycle}\"");
+            }
+
+            // Thêm thông tin tổng kết
+            csv.AppendLine();
+            csv.AppendLine($"Tổng số bản ghi:,{_expenses.Count}");
+            csv.AppendLine($"Tổng số tiền:,{_expenses.Sum(e => e.Amount):N0} VNĐ");
+            csv.AppendLine($"Thời gian xuất:,\"{DateTime.Now:dd/MM/yyyy HH:mm:ss}\"");
+            csv.AppendLine($"Bộ lọc thời gian:,\"{GetTimeRangeDisplayText()}\"");
+
+            return csv.ToString();
+        }
+
+        /// <summary>
+        /// Lấy tên chi nhánh theo ID
+        /// </summary>
+        private string GetBranchName(long branchId)
+        {
+            var branch = _branches?.FirstOrDefault(b => b.Id == branchId);
+            return branch?.Name ?? $"Chi nhánh ID: {branchId}";
+        }
+
+        /// <summary>
+        /// Escape các ký tự đặc biệt trong CSV field
+        /// </summary>
+        private string EscapeCsvField(string field)
+        {
+            if (string.IsNullOrEmpty(field))
+                return "";
+
+            // Thay thế dấu ngoặc kép bằng hai dấu ngoặc kép
+            return field.Replace("\"", "\"\"");
+        }
     }
 
     /// <summary>

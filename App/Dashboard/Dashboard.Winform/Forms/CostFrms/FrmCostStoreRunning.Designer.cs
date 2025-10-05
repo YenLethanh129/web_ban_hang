@@ -39,7 +39,8 @@
             pnTotalMoney = new Panel();
             button6 = new Button();
             button5 = new Button();
-            pnAddCost = new Panel();
+            pnExportCSV = new Panel();
+            btnExportCSV = new Button();
             pnListBranch.SuspendLayout();
             fpnListBranch.SuspendLayout();
             pnTitle.SuspendLayout();
@@ -47,6 +48,7 @@
             pnOptionTime.SuspendLayout();
             pnListCost.SuspendLayout();
             pnTotalMoney.SuspendLayout();
+            pnExportCSV.SuspendLayout();
             SuspendLayout();
             // 
             // pnListBranch
@@ -281,21 +283,34 @@
             button5.TextAlign = ContentAlignment.MiddleLeft;
             button5.UseVisualStyleBackColor = false;
             // 
-            // pnAddCost
+            // pnExportCSV
             // 
-            pnAddCost.Dock = DockStyle.Bottom;
-            pnAddCost.Location = new Point(250, 450);
-            pnAddCost.Margin = new Padding(0);
-            pnAddCost.Name = "pnAddCost";
-            pnAddCost.Size = new Size(650, 250);
-            pnAddCost.TabIndex = 4;
+            pnExportCSV.Controls.Add(btnExportCSV);
+            pnExportCSV.Dock = DockStyle.Bottom;
+            pnExportCSV.Location = new Point(250, 650);
+            pnExportCSV.Margin = new Padding(0);
+            pnExportCSV.Name = "pnExportCSV";
+            pnExportCSV.Size = new Size(650, 50);
+            pnExportCSV.TabIndex = 4;
+            // 
+            // btnExportCSV
+            // 
+            btnExportCSV.Dock = DockStyle.Fill;
+            btnExportCSV.Font = new Font("Microsoft Sans Serif", 11F);
+            btnExportCSV.Location = new Point(0, 0);
+            btnExportCSV.Name = "btnExportCSV";
+            btnExportCSV.Size = new Size(650, 50);
+            btnExportCSV.TabIndex = 0;
+            btnExportCSV.Text = "Xuất ra file CSV";
+            btnExportCSV.UseVisualStyleBackColor = true;
+            btnExportCSV.Click += btnExportCSV_Click;
             // 
             // FrmCostStoreRunning
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(900, 700);
-            Controls.Add(pnAddCost);
+            Controls.Add(pnExportCSV);
             Controls.Add(pnListCost);
             Controls.Add(pnOptionTime);
             Controls.Add(pnNameBrach);
@@ -310,6 +325,7 @@
             pnOptionTime.ResumeLayout(false);
             pnListCost.ResumeLayout(false);
             pnTotalMoney.ResumeLayout(false);
+            pnExportCSV.ResumeLayout(false);
             ResumeLayout(false);
         }
 
@@ -319,7 +335,7 @@
         private Panel pnNameBrach;
         private Panel pnOptionTime;
         private Panel pnListCost;
-        private Panel pnAddCost;
+        private Panel pnExportCSV;
         private Panel pnTitle;
         private Button txtTitle;
         private Button txtNameBranch;
@@ -333,5 +349,6 @@
         private Button button5;
         private FlowLayoutPanel fpnListCost;
         private Button button6;
+        private Button btnExportCSV;
     }
 }
